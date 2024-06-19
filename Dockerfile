@@ -1,0 +1,14 @@
+FROM node:latest
+
+ARG DATABASE_USER
+ARG DATABASE_PASSWORD
+ARG SERVER_URL
+ARG BOT_TOKEN
+ARG SHEET_ID
+
+WORKDIR /usr/src/app
+COPY . .
+
+RUN npm install
+RUN npm run build
+CMD npm start
