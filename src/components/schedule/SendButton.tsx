@@ -34,12 +34,10 @@ export default function SendButton({
       globalComment,
     }
 
-    const result = await (
-      await fetch('/api/send', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
-    ).json()
+    const result = await fetch('/api/send', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
 
     if (result.ok) {
       telegram.close()
