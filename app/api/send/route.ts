@@ -40,13 +40,7 @@ export async function POST(req: NextRequest) {
   ]
 
   const formattedDates = selectedDays?.map((day, index) => {
-    const date = new Date(day.date)
-    const dateValue = date.toLocaleString('ru-RU', {
-      month: 'numeric',
-      day: 'numeric',
-    })
-
-    return {date: dateValue, key: keys[index], value: day.value}
+    return {date: day.date, key: keys[index], value: day.value}
   })
 
   const changes: string[] = []
@@ -84,10 +78,13 @@ export async function POST(req: NextRequest) {
       return
     }
 
-    if (compareObjects(cell.backgroundColor, {red: 1})) {
+    if (compareObjects(cell.backgroundColor, {red: 1}) && day.value === '-') {
       return
     }
-    if (compareObjects(cell.backgroundColor, {red: 1, green: 1})) {
+    if (
+      compareObjects(cell.backgroundColor, {red: 1, green: 1}) &&
+      day.value === '+/-'
+    ) {
       return
     }
 

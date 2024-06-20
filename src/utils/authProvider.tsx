@@ -1,11 +1,13 @@
 'use client'
 
-import Loading from '@/app/loading/page'
-import Home from '@/app/page'
-import Register from '@/app/register/page'
+import {redirect} from 'next/navigation'
 import {useContext, useEffect} from 'react'
-import {GlobalStateContext} from './stateProvider'
+import StateProvider, {GlobalStateContext} from './stateProvider'
 import {Day, User} from './types'
+import Register from '@/app/register/page'
+import Home from '@/app/page'
+import Loading from '@/app/loading/page'
+import getDatesInRange from './getDatesInRange'
 
 export default function AuthProvider() {
   const {
