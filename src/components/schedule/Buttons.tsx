@@ -20,8 +20,8 @@ export default function Buttons({day, index}: ButtonsOptions) {
   const handler = (value: '+' | '-' | '+/-') => {
     let newDays: Day[] = [...selectedDays]
     const oldDay = newDays.find(
-      obj =>
-        obj?.date.toLocaleDateString('ru-RU') ===
+      item =>
+        item?.date.toLocaleDateString('ru-RU') ===
         day.date.toLocaleDateString('ru-RU'),
     )
 
@@ -47,21 +47,21 @@ export default function Buttons({day, index}: ButtonsOptions) {
       key={index}>
       <button
         className={`btn btn-primary flex-1 ${
-          selectedDay?.value !== '+' && 'opacity-30'
+          selectedDay?.value !== '+' ? 'btn-success' : 'opacity-30'
         }`}
         onClick={() => handler('+')}>
         +
       </button>
       <button
         className={`btn btn-primary flex-1 ${
-          selectedDay?.value !== '-' && 'opacity-30'
+          selectedDay?.value !== '-' ? 'btn.error' : 'opacity-30'
         }`}
         onClick={() => handler('-')}>
         -
       </button>
       <button
         className={`btn btn-primary flex-1 ${
-          selectedDay?.value !== '+/-' && 'opacity-30'
+          selectedDay?.value !== '+/-' ? 'btn-warning' : 'opacity-30'
         }`}
         onClick={() => handler('+/-')}>
         +/-

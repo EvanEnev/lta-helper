@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
+  if (!changes) return NextResponse.json({}, {status: 200})
   const text = `${name}\n\n` + changes?.join('\n') + `\n\n${globalComment}`
 
   await fetch(
