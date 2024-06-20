@@ -113,9 +113,24 @@ export async function POST(req: NextRequest) {
       headers: new Headers({
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify({chat_id: worker?.id, text}),
+      body: JSON.stringify({chat_id: worker?.id, text: 'Успешно ✅'}),
     },
   )
+
+  // await fetch(
+  //   `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
+  //   {
+  //     method: 'POST',
+  //     headers: new Headers({
+  //       'Content-Type': 'application/json',
+  //     }),
+  //     body: JSON.stringify({
+  //       chat_id: -1001949029897,
+  //       message_thread_id: 108,
+  //       text,
+  //     }),
+  //   },
+  // )
 
   return NextResponse.json({}, {status: 200})
 }

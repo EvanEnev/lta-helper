@@ -13,7 +13,7 @@ export default function SendButton({
 }: SendButtonOptions) {
   const [isLoading, setIsLoading] = useState(false)
 
-  const {worker, selectedDays} = useContext(GlobalStateContext)
+  const {worker, selectedDays, telegram} = useContext(GlobalStateContext)
 
   const sendButtonHandler = async () => {
     if (isLoading) return
@@ -41,7 +41,8 @@ export default function SendButton({
       })
     ).json()
 
-    if (result?.error) {
+    if (result.ok) {
+      telegram.close()
     }
 
     setIsLoading(false)

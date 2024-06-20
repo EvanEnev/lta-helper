@@ -67,6 +67,8 @@ export default function AuthProvider() {
     const appTelegram = (window as any)?.Telegram?.WebApp
 
     if (appTelegram) {
+      appTelegram.ready()
+      appTelegram.expand()
       getWorker(appTelegram)
       setTelegram(appTelegram)
     }
