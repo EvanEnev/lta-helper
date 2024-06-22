@@ -3,14 +3,10 @@ import {Day} from '@/src/utils/types'
 import {useContext, useState} from 'react'
 
 type SendButtonOptions = {
-  isNextWeek: boolean
   globalComment?: string
 }
 
-export default function SendButton({
-  isNextWeek,
-  globalComment,
-}: SendButtonOptions) {
+export default function SendButton({globalComment}: SendButtonOptions) {
   const [isLoading, setIsLoading] = useState(false)
 
   const {worker, selectedDays, telegram} = useContext(GlobalStateContext)
@@ -21,15 +17,11 @@ export default function SendButton({
 
     const days = selectedDays.map((day: Day) => ({
       ...day,
-      date: day.date.toLocaleString('ru-RU', {
-        month: 'numeric',
-        day: 'numeric',
-      }),
+      date: day.date,
     }))
 
     const body = {
       selectedDays: days,
-      isNextWeek,
       worker,
       globalComment,
     }

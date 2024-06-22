@@ -1,10 +1,10 @@
 import conn from '@/lib/database'
 import validateData from '@/lib/validateData'
+import getWorkerData from '@/src/utils/getWorkerData'
 import {User} from '@/src/utils/types'
 import {NextRequest, NextResponse} from 'next/server'
 
 export async function POST(req: NextRequest) {
-  // @ts-ignore
   const body = await req.json()
 
   const user: User | undefined = body?.user
@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Пользователь не указан'}, {status: 404})
   }
 
-  if (!(await validateData(user?.initData))) {
+  const valid = await validateData(user?.initData)
+
+  if (!valid) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
@@ -26,8 +28,7 @@ export async function POST(req: NextRequest) {
   const query = `INSERT INTO "lt-arena"."workers" (telegram_id, name) VALUES (${telegramId}, '${name}')`
   await conn.query(query)
 
-  return NextResponse.json(
-    {message: 'OK', worker: {name, telegramId}},
-    {status: 200},
-  )
+  const workingDays = await getWorkerData({name})
+
+  return NextResponse.json({worker: {name, workingDays, valid}}, {status: 200})
 }

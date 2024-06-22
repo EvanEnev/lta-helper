@@ -10,29 +10,16 @@ type ButtonsOptions = {
 export default function Buttons({day, index}: ButtonsOptions) {
   const {selectedDays, setSelectedDays} = useContext(GlobalStateContext)
 
-  const selectedDay =
-    selectedDays.find(
-      item =>
-        item?.date?.toLocaleDateString('ru-RU') ===
-        day?.date?.toLocaleDateString('ru-RU'),
-    ) || day
+  const selectedDay = selectedDays.find(item => item?.date === day?.date) || day
 
   const handler = (value: '+' | '-' | '+/-') => {
     let newDays: Day[] = [...selectedDays]
-    const oldDay = newDays.find(
-      item =>
-        item?.date.toLocaleDateString('ru-RU') ===
-        day.date.toLocaleDateString('ru-RU'),
-    )
+    const oldDay = newDays.find(item => item?.date === day.date)
 
     const dayIndex = oldDay ? newDays.indexOf(oldDay) : index
 
     if (oldDay?.value === value) {
-      newDays = newDays.filter(
-        item =>
-          item?.date.toLocaleDateString('ru-RU') !==
-          day?.date.toLocaleDateString('ru-RU'),
-      )
+      newDays = newDays.filter(item => item?.date !== day?.date)
     } else {
       const newDay = oldDay ? {...oldDay, value} : {...day, value}
       newDays[dayIndex] = newDay

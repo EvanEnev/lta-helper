@@ -8,10 +8,15 @@ interface DayWithCommentsProps {
 }
 
 const DayWithComments: React.FC<DayWithCommentsProps> = ({day, index}) => {
+  const [dayNumber, month] = day.date?.split('.').map(Number)
+  const currentYear = new Date().getFullYear()
+
+  const date = new Date(currentYear, month - 1, dayNumber)
+
   return (
     <div className="gap-4 w-full" key={index}>
       <p>
-        {day.date.toLocaleDateString('ru-RU', {
+        {date.toLocaleDateString('ru-RU', {
           day: 'numeric',
           weekday: 'long',
           month: 'long',

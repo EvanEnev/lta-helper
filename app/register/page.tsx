@@ -2,11 +2,13 @@
 
 import {useContext, useState} from 'react'
 import {GlobalStateContext} from '@/src/utils/stateProvider'
+import {Day} from '@/src/utils/types'
 
 export default function Register() {
   const [name, setName] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const {user, setWorker} = useContext(GlobalStateContext)
+  const {user, setWorker, setDays, setSelectedDays} =
+    useContext(GlobalStateContext)
 
   const nameInputHandler = (event: {target: {value: any}}) => {
     const text = event.target.value
@@ -24,9 +26,27 @@ export default function Register() {
 
     setIsLoading(false)
 
-    if (data.worker) {
-      setWorker(data.worker)
+    if (data.name && data.valid) {
+      setWorker(data)
+      setDays(data?.workingDays || [])
     }
+
+    const newDays: Day[] = []
+    data?.workingDays?.forEach(
+      (day: {date: string; value?: string; location?: string}) => {
+        if (day.location) {
+          newDays.push({
+            date: day.date,
+            value: day.value,
+            location: day.location,
+          })
+        } else if (day.value) {
+          newDays.push({date: day.date, value: day.value})
+        }
+      },
+    )
+
+    setSelectedDays(newDays)
   }
 
   return (

@@ -17,9 +17,7 @@ export default function Day({day, index}: DayProps) {
       const isSelected = prevSelectedDays.includes(day)
       if (isSelected) {
         return prevSelectedDays.filter(
-          selectedDay =>
-            selectedDay.date.toLocaleDateString('ru-RU') !==
-            day.date.toLocaleDateString('ru-RU'),
+          selectedDay => selectedDay.date !== day.date,
         )
       } else {
         return [...prevSelectedDays, day]

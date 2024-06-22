@@ -9,20 +9,12 @@ type CommentOptions = {
 export default function CommentInput({day}: CommentOptions) {
   const {selectedDays, setSelectedDays} = useContext(GlobalStateContext)
 
-  const selectedDay = selectedDays?.find(
-    item =>
-      item?.date.toLocaleDateString('ru-RU') ===
-      day.date.toLocaleDateString('ru-RU'),
-  )
+  const selectedDay = selectedDays?.find(item => item?.date === day.date)
 
   const handler = (event: {target: {value: any}}) => {
     const text = event.target.value
     const newDays: Day[] = [...selectedDays]
-    const oldDay = newDays.find(
-      obj =>
-        obj?.date.toLocaleDateString('ru-RU') ===
-        day.date.toLocaleDateString('ru-RU'),
-    )
+    const oldDay = newDays.find(obj => obj?.date === day.date)
     if (!oldDay) return
 
     const newDay = {...oldDay, comment: text}

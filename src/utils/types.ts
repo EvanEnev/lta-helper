@@ -1,5 +1,5 @@
 export type Day = {
-  date: Date
+  date: string
   value?: string
   comment?: string
   location?: string
@@ -19,4 +19,16 @@ export type User = {
   }
   auth_date: string
   hash: string
+}
+
+export type WorkingDay = {
+  date: string
+  value: string
+  location?: string
+}
+
+export type Worker = {
+  name: string
+  valid: boolean
+  workingDays: WorkingDay[]
 }
