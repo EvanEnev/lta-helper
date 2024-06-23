@@ -22,10 +22,13 @@ export default function CommentInput({day}: CommentOptions) {
     setSelectedDays(newDays)
   }
 
-  if (selectedDay?.location) {
+  if (selectedDay?.location?.name) {
+    const {location} = selectedDay
     return (
-      <div className="w-full sm:w-1/2 border-[1px] rounded-lg flex justify-left items-center h-12 pl-4">
-        <span className="h-fit">{selectedDay.location}</span>
+      <div
+        style={{backgroundColor: location.color}}
+        className={`w-full sm:w-1/2 border-[1px] rounded-lg flex justify-left items-center h-12 pl-4`}>
+        <span className="h-fit">{location.name}</span>
       </div>
     )
   } else {

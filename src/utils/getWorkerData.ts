@@ -2,10 +2,10 @@ import google from '@/lib/google'
 import getLocation from './getLocation'
 import compareObjects from './compareObjects'
 
-const cachedGoogle = google()
-
 export default async function getWorkerData(worker: any) {
-  const doc = cachedGoogle
+  const doc = google()
+
+  await doc.loadInfo()
 
   const sheet = doc.sheetsByIndex[0]
   const rows = await sheet.getRows()
@@ -52,7 +52,7 @@ export default async function getWorkerData(worker: any) {
   const promises = formattedDates.map(async (day: {date: string; key: any}) => {
     const cell = sheet.getCellByA1(`${day.key}${rowIndex}`)
 
-    const object = {date: day.date, value: '', location: ''}
+    const object = {date: day.date, value: '', location: {}}
 
     if (cell.value === 'Могу') {
       object.value = '+'

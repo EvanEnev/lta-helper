@@ -1,15 +1,14 @@
+'use client'
+
 import {GlobalStateContext} from '@/src/utils/stateProvider'
 import {Day} from '@/src/utils/types'
 import {useContext, useState} from 'react'
 
-type SendButtonOptions = {
-  globalComment?: string
-}
-
-export default function SendButton({globalComment}: SendButtonOptions) {
+export default function SendButton() {
   const [isLoading, setIsLoading] = useState(false)
 
-  const {worker, selectedDays, telegram} = useContext(GlobalStateContext)
+  const {worker, selectedDays, telegram, globalComment} =
+    useContext(GlobalStateContext)
 
   const sendButtonHandler = async () => {
     if (isLoading) return

@@ -2,7 +2,7 @@
 
 import {useCallback, useContext, useEffect, useMemo, useRef} from 'react'
 import {GlobalStateContext} from './stateProvider'
-import {Day, User} from './types'
+import {Day, User, Location} from './types'
 import Register from '@/app/register/page'
 import Home from '@/app/page'
 import Loading from '@/app/loading/page'
@@ -37,7 +37,7 @@ export default function AuthProvider() {
 
     const newDays: Day[] = []
     data?.workingDays?.forEach(
-      (day: {date: string; value?: string; location?: string}) => {
+      (day: {date: string; value?: string; location?: Location}) => {
         if (day.location) {
           newDays.push({
             date: day.date,
@@ -54,13 +54,82 @@ export default function AuthProvider() {
     setLoading(false)
   }, [])
 
+  const testTelegram = {
+    initData:
+      'query_id=AAFDzyovAAAAAEPPKi81gnF3&user=%7B%22id%22%3A791334723%2C%22first_name%22%3A%22%D0%98%D0%B2%D0%B0%D0%BD%22%2C%22last_name%22%3A%22%D0%91%D1%83%D0%B1%D0%B5%D0%BD%D1%91%D0%B2%22%2C%22username%22%3A%22EvanEnev%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1719183161&hash=648759133abed79573d6d464de6bd6876535a533f244b1ee1e59f4b2310c22f6',
+    initDataUnsafe: {
+      query_id: 'AAFDzyovAAAAAEPPKi81gnF3',
+      user: {
+        id: 791334723,
+        first_name: 'Иван',
+        last_name: 'Бубенёв',
+        username: 'EvanEnev',
+        language_code: 'en',
+        is_premium: true,
+        allows_write_to_pm: true,
+      },
+      auth_date: '1719183161',
+      hash: '648759133abed79573d6d464de6bd6876535a533f244b1ee1e59f4b2310c22f6',
+    },
+    version: '7.4',
+    platform: 'tdesktop',
+    colorScheme: 'dark',
+    themeParams: {
+      accent_text_color: '#6ab2f2',
+      bg_color: '#17212b',
+      button_color: '#5288c1',
+      button_text_color: '#ffffff',
+      destructive_text_color: '#ec3942',
+      header_bg_color: '#17212b',
+      hint_color: '#708499',
+      link_color: '#6ab3f3',
+      secondary_bg_color: '#232e3c',
+      section_bg_color: '#17212b',
+      section_header_text_color: '#6ab3f3',
+      subtitle_text_color: '#708499',
+      text_color: '#f5f5f5',
+    },
+    isExpanded: true,
+    viewportHeight: 710,
+    viewportStableHeight: 710,
+    isClosingConfirmationEnabled: false,
+    headerColor: '#17212b',
+    backgroundColor: '#17212b',
+    BackButton: {
+      isVisible: false,
+    },
+    MainButton: {
+      text: 'CONTINUE',
+      color: '#5288c1',
+      textColor: '#ffffff',
+      isVisible: false,
+      isProgressVisible: false,
+      isActive: true,
+    },
+    SettingsButton: {
+      isVisible: false,
+    },
+    HapticFeedback: {},
+    CloudStorage: {},
+    BiometricManager: {
+      isInited: false,
+      isBiometricAvailable: false,
+      biometricType: 'unknown',
+      isAccessRequested: false,
+      isAccessGranted: false,
+      isBiometricTokenSaved: false,
+      deviceId: '',
+    },
+  }
+
   useEffect(() => {
     if (hasMounted.current) return
     hasMounted.current = true
 
     if (Object.keys(telegram).length) return
-    const appTelegram = (window as any)?.Telegram?.WebApp
+    // const appTelegram = (window as any)?.Telegram?.WebApp
 
+    const appTelegram = testTelegram
     if (appTelegram) {
       try {
         // @ts-ignore

@@ -1,6 +1,6 @@
 import {GlobalStateContext} from '@/src/utils/stateProvider'
 import {Day} from '@/src/utils/types'
-import {useContext, useMemo} from 'react'
+import {useContext} from 'react'
 
 type ButtonsOptions = {
   day: Day

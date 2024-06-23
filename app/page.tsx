@@ -1,19 +1,14 @@
 'use client'
 
 import DayWithComments from '@/src/components/schedule/DayWithComments'
+import GlobalComment from '@/src/components/schedule/GlobalComment'
 import SendButton from '@/src/components/schedule/SendButton'
 import {GlobalStateContext} from '@/src/utils/stateProvider'
 import {Day} from '@/src/utils/types'
-import {useContext, useState} from 'react'
+import {useContext} from 'react'
 
 export default function Home() {
-  const [globalComment, setGlobalComment] = useState<string>()
   const {worker, days} = useContext(GlobalStateContext)
-
-  const globalCommentHandler = (event: {target: {value: any}}) => {
-    const text = event.target.value
-    setGlobalComment(text)
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-16">
@@ -23,14 +18,8 @@ export default function Home() {
         {days.map((day: Day, index: number) => (
           <DayWithComments key={index} day={day} index={index} />
         ))}
-        <input
-          type="text"
-          placeholder="Глобальный комментарий"
-          className="input input-bordered"
-          value={globalComment}
-          onChange={globalCommentHandler}
-        />
-        <SendButton globalComment={globalComment} />
+        <GlobalComment />
+        <SendButton />
       </div>
     </main>
   )

@@ -1,8 +1,13 @@
+export type Location = {
+  name: string
+  color: string
+}
+
 export type Day = {
   date: string
   value?: string
   comment?: string
-  location?: string
+  location?: Location
 }
 
 export type User = {

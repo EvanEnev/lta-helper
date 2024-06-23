@@ -16,6 +16,8 @@ interface GlobalState {
   setLoading: (value: boolean) => void
   days: Day[]
   setDays: (value: Day[]) => void
+  globalComment: string
+  setGlobalComment: (value: string) => void
 }
 
 export const GlobalStateContext = createContext<GlobalState>({
@@ -31,6 +33,8 @@ export const GlobalStateContext = createContext<GlobalState>({
   setLoading: () => {},
   days: [],
   setDays: () => {},
+  globalComment: '',
+  setGlobalComment: () => {},
 })
 
 export default function StateProvider({children}: {children: any}) {
@@ -40,6 +44,7 @@ export default function StateProvider({children}: {children: any}) {
   const [selectedDays, setSelectedDays] = useState<Day[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [days, setDays] = useState<Day[]>([])
+  const [globalComment, setGlobalComment] = useState<string>('')
 
   const valueData = {
     telegram,
@@ -54,6 +59,8 @@ export default function StateProvider({children}: {children: any}) {
     setLoading,
     days,
     setDays,
+    globalComment,
+    setGlobalComment,
   }
 
   return (
