@@ -13,7 +13,7 @@ export default async function getWorkerData(worker: any) {
   const row = rows.find(
     (row: {_rawData: string[]}) =>
       row._rawData[2]?.split(' ')[0].toLowerCase() ===
-      worker.name.toLowerCase(),
+      worker?.name?.toLowerCase(),
   )
 
   if (!row) return []
