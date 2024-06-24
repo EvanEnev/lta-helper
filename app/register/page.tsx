@@ -62,7 +62,7 @@ export default function Register() {
   return (
     <main className="flex min-h-screen flex-col gap-2 items-center justify-center p-16">
       <h1 className="text-3xl font-bold">Регистрация</h1>
-      <label className="cursor-pointer label w-1/3 p-0">
+      <label className="cursor-pointer label w-full sm:w-1/2 md:w-1/3 p-0">
         <input
           className={`input input-bordered w-full ${
             name ? '' : 'border-error'
@@ -72,7 +72,9 @@ export default function Register() {
           onChange={nameInputHandler}
         />
       </label>
-      <button className="btn btn-primary w-1/3" onClick={registerButtonHandler}>
+      <button
+        className="btn btn-primary w-full sm:w-1/2 md:w-1/3"
+        onClick={registerButtonHandler}>
         {isLoading ? <span className="loading loading-spinner" /> : ''}
         Зарегестрироваться
       </button>
