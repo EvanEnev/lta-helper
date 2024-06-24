@@ -53,10 +53,11 @@ export async function POST(req: NextRequest) {
   const rows = await sheet.getRows()
   const row = rows.find(
     (row: {_rawData: string[]}) =>
-      row._rawData[2]?.split(' ')[0] === worker?.name,
+      row._rawData[2]?.split(' ')[0].toLowerCase() ===
+      worker?.name.toLowerCase(),
   )
 
-  if (!row) return
+  if (!row) return NextResponse.json({}, {status: 404})
 
   await sheet.loadHeaderRow()
   const headerValues = sheet.headerValues
