@@ -1,4 +1,3 @@
-import {performance} from 'perf_hooks'
 import conn from '@/lib/database'
 import validateData from '@/lib/validateData'
 import getWorkerData from '@/src/utils/getWorkerData'

@@ -2,7 +2,7 @@
 
 import {useContext, useState} from 'react'
 import {GlobalStateContext} from '@/src/utils/stateProvider'
-import {Day} from '@/src/utils/types'
+import {Day, Location} from '@/src/utils/types'
 
 export default function Register() {
   const [name, setName] = useState<string>('')
@@ -33,7 +33,7 @@ export default function Register() {
 
     const newDays: Day[] = []
     data?.workingDays?.forEach(
-      (day: {date: string; value?: string; location?: string}) => {
+      (day: {date: string; value?: string; location?: Location}) => {
         if (day.location) {
           newDays.push({
             date: day.date,
