@@ -7,7 +7,7 @@ import {Day, Location} from '@/src/utils/types'
 export default function Register() {
   const [name, setName] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const {user, setWorker, setDays, setSelectedDays} =
+  const {telegram, setWorker, setDays, setSelectedDays} =
     useContext(GlobalStateContext)
 
   const nameInputHandler = (event: {target: {value: any}}) => {
@@ -17,6 +17,8 @@ export default function Register() {
   const registerButtonHandler = async () => {
     if (isLoading || !name) return
     setIsLoading(true)
+    const user = telegram.initDataUnsafe.user
+
     const response = await fetch('/api/register', {
       method: 'POST',
       body: JSON.stringify({user, name}),
