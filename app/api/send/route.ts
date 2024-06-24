@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
 
   const worker = body?.worker
   const name = worker?.name
+  const telegram_id = body?.telegram_id
 
   const globalComment = body?.globalComment || ''
 
@@ -69,10 +70,9 @@ export async function POST(req: NextRequest) {
 
   formattedDates?.forEach(async day => {
     if (!headerValues.includes(day.date)) return
+    if (!day.value) return
 
     const cell = sheet.getCellByA1(`${day.key}${rowIndex}`)
-
-    if (day.value === cell.value) return
 
     if ((cell.value === 'Могу' || cell.value) && day.value === '+') {
       return
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     } else if (day.value === '-') {
       cell.stringValue = ''
       cell.backgroundColor = {red: 1}
-    } else {
+    } else if (day.value === '+/-') {
       cell.stringValue = ''
       cell.backgroundColor = {green: 1, red: 1}
     }
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
-  if (!changes) return NextResponse.json({}, {status: 200})
+  if (!changes.length) return NextResponse.json({}, {status: 200})
   const text = `${name}\n\n` + changes?.join('\n') + `\n\n${globalComment}`
 
   await fetch(
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       headers: new Headers({
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify({chat_id: worker?.id, text: 'Успешно ✅'}),
+      body: JSON.stringify({chat_id: telegram_id, text: 'Успешно ✅'}),
     },
   )
 

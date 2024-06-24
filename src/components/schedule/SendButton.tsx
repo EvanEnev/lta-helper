@@ -22,6 +22,7 @@ export default function SendButton() {
     const body = {
       selectedDays: days,
       worker,
+      telegram_id: telegram.initDataUnsafe.user.id,
       globalComment,
     }
 
