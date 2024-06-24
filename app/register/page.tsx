@@ -17,11 +17,16 @@ export default function Register() {
   const registerButtonHandler = async () => {
     if (isLoading || !name) return
     setIsLoading(true)
-    const user = telegram.initDataUnsafe.user
 
     const response = await fetch('/api/register', {
       method: 'POST',
-      body: JSON.stringify({user, name}),
+      body: JSON.stringify({
+        user: {
+          initData: telegram.initData,
+          initDataUnsafe: telegram.initDataUnsafe,
+        },
+        name,
+      }),
     })
 
     const data = await response.json()
