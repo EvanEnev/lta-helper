@@ -1,6 +1,7 @@
-import {GlobalStateContext} from '@/src/utils/stateProvider'
+import selectedDaysState from '@/src/state/selectedDaysState'
 import {Day} from '@/src/utils/types'
-import {useContext} from 'react'
+import {useEffect, useMemo, useState} from 'react'
+import {useRecoilState} from 'recoil'
 
 type ButtonsOptions = {
   day: Day
@@ -8,24 +9,24 @@ type ButtonsOptions = {
 }
 
 export default function Buttons({day, index}: ButtonsOptions) {
-  const {selectedDays, setSelectedDays} = useContext(GlobalStateContext)
+  const [selectedDays, setSelectedDays] = useRecoilState(selectedDaysState)
 
-  const selectedDay = selectedDays.find(item => item?.date === day?.date) || day
+  const [selectedDay, setSelectedDay] = useState(
+    selectedDays.find((item: Day) => item?.date === day?.date) || day,
+  )
 
   const handler = (value: '+' | '-' | '+/-') => {
-    let newDays: Day[] = [...selectedDays]
-    const oldDay = newDays.find(item => item?.date === day.date)
+    const updatedDays = [...selectedDays]
 
-    const dayIndex = oldDay ? newDays.indexOf(oldDay) : index
+    const newDay =
+      selectedDay.value === value
+        ? {...selectedDay, value: ''}
+        : {...selectedDay, value}
 
-    if (oldDay?.value === value) {
-      newDays = newDays.filter(item => item?.date !== day?.date)
-    } else {
-      const newDay = oldDay ? {...oldDay, value} : {...day, value}
-      newDays[dayIndex] = newDay
-    }
+    updatedDays[index] = newDay
+    setSelectedDay(newDay)
 
-    setSelectedDays(newDays)
+    setSelectedDays(updatedDays)
   }
 
   return (
@@ -33,22 +34,22 @@ export default function Buttons({day, index}: ButtonsOptions) {
       className={`w-full sm:w-1/2 max-w-full sm:max-w-1/2 flex justify-between gap-8`}
       key={index}>
       <button
-        className={`btn btn-primary flex-1 ${
-          selectedDay?.value === '+' ? 'btn-success' : 'opacity-30'
+        className={`btn btn-primary flex-1 text-2xl ${
+          selectedDay?.value === '+' ? 'btn-success-gradient' : 'opacity-30'
         }`}
         onClick={() => handler('+')}>
         +
       </button>
       <button
-        className={`btn btn-primary flex-1 ${
-          selectedDay?.value === '-' ? 'btn-error' : 'opacity-30'
+        className={`btn btn-primary flex-1 text-2xl ${
+          selectedDay?.value === '-' ? 'btn-error-gradient' : 'opacity-30'
         }`}
         onClick={() => handler('-')}>
         -
       </button>
       <button
-        className={`btn btn-primary flex-1 ${
-          selectedDay?.value === '+/-' ? 'btn-warning' : 'opacity-30'
+        className={`btn btn-primary flex-1 text-2xl ${
+          selectedDay?.value === '+/-' ? 'btn-warning-gradient' : 'opacity-30'
         }`}
         onClick={() => handler('+/-')}>
         +/-

@@ -20,52 +20,50 @@ type LocationsType = {
   }
 }
 
-const OPACITY = 35
-
 const locations: LocationsType = {
   Анклав: {
     name: 'Анклав',
-    color: `#6d9eeb${OPACITY}`,
+    color: 'linear-gradient(to top, #173a6e, #1D4E8F)', // Slightly darkened blue to original blue
   },
   ВБ: {
     name: 'Военный Бункер',
-    color: `#6aa84f${OPACITY}`,
+    color: 'linear-gradient(to top, #20521e, #2B6E27)', // Slightly darkened green to original green
   },
   ДЗ: {
     name: 'Дикий запад',
-    color: `#ff9900${OPACITY}`,
+    color: 'linear-gradient(to top, #804400, #A65B00)', // Slightly darkened orange to original orange
   },
   Джунгли: {
     name: 'Джунгли',
-    color: `#b45f06${OPACITY}`,
+    color: 'linear-gradient(to top, #5d2f03, #7A3E04)', // Slightly darkened brown to original brown
   },
   КП: {
     name: 'Киберпорт',
-    color: `#cc0000${OPACITY}`,
+    color: 'linear-gradient(to top, #730000, #990000)', // Slightly darkened red to original red
   },
   ПС: {
     name: 'Пиратская станция',
-    color: `#666666${OPACITY}`,
+    color: 'linear-gradient(to top, #3a3a3a, #4D4D4D)', // Slightly darkened gray to original gray
   },
   Сити: {
     name: 'Сити',
-    color: `#76a5af${OPACITY}`,
+    color: 'linear-gradient(to top, #36585c, #4A7379)', // Slightly darkened teal to original teal
   },
   ТП: {
     name: 'Телепорт',
-    color: `#8e7cc3${OPACITY}`,
+    color: 'linear-gradient(to top, #503a82, #674EA7)', // Slightly darkened purple to original purple
   },
   УБ: {
     name: 'Убежище',
-    color: `#b7b7b7${OPACITY}`,
+    color: 'linear-gradient(to top, #555555, #6D6D6D)', // Slightly darkened light gray to original light gray
   },
   Фабрика: {
     name: 'Забытая фабрика',
-    color: `#c27ba0${OPACITY}`,
+    color: 'linear-gradient(to top, #6a3750, #8A4663)', // Slightly darkened pink to original pink
   },
   Выезд: {
     name: 'Выезд',
-    color: `#a64d79${OPACITY}`,
+    color: 'linear-gradient(to top, #571f3e, #732C51)', // Slightly darkened magenta to original magenta
   },
 }
 

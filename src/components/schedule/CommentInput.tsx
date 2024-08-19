@@ -1,15 +1,15 @@
-import {GlobalStateContext} from '@/src/utils/stateProvider'
+import selectedDaysState from '@/src/state/selectedDaysState'
 import {Day} from '@/src/utils/types'
-import {useContext} from 'react'
+import {useRecoilState} from 'recoil'
 
 type CommentOptions = {
   day: Day
 }
 
 export default function CommentInput({day}: CommentOptions) {
-  const {selectedDays, setSelectedDays} = useContext(GlobalStateContext)
+  const [selectedDays, setSelectedDays] = useRecoilState(selectedDaysState)
 
-  const selectedDay = selectedDays?.find(item => item?.date === day.date)
+  const selectedDay = selectedDays?.find((item: Day) => item?.date === day.date)
 
   const handler = (event: {target: {value: any}}) => {
     const text = event.target.value
@@ -26,9 +26,9 @@ export default function CommentInput({day}: CommentOptions) {
     const {location} = selectedDay
     return (
       <div
-        style={{backgroundColor: location.color}}
-        className={`w-full sm:w-1/2 border-[1px] rounded-lg flex justify-left items-center h-12 pl-4`}>
-        <span className="h-fit">{location.name}</span>
+        style={{background: location.color}}
+        className={`w-full sm:w-1/2 rounded-lg flex justify-left items-center h-12 pl-4`}>
+        <span className="h-fit text-lg">{location.name}</span>
       </div>
     )
   } else {

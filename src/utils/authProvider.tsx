@@ -1,24 +1,24 @@
 'use client'
 
-import {useCallback, useContext, useEffect, useMemo, useRef} from 'react'
-import {GlobalStateContext} from './stateProvider'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {Day, User, Location} from './types'
 import Register from '@/app/register/page'
 import Home from '@/app/page'
 import Loading from '@/app/loading/page'
 import React from 'react'
+import {useRecoilState, useSetRecoilState} from 'recoil'
+import telegramState from '../state/telegramState'
+import workerState from '../state/workerState'
+import selectedDaysState from '../state/selectedDaysState'
+import daysState from '../state/daysState'
 
 export default function AuthProvider() {
-  const {
-    telegram,
-    setTelegram,
-    worker,
-    setWorker,
-    loading,
-    setLoading,
-    setSelectedDays,
-    setDays,
-  } = useContext(GlobalStateContext)
+  const [loading, setLoading] = useState(true)
+
+  const [telegram, setTelegram] = useRecoilState(telegramState)
+  const [worker, setWorker] = useRecoilState(workerState)
+  const setDays = useSetRecoilState(daysState)
+  const setSelectedDays = useSetRecoilState(selectedDaysState)
 
   const hasMounted = useRef(false)
 

@@ -1,6 +1,7 @@
-import {GlobalStateContext} from '@/src/utils/stateProvider'
+import selectedDaysState from '@/src/state/selectedDaysState'
 import {Day as DayType} from '@/src/utils/types'
-import {Dispatch, SetStateAction, useCallback, useContext} from 'react'
+import {Dispatch, SetStateAction, useCallback} from 'react'
+import {useSetRecoilState} from 'recoil'
 
 interface DayProps {
   day: DayType
@@ -10,7 +11,7 @@ interface DayProps {
 }
 
 export default function Day({day, index}: DayProps) {
-  const {setSelectedDays} = useContext(GlobalStateContext)
+  const setSelectedDays = useSetRecoilState(selectedDaysState)
 
   const handleDayClick = useCallback(() => {
     setSelectedDays((prevSelectedDays: DayType[]) => {

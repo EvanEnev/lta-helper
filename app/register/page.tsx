@@ -1,14 +1,20 @@
 'use client'
 
-import {useContext, useState} from 'react'
-import {GlobalStateContext} from '@/src/utils/stateProvider'
+import {useState} from 'react'
 import {Day, Location} from '@/src/utils/types'
+import daysState from '@/src/state/daysState'
+import selectedDaysState from '@/src/state/selectedDaysState'
+import telegramState from '@/src/state/telegramState'
+import workerState from '@/src/state/workerState'
+import {useRecoilValue, useSetRecoilState} from 'recoil'
 
 export default function Register() {
   const [name, setName] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const {telegram, setWorker, setDays, setSelectedDays} =
-    useContext(GlobalStateContext)
+  const telegram = useRecoilValue(telegramState)
+  const setWorker = useSetRecoilState(workerState)
+  const setDays = useSetRecoilState(daysState)
+  const setSelectedDays = useSetRecoilState(selectedDaysState)
 
   const nameInputHandler = (event: {target: {value: any}}) => {
     const text = event.target.value
@@ -60,7 +66,7 @@ export default function Register() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col gap-2 items-center justify-center p-16">
+    <main className="flex min-h-screen flex-col gap-5 items-center justify-center p-16">
       <h1 className="text-3xl font-bold">Регистрация</h1>
       <label className="cursor-pointer label w-full sm:w-1/2 md:w-1/3 p-0">
         <input
@@ -73,7 +79,7 @@ export default function Register() {
         />
       </label>
       <button
-        className="btn btn-primary w-full sm:w-1/2 md:w-1/3"
+        className="btn btn-accent shadow-glow sm:shadow-none hover:shadow-glow w-full sm:w-1/2 md:w-1/3"
         onClick={registerButtonHandler}>
         {isLoading ? <span className="loading loading-spinner" /> : ''}
         Зарегестрироваться

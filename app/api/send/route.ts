@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
 
   await sheet.loadCells(`J${rowIndex}:W${rowIndex}`)
 
+  const locationsChanges: {date: string; location: string; value?: string}[] =
+    []
+
   formattedDates?.forEach(async day => {
     if (!headerValues.includes(day.date)) return
     if (!day.value) return
@@ -82,6 +85,7 @@ export async function POST(req: NextRequest) {
     if (compareObjects(cell.backgroundColor, {red: 1}) && day.value === '-') {
       return
     }
+
     if (
       compareObjects(cell.backgroundColor, {red: 1, green: 1}) &&
       day.value === '+/-'
@@ -93,9 +97,24 @@ export async function POST(req: NextRequest) {
       cell.value = 'Могу'
       cell.backgroundColor = {green: 1, alpha: 0.5}
     } else if (day.value === '-') {
+      if (cell.value) {
+        locationsChanges.push({
+          date: day.date,
+          location: cell.value,
+        })
+      }
+
       cell.stringValue = ''
       cell.backgroundColor = {red: 1}
     } else if (day.value === '+/-') {
+      if (cell.value) {
+        locationsChanges.push({
+          date: day.date,
+          location: cell.value,
+          value: '+/-',
+        })
+      }
+
       cell.stringValue = ''
       cell.backgroundColor = {green: 1, red: 1}
     }
@@ -130,6 +149,25 @@ export async function POST(req: NextRequest) {
   //       chat_id: -1001949029897,
   //       message_thread_id: 108,
   //       text,
+  //     }),
+  //   },
+  // )
+
+  const locationsText = locationsChanges.map(({date, location, value = ''}) => {
+    return `${location} ${worker.name} минус ${date} ${value}`
+  })
+
+  // await fetch(
+  //   `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
+  //   {
+  //     method: 'POST',
+  //     headers: new Headers({
+  //       'Content-Type': 'application/json',
+  //     }),
+  //     body: JSON.stringify({
+  //       chat_id: -1001990152890,
+  //       message_thread_id: 3,
+  //       text: locationsText.join('\n'),
   //     }),
   //   },
   // )

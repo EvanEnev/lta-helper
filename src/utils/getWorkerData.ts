@@ -18,38 +18,26 @@ export default async function getWorkerData(worker: any) {
 
   if (!row) return []
 
-  await sheet.loadHeaderRow()
+  const workerIndex = rows.indexOf(row)
+  const rowIndex = workerIndex + 2
+
+  await Promise.all([
+    sheet.loadHeaderRow(),
+    sheet.loadCells(`J${rowIndex}:W${rowIndex}`),
+  ])
+
+  const keys = 'JKLMNOPQRSTUVW'.split('')
+
   const headerValues = sheet.headerValues
     .slice(9, 23)
     .map((value: string) => value.split(' ')[1])
 
-  const workerIndex = rows.indexOf(row)
-  const rowIndex = workerIndex + 2
+  const formattedDates = headerValues.map((date: string, index: number) => ({
+    date,
+    key: keys[index],
+  }))
 
-  await sheet.loadCells(`J${rowIndex}:W${rowIndex}`)
-
-  const keys = [
-    'J',
-    'K',
-    'L',
-    'M',
-    'N',
-    'O',
-    'P',
-    'Q',
-    'R',
-    'S',
-    'T',
-    'U',
-    'V',
-    'W',
-  ]
-
-  const formattedDates = headerValues?.map((date: string, index: number) => {
-    return {date, key: keys[index]}
-  })
-
-  const promises = formattedDates.map(async (day: {date: string; key: any}) => {
+  const workingDays = formattedDates.map((day: {date: string; key: any}) => {
     const cell = sheet.getCellByA1(`${day.key}${rowIndex}`)
 
     const object = {date: day.date, value: '', location: {}}
@@ -68,8 +56,6 @@ export default async function getWorkerData(worker: any) {
 
     return object
   })
-
-  const workingDays = await Promise.all(promises)
 
   return workingDays
 }

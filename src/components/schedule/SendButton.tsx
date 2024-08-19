@@ -1,14 +1,21 @@
 'use client'
 
-import {GlobalStateContext} from '@/src/utils/stateProvider'
+import Send from '@/public/icons/Send'
+import globalCommentState from '@/src/state/globalCommentState'
+import selectedDaysState from '@/src/state/selectedDaysState'
+import telegramState from '@/src/state/telegramState'
+import workerState from '@/src/state/workerState'
 import {Day} from '@/src/utils/types'
-import {useContext, useState} from 'react'
+import {useState} from 'react'
+import {useRecoilValue} from 'recoil'
 
 export default function SendButton() {
   const [isLoading, setIsLoading] = useState(false)
 
-  const {worker, selectedDays, telegram, globalComment} =
-    useContext(GlobalStateContext)
+  const worker = useRecoilValue(workerState)
+  const selectedDays = useRecoilValue(selectedDaysState)
+  const telegram = useRecoilValue(telegramState)
+  const globalComment = useRecoilValue(globalCommentState)
 
   const sendButtonHandler = async () => {
     if (isLoading) return
@@ -39,8 +46,14 @@ export default function SendButton() {
   }
 
   return (
-    <button className="btn btn-primary" onClick={sendButtonHandler}>
-      {isLoading ? <span className="loading loading-spinner" /> : ''}
+    <button
+      className="btn btn-accent shadow-glow sm:shadow-none hover:shadow-glow text-xl"
+      onClick={sendButtonHandler}>
+      {isLoading ? (
+        <span className="loading loading-spinner" />
+      ) : (
+        <Send strokeWidth={2} />
+      )}
       Отправить
     </button>
   )

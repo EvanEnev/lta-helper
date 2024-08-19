@@ -1,8 +1,8 @@
-import {GlobalStateContext} from '@/src/utils/stateProvider'
-import {useContext} from 'react'
+import globalCommentState from '@/src/state/globalCommentState'
+import {useRecoilState} from 'recoil'
 
 export default function GlobalComment() {
-  const {globalComment, setGlobalComment} = useContext(GlobalStateContext)
+  const [globalComment, setGlobalComment] = useRecoilState(globalCommentState)
 
   const globalCommentHandler = (event: {target: {value: any}}) => {
     const text = event.target.value

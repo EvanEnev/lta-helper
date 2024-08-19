@@ -1,9 +1,9 @@
 import AuthProvider from '@/src/utils/authProvider'
-import StateProvider from '@/src/utils/stateProvider'
 import type {Metadata} from 'next'
 import {Inter} from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
+import StateProvider from '@/src/components/schedule/stateProvider'
 
 const inter = Inter({subsets: ['latin']})
 
