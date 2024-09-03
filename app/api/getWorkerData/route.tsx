@@ -1,7 +1,6 @@
 import conn from '@/lib/database'
 import validateData from '@/lib/validateData'
-import getWorkerData from '@/lib/getWorkerData'
-import {User, Worker} from '@/src/utils/types'
+import {Worker} from '@/src/utils/types'
 import {NextRequest, NextResponse} from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -22,11 +21,6 @@ export async function POST(req: NextRequest) {
   const worker: Worker = {
     name: object?.name,
     workingDays: [],
-  }
-
-  if (worker) {
-    const workingDays = await getWorkerData(worker)
-    worker.workingDays = workingDays
   }
 
   return NextResponse.json(object ? worker : {})

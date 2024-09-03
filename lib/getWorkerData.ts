@@ -1,6 +1,6 @@
 import google from '@/lib/google'
-import getLocation from './getLocation'
-import compareObjects from './compareObjects'
+import getLocation from '../src/utils/getLocation'
+import compareObjects from '../src/utils/compareObjects'
 
 export default async function getWorkerData(worker: any) {
   const doc = google()

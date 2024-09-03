@@ -1,36 +1,30 @@
-'use client'
-
-import Send from '@/public/icons/Send'
-import globalCommentState from '@/src/state/globalCommentState'
-import selectedDaysState from '@/src/state/selectedDaysState'
+import daysState from '@/src/state/daysState'
 import telegramState from '@/src/state/telegramState'
-import workerState from '@/src/state/workerState'
-import {Day} from '@/src/utils/types'
+import {Button} from '@nextui-org/react'
 import {useState} from 'react'
-import {useRecoilValue} from 'recoil'
+import {useRecoilValue, useSetRecoilState} from 'recoil'
+import selectedDayState from '@/src/state/selectedDayState'
 
 export default function SendButton() {
-  const [isLoading, setIsLoading] = useState(false)
-
-  const worker = useRecoilValue(workerState)
-  const selectedDays = useRecoilValue(selectedDaysState)
+  const days = useRecoilValue(daysState)
   const telegram = useRecoilValue(telegramState)
-  const globalComment = useRecoilValue(globalCommentState)
+  const [isLoading, setLoading] = useState<boolean>(false)
+  const setSelectedDay = useSetRecoilState(selectedDayState)
 
-  const sendButtonHandler = async () => {
-    if (isLoading) return
-    setIsLoading(true)
+  const handler = async () => {
+    setLoading(true)
 
-    const days = selectedDays.map((day: Day) => ({
-      ...day,
-      date: day.date,
-    }))
+    const invalidDay = days.find(day => day.value === '-' && !day.comment)
+
+    if (invalidDay) {
+      setLoading(false)
+      setSelectedDay({...invalidDay, invalidComment: true})
+      return
+    }
 
     const body = {
       selectedDays: days,
-      worker,
-      telegram_id: telegram.initDataUnsafe.user.id,
-      globalComment,
+      initData: telegram.initData,
     }
 
     const result = await fetch('/api/send', {
@@ -39,22 +33,20 @@ export default function SendButton() {
     })
 
     if (result.ok) {
-      telegram.close()
+      setLoading(false)
+      telegram.close().catch(() => {})
     }
-
-    setIsLoading(false)
   }
 
   return (
-    <button
-      className="btn btn-accent shadow-glow sm:shadow-none hover:shadow-glow text-xl"
-      onClick={sendButtonHandler}>
-      {isLoading ? (
-        <span className="loading loading-spinner" />
-      ) : (
-        <Send strokeWidth={2} />
-      )}
+    <Button
+      onClick={handler}
+      isLoading={isLoading}
+      size="lg"
+      color="primary"
+      variant="shadow"
+      className="w-full h-16">
       Отправить
-    </button>
+    </Button>
   )
 }

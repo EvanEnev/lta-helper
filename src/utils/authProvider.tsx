@@ -1,39 +1,46 @@
 'use client'
 
 import {useCallback, useEffect, useRef, useState} from 'react'
-import {Day, User, Location} from './types'
-import Register from '@/app/register/page'
+import {Day, Location} from './types'
 import Home from '@/app/page'
-import Loading from '@/app/loading/page'
 import React from 'react'
 import {useRecoilState, useSetRecoilState} from 'recoil'
 import telegramState from '../state/telegramState'
 import workerState from '../state/workerState'
-import selectedDaysState from '../state/selectedDaysState'
 import daysState from '../state/daysState'
+import Register from '@/app/register/page'
+import Loading from '@/app/loading/page'
 
 export default function AuthProvider() {
-  const [loading, setLoading] = useState(true)
-
+  const [isLoading, setLoading] = useState<boolean>(true)
   const [telegram, setTelegram] = useRecoilState(telegramState)
   const [worker, setWorker] = useRecoilState(workerState)
   const setDays = useSetRecoilState(daysState)
-  const setSelectedDays = useSetRecoilState(selectedDaysState)
 
   const hasMounted = useRef(false)
 
-  const getWorker = useCallback(async (user: User) => {
-    const response = await fetch('/api/getData', {
+  const getWorkerData = async (telegram: any) => {
+    const response = await fetch('/api/getWorkerData', {
       method: 'POST',
-      body: JSON.stringify({user}),
+      body: JSON.stringify({initData: telegram.initData}),
     })
 
     const data = await response.json()
 
-    if (data.name && data.valid) {
+    if (data.name) {
       setWorker(data)
-      setDays(data?.workingDays || [])
     }
+
+    setLoading(false)
+  }
+
+  const getWorker = useCallback(async (telegram: any) => {
+    const response = await fetch('/api/getData', {
+      method: 'POST',
+      body: JSON.stringify({initData: telegram.initData}),
+    })
+
+    const data = await response.json()
 
     const newDays: Day[] = []
     data?.workingDays?.forEach(
@@ -50,8 +57,7 @@ export default function AuthProvider() {
       },
     )
 
-    setSelectedDays(newDays)
-    setLoading(false)
+    setDays(newDays)
   }, [])
 
   useEffect(() => {
@@ -62,12 +68,10 @@ export default function AuthProvider() {
     const appTelegram = (window as any)?.Telegram?.WebApp
     if (appTelegram) {
       try {
-        // @ts-ignore
         appTelegram.ready()
-        // @ts-ignore
         appTelegram.expand()
       } catch (e) {}
-      // @ts-ignore
+      getWorkerData(appTelegram)
       getWorker(appTelegram)
       setTelegram(appTelegram)
     }
@@ -75,7 +79,7 @@ export default function AuthProvider() {
 
   return (
     <React.Fragment>
-      {loading ? (
+      {isLoading ? (
         <Loading />
       ) : Object.keys(worker).length === 0 ? (
         <Register />

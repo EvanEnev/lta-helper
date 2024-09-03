@@ -1,4 +1,6 @@
+import conn from '@/lib/database'
 import google from '@/lib/google'
+import validateData from '@/lib/validateData'
 import {Day} from '@/src/utils/types'
 import {NextRequest, NextResponse} from 'next/server'
 
@@ -12,16 +14,22 @@ export async function POST(req: NextRequest) {
   const selectedDays: Day[] | undefined = body?.selectedDays?.filter(
     (day: any) => day,
   )
+  const initData: string | undefined = body?.initData
+  const user = await validateData(initData)
+  if (!user) {
+    return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
+  }
 
   if (!selectedDays?.length) {
     return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
   }
 
-  const worker = body?.worker
-  const name = worker?.name
-  const telegram_id = body?.telegram_id
+  const telegramId = user.id
+  const query = `SELECT "name" FROM lt_arena.workers WHERE telegram_id=${telegramId}`
+  const result = await conn.query(query)
 
-  const globalComment = body?.globalComment || ''
+  const worker = result.rows[0]
+  const name = worker?.name
 
   const keys = [
     'J',
@@ -125,7 +133,7 @@ export async function POST(req: NextRequest) {
   await sheet.saveUpdatedCells().catch(() => {})
 
   if (!changes.length) return NextResponse.json({}, {status: 200})
-  const text = `${name}\n\n` + changes?.join('\n') + `\n\n${globalComment}`
+  const text = `${name}\n\n` + changes?.join('\n')
 
   await fetch(
     `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
@@ -134,7 +142,7 @@ export async function POST(req: NextRequest) {
       headers: new Headers({
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify({chat_id: telegram_id, text: 'Успешно ✅'}),
+      body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
     },
   )
 

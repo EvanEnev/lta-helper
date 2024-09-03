@@ -8,6 +8,12 @@ export type Day = {
   value?: string
   comment?: string
   location?: Location
+  invalidComment?: boolean
+}
+
+export type SelectedDay = {
+  date: string
+  invalidComment?: boolean
 }
 
 export type User = {
@@ -34,6 +40,5 @@ export type WorkingDay = {
 
 export type Worker = {
   name: string
-  valid: boolean
   workingDays: WorkingDay[]
 }

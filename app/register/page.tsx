@@ -1,89 +1,64 @@
 'use client'
 
+import {Button, Input} from '@nextui-org/react'
 import {useState} from 'react'
-import {Day, Location} from '@/src/utils/types'
-import daysState from '@/src/state/daysState'
-import selectedDaysState from '@/src/state/selectedDaysState'
+import {useRecoilValue, useSetRecoilState} from 'recoil'
 import telegramState from '@/src/state/telegramState'
 import workerState from '@/src/state/workerState'
-import {useRecoilValue, useSetRecoilState} from 'recoil'
+import daysState from '@/src/state/daysState'
 
 export default function Register() {
   const [name, setName] = useState<string>('')
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setLoading] = useState<boolean>(false)
   const telegram = useRecoilValue(telegramState)
   const setWorker = useSetRecoilState(workerState)
   const setDays = useSetRecoilState(daysState)
-  const setSelectedDays = useSetRecoilState(selectedDaysState)
 
-  const nameInputHandler = (event: {target: {value: any}}) => {
-    const text = event.target.value
-    setName(text)
-  }
-  const registerButtonHandler = async () => {
-    if (isLoading || !name) return
-    setIsLoading(true)
+  const handler = async () => {
+    setLoading(true)
 
-    const response = await fetch('/api/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        user: {
-          initData: telegram.initData,
-          initDataUnsafe: telegram.initDataUnsafe,
-        },
-        name,
-      }),
-    })
-
-    const data = await response.json()
-
-    setIsLoading(false)
-
-    if (data.worker.name && data.worker.valid) {
-      setWorker(data.worker)
-      setDays(data?.workingDays || [])
+    const body = {
+      name,
+      initData: telegram.initData,
     }
 
-    const newSelectedDays: Day[] = []
-    const newDays: Day[] = []
-    data?.worker?.workingDays?.forEach(
-      (day: {date: string; value?: string; location?: Location}) => {
-        newDays.push({date: day.date})
-        if (day.location) {
-          newSelectedDays.push({
-            date: day.date,
-            value: day.value,
-            location: day.location,
-          })
-        } else if (day.value) {
-          newSelectedDays.push({date: day.date, value: day.value})
-        }
-      },
-    )
+    const result = await fetch('/api/register', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
 
-    setDays(newDays)
-    setSelectedDays(newSelectedDays)
+    const data = await result.json()
+
+    if (data.worker.name) {
+      setWorker(data.worker)
+      setDays(data.worker.workingDays || [])
+    }
+
+    if (result.ok) {
+      setLoading(false)
+    }
   }
 
   return (
-    <main className="flex min-h-screen flex-col gap-5 items-center justify-center p-16">
-      <h1 className="text-3xl font-bold">Регистрация</h1>
-      <label className="cursor-pointer label w-full sm:w-1/2 md:w-1/3 p-0">
-        <input
-          className={`input input-bordered w-full ${
-            name ? '' : 'border-error'
-          }`}
-          type="text"
-          placeholder="Позывной"
-          onChange={nameInputHandler}
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
+      <h1 className="text-5xl font-bold">Регистрация</h1>
+      <div className="flex justify-center gap-4 w-full max-h-[50%] flex-wrap">
+        <Input
+          label="Позывной"
+          size="lg"
+          value={name}
+          onChange={e => setName(e.target.value)}
         />
-      </label>
-      <button
-        className="btn btn-accent shadow-glow sm:shadow-none hover:shadow-glow w-full sm:w-1/2 md:w-1/3"
-        onClick={registerButtonHandler}>
-        {isLoading ? <span className="loading loading-spinner" /> : ''}
-        Зарегестрироваться
-      </button>
+        <Button
+          className="w-full h-16"
+          variant="shadow"
+          color="primary"
+          size="lg"
+          onClick={handler}
+          isLoading={isLoading}>
+          Зарегистрироваться
+        </Button>
+      </div>
     </main>
   )
 }

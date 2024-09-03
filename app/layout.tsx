@@ -3,7 +3,8 @@ import type {Metadata} from 'next'
 import {Inter} from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
-import StateProvider from '@/src/components/schedule/stateProvider'
+import StateProvider from '@/src/utils/stateProvider'
+import {NextUIProvider} from '@nextui-org/react'
 
 const inter = Inter({subsets: ['latin']})
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout() {
   return (
-    <html lang="en">
+    <html lang="ru" className="dark">
       <head>
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
@@ -23,7 +24,9 @@ export default function RootLayout() {
       </head>
       <body className={inter.className}>
         <StateProvider>
-          <AuthProvider />
+          <NextUIProvider>
+            <AuthProvider />
+          </NextUIProvider>
         </StateProvider>
       </body>
     </html>

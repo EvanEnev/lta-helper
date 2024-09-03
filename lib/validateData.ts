@@ -19,5 +19,6 @@ export default async function validateData(initData: string | undefined) {
     .update(dataToCheck.join('\n'))
     .digest('hex')
 
-  return calculatedHash === hash
+  const user = Object.fromEntries(data)
+  return calculatedHash === hash ? JSON.parse(user.user) : false
 }
