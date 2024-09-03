@@ -8,7 +8,7 @@ if (!conn) {
   conn = global.pg = new Pool({
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
-    host: 'bubenev.su',
+    host: process.env.DATABASE_URL,
     port: 5432,
   })
 }
