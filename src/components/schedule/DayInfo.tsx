@@ -55,9 +55,15 @@ export default function DayInfo() {
         size="lg"
         label="Возможность"
         labelPlacement="inside">
-        <SelectItem key="+">Могу</SelectItem>
-        <SelectItem key="-">Не могу</SelectItem>
-        <SelectItem key="+/-">По договорённости</SelectItem>
+        <SelectItem key="+" className="h-[50px]">
+          Могу
+        </SelectItem>
+        <SelectItem key="-" className="h-[50px]">
+          Не могу
+        </SelectItem>
+        <SelectItem key="+/-" className="h-[50px]">
+          По договорённости
+        </SelectItem>
       </Select>
       <Input
         label="Комментарий"
