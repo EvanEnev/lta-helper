@@ -24,7 +24,7 @@ export default function RootLayout() {
       </head>
       <body className={inter.className}>
         <StateProvider>
-          <NextUIProvider>
+          <NextUIProvider locale="ru-RU">
             <AuthProvider />
           </NextUIProvider>
         </StateProvider>
