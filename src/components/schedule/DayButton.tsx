@@ -23,7 +23,7 @@ export default function DayButton({day}: DayButtonProps) {
     setSelectedDay({date: day.date})
   }
 
-  return day.value === undefined ? (
+  return day.date === undefined ? (
     <Skeleton className="w-28 h-12 rounded-[14px]" />
   ) : (
     <Button
@@ -34,6 +34,7 @@ export default function DayButton({day}: DayButtonProps) {
       color={color}
       variant={selectedDay.date === day.date ? 'shadow' : 'solid'}
       onClick={handler}>
+      {day?.location ? <span className="absolute left-3 top-0">+</span> : ''}
       {day.date}
     </Button>
   )

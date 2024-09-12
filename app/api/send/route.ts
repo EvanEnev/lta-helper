@@ -1,11 +1,26 @@
 import conn from '@/lib/database'
 import google from '@/lib/google'
 import validateData from '@/lib/validateData'
+import locations from '@/src/utils/locations'
 import {Day} from '@/src/utils/types'
 import {NextRequest, NextResponse} from 'next/server'
 
 const compareObjects = (obj1: object, obj2: object) => {
   return JSON.stringify(obj1) === JSON.stringify(obj2)
+}
+
+const redBackgoundColor = {
+  red: 0.8784314,
+  green: 0.4,
+  blue: 0.4,
+}
+
+const darkYellowBackgoundColor = {red: 1, green: 1, blue: 1}
+
+const locationGreenBackgoundColor = {
+  red: 0.5764706,
+  green: 0.76862746,
+  blue: 0.49019608,
 }
 
 export async function POST(req: NextRequest) {
@@ -67,15 +82,16 @@ export async function POST(req: NextRequest) {
 
   if (!row) return NextResponse.json({}, {status: 404})
 
-  await sheet.loadHeaderRow()
+  await sheet.loadHeaderRow(7)
   const headerValues = sheet.headerValues
     .slice(9, 23)
     .map((value: string) => value.split(' ')[1])
 
-  const workerIndex = rows.indexOf(row)
-  const rowIndex = workerIndex + 2
+  const rowIndex = row.rowNumber
 
-  await sheet.loadCells(`J${rowIndex}:W${rowIndex}`)
+  await sheet.loadCells(`F${rowIndex}:W${rowIndex}`)
+
+  const rank = sheet.getCellByA1(`F${rowIndex}`).value
 
   const locationsChanges: {date: string; location: string; value?: string}[] =
     []
@@ -86,16 +102,22 @@ export async function POST(req: NextRequest) {
 
     const cell = sheet.getCellByA1(`${day.key}${rowIndex}`)
 
-    if ((cell.value === 'Могу' || cell.value) && day.value === '+') {
-      return
-    }
-
-    if (compareObjects(cell.backgroundColor, {red: 1}) && day.value === '-') {
+    if (
+      (cell.value === 'Могу' || locations.includes(cell.value)) &&
+      day.value === '+'
+    ) {
       return
     }
 
     if (
-      compareObjects(cell.backgroundColor, {red: 1, green: 1}) &&
+      compareObjects(cell.backgroundColor, redBackgoundColor) &&
+      day.value === '-'
+    ) {
+      return
+    }
+
+    if (
+      compareObjects(cell.backgroundColor, darkYellowBackgoundColor) &&
       day.value === '+/-'
     ) {
       return
@@ -103,19 +125,17 @@ export async function POST(req: NextRequest) {
 
     if (day.value === '+') {
       cell.value = 'Могу'
-      cell.backgroundColor = {green: 1, alpha: 0.5}
     } else if (day.value === '-') {
-      if (cell.value) {
+      if (compareObjects(cell.backgroundColor, locationGreenBackgoundColor)) {
         locationsChanges.push({
           date: day.date,
           location: cell.value,
         })
       }
 
-      cell.stringValue = ''
-      cell.backgroundColor = {red: 1}
+      cell.stringValue = 'Не могу'
     } else if (day.value === '+/-') {
-      if (cell.value) {
+      if (compareObjects(cell.backgroundColor, locationGreenBackgoundColor)) {
         locationsChanges.push({
           date: day.date,
           location: cell.value,
@@ -123,8 +143,7 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      cell.stringValue = ''
-      cell.backgroundColor = {green: 1, red: 1}
+      cell.stringValue = 'Могу с огр-ем'
     }
 
     changes.push(`${day.date} ${day.value}`)
@@ -146,6 +165,9 @@ export async function POST(req: NextRequest) {
     },
   )
 
+  const chat_id = rank ? -1001949029897 : -1001540720827
+  const message_thread_id = rank ? 108 : 2682
+
   // await fetch(
   //   `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
   //   {
@@ -154,8 +176,8 @@ export async function POST(req: NextRequest) {
   //       'Content-Type': 'application/json',
   //     }),
   //     body: JSON.stringify({
-  //       chat_id: -1001949029897,
-  //       message_thread_id: 108,
+  //       chat_id,
+  //       message_thread_id,
   //       text,
   //     }),
   //   },

@@ -1,15 +1,7 @@
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
 import {Day} from '@/src/utils/types'
-import {
-  Button,
-  Card,
-  CardBody,
-  Input,
-  Select,
-  SelectItem,
-  Tooltip,
-} from '@nextui-org/react'
+import {Button, Card, CardBody, Input} from '@nextui-org/react'
 import {useMemo} from 'react'
 import {useRecoilState} from 'recoil'
 
@@ -70,19 +62,19 @@ export default function DayInfo() {
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}
         onClick={() => possibilityHandler('+/-')}>
-        По договорённости
+        С ограничениями
       </Button>
       <Input
         label="Комментарий"
         size="lg"
         value={day?.comment || ''}
-        isRequired={day?.value === '-'}
+        isRequired={day?.value === '-' || day?.value === '+/-'}
         onChange={commentHandler}
         color={selectedDay?.invalidComment ? 'danger' : 'default'}
       />
       <Card className="h-16">
         <CardBody className="justify-center text-xl">
-          {day?.location?.name || (
+          {day?.location || (
             <span className="opacity-70 italic">Ещё никто не забрал</span>
           )}
         </CardBody>

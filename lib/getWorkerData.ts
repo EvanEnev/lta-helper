@@ -1,6 +1,23 @@
 import google from '@/lib/google'
-import getLocation from '../src/utils/getLocation'
 import compareObjects from '../src/utils/compareObjects'
+
+const redBackgoundColor = {
+  red: 0.8784314,
+  green: 0.4,
+  blue: 0.4,
+}
+
+const darkRedBackgoundColor = {red: 0.6}
+
+const yellowBackgoundColor = {
+  red: 1,
+  green: 0.8980392,
+  blue: 0.6,
+}
+
+const darkYellowBackgoundColor = {red: 1, green: 1, blue: 1}
+
+const excludedLocation = ['Не могу', 'Отпуск', 'Больничный']
 
 export default async function getWorkerData(worker: any) {
   const doc = google()
@@ -18,11 +35,10 @@ export default async function getWorkerData(worker: any) {
 
   if (!row) return []
 
-  const workerIndex = rows.indexOf(row)
-  const rowIndex = workerIndex + 2
+  const rowIndex = row.rowNumber
 
   await Promise.all([
-    sheet.loadHeaderRow(),
+    sheet.loadHeaderRow(7),
     sheet.loadCells(`J${rowIndex}:W${rowIndex}`),
   ])
 
@@ -39,18 +55,24 @@ export default async function getWorkerData(worker: any) {
 
   const workingDays = formattedDates.map((day: {date: string; key: any}) => {
     const cell = sheet.getCellByA1(`${day.key}${rowIndex}`)
+    const backgroundColor = cell.backgroundColor
 
-    const object = {date: day.date, value: '', location: {}}
+    const object = {date: day.date, value: '', location: ''}
 
     if (cell.value === 'Могу') {
       object.value = '+'
-    } else if (cell.value) {
-      const location = getLocation(cell.value)
-      object.location = location
+    } else if (cell.value && !excludedLocation.includes(cell.value)) {
+      object.location = cell.value
       object.value = '+'
-    } else if (compareObjects(cell.backgroundColor, {red: 1})) {
+    } else if (
+      compareObjects(backgroundColor, redBackgoundColor) ||
+      compareObjects(backgroundColor, darkRedBackgoundColor)
+    ) {
       object.value = '-'
-    } else if (compareObjects(cell.backgroundColor, {red: 1, green: 1})) {
+    } else if (
+      compareObjects(backgroundColor, yellowBackgoundColor) ||
+      compareObjects(backgroundColor, darkYellowBackgoundColor)
+    ) {
       object.value = '+/-'
     }
 

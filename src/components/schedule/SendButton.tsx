@@ -14,7 +14,9 @@ export default function SendButton() {
   const handler = async () => {
     setLoading(true)
 
-    const invalidDay = days.find(day => day.value === '-' && !day.comment)
+    const invalidDay = days.find(
+      day => (day.value === '-' || day.value === '+/-') && !day.comment,
+    )
 
     if (invalidDay) {
       setLoading(false)

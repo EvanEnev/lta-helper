@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   const telegramId = user.id
-  const query = `INSERT INTO "lt_arena"."workers" (telegram_id, name) VALUES (${telegramId}, '${name}')`
+  const query = `INSERT INTO "lt_arena"."workers" (telegram_id, name) VALUES (${telegramId}, '${name.trim()}')`
   await conn.query(query)
 
   const workingDays = await getWorkerData({name})
