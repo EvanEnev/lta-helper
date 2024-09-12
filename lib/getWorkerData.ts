@@ -1,21 +1,10 @@
 import google from '@/lib/google'
 import compareObjects from '../src/utils/compareObjects'
 
-const redBackgoundColor = {
-  red: 0.8784314,
-  green: 0.4,
-  blue: 0.4,
-}
-
+const redBackgoundColor = {red: 0.8784314, green: 0.4, blue: 0.4}
 const darkRedBackgoundColor = {red: 0.6}
-
-const yellowBackgoundColor = {
-  red: 1,
-  green: 0.8980392,
-  blue: 0.6,
-}
-
-const darkYellowBackgoundColor = {red: 1, green: 1, blue: 1}
+const yellowBackgoundColor = {red: 1, green: 0.9490196, blue: 0.8}
+const darkYellowBackgoundColor = {red: 1, green: 0.8980392, blue: 0.6}
 
 const excludedLocation = ['Не могу', 'Отпуск', 'Больничный']
 
@@ -55,8 +44,9 @@ export default async function getWorkerData(worker: any) {
 
   const workingDays = formattedDates.map((day: {date: string; key: any}) => {
     const cell = sheet.getCellByA1(`${day.key}${rowIndex}`)
-    const backgroundColor = cell.backgroundColor
+    const backgroundColor = cell.effectiveFormat.backgroundColor
 
+    console.log(day, backgroundColor)
     const object = {date: day.date, value: '', location: ''}
 
     if (cell.value === 'Могу') {
