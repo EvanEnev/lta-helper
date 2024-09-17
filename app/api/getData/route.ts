@@ -1,7 +1,7 @@
 import conn from '@/lib/database'
 import validateData from '@/lib/validateData'
 import getWorkerData from '@/lib/getWorkerData'
-import {User, Worker} from '@/src/utils/types'
+import {Comment, Worker} from '@/src/utils/types'
 import {NextRequest, NextResponse} from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -15,18 +15,38 @@ export async function POST(req: NextRequest) {
   }
 
   const telegramId = user.id
-  const query = `SELECT "name" FROM lt_arena.workers WHERE telegram_id=${telegramId}`
-  const result = await conn.query(query)
-  const object = result.rows[0]
+  const dataQuery = `SELECT "name" FROM lt_arena.workers WHERE telegram_id=${telegramId}`
+  const dataResult = await conn.query(dataQuery)
+  const object = dataResult.rows[0]
+
+  const commentsQuery = `SELECT * FROM lt_arena.comments WHERE worker='${object?.name}'`
 
   const worker: Worker = {
     name: object?.name,
     workingDays: [],
+    type: '',
+    comments: [],
   }
 
   if (worker) {
-    const workingDays = await getWorkerData(worker)
-    worker.workingDays = workingDays
+    const workerData = await getWorkerData(worker)
+    worker.workingDays = workerData.workingDays
+    worker.type = workerData.type
+  }
+
+  const firstDate = worker.workingDays[0]?.date
+  let removeOldCommentsQuery = `DELETE FROM lt_arena.comments WHERE date < '${firstDate}'`
+
+  await conn.query(removeOldCommentsQuery)
+
+  if (worker.name) {
+    const commentsResult = await conn.query(commentsQuery)
+    worker.comments = commentsResult.rows.map(
+      (row: {date: string; value: string}) => ({
+        date: row.date,
+        value: row.value,
+      }),
+    )
   }
 
   return NextResponse.json(object ? worker : {})

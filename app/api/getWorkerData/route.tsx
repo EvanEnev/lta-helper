@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
   const worker: Worker = {
     name: object?.name,
     workingDays: [],
+    type: '',
+    comments: [],
   }
 
   return NextResponse.json(object ? worker : {})

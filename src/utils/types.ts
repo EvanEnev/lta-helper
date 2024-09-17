@@ -33,7 +33,14 @@ export type WorkingDay = {
   location?: string
 }
 
+export interface Comment {
+  date: string
+  value: string
+}
+
 export type Worker = {
   name: string
   workingDays: WorkingDay[]
+  type: string
+  comments: Comment[]
 }

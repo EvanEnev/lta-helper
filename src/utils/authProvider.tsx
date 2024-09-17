@@ -1,7 +1,7 @@
 'use client'
 
 import {useCallback, useEffect, useRef, useState} from 'react'
-import {Day} from './types'
+import {Comment, Day} from './types'
 import Home from '@/app/page'
 import React from 'react'
 import {useRecoilState, useSetRecoilState} from 'recoil'
@@ -45,19 +45,24 @@ export default function AuthProvider() {
     const newDays: Day[] = []
     data?.workingDays?.forEach(
       (day: {date: string; value?: string; location?: string}) => {
+        const comment =
+          data?.comments?.find((c: Comment) => c.date === day.date)?.value || ''
+
         if (day.location) {
           newDays.push({
             date: day.date,
             value: day.value,
             location: day.location,
+            comment,
           })
         } else {
-          newDays.push({date: day.date, value: day.value})
+          newDays.push({date: day.date, value: day.value, comment})
         }
       },
     )
 
     setDays(newDays)
+    setWorker(data)
   }, [])
 
   useEffect(() => {

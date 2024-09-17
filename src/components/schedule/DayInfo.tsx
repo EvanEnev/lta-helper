@@ -1,13 +1,15 @@
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
+import workerState from '@/src/state/workerState'
 import {Day} from '@/src/utils/types'
 import {Button, Card, CardBody, Input} from '@nextui-org/react'
 import {useMemo} from 'react'
-import {useRecoilState} from 'recoil'
+import {useRecoilState, useRecoilValue} from 'recoil'
 
 export default function DayInfo() {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
   const [days, setDays] = useRecoilState(daysState)
+  const worker = useRecoilValue(workerState)
 
   const day: Day = useMemo(
     () => days?.find(d => d.date === selectedDay.date) || {date: ''},
@@ -15,8 +17,6 @@ export default function DayInfo() {
   )
 
   const possibilityHandler = (value: string) => {
-    // const value = event.target.value
-
     if (value !== '-') setSelectedDay({...selectedDay, invalidComment: false})
     if (value === day?.value) return
 
@@ -62,13 +62,16 @@ export default function DayInfo() {
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}
         onClick={() => possibilityHandler('+/-')}>
-        С ограничениями
+        С ограничением
       </Button>
       <Input
-        label="Комментарий"
+        label={day?.value === '-' ? 'Причина' : 'Комментарий'}
         size="lg"
         value={day?.comment || ''}
-        isRequired={day?.value === '-' || day?.value === '+/-'}
+        isRequired={
+          (day?.value === '-' && worker.type === 'worker') ||
+          day?.value === '+/-'
+        }
         onChange={commentHandler}
         color={selectedDay?.invalidComment ? 'danger' : 'default'}
       />

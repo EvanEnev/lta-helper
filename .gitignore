@@ -2,6 +2,8 @@ old
 .vscode
 pnpm-lock.yaml
 
+app/api/sendMessage
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 .idea
 
