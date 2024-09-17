@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
         cell.value = 'Могу'
         break
       case '-':
-        if (compareObjects(backgroundColor, BACKGROUND_COLORS.locationGreen)) {
+        if (locations.includes(cell.value)) {
           locationsChanges.push({
             date: day.date,
             location: cellValue,
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
         cell.value = 'Не могу'
         break
       case '+/-':
-        if (compareObjects(backgroundColor, BACKGROUND_COLORS.locationGreen)) {
+        if (locations.includes(cell.value)) {
           locationsChanges.push({
             date: day.date,
             location: cellValue,
@@ -153,6 +153,7 @@ export async function POST(req: NextRequest) {
 
   await conn.query(updateCommentsQuery)
 
+  console.log(locationsChanges)
   const telegramPromises = [
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -173,9 +174,9 @@ export async function POST(req: NextRequest) {
         text: locationsChanges
           .map(
             lc =>
-              `${lc.location} ${worker.name}, минус ${lc.date}, ${
-                lc.value || ''
-              } ${lc.comment || ''}`,
+              `${lc.location}, ${worker.name} ${
+                lc.value ? 'может с ограничем' : 'не может'
+              } ${lc.date}, ${lc.comment || ''}`,
           )
           .join('\n'),
       }),
