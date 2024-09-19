@@ -29,7 +29,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: {_rawData: string[]}) =>
-      r._rawData[2]?.split(' ')[0].toLowerCase() ===
+      r._rawData[2]?.split('-')[0].trim().toLowerCase() ===
       worker?.name?.toLowerCase(),
   )
 

@@ -52,7 +52,8 @@ export async function POST(req: NextRequest) {
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: {_rawData: string[]}) =>
-      r._rawData[2]?.split(' ')[0].toLowerCase() === worker.name.toLowerCase(),
+      r._rawData[2]?.split('-')[0].trim().toLowerCase() ===
+      worker.name.toLowerCase(),
   )
 
   if (!row) {
@@ -141,7 +142,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, {status: 200})
   }
 
-  const text = `${worker.name}\n\n${changes.join('\n')}`
+  const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
+  const text = `[${name}](tg://user?id=${telegramId})\n\n${changes.join('\n')}`
   const botToken = process.env.BOT_TOKEN
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
   const chat_id = rank ? -1001949029897 : -1001540720827
@@ -163,7 +165,12 @@ export async function POST(req: NextRequest) {
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({chat_id, message_thread_id, text}),
+      body: JSON.stringify({
+        chat_id,
+        message_thread_id,
+        text,
+        parse_mode: 'Markdown',
+      }),
     }),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
