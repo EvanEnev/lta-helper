@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   }
 
   const firstDate = worker.workingDays[0]?.date
-  let removeOldCommentsQuery = `DELETE FROM lt_arena.comments WHERE date < '${firstDate}'`
+  let removeOldCommentsQuery = `DELETE FROM lt_arena.comments WHERE TO_DATE(REPLACE(date, '.', ''), 'DDMM') < TO_DATE(REPLACE('${firstDate}', '.', ''), 'DDMM')`
 
   await conn.query(removeOldCommentsQuery)
 

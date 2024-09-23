@@ -60,6 +60,10 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
     const cell = sheet.getCellByA1(`${key}${rowIndex}`)
     const backgroundColor = cell.effectiveFormat.backgroundColor
 
+    if (cell.note?.split(' ')[0] < date) {
+      cell.note = ''
+    }
+
     const dayData = {date, value: '', location: ''}
 
     if (cell.value === 'Могу') {
@@ -83,6 +87,8 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
     return dayData
   })
+
+  await sheet.saveUpdatedCells().catch(() => {})
 
   const workerData: WorkerData = {
     workingDays,
