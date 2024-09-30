@@ -16,6 +16,8 @@ export default function DayInfo() {
     [days, selectedDay],
   )
 
+  const currentDate: any = useMemo(() => new Date(), [])
+
   const possibilityHandler = (value: string) => {
     if (value !== '-') setSelectedDay({...selectedDay, invalidComment: false})
     if (value === day?.value) return
@@ -39,9 +41,37 @@ export default function DayInfo() {
     setDays(newDays)
   }
 
+  const isDisabled = useMemo(() => {
+    if (!selectedDay.date) return true
+    if (!day.location) return false
+
+    const dayProps = selectedDay.date.split('.')
+    const dayProp = parseInt(dayProps[0])
+    const monthProp = parseInt(dayProps[1])
+
+    const selectedDate: any = new Date()
+
+    selectedDate.setDate(dayProp)
+    selectedDate.setMonth(monthProp - 1)
+
+    const diffTime = Math.abs(selectedDate - currentDate)
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1 && day.location) return true
+  }, [currentDate, day.location, selectedDay.date])
+
   return (
     <div className="w-full flex flex-col gap-4">
+      {isDisabled && selectedDay.date && (
+        <Card className="bg-warning/70 h-18">
+          <CardBody className="justify-center items-center">
+            <p>Нельзя изменить график за день до смены</p>
+            <p>Необходимо написать старшему площадки</p>
+          </CardBody>
+        </Card>
+      )}
       <Button
+        isDisabled={isDisabled}
         className="h-14"
         size="lg"
         color={day?.value === '+' ? 'success' : 'default'}
@@ -50,6 +80,7 @@ export default function DayInfo() {
       </Button>
 
       <Button
+        isDisabled={isDisabled}
         className="h-14"
         size="lg"
         color={day?.value === '-' ? 'danger' : 'default'}
@@ -58,6 +89,7 @@ export default function DayInfo() {
       </Button>
 
       <Button
+        isDisabled={isDisabled}
         className="h-14"
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}
@@ -65,6 +97,7 @@ export default function DayInfo() {
         С ограничением
       </Button>
       <Input
+        isDisabled={isDisabled}
         label={day?.value === '-' ? 'Причина' : 'Комментарий'}
         size="lg"
         value={day?.comment || ''}

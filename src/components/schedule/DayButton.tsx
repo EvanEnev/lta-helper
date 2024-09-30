@@ -1,6 +1,7 @@
 import selectedDayState from '@/src/state/selectedDayState'
 import {Day} from '@/src/utils/types'
 import {Button, Skeleton} from '@nextui-org/react'
+import {useMemo} from 'react'
 import {useRecoilValue, useSetRecoilState} from 'recoil'
 
 type DayButtonProps = {
@@ -23,6 +24,17 @@ export default function DayButton({day}: DayButtonProps) {
     setSelectedDay({date: day.date})
   }
 
+  const weekday = useMemo(() => {
+    const splittedDate = day.date.split('.')
+    const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
+
+    const date = new Date(dateString)
+
+    return date.toLocaleDateString('ru-RU', {
+      weekday: 'short',
+    })
+  }, [day.date])
+
   return day.date === undefined ? (
     <Skeleton className="w-28 h-12 rounded-[14px]" />
   ) : (
@@ -34,8 +46,10 @@ export default function DayButton({day}: DayButtonProps) {
       color={color}
       variant={selectedDay.date === day.date ? 'shadow' : 'solid'}
       onClick={handler}>
-      {day?.location ? <span className="absolute left-3 top-0">+</span> : ''}
-      {day.date}
+      {day?.location ? <span className="absolute left-2 top-0">+</span> : ''}
+      <span className="h-fit w-fit">
+        {day.date}, {weekday}
+      </span>
     </Button>
   )
 }

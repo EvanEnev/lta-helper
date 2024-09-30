@@ -2,7 +2,7 @@ import daysState from '@/src/state/daysState'
 import telegramState from '@/src/state/telegramState'
 import {Button} from '@nextui-org/react'
 import {useState} from 'react'
-import {useRecoilValue, useSetRecoilState} from 'recoil'
+import {useRecoilState, useRecoilValue, useSetRecoilState} from 'recoil'
 import selectedDayState from '@/src/state/selectedDayState'
 import workerState from '@/src/state/workerState'
 
@@ -10,7 +10,7 @@ export default function SendButton() {
   const days = useRecoilValue(daysState)
   const telegram = useRecoilValue(telegramState)
   const [isLoading, setLoading] = useState<boolean>(false)
-  const setSelectedDay = useSetRecoilState(selectedDayState)
+  const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
   const worker = useRecoilValue(workerState)
 
   const handler = async () => {
@@ -47,6 +47,7 @@ export default function SendButton() {
 
   return (
     <Button
+      isDisabled={selectedDay.date ? false : true}
       onClick={handler}
       isLoading={isLoading}
       size="lg"

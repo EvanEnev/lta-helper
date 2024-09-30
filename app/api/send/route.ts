@@ -16,6 +16,21 @@ const BACKGROUND_COLORS = {
 const compareObjects = (obj1: object, obj2: object) =>
   JSON.stringify(obj1) === JSON.stringify(obj2)
 
+const variants = [
+  'сотрудник',
+  'работник',
+  'испытуемый',
+  'игрок',
+  'участник',
+  'участник тестирования',
+  'испытатель',
+  'полевой исследователь',
+  'участник эксперимента',
+]
+
+const getRandomNumber = (limit: number = 2) => {
+  return Math.floor(Math.random() * limit)
+}
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
@@ -75,9 +90,11 @@ export async function POST(req: NextRequest) {
   await sheet.loadCells(`F${row.rowNumber}:W${row.rowNumber}`)
 
   const changes: string[] = []
-  let updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES`
+  const commentsChanges = []
+
   const locationsChanges: {
     date: string
+    weekday: string
     location: string
     value?: string
     comment?: string
@@ -102,8 +119,19 @@ export async function POST(req: NextRequest) {
 
     if (shouldSkip) continue
 
+    const splittedDate = day.date.split('.')
+    const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
+
+    const date = new Date(dateString)
+
+    const weekday = date.toLocaleDateString('ru-RU', {
+      weekday: 'long',
+    })
+
     if (day.comment) {
-      updateCommentsQuery += `\n('${worker.name}', '${day.date}', '${day.comment}'),`
+      commentsChanges.push(
+        `('${worker.name}', '${day.date}', '${day.comment}')`,
+      )
     }
 
     switch (day.value) {
@@ -114,6 +142,7 @@ export async function POST(req: NextRequest) {
         if (locations.includes(cell.value)) {
           locationsChanges.push({
             date: day.date,
+            weekday,
             location: cellValue,
             comment: day.comment,
           })
@@ -124,6 +153,7 @@ export async function POST(req: NextRequest) {
         if (locations.includes(cell.value)) {
           locationsChanges.push({
             date: day.date,
+            weekday,
             location: cellValue,
             value: '+/-',
             comment: day.comment,
@@ -148,18 +178,23 @@ export async function POST(req: NextRequest) {
   }
 
   const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
-  const text = `[${name}](tg://user?id=${telegramId})\n\n${changes.join('\n')}`
+  const text = `[${name}](tg://user?id=${telegramId})${
+    worker.number
+      ? ` (${variants[getRandomNumber(variants.length)]} №${worker.number})`
+      : ''
+  }\n\n${changes.join('\n')}`
   const botToken = process.env.BOT_TOKEN
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
   const chat_id = rank ? -1001949029897 : -1001540720827
   const message_thread_id = rank ? 108 : 2682
 
-  updateCommentsQuery =
-    updateCommentsQuery.slice(0, -1) +
-    ' ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value'
+  const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
+    ',\n',
+  )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
 
   await conn.query(updateCommentsQuery)
 
+  console.log(updateCommentsQuery)
   const telegramPromises = [
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -182,12 +217,13 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         chat_id: -1001990152890,
         message_thread_id: 3,
+        parse_mode: 'Markdown',
         text: locationsChanges
           .map(
             lc =>
-              `${lc.location}, ${worker.name} ${
+              `⚠️ ${lc.location}, ${worker.name} **${
                 lc.value ? 'может с ограничем' : 'не может'
-              } ${lc.date}, ${lc.comment || ''}`,
+              }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
           )
           .join('\n'),
       }),

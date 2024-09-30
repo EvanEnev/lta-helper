@@ -18,9 +18,13 @@ export default function Home() {
       <h1 className="text-5xl font-bold">График</h1>
       <p className="text-3xl">Позывной: {worker.name}</p>
       <div className="flex justify-center gap-4 w-full max-h-[50%] flex-wrap">
-        {days.map((day: Day, index: number) => (
-          <DayButton day={day} key={index} />
-        ))}
+        {days.length ? (
+          days.map((day: Day, index: number) => (
+            <DayButton day={day} key={index} />
+          ))
+        ) : (
+          <i className="opacity-50">Дат пока нет..</i>
+        )}
         <Divider />
         <DayInfo />
         <SendButton />
