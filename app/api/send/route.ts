@@ -114,10 +114,10 @@ export async function POST(req: NextRequest) {
       (compareObjects(backgroundColor, BACKGROUND_COLORS.red) &&
         day.value === '-') ||
       (compareObjects(backgroundColor, BACKGROUND_COLORS.yellow) &&
-        day.value === '+/-') ||
-      day.comment === comment.value
+        day.value === '+/-')
 
     if (shouldSkip) continue
+    if (day.comment === comment.value) continue
 
     const splittedDate = day.date.split('.')
     const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
