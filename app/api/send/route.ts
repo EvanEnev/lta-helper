@@ -117,7 +117,6 @@ export async function POST(req: NextRequest) {
         day.value === '+/-')
 
     if (shouldSkip) continue
-    if (day.comment === comment.value) continue
 
     const splittedDate = day.date.split('.')
     const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
