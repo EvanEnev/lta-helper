@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
   const {id: telegramId} = user
   const workerResult = await conn.query(
-    `SELECT "name" FROM lt_arena.workers WHERE telegram_id = $1`,
+    `SELECT "name", "number" FROM lt_arena.workers WHERE telegram_id = $1`,
     [telegramId],
   )
   const worker = workerResult.rows[0]
@@ -194,7 +194,6 @@ export async function POST(req: NextRequest) {
 
   await conn.query(updateCommentsQuery)
 
-  console.log(updateCommentsQuery)
   const telegramPromises = [
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',

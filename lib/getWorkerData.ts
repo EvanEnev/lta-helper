@@ -19,7 +19,7 @@ const BACKGROUND_COLORS = {
   darkYellow: {red: 1, green: 0.898, blue: 0.6},
 }
 
-const EXCLUDED_LOCATIONS = ['Не могу', 'Отпуск', 'Больничный']
+const EXCLUDED_LOCATIONS = ['Не могу', 'Отпуск', 'Больничный', '???']
 
 export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
