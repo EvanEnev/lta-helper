@@ -25,10 +25,14 @@ export default function DayButton({day}: DayButtonProps) {
   }
 
   const weekday = useMemo(() => {
-    const splittedDate = day.date.split('.')
-    const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
+    const dayProps = day.date.split('.')
+    const dayProp = parseInt(dayProps[0])
+    const monthProp = parseInt(dayProps[1])
 
-    const date = new Date(dateString)
+    const date: any = new Date()
+
+    date.setDate(dayProp)
+    date.setMonth(monthProp - 1)
 
     return date.toLocaleDateString('ru-RU', {
       weekday: 'short',
