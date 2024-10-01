@@ -35,7 +35,7 @@ export default function DayButton({day}: DayButtonProps) {
     })
   }, [day.date])
 
-  return day.date === undefined ? (
+  return !day.date ? (
     <Skeleton className="w-28 h-12 rounded-[14px]" />
   ) : (
     <Button

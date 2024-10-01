@@ -106,15 +106,20 @@ export async function POST(req: NextRequest) {
     const cell = sheet.getCellByA1(`${day.key}${row.rowNumber}`)
     const backgroundColor = cell.effectiveFormat.backgroundColor
     const cellValue = cell.value
-    const comment = comments.find(c => c.date === day.date) || ''
+    const comment = comments.find(c => c.date === day.date) || {value: ''}
 
     const shouldSkip =
-      ((cellValue === 'Могу' || locations.includes(cellValue)) &&
+      (((cellValue === 'Могу' || locations.includes(cellValue)) &&
         day.value === '+') ||
-      (compareObjects(backgroundColor, BACKGROUND_COLORS.red) &&
-        day.value === '-') ||
-      (compareObjects(backgroundColor, BACKGROUND_COLORS.yellow) &&
-        day.value === '+/-')
+        ((compareObjects(backgroundColor, BACKGROUND_COLORS.red) ||
+          compareObjects(backgroundColor, BACKGROUND_COLORS.darkRed) ||
+          cell.value === 'Не могу') &&
+          day.value === '-') ||
+        ((compareObjects(backgroundColor, BACKGROUND_COLORS.yellow) ||
+          compareObjects(backgroundColor, BACKGROUND_COLORS.darkYellow) ||
+          cell.value === 'Могу с огр-ем') &&
+          day.value === '+/-')) &&
+      comment.value === day.comment
 
     if (shouldSkip) continue
 
@@ -170,7 +175,7 @@ export async function POST(req: NextRequest) {
     changes.push(`${day.date} ${day.value} ${day.comment || ''}`)
   }
 
-  await sheet.saveUpdatedCells().catch(() => {})
+  // await sheet.saveUpdatedCells().catch(() => {})
 
   if (!changes.length) {
     return NextResponse.json({}, {status: 200})
