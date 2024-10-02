@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
     changes.push(`${day.date} ${day.value} ${day.comment || ''}`)
   }
 
-  // await sheet.saveUpdatedCells().catch(() => {})
+  await sheet.saveUpdatedCells().catch(() => {})
 
   if (!changes.length) {
     return NextResponse.json({}, {status: 200})
@@ -192,12 +192,13 @@ export async function POST(req: NextRequest) {
   const chat_id = rank ? -1001949029897 : -1001540720827
   const message_thread_id = rank ? 108 : 2682
 
-  const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
-    ',\n',
-  )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
+  if (commentsChanges.length) {
+    const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
+      ',\n',
+    )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
 
-  await conn.query(updateCommentsQuery)
-
+    await conn.query(updateCommentsQuery)
+  }
   const telegramPromises = [
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
