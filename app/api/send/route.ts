@@ -126,6 +126,12 @@ export async function POST(req: NextRequest) {
     const cell = sheet.getCellByA1(`${day.key}${row.rowNumber}`)
     const backgroundColor = cell.effectiveFormat.backgroundColor
     let cellValue = cell.value
+    let location = ''
+
+    if (locations.includes(cellValue)) {
+      location = cellValue
+    }
+
     const comment = comments.find(c => c.date === day.date) || {value: ''}
 
     const cellValueFromBackground = Object.keys(backgroundColorsMap).find(
@@ -167,16 +173,16 @@ export async function POST(req: NextRequest) {
       cell.note = day.comment
     }
 
-    if (value === '+/-' && locations.includes(cellValue)) {
+    if (value === '+/-' && location) {
       cell.value = oldValue
     }
 
     if (day.value !== '+') {
-      if (locations.includes(cell.value)) {
+      if (location) {
         locationsChanges.push({
           date: day.date,
           weekday,
-          location: cellValue,
+          location,
           value,
           comment: day.comment,
         })
