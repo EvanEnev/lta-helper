@@ -20,7 +20,7 @@ export default function SendButton() {
       day =>
         ((worker.type === 'worker' && day.value === '-') ||
           day.value === '+/-') &&
-        !day.comment,
+        !day.comment?.trim()?.length,
     )
 
     if (invalidDay) {

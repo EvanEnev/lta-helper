@@ -3,14 +3,33 @@ import google from '@/lib/google'
 import validateData from '@/lib/validateData'
 import locations from '@/src/utils/locations'
 import {Day} from '@/src/utils/types'
+import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 
-const BACKGROUND_COLORS = {
+interface LocationChange {
+  date: string
+  weekday: string
+  location: string
+  value?: string
+  comment?: string
+}
+
+const BACKGROUND_COLORS: {
+  [key: string]: any
+} = {
   red: {red: 0.878, green: 0.4, blue: 0.4},
   darkRed: {red: 0.6},
   yellow: {red: 1, green: 0.949, blue: 0.8},
   darkYellow: {red: 1, green: 0.898, blue: 0.6},
-  locationGreen: {red: 0.576, green: 0.769, blue: 0.49},
+  black: {},
+}
+
+const backgroundColorsMap: {[key: string]: string} = {
+  red: 'Не могу',
+  darkRed: 'Не могу',
+  black: 'Не могу',
+  yellow: 'Могу с огр-ем',
+  darkYellow: 'Могу с огр-ем',
 }
 
 const compareObjects = (obj1: object, obj2: object) =>
@@ -31,6 +50,13 @@ const variants = [
 const getRandomNumber = (limit: number = 2) => {
   return Math.floor(Math.random() * limit)
 }
+
+const values: {[key: string]: string} = {
+  '+': 'Могу',
+  '-': 'Не могу',
+  '+/-': 'Могу с огр-ем',
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
@@ -66,8 +92,8 @@ export async function POST(req: NextRequest) {
   const sheet = doc.sheetsByIndex[0]
   const rows = await sheet.getRows()
   const row = rows.find(
-    (r: {_rawData: string[]}) =>
-      r._rawData[2]?.split('-')[0].trim().toLowerCase() ===
+    (r: GoogleSpreadsheetRow) =>
+      r.get('Позывной')?.split('-')[0].trim().toLowerCase() ===
       worker.name.toLowerCase(),
   )
 
@@ -90,36 +116,32 @@ export async function POST(req: NextRequest) {
   await sheet.loadCells(`F${row.rowNumber}:W${row.rowNumber}`)
 
   const changes: string[] = []
-  const commentsChanges = []
-
-  const locationsChanges: {
-    date: string
-    weekday: string
-    location: string
-    value?: string
-    comment?: string
-  }[] = []
+  const commentsChanges: string[] = []
+  const locationsChanges: LocationChange[] = []
 
   for (const day of formattedDates) {
-    if (!headerValues.includes(day.date) || !day.value) continue
+    const value = day.value
+    if (!headerValues.includes(day.date) || !value) continue
 
     const cell = sheet.getCellByA1(`${day.key}${row.rowNumber}`)
     const backgroundColor = cell.effectiveFormat.backgroundColor
-    const cellValue = cell.value
+    let cellValue = cell.value
     const comment = comments.find(c => c.date === day.date) || {value: ''}
 
+    const cellValueFromBackground = Object.keys(backgroundColorsMap).find(
+      color => compareObjects(backgroundColor, BACKGROUND_COLORS[color]),
+    )
+
+    if (cellValueFromBackground) {
+      cellValue = backgroundColorsMap[cellValueFromBackground]
+    }
+
+    if (locations.includes(cellValue)) {
+      cellValue = 'Могу'
+    }
+
     const shouldSkip =
-      (((cellValue === 'Могу' || locations.includes(cellValue)) &&
-        day.value === '+') ||
-        ((compareObjects(backgroundColor, BACKGROUND_COLORS.red) ||
-          compareObjects(backgroundColor, BACKGROUND_COLORS.darkRed) ||
-          cell.value === 'Не могу') &&
-          day.value === '-') ||
-        ((compareObjects(backgroundColor, BACKGROUND_COLORS.yellow) ||
-          compareObjects(backgroundColor, BACKGROUND_COLORS.darkYellow) ||
-          cell.value === 'Могу с огр-ем') &&
-          day.value === '+/-')) &&
-      comment.value === day.comment
+      cellValue === values[value] && comment.value === day.comment
 
     if (shouldSkip) continue
 
@@ -138,103 +160,96 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    switch (day.value) {
-      case '+':
-        cell.value = 'Могу'
-        break
-      case '-':
-        if (locations.includes(cell.value)) {
-          locationsChanges.push({
-            date: day.date,
-            weekday,
-            location: cellValue,
-            comment: day.comment,
-          })
-        }
-        cell.value = 'Не могу'
-        break
-      case '+/-':
-        if (locations.includes(cell.value)) {
-          locationsChanges.push({
-            date: day.date,
-            weekday,
-            location: cellValue,
-            value: '+/-',
-            comment: day.comment,
-          })
-        }
+    const oldValue = cell.value
+    cell.value = cellValue
 
-        if (day.comment) {
-          cell.note = `${day.date} ${day.comment}`
-        }
-
-        cell.value = 'Могу с огр-ем'
-        break
+    if (day.comment && day.comment?.length > 1 && value !== '+') {
+      cell.note = day.comment
     }
 
-    changes.push(`${day.date} ${day.value} ${day.comment || ''}`)
-  }
+    if (value === '+/-' && locations.includes(cellValue)) {
+      cell.value = oldValue
+    }
 
-  await sheet.saveUpdatedCells().catch(() => {})
+    if (day.value !== '+') {
+      if (locations.includes(cell.value)) {
+        locationsChanges.push({
+          date: day.date,
+          weekday,
+          location: cellValue,
+          value,
+          comment: day.comment,
+        })
+      }
 
-  if (!changes.length) {
+      changes.push(
+        day.comment === comment.value
+          ? `${day.date} ${day.value}`
+          : `${day.date} ${day.value} ${day.comment || ''}`,
+      )
+    }
+
+    await sheet.saveUpdatedCells().catch(() => {})
+
+    if (!changes.length) {
+      return NextResponse.json({}, {status: 200})
+    }
+
+    const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
+    const text = `[${name}](tg://user?id=${telegramId})${
+      worker.number
+        ? ` (${variants[getRandomNumber(variants.length)]} №${worker.number})`
+        : ''
+    }\n\n${changes.join('\n')}`
+    const botToken = process.env.BOT_TOKEN
+    const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
+    const chat_id = rank ? -1001949029897 : -1001540720827
+    const message_thread_id = rank ? 108 : 2682
+
+    if (commentsChanges.length) {
+      const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
+        ',\n',
+      )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
+
+      await conn.query(updateCommentsQuery)
+    }
+    const telegramPromises = [
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
+      }),
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          chat_id,
+          message_thread_id,
+          text,
+          parse_mode: 'Markdown',
+        }),
+      }),
+      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          chat_id: -1001990152890,
+          message_thread_id: 3,
+          parse_mode: 'Markdown',
+          text: locationsChanges
+            .map(
+              lc =>
+                `⚠️ ${lc.location}, ${worker.name} **${
+                  lc.value === '+/-' ? 'может с ограничем' : 'не может'
+                }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
+            )
+            .join('\n'),
+        }),
+      }),
+    ]
+
+    await Promise.all(telegramPromises)
+
     return NextResponse.json({}, {status: 200})
   }
-
-  const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
-  const text = `[${name}](tg://user?id=${telegramId})${
-    worker.number
-      ? ` (${variants[getRandomNumber(variants.length)]} №${worker.number})`
-      : ''
-  }\n\n${changes.join('\n')}`
-  const botToken = process.env.BOT_TOKEN
-  const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
-  const chat_id = rank ? -1001949029897 : -1001540720827
-  const message_thread_id = rank ? 108 : 2682
-
-  if (commentsChanges.length) {
-    const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
-      ',\n',
-    )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
-
-    await conn.query(updateCommentsQuery)
-  }
-  const telegramPromises = [
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
-    }),
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        chat_id,
-        message_thread_id,
-        text,
-        parse_mode: 'Markdown',
-      }),
-    }),
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        chat_id: -1001990152890,
-        message_thread_id: 3,
-        parse_mode: 'Markdown',
-        text: locationsChanges
-          .map(
-            lc =>
-              `⚠️ ${lc.location}, ${worker.name} **${
-                lc.value ? 'может с ограничем' : 'не может'
-              }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
-          )
-          .join('\n'),
-      }),
-    }),
-  ]
-
-  await Promise.all(telegramPromises)
-
-  return NextResponse.json({}, {status: 200})
 }

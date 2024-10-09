@@ -17,6 +17,7 @@ const BACKGROUND_COLORS = {
   darkRed: {red: 0.6},
   yellow: {red: 1, green: 0.949, blue: 0.8},
   darkYellow: {red: 1, green: 0.898, blue: 0.6},
+  black: {},
 }
 
 const EXCLUDED_LOCATIONS = ['Не могу', 'Отпуск', 'Больничный', '???']
@@ -80,6 +81,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
     } else if (
       compareObjects(backgroundColor, BACKGROUND_COLORS.red) ||
       compareObjects(backgroundColor, BACKGROUND_COLORS.darkRed) ||
+      compareObjects(backgroundColor, BACKGROUND_COLORS.black) ||
       cell.value === 'Не могу'
     ) {
       dayData.value = '-'
