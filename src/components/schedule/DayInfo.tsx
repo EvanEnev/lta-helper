@@ -54,10 +54,10 @@ export default function DayInfo() {
     selectedDate.setDate(dayProp)
     selectedDate.setMonth(monthProp - 1)
 
-    const diffTime = Math.abs(selectedDate - currentDate)
+    const diffTime = selectedDate - currentDate
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 1 && day.location) return true
+    if (diffDays === 1 || diffDays === 0) return true
   }, [currentDate, day.location, selectedDay.date])
 
   return (
@@ -65,8 +65,10 @@ export default function DayInfo() {
       {isDisabled && selectedDay.date && (
         <Card className="bg-warning/70 h-18">
           <CardBody className="justify-center items-center">
-            <p>Нельзя изменить график за день до смены</p>
-            <p>Необходимо написать старшему площадки</p>
+            <p>Нельзя изменить график за день до или в день смены</p>
+            <p>
+              Необходимо написать старшему площадки и в топик График LT Arena
+            </p>
           </CardBody>
         </Card>
       )}

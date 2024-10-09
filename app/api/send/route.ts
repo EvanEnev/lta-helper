@@ -98,65 +98,61 @@ export async function POST(req: NextRequest) {
   )
 
   if (!row) {
-    return NextResponse.json({}, {status: 404})
+    return NextResponse.json(
+      {message: 'Сотрудник не найден в таблице'},
+      {status: 404},
+    )
   }
-
-  const formattedDates = selectedDays.map((day, index) => ({
-    date: day.date,
-    key: 'JKLMNOPQRSTUVW'[index],
-    value: day.value,
-    comment: day.comment,
-  }))
 
   await sheet.loadHeaderRow(7)
   const headerValues = sheet.headerValues
     .slice(9, 23)
     .map((val: string) => val.split(' ')[1])
 
-  await sheet.loadCells(`F${row.rowNumber}:W${row.rowNumber}`)
+  const rowNumber = row.rowNumber
+  const keys = 'JKLMNOPQRSTUVW'.split('')
+
+  await sheet.loadCells(`F${rowNumber}:W${rowNumber}`)
 
   const changes: string[] = []
   const commentsChanges: string[] = []
   const locationsChanges: LocationChange[] = []
 
-  for (const day of formattedDates) {
-    const value = day.value
-    if (!headerValues.includes(day.date) || !value) continue
+  keys.forEach((key, index) => {
+    const date = headerValues[index]
+    const day = selectedDays.find(day => day.date === date)
 
-    const cell = sheet.getCellByA1(`${day.key}${row.rowNumber}`)
+    if (!day?.value) return
+
+    const cell = sheet.getCellByA1(`${key}${rowNumber}`)
     const backgroundColor = cell.effectiveFormat.backgroundColor
-    let cellValue = cell.value
-    let location = ''
-
-    if (locations.includes(cellValue)) {
-      location = cellValue
+    const cellValue = cell.value
+    const location = locations.find(v => v === cellValue)
+    const comment = comments.find((c: {date: any}) => c.date === date) || {
+      value: '',
     }
-
-    const comment = comments.find(c => c.date === day.date) || {value: ''}
+    let value = cell.value
 
     const cellValueFromBackground = Object.keys(backgroundColorsMap).find(
       color => compareObjects(backgroundColor, BACKGROUND_COLORS[color]),
     )
 
     if (cellValueFromBackground) {
-      cellValue = backgroundColorsMap[cellValueFromBackground]
+      value = backgroundColorsMap[cellValueFromBackground]
     }
 
     if (locations.includes(cellValue)) {
-      cellValue = 'Могу'
+      value = 'Могу'
     }
 
-    const shouldSkip =
-      cellValue === values[value] && comment.value === day.comment
-
-    if (shouldSkip) continue
+    if (value === values[day.value] && comment.value === day.comment) return
 
     const splittedDate = day.date.split('.')
     const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
 
-    const date = new Date(dateString)
+    const dateObject = new Date(dateString)
 
-    const weekday = date.toLocaleDateString('ru-RU', {
+    const weekday = dateObject.toLocaleDateString('ru-RU', {
       weekday: 'long',
     })
 
@@ -166,15 +162,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const oldValue = cell.value
-    cell.value = cellValue
-
-    if (day.comment && day.comment?.length > 1 && value !== '+') {
+    if (day.comment && day.comment.length > 1 && value !== '+') {
       cell.note = day.comment
     }
 
-    if (value === '+/-' && location) {
-      cell.value = oldValue
+    if (!(day.value === '+/-' && location)) {
+      cell.value = values[day.value]
     }
 
     if (day.value !== '+') {
@@ -183,79 +176,79 @@ export async function POST(req: NextRequest) {
           date: day.date,
           weekday,
           location,
-          value,
+          value: day.value,
           comment: day.comment,
         })
       }
-
-      changes.push(
-        day.comment === comment.value
-          ? `${day.date} ${day.value}`
-          : `${day.date} ${day.value} ${day.comment || ''}`,
-      )
     }
 
-    await sheet.saveUpdatedCells().catch(() => {})
+    changes.push(
+      day.comment === comment.value
+        ? `${day.date} ${day.value}`
+        : `${day.date} ${day.value} ${day.comment || ''}`,
+    )
+  })
 
-    if (!changes.length) {
-      return NextResponse.json({}, {status: 200})
-    }
+  await sheet.saveUpdatedCells().catch(() => {})
 
-    const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
-    const text = `[${name}](tg://user?id=${telegramId})${
-      worker.number
-        ? ` (${variants[getRandomNumber(variants.length)]} №${worker.number})`
-        : ''
-    }\n\n${changes.join('\n')}`
-    const botToken = process.env.BOT_TOKEN
-    const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
-    const chat_id = rank ? -1001949029897 : -1001540720827
-    const message_thread_id = rank ? 108 : 2682
-
-    if (commentsChanges.length) {
-      const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
-        ',\n',
-      )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
-
-      await conn.query(updateCommentsQuery)
-    }
-    const telegramPromises = [
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
-      }),
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          chat_id,
-          message_thread_id,
-          text,
-          parse_mode: 'Markdown',
-        }),
-      }),
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          chat_id: -1001990152890,
-          message_thread_id: 3,
-          parse_mode: 'Markdown',
-          text: locationsChanges
-            .map(
-              lc =>
-                `⚠️ ${lc.location}, ${worker.name} **${
-                  lc.value === '+/-' ? 'может с ограничем' : 'не может'
-                }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
-            )
-            .join('\n'),
-        }),
-      }),
-    ]
-
-    await Promise.all(telegramPromises)
-
+  if (!changes.length) {
     return NextResponse.json({}, {status: 200})
   }
+
+  const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
+  const text = `[${name}](tg://user?id=${telegramId})${
+    worker.number
+      ? ` (${variants[getRandomNumber(variants.length)]} №${worker.number})`
+      : ''
+  }\n\n${changes.join('\n')}`
+  const botToken = process.env.BOT_TOKEN
+  const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
+  const chat_id = rank ? -1001949029897 : -1001540720827
+  const message_thread_id = rank ? 108 : 2682
+
+  if (commentsChanges.length) {
+    const updateCommentsQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsChanges.join(
+      ',\n',
+    )} ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
+
+    await conn.query(updateCommentsQuery)
+  }
+  const telegramPromises = [
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
+    }),
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id,
+        message_thread_id,
+        text,
+        parse_mode: 'Markdown',
+      }),
+    }),
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id: -1001990152890,
+        message_thread_id: 3,
+        parse_mode: 'Markdown',
+        text: locationsChanges
+          .map(
+            lc =>
+              `⚠️ ${lc.location}, ${worker.name} **${
+                lc.value === '+/-' ? 'может с ограничем' : 'не может'
+              }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
+          )
+          .join('\n'),
+      }),
+    }),
+  ]
+
+  await Promise.all(telegramPromises)
+
+  return NextResponse.json({}, {status: 200})
 }
