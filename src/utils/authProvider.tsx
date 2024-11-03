@@ -2,7 +2,6 @@
 
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {Comment, Day} from './types'
-import Home from '@/app/page'
 import React from 'react'
 import {useRecoilState, useSetRecoilState} from 'recoil'
 import telegramState from '../state/telegramState'
@@ -11,7 +10,7 @@ import daysState from '../state/daysState'
 import Register from '@/app/register/page'
 import Loading from '@/app/loading/page'
 
-export default function AuthProvider() {
+export default function AuthProvider({children}: {children: React.ReactNode}) {
   const [isLoading, setLoading] = useState<boolean>(true)
   const [telegram, setTelegram] = useRecoilState(telegramState)
   const [worker, setWorker] = useRecoilState(workerState)
@@ -102,7 +101,7 @@ export default function AuthProvider() {
       ) : Object.keys(worker).length === 0 ? (
         <Register />
       ) : (
-        <Home />
+        children
       )}
     </React.Fragment>
   )
