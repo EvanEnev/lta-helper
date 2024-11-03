@@ -10,6 +10,7 @@ interface FormattedDate {
 interface WorkerData {
   workingDays: WorkingDay[]
   type: string
+  isAdmin: boolean
 }
 
 const BACKGROUND_COLORS = {
@@ -24,9 +25,9 @@ const EXCLUDED_LOCATIONS = ['Не могу', 'Отпуск', 'Больничны
 
 export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
-  await doc.loadInfo()
+  await doc.schedule.loadInfo()
 
-  const sheet = doc.sheetsByIndex[0]
+  const sheet = doc.schedule.sheetsByIndex[0]
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: {_rawData: string[]}) =>
@@ -34,7 +35,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
       worker?.name?.toLowerCase(),
   )
 
-  if (!row) return {workingDays: [], type: ''}
+  if (!row) return {workingDays: [], type: '', isAdmin: false}
 
   const rowIndex = row.rowNumber
 
@@ -55,7 +56,8 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
     }),
   )
 
-  const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
+  const rank = row.get('Ранг')
+  const isAdmin = rank === 'Советник' || rank === 'Платина' || rank === 'Золото'
 
   const workingDays: WorkingDay[] = formattedDates.map(({date, key}) => {
     const cell = sheet.getCellByA1(`${key}${rowIndex}`)
@@ -95,6 +97,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const workerData: WorkerData = {
     workingDays,
     type: rank ? 'worker' : 'actor',
+    isAdmin,
   }
 
   return workerData

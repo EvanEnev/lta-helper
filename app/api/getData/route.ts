@@ -26,12 +26,14 @@ export async function POST(req: NextRequest) {
     workingDays: [],
     type: '',
     comments: [],
+    isAdmin: false,
   }
 
   if (worker) {
     const workerData = await getWorkerData(worker)
-    worker.workingDays = workerData.workingDays
-    worker.type = workerData.type
+    worker.workingDays = workerData?.workingDays
+    worker.type = workerData?.type
+    worker.isAdmin = workerData?.isAdmin || false
   }
 
   const firstDate = worker.workingDays[0]?.date

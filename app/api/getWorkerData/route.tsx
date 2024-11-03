@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     workingDays: [],
     type: '',
     comments: [],
+    isAdmin: false,
   }
 
   return NextResponse.json(object ? worker : {})

@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
   const comments = commentsData.rows
 
   const doc = google()
-  await doc.loadInfo()
-  const sheet = doc.sheetsByIndex[0]
+  await doc.schedule.loadInfo()
+  const sheet = doc.schedule.sheetsByIndex[0]
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: GoogleSpreadsheetRow) =>

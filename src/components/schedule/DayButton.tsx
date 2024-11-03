@@ -6,9 +6,13 @@ import {useRecoilValue, useSetRecoilState} from 'recoil'
 
 type DayButtonProps = {
   day: Day
+  color?: 'default' | 'success' | 'danger' | 'warning'
+  onclick?: any
+  isSelected?: boolean
 }
 
-export default function DayButton({day}: DayButtonProps) {
+export default function DayButton(props: DayButtonProps) {
+  const day = props.day
   const setSelectedDay = useSetRecoilState(selectedDayState)
 
   const selectedDay = useRecoilValue(selectedDayState)
@@ -19,6 +23,10 @@ export default function DayButton({day}: DayButtonProps) {
   if (day.value === '+/-') color = 'warning'
 
   const handler = () => {
+    if (props.onclick) {
+      return props.onclick()
+    }
+
     if (selectedDay.date === day.date) return
 
     setSelectedDay({date: day.date})
@@ -39,16 +47,17 @@ export default function DayButton({day}: DayButtonProps) {
     })
   }, [day.date])
 
+  const isSelected = props.isSelected
+    ? props.isSelected
+    : selectedDay.date === day.date
   return !day.date ? (
     <Skeleton className="w-28 h-12 rounded-[14px]" />
   ) : (
     <Button
       size="lg"
-      className={`w-28 text-lg ${
-        selectedDay.date === day.date ? '' : 'opacity-60'
-      }`}
-      color={color}
-      variant={selectedDay.date === day.date ? 'shadow' : 'solid'}
+      className={`w-28 text-lg ${isSelected ? '' : 'opacity-60'}`}
+      color={props.color || color}
+      variant={isSelected ? 'shadow' : 'solid'}
       onClick={handler}>
       {day?.location ? <span className="absolute left-2 top-0">+</span> : ''}
       <span className="h-fit w-fit">
