@@ -199,8 +199,6 @@ export async function POST(req: NextRequest) {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
-  console.log(changes, commentsChanges)
-
   if (!changes.length) {
     return NextResponse.json({}, {status: 200})
   }
@@ -224,42 +222,42 @@ export async function POST(req: NextRequest) {
     await conn.query(updateCommentsQuery)
   }
 
-  // const telegramPromises = [
-  //   fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-  //     method: 'POST',
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
-  //   }),
-  //   fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-  //     method: 'POST',
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: JSON.stringify({
-  //       chat_id,
-  //       message_thread_id,
-  //       text,
-  //       parse_mode: 'Markdown',
-  //     }),
-  //   }),
-  //   fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-  //     method: 'POST',
-  //     headers: {'Content-Type': 'application/json'},
-  //     body: JSON.stringify({
-  //       chat_id: -1001990152890,
-  //       message_thread_id: 3,
-  //       parse_mode: 'Markdown',
-  //       text: locationsChanges
-  //         .map(
-  //           lc =>
-  //             `⚠️ ${lc.location}, ${worker.name} **${
-  //               lc.value === '+/-' ? 'может с ограничем' : 'не может'
-  //             }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
-  //         )
-  //         .join('\n'),
-  //     }),
-  //   }),
-  // ]
+  const telegramPromises = [
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
+    }),
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id,
+        message_thread_id,
+        text,
+        parse_mode: 'Markdown',
+      }),
+    }),
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id: -1001990152890,
+        message_thread_id: 3,
+        parse_mode: 'Markdown',
+        text: locationsChanges
+          .map(
+            lc =>
+              `⚠️ ${lc.location}, ${worker.name} **${
+                lc.value === '+/-' ? 'может с ограничем' : 'не может'
+              }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
+          )
+          .join('\n'),
+      }),
+    }),
+  ]
 
-  // await Promise.all(telegramPromises)
+  await Promise.all(telegramPromises)
 
   return NextResponse.json({}, {status: 200})
 }
