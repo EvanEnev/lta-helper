@@ -132,6 +132,9 @@ export async function POST(req: NextRequest) {
       value: '',
     }
     let value = cell.value
+    const foundedLocation = locations.find(
+      location => location.toLowerCase() === day.value?.toLowerCase(),
+    )
 
     const cellValueFromBackground = Object.keys(backgroundColorsMap).find(
       color => compareObjects(backgroundColor, BACKGROUND_COLORS[color]),
@@ -141,11 +144,12 @@ export async function POST(req: NextRequest) {
       value = backgroundColorsMap[cellValueFromBackground]
     }
 
-    if (locations.includes(cellValue)) {
+    if (locations.includes(cellValue) && day.value === '+') {
       value = 'Могу'
     }
 
     if (value === values[day.value] && comment.value === day.comment) return
+    if (foundedLocation?.toLowerCase() === cellValue.toLowerCase()) return
 
     const splittedDate = day.date.split('.')
     const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
@@ -167,11 +171,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (!(day.value === '+/-' && location)) {
-      cell.value = values[day.value]
+      if (foundedLocation) {
+        cell.value = foundedLocation
+      } else {
+        cell.value = values[day.value]
+      }
     }
 
     if (day.value !== '+') {
-      if (location) {
+      if (location && location !== foundedLocation) {
         locationsChanges.push({
           date: day.date,
           weekday,
@@ -213,42 +221,43 @@ export async function POST(req: NextRequest) {
 
     await conn.query(updateCommentsQuery)
   }
-  const telegramPromises = [
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
-    }),
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        chat_id,
-        message_thread_id,
-        text,
-        parse_mode: 'Markdown',
-      }),
-    }),
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        chat_id: -1001990152890,
-        message_thread_id: 3,
-        parse_mode: 'Markdown',
-        text: locationsChanges
-          .map(
-            lc =>
-              `⚠️ ${lc.location}, ${worker.name} **${
-                lc.value === '+/-' ? 'может с ограничем' : 'не может'
-              }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
-          )
-          .join('\n'),
-      }),
-    }),
-  ]
 
-  await Promise.all(telegramPromises)
+  // const telegramPromises = [
+  //   fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+  //     method: 'POST',
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: JSON.stringify({chat_id: telegramId, text: 'Успешно ✅'}),
+  //   }),
+  //   fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+  //     method: 'POST',
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: JSON.stringify({
+  //       chat_id,
+  //       message_thread_id,
+  //       text,
+  //       parse_mode: 'Markdown',
+  //     }),
+  //   }),
+  //   fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+  //     method: 'POST',
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: JSON.stringify({
+  //       chat_id: -1001990152890,
+  //       message_thread_id: 3,
+  //       parse_mode: 'Markdown',
+  //       text: locationsChanges
+  //         .map(
+  //           lc =>
+  //             `⚠️ ${lc.location}, ${worker.name} **${
+  //               lc.value === '+/-' ? 'может с ограничем' : 'не может'
+  //             }** ${lc.date} (${lc.weekday}), ${lc.comment || ''}`,
+  //         )
+  //         .join('\n'),
+  //     }),
+  //   }),
+  // ]
+
+  // await Promise.all(telegramPromises)
 
   return NextResponse.json({}, {status: 200})
 }

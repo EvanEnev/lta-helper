@@ -43,4 +43,6 @@ export type Worker = {
   workingDays: WorkingDay[]
   type: string
   comments: Comment[]
+  isAdmin: boolean
+  location?: string
 }

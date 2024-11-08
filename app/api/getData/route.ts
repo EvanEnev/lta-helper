@@ -21,18 +21,16 @@ export async function POST(req: NextRequest) {
 
   const commentsQuery = `SELECT * FROM lt_arena.comments WHERE worker='${object?.name}'`
 
-  const worker: Worker = {
+  let worker: Worker = {
     name: object?.name,
     workingDays: [],
     type: '',
     comments: [],
+    isAdmin: false,
   }
 
-  if (worker) {
-    const workerData = await getWorkerData(worker)
-    worker.workingDays = workerData.workingDays
-    worker.type = workerData.type
-  }
+  const workerData = await getWorkerData(worker)
+  worker = {...worker, ...workerData}
 
   const firstDate = worker.workingDays[0]?.date
   let removeOldCommentsQuery = `DELETE FROM lt_arena.comments WHERE TO_DATE(REPLACE(date, '.', ''), 'DDMM') < TO_DATE(REPLACE('${firstDate}', '.', ''), 'DDMM')`
