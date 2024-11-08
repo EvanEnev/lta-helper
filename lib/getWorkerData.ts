@@ -103,7 +103,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
-  const isAdmin = ADMIN_RANKS.includes(rank.toLowerCase())
+  const isAdmin = ADMIN_RANKS.includes(rank?.toLowerCase())
 
   const workerData: WorkerData = {
     workingDays,
@@ -113,7 +113,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   if (
     isAdmin &&
-    locations.find(l => l.toLowerCase() === location.toLowerCase())
+    locations.find(l => l.toLowerCase() === location?.toLowerCase())
   ) {
     workerData.location = location
   }

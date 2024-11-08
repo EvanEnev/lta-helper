@@ -199,6 +199,8 @@ export async function POST(req: NextRequest) {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
+  console.log(changes, commentsChanges)
+
   if (!changes.length) {
     return NextResponse.json({}, {status: 200})
   }
