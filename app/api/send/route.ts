@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: GoogleSpreadsheetRow) =>
-      r.get('Позывной')?.split('-')[0].trim().toLowerCase() ===
+      r.get('Позывной')?.split('-')[0]?.trim()?.toLowerCase() ===
       worker.name.toLowerCase(),
   )
 
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (value === values[day.value] && comment.value === day.comment) return
-    if (foundedLocation?.toLowerCase() === cellValue.toLowerCase()) return
+    if (foundedLocation?.toLowerCase() === cellValue?.toLowerCase()) return
 
     const splittedDate = day.date.split('.')
     const dateString = `${splittedDate[1]}.${splittedDate[0]}.2024`
