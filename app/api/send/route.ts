@@ -1,7 +1,10 @@
 import conn from '@/lib/database'
 import google from '@/lib/google'
 import validateData from '@/lib/validateData'
+import compareObjects from '@/src/utils/compareObjects'
 import locations from '@/src/utils/locations'
+import getChanges from '@/src/utils/send/getChanges'
+import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
 import {Day} from '@/src/utils/types'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
@@ -30,25 +33,6 @@ const backgroundColorsMap: {[key: string]: string} = {
   black: 'Не могу',
   yellow: 'Могу с огр-ем',
   darkYellow: 'Могу с огр-ем',
-}
-
-const compareObjects = (obj1: object, obj2: object) =>
-  JSON.stringify(obj1) === JSON.stringify(obj2)
-
-const variants = [
-  'сотрудник',
-  'работник',
-  'испытуемый',
-  'игрок',
-  'участник',
-  'участник тестирования',
-  'испытатель',
-  'полевой исследователь',
-  'участник эксперимента',
-]
-
-const getRandomNumber = (limit: number = 2) => {
-  return Math.floor(Math.random() * limit)
 }
 
 const values: {[key: string]: string} = {
@@ -118,6 +102,8 @@ export async function POST(req: NextRequest) {
   const commentsChanges: string[] = []
   const locationsChanges: LocationChange[] = []
 
+  getChanges({sheet, row, selectedDays})
+  return NextResponse.json({})
   keys.forEach((key, index) => {
     const date = headerValues[index]
     const day = selectedDays.find(day => day.date === date)
@@ -203,12 +189,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, {status: 200})
   }
 
+  const randomPhrase = getRandomPhrase()
+  const randomMessage = worker.number
+    ? ` (${randomPhrase} №${worker.number})`
+    : ''
+
   const name = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
-  const text = `[${name}](tg://user?id=${telegramId})${
-    worker.number
-      ? ` (${variants[getRandomNumber(variants.length)]} №${worker.number})`
-      : ''
-  }\n\n${changes.join('\n')}`
+  const text = `[${name}](tg://user?id=${telegramId})${randomMessage}\n\n${changes.join(
+    '\n',
+  )}`
+
   const botToken = process.env.BOT_TOKEN
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
   const chat_id = rank ? -1001949029897 : -1001540720827
