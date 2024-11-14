@@ -3,9 +3,10 @@ import google from '@/lib/google'
 import validateData from '@/lib/validateData'
 import getChanges from '@/src/utils/send/getChanges'
 import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
-import { Day } from '@/src/utils/types'
-import { GoogleSpreadsheetRow } from 'google-spreadsheet'
-import { NextRequest, NextResponse } from 'next/server'
+import getWeekDay from '@/src/utils/send/getWeekDay'
+import {Day} from '@/src/utils/types'
+import {GoogleSpreadsheetRow} from 'google-spreadsheet'
+import {NextRequest, NextResponse} from 'next/server'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -50,7 +51,12 @@ export async function POST(req: NextRequest) {
 
   await sheet.loadHeaderRow(7)
 
-  const {changes, commentsChanges} = await getChanges({sheet, row, selectedDays, workerName: worker.name})
+  const {changes, commentsChanges} = await getChanges({
+    sheet,
+    row,
+    selectedDays,
+    workerName: worker.name,
+  })
   const locationsChangesTexts: string[] = []
   const changesTexts: string[] = []
 
@@ -68,22 +74,28 @@ export async function POST(req: NextRequest) {
   const workerName = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
 
   changes.forEach(change => {
-    const [day, month] = change.date.split('.').map(v => parseInt(v))
-    const dateObject = new Date(2024, month, day)
-    const weekday = dateObject.toLocaleDateString('ru-RU', {
-      weekday: 'long',
-    })
+    const weekday = getWeekDay(change.date)
 
-    changesTexts.push(`${change.date} ${change.newValue}${change.comment ? `, ${change.comment}` : ''}`)
+    changesTexts.push(
+      `${change.date} ${change.newValue}${
+        change.comment ? `, ${change.comment}` : ''
+      }`,
+    )
 
     if (change.location) {
-      const possibilityText = change.newValue === '+/-' ? 'может с ограничем' : 'не может'
-      locationsChangesTexts.push(`⚠️ ${change.location}, ${workerName} **${possibilityText}** ${change.date} (${weekday})${change.comment ? `, ${change.comment}` : ''}`)
+      const possibilityText =
+        change.newValue === '+/-' ? 'может с ограничем' : 'не может'
+      locationsChangesTexts.push(
+        `⚠️ ${change.location}, ${workerName} **${possibilityText}** ${
+          change.date
+        } (${weekday})${change.comment ? `, ${change.comment}` : ''}`,
+      )
     }
   })
 
-
-  const text = `[${workerName}](tg://user?id=${telegramId})${randomMessage}\n\n${changesTexts.join('\n')}`
+  const text = `[${workerName}](tg://user?id=${telegramId})${randomMessage}\n\n${changesTexts.join(
+    '\n',
+  )}`
   const locationsTexts = locationsChangesTexts.join('\n')
 
   const botToken = process.env.BOT_TOKEN
@@ -92,9 +104,11 @@ export async function POST(req: NextRequest) {
   const message_thread_id = rank ? 108 : 2682
 
   if (commentsChanges.length) {
-    const commentsUpdateEntries = commentsChanges.map(comment => {
-      return `('${worker.name}', '${comment.date}', '${comment.value}')`
-    }).join(',\n')
+    const commentsUpdateEntries = commentsChanges
+      .map(comment => {
+        return `('${worker.name}', '${comment.date}', '${comment.value}')`
+      })
+      .join(',\n')
 
     const commentsUpdateQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsUpdateEntries}
      ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
@@ -106,7 +120,10 @@ export async function POST(req: NextRequest) {
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({chat_id: telegramId, text: `Успешно ✅\n\n${changesTexts.join('\n')}`}),
+      body: JSON.stringify({
+        chat_id: telegramId,
+        text: `Успешно ✅\n\n${changesTexts.join('\n')}`,
+      }),
     }),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
