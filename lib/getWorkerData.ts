@@ -1,7 +1,7 @@
 import google from '@/lib/google'
 import compareObjects from '../src/utils/compareObjects'
-import {Worker, WorkingDay} from '@/src/utils/types'
-import locations from '@/src/utils/locations'
+import {WorkingDay} from '@/src/utils/types'
+import getLocationData from './getLocationData'
 
 interface FormattedDate {
   date: string
@@ -36,7 +36,9 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
   await doc.loadInfo()
 
-  const sheet = doc.sheetsByIndex[0]
+  const sheet = doc.sheetsByName['Расписание + сотдруники']
+  const locationsSheet = doc.sheetsByName['Расписание по площадкам']
+
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: {_rawData: string[]}) =>
@@ -46,6 +48,8 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   if (!row) return {workingDays: [], type: '', isAdmin: false}
 
+  const locationsRows = await locationsSheet.getRows()
+  await locationsSheet.loadHeaderRow(2)
   const rowIndex = row.rowNumber
 
   await Promise.all([
@@ -68,15 +72,15 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
   const location = sheet.getCellByA1(`E${row.rowNumber}`).value
 
-  const workingDays: WorkingDay[] = formattedDates.map(({date, key}) => {
+  const dataPromises = formattedDates.map(async ({date, key}) => {
     const cell = sheet.getCellByA1(`${key}${rowIndex}`)
-    const backgroundColor = cell.effectiveFormat.backgroundColor
+    const backgroundColor = cell.effectiveFormat?.backgroundColor
 
     if (cell.note?.split(' ')[0] < date) {
       cell.note = ''
     }
 
-    const dayData = {date, value: '', location: ''}
+    const dayData = {date, value: '', location: '', locationData: {}}
 
     if (cell.value === 'Могу') {
       dayData.value = '+'
@@ -98,8 +102,16 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
       dayData.value = '-'
     }
 
+    const locationData = await getLocationData(date, dayData.location, locationsSheet, locationsRows) || []
+
+    if (Object(locationData)?.keys.length) {
+      dayData.locationData = locationData
+    }
+
     return dayData
   })
+
+  const workingDays: WorkingDay[] = await Promise.all(dataPromises)
 
   await sheet.saveUpdatedCells().catch(() => {})
 
