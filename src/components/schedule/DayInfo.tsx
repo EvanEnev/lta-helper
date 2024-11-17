@@ -5,6 +5,7 @@ import {Day} from '@/src/utils/types'
 import {Button, Card, CardBody, Input} from '@nextui-org/react'
 import {useMemo} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
+import PossibilityButton from './PossibilityButton'
 
 export default function DayInfo() {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
@@ -72,14 +73,15 @@ export default function DayInfo() {
           </CardBody>
         </Card>
       )}
-      <Button
+
+      <PossibilityButton
+        isAdmin={worker?.isAdmin}
+        location={worker?.location}
+        value={day?.value}
         isDisabled={isDisabled}
-        className="h-14"
-        size="lg"
-        color={day?.value === '+' ? 'success' : 'default'}
-        onClick={() => possibilityHandler('+')}>
-        Могу
-      </Button>
+        handler={value => possibilityHandler(value)}
+        selectedValue={day?.value}
+      />
 
       <Button
         isDisabled={isDisabled}

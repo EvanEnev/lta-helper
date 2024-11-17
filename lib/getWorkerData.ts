@@ -11,6 +11,8 @@ interface FormattedDate {
 interface WorkerData {
   workingDays: WorkingDay[]
   type: string
+  isAdmin: boolean
+  location?: string
 }
 
 const BACKGROUND_COLORS = {
@@ -22,6 +24,13 @@ const BACKGROUND_COLORS = {
 }
 
 const EXCLUDED_LOCATIONS = ['Не могу', 'Отпуск', 'Больничный', '???']
+
+const ADMIN_RANKS = [
+  'главный инженер по эксплуатации и ремонту',
+  'советник',
+  'платиновый',
+  'золотой',
+]
 
 export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
@@ -37,7 +46,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
       worker?.name?.toLowerCase(),
   )
 
-  if (!row) return {workingDays: [], type: ''}
+  if (!row) return {workingDays: [], type: '', isAdmin: false}
 
   const locationsRows = await locationsSheet.getRows()
   await locationsSheet.loadHeaderRow(2)
@@ -45,7 +54,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   await Promise.all([
     sheet.loadHeaderRow(7),
-    sheet.loadCells(`F${rowIndex}:W${rowIndex}`),
+    sheet.loadCells(`E${rowIndex}:W${rowIndex}`),
   ])
 
   const headerValues = sheet.headerValues
@@ -61,6 +70,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   )
 
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
+  const location = sheet.getCellByA1(`E${row.rowNumber}`).value
 
   const dataPromises = formattedDates.map(async ({date, key}) => {
     const cell = sheet.getCellByA1(`${key}${rowIndex}`)
@@ -105,9 +115,19 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
+  const isAdmin = ADMIN_RANKS.includes(rank?.toLowerCase())
+
   const workerData: WorkerData = {
     workingDays,
     type: rank ? 'worker' : 'actor',
+    isAdmin,
+  }
+
+  if (
+    isAdmin &&
+    locations.find(l => l.toLowerCase() === location?.toLowerCase())
+  ) {
+    workerData.location = location
   }
 
   return workerData
