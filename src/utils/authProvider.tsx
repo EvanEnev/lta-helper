@@ -44,7 +44,12 @@ export default function AuthProvider() {
 
     const newDays: Day[] = []
     data?.workingDays?.forEach(
-      (day: {date: string; value?: string; location?: string}) => {
+      (day: {
+        date: string
+        value?: string
+        location?: string
+        locationData: any
+      }) => {
         const comment =
           data?.comments?.find((c: Comment) => c.date === day.date)?.value || ''
 
@@ -54,6 +59,7 @@ export default function AuthProvider() {
             value: day.value,
             location: day.location,
             comment,
+            locationData: day.locationData,
           })
         } else {
           newDays.push({date: day.date, value: day.value, comment})
