@@ -68,7 +68,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const headerValues = sheet.headerValues
     .slice(9, 23)
     .map((value: string) => value.split(' ')[1])
-  const keys = 'JKLMNOPQRSTUVW'.split('')
+  const keys = 'JKLMNOPQRSTUVWX'.split('')
 
   const formattedDates: FormattedDate[] = headerValues.map(
     (date: string, index: number) => ({

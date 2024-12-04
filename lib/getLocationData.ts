@@ -73,7 +73,6 @@ export default async function getLocationData(
       const hours = timeParts[0] || '00'
       const minutes = timeParts[1] || '00'
 
-      console.log(timeParts)
       const time =
         hours === '00' && minutes === '00'
           ? 'Не указано'

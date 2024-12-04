@@ -9,7 +9,7 @@ export type Day = {
 
 export type LocationData = {
   self: boolean
-  data: {
+  data?: {
     time: string
     role: string
     worker: string
