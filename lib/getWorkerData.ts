@@ -1,7 +1,8 @@
 import google from '@/lib/google'
 import compareObjects from '../src/utils/compareObjects'
-import {WorkingDay} from '@/src/utils/types'
+import {LocationData, WorkingDay} from '@/src/utils/types'
 import getLocationData from './getLocationData'
+import locations from '@/src/utils/locations'
 
 interface FormattedDate {
   date: string
@@ -13,6 +14,13 @@ interface WorkerData {
   type: string
   isAdmin: boolean
   location?: string
+}
+
+interface DayData {
+  date: string
+  value: string
+  location: string
+  locationData: LocationData[]
 }
 
 const BACKGROUND_COLORS = {
@@ -36,8 +44,8 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
   await doc.loadInfo()
 
-  const sheet = doc.sheetsByName['Расписание + сотдруники']
-  const locationsSheet = doc.sheetsByName['Расписание по площадкам']
+  const sheet = doc.sheetsByTitle['Сотрудники + расписание']
+  const locationsSheet = doc.sheetsByTitle['Расписание по площадкам']
 
   const rows = await sheet.getRows()
   const row = rows.find(
@@ -49,12 +57,12 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   if (!row) return {workingDays: [], type: '', isAdmin: false}
 
   const locationsRows = await locationsSheet.getRows()
-  await locationsSheet.loadHeaderRow(2)
   const rowIndex = row.rowNumber
 
   await Promise.all([
+    locationsSheet.loadHeaderRow(2),
     sheet.loadHeaderRow(7),
-    sheet.loadCells(`E${rowIndex}:W${rowIndex}`),
+    sheet.loadCells(`E${rowIndex}:X${rowIndex}`),
   ])
 
   const headerValues = sheet.headerValues
@@ -80,7 +88,12 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
       cell.note = ''
     }
 
-    const dayData = {date, value: '', location: '', locationData: {}}
+    const dayData: DayData = {
+      date,
+      value: '',
+      location: '',
+      locationData: [],
+    }
 
     if (cell.value === 'Могу') {
       dayData.value = '+'
@@ -102,9 +115,17 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
       dayData.value = '-'
     }
 
-    const locationData = await getLocationData(date, dayData.location, locationsSheet, locationsRows) || []
+    const locationData =
+      (await getLocationData(
+        date,
+        dayData.location,
+        locationsSheet,
+        rows,
+        locationsRows,
+        worker?.name || '',
+      )) || []
 
-    if (Object(locationData)?.keys.length) {
+    if (locationData?.length) {
       dayData.locationData = locationData
     }
 

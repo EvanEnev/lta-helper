@@ -1,9 +1,16 @@
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
 import workerState from '@/src/state/workerState'
-import {Day} from '@/src/utils/types'
-import {Button, Card, CardBody, Input} from '@nextui-org/react'
-import {useMemo} from 'react'
+import {Day, LocationData} from '@/src/utils/types'
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Card,
+  CardBody,
+  Input,
+} from '@nextui-org/react'
+import {useEffect, useMemo} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'
 
@@ -16,6 +23,18 @@ export default function DayInfo() {
     () => days?.find(d => d.date === selectedDay.date) || {date: ''},
     [days, selectedDay],
   )
+
+  const locationData: LocationData[] = useMemo(() => {
+    if (!day.location) return []
+
+    return day.locationData || []
+  }, [day])
+
+  const selfLocationData: LocationData = useMemo(() => {
+    if (!worker.location) return []
+
+    return locationData.find(data => data.self) || {}
+  }, [locationData, worker.location])
 
   const currentDate: any = useMemo(() => new Date(), [])
 
@@ -119,6 +138,16 @@ export default function DayInfo() {
           )}
         </CardBody>
       </Card>
+
+      {locationData?.length && (
+        <Accordion variant="shadow">
+          <AccordionItem
+            key="1"
+            title={`${
+              locationData.find(data => data.self)?.data.time
+            }`}></AccordionItem>
+        </Accordion>
+      )}
     </div>
   )
 }
