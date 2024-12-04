@@ -32,13 +32,12 @@ export default function DayInfo() {
   }, [day])
 
   const selfLocationData: LocationData = useMemo(() => {
-    if (!worker.location) return {self: false}
+    if (!day.location) return {self: false}
 
-    return day.locationData?.find(data => data.self) || {self: false}
+    return day.locationData?.find((data) => data?.self) || {self: false}
   }, [day, worker.location])
 
 
-  console.log(locationData, selfLocationData)
   const currentDate: any = useMemo(() => new Date(), [])
 
   const possibilityHandler = (value: string) => {

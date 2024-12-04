@@ -7,6 +7,7 @@ import {
 import convertDate from '@/lib/convertDate'
 import getWorkerRow from './getWorkerRow'
 import {LocationData} from '@/src/utils/types'
+import converWorkerName from './convertWorkerName'
 
 export default async function getLocationData(
   dateString: string,
@@ -61,11 +62,12 @@ export default async function getLocationData(
       if (!worker || worker.toLocaleLowerCase().includes('закрыто')) return
       const role = roles[index]
 
-      const workerRow = getWorkerRow(worker, workersRows)
+      const convertedWorkerName = converWorkerName(worker)
+      const workerRow = getWorkerRow(workerName, workersRows)
 
       const isTrainee =
-        worker.toLowerCase().includes('стажёр') ||
-        worker.toLowerCase().includes('стажер')
+        convertedWorkerName.toLowerCase().includes('стажёр') ||
+        convertedWorkerName.toLowerCase().includes('стажер')
 
       let rank = workerRow?.get('Ранг')
 
@@ -83,18 +85,19 @@ export default async function getLocationData(
       if (!rank) {
         rank = isTrainee ? 'Стажёр' : 'Актёр'
         if (isTrainee) {
-          worker = worker.split(' ')[1]
+          worker = convertedWorkerName
         }
       }
 
       const data = {
         time: time === '00:00-00:00' ? 'Не указано' : time,
         role: role || '',
-        worker: worker,
+        worker: convertedWorkerName,
         rank: rank,
       }
 
-      const self = worker.toLowerCase() === workerName.toLowerCase()
+      const self = convertedWorkerName.toLowerCase() === workerName.toLowerCase()
+
       locationData.push({data, self})
     })
   }
