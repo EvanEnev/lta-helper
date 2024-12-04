@@ -62,12 +62,12 @@ export default async function getLocationData(
       if (!worker || worker.toLocaleLowerCase().includes('закрыто')) return
       const role = roles[index]
 
-      const convertedWorkerName = converWorkerName(worker)
-      const workerRow = getWorkerRow(workerName, workersRows)
+      let convertedWorkerName = converWorkerName(worker)
+      const workerRow = getWorkerRow(worker, workersRows)
 
       const isTrainee =
-        convertedWorkerName.toLowerCase().includes('стажёр') ||
-        convertedWorkerName.toLowerCase().includes('стажер')
+        worker.toLowerCase().includes('стажёр') ||
+        worker.toLowerCase().includes('стажер')
 
       let rank = workerRow?.get('Ранг')
 
@@ -85,7 +85,7 @@ export default async function getLocationData(
       if (!rank) {
         rank = isTrainee ? 'Стажёр' : 'Актёр'
         if (isTrainee) {
-          worker = convertedWorkerName
+          convertedWorkerName = worker.split(' ')[1]
         }
       }
 
