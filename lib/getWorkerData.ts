@@ -55,8 +55,6 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   )
 
   if (!row) return {workingDays: [], type: '', isAdmin: false}
-
-  const locationsRows = await locationsSheet.getRows()
   const rowIndex = row.rowNumber
 
   await Promise.all([
@@ -64,6 +62,8 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
     sheet.loadHeaderRow(7),
     sheet.loadCells(`E${rowIndex}:X${rowIndex}`),
   ])
+  
+  const locationsRows = await locationsSheet.getRows()
 
   const headerValues = sheet.headerValues
     .slice(9, 23)
