@@ -30,7 +30,7 @@ export default async function getLocationData(
   const date: any = new Date(2024, month - 1, day, 0, 0, 0, 0)
 
   const locationIndex = sheet.headerValues.findIndex(
-    (value: string) => value.toLowerCase() === location.toLowerCase(),
+    (value: string) => value?.toLowerCase() === location?.toLowerCase(),
   )
 
   const dateRowIndex = rows.findIndex(
@@ -96,7 +96,7 @@ export default async function getLocationData(
         rank: rank,
       }
 
-      const self = convertedWorkerName.toLowerCase() === workerName.toLowerCase()
+      const self = convertedWorkerName?.toLowerCase() === workerName?.toLowerCase()
 
       locationData.push({data, self})
     })
