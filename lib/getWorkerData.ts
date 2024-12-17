@@ -42,11 +42,11 @@ const ADMIN_RANKS = [
 
 export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
-  await doc.loadInfo()
+  await doc.schedule.loadInfo()
 
   const sheet = doc.sheetsByTitle['Сотрудники + расписание']
   const locationsSheet = doc.sheetsByTitle['Расписание по площадкам']
-
+  
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: {_rawData: string[]}) =>
@@ -55,6 +55,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   )
 
   if (!row) return {workingDays: [], type: '', isAdmin: false}
+
   const rowIndex = row.rowNumber
 
   await Promise.all([
@@ -77,8 +78,9 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
     }),
   )
 
-  const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
   const location = sheet.getCellByA1(`E${row.rowNumber}`).value
+  const rank = row.get('Ранг')
+  const isAdmin = rank === 'Советник' || rank === 'Платина' || rank === 'Золото'
 
   const dataPromises = formattedDates.map(async ({date, key}) => {
     const cell = sheet.getCellByA1(`${key}${rowIndex}`)

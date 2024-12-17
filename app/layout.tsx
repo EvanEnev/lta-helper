@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   description: 'Сайт для удобной генерации расписаний',
 }
 
-export default function RootLayout() {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="ru" className="dark">
       <head>
@@ -25,7 +29,7 @@ export default function RootLayout() {
       <body className={inter.className}>
         <StateProvider>
           <NextUIProvider locale="ru-RU">
-            <AuthProvider />
+            <AuthProvider>{children}</AuthProvider>
           </NextUIProvider>
         </StateProvider>
       </body>

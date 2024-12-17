@@ -3,7 +3,7 @@ import {GoogleSpreadsheet} from 'google-spreadsheet'
 
 export default function google() {
   const cached = (global as any).google
-  if (cached) {
+  if (cached && cached.actors && cached.workers && cached.schedule) {
     return cached
   } else {
     const serviceAccountAuth = new JWT({
@@ -12,10 +12,22 @@ export default function google() {
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     })
 
-    const google = new GoogleSpreadsheet(
-      process.env.SHEET_ID || '',
+    const schedule = new GoogleSpreadsheet(
+      process.env.SCHEDULE_SHEET_ID || '',
       serviceAccountAuth,
     )
+
+    const workers = new GoogleSpreadsheet(
+      process.env.WORKERS_SHEET_ID || '',
+      serviceAccountAuth,
+    )
+
+    const actors = new GoogleSpreadsheet(
+      process.env.ACTORS_SHEET_ID || '',
+      serviceAccountAuth,
+    )
+
+    const google = {schedule, workers, actors}
 
     ;(global as any).google = google
     return google
