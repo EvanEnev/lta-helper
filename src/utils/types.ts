@@ -4,6 +4,17 @@ export type Day = {
   comment?: string
   location?: string
   invalidComment?: boolean
+  locationData?: LocationData[]
+}
+
+export type LocationData = {
+  self: boolean
+  data?: {
+    time: string
+    role: string
+    worker: string
+    rank: string
+  }
 }
 
 export type SelectedDay = {
@@ -44,4 +55,5 @@ export type Worker = {
   type: string
   comments: Comment[]
   isAdmin: boolean
+  location?: string
 }

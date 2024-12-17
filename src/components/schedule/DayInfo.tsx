@@ -1,10 +1,19 @@
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
 import workerState from '@/src/state/workerState'
-import {Day} from '@/src/utils/types'
-import {Button, Card, CardBody, Input} from '@nextui-org/react'
+import {Day, LocationData} from '@/src/utils/types'
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  Card,
+  CardBody,
+  Input,
+} from '@nextui-org/react'
 import {useMemo} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
+import PossibilityButton from './PossibilityButton'
+import SlashDivider from './SlashDivider'
 
 export default function DayInfo() {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
@@ -15,6 +24,19 @@ export default function DayInfo() {
     () => days?.find(d => d.date === selectedDay.date) || {date: ''},
     [days, selectedDay],
   )
+
+  const locationData: LocationData[] = useMemo(() => {
+    if (!day.location) return []
+
+    return day.locationData || []
+  }, [day])
+
+  const selfLocationData: LocationData = useMemo(() => {
+    if (!day.location) return {self: false}
+
+    return day.locationData?.find((data) => data?.self) || {self: false}
+  }, [day, worker.location])
+
 
   const currentDate: any = useMemo(() => new Date(), [])
 
@@ -60,6 +82,8 @@ export default function DayInfo() {
     if (diffDays === 1 || diffDays === 0) return true
   }, [currentDate, day.location, selectedDay.date])
 
+  const title = `${selfLocationData.data?.worker} ${selfLocationData.data?.time}`
+
   return (
     <div className="w-full flex flex-col gap-4">
       {isDisabled && selectedDay.date && (
@@ -72,14 +96,15 @@ export default function DayInfo() {
           </CardBody>
         </Card>
       )}
-      <Button
+
+      <PossibilityButton
+        isAdmin={worker?.isAdmin}
+        location={worker?.location}
+        value={day?.value}
         isDisabled={isDisabled}
-        className="h-14"
-        size="lg"
-        color={day?.value === '+' ? 'success' : 'default'}
-        onClick={() => possibilityHandler('+')}>
-        Могу
-      </Button>
+        handler={value => possibilityHandler(value)}
+        selectedValue={day?.value}
+      />
 
       <Button
         isDisabled={isDisabled}
@@ -117,6 +142,27 @@ export default function DayInfo() {
           )}
         </CardBody>
       </Card>
+
+      {selfLocationData && Object.keys(selfLocationData)?.length > 1 && (
+        <Accordion variant="shadow">
+          <AccordionItem
+            key="1"
+            title={title}>
+              {locationData.map(({data}, index) => {
+                return <div key={index} className='py-1'>
+                  <div className='flex gap-2 flex-1 flex-wrap'>
+                 <span>{data?.rank}</span>
+                 <SlashDivider />
+                 <span>{data?.worker}</span>
+                 <SlashDivider />
+                 <span>{data?.time}</span>
+                 </div>
+                 {data?.role && <span className='pl-2'>{data?.role}</span>}
+                </div>
+              })}
+            </AccordionItem>
+        </Accordion>
+      )}
     </div>
   )
 }
