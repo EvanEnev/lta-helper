@@ -1,7 +1,7 @@
 import conn from '@/lib/database'
 import validateData from '@/lib/validateData'
 import getWorkerData from '@/lib/getWorkerData'
-import {Comment, Worker} from '@/src/utils/types'
+import {Worker} from '@/src/utils/types'
 import {NextRequest, NextResponse} from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   worker = {...worker, ...workerData}
 
   const firstDate = worker.workingDays[0]?.date
-  let removeOldCommentsQuery = `DELETE FROM lt_arena.comments WHERE TO_DATE(REPLACE(date, '.', ''), 'DDMM') < TO_DATE(REPLACE('${firstDate}', '.', ''), 'DDMM')`
+  const removeOldCommentsQuery = `DELETE FROM lt_arena.comments WHERE TO_DATE(REPLACE(date, '.', ''), 'DDMM') < TO_DATE(REPLACE('${firstDate}', '.', ''), 'DDMM')`
 
   await conn.query(removeOldCommentsQuery)
 

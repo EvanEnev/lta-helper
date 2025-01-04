@@ -12,6 +12,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-start p-4 gap-4">
       <h1 className="text-5xl font-bold">LTArena Helper</h1>
       <p className="text-3xl">Позывной: {worker.name}</p>
+      <div className='flex flex-col gap-4'>
       <Button href="/schedule" as={Link} color="primary" size="lg">
         Заполнить график работы
       </Button>
@@ -22,6 +23,7 @@ export default function Home() {
       ) : (
         ''
       )}
-    </main>
+        </div>
+      </main>
   )
 }
