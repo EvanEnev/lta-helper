@@ -57,3 +57,13 @@ export type Worker = {
   isAdmin: boolean
   location?: string
 }
+
+export interface WorkerSalary {
+  worker: string
+  location: string
+  workingHours: string
+  bonuses: string
+  comment: string
+  isHardTime: boolean
+  gamesCount: number
+}

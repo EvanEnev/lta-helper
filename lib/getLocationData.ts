@@ -23,11 +23,11 @@ export default async function getLocationData(
   if (!workerName) return []
 
   const doc = google()
-  await doc.loadInfo()
+  await doc.schedule.loadInfo()
 
   const [day, month] = dateString.split('.').map(value => parseInt(value))
 
-  const date: any = new Date(2024, month - 1, day, 0, 0, 0, 0)
+  const date: any = new Date(new Date().getFullYear(), month - 1, day, 0, 0, 0, 0)
 
   const locationIndex = sheet.headerValues.findIndex(
     (value: string) => value?.toLowerCase() === location?.toLowerCase(),

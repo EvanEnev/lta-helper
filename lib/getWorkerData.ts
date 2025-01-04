@@ -3,6 +3,7 @@ import compareObjects from '../src/utils/compareObjects'
 import {LocationData, WorkingDay} from '@/src/utils/types'
 import getLocationData from './getLocationData'
 import locations from '@/src/utils/locations'
+import { GoogleSpreadsheetRow } from 'google-spreadsheet'
 
 interface FormattedDate {
   date: string
@@ -44,13 +45,14 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
   const doc = google()
   await doc.schedule.loadInfo()
 
-  const sheet = doc.sheetsByTitle['Сотрудники + расписание']
-  const locationsSheet = doc.sheetsByTitle['Расписание по площадкам']
+  const sheet = doc.schedule.sheetsByTitle['Сотрудники + расписание']
+  const locationsSheet = doc.schedule.sheetsByTitle['Расписание по площадкам']
   
   const rows = await sheet.getRows()
+  await sheet.loadHeaderRow(7)
   const row = rows.find(
-    (r: {_rawData: string[]}) =>
-      r._rawData[2]?.split('-')[0].trim()?.toLowerCase() ===
+    (r: GoogleSpreadsheetRow) =>
+      r.get('Позывной')?.split('-')[0].trim()?.toLowerCase() ===
       worker?.name?.toLowerCase(),
   )
 
@@ -60,7 +62,6 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   await Promise.all([
     locationsSheet.loadHeaderRow(2),
-    sheet.loadHeaderRow(7),
     sheet.loadCells(`E${rowIndex}:X${rowIndex}`),
   ])
   
@@ -80,7 +81,6 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   const location = sheet.getCellByA1(`E${row.rowNumber}`).value
   const rank = row.get('Ранг')
-  const isAdmin = rank === 'Советник' || rank === 'Платина' || rank === 'Золото'
 
   const dataPromises = formattedDates.map(async ({date, key}) => {
     const cell = sheet.getCellByA1(`${key}${rowIndex}`)
@@ -138,7 +138,7 @@ export default async function getWorkerData(worker: any): Promise<WorkerData> {
 
   await sheet.saveUpdatedCells().catch(() => {})
 
-  const isAdmin = ADMIN_RANKS.includes(rank?.toLowerCase())
+  const isAdmin = ADMIN_RANKS.includes(rank?.trim()?.toLowerCase())
 
   const workerData: WorkerData = {
     workingDays,
