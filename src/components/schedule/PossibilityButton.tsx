@@ -38,7 +38,7 @@ export default function PossibilityButton({
             ? 'success'
             : 'default'
         }
-        onClick={() => {
+        onPress={() => {
           handler(selectedOption === 'Могу' ? '+' : selectedOption)
         }}>
         {selectedOption}
@@ -60,7 +60,7 @@ export default function PossibilityButton({
             }
             className="max-w-[300px]">
             <DropdownItem key="Могу">Могу</DropdownItem>
-            <DropdownItem key={location}>{location}</DropdownItem>
+            <DropdownItem key={location || ''}>{location}</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       )}
