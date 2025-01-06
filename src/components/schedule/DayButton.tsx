@@ -10,6 +10,8 @@ type DayButtonProps = {
   color?: 'default' | 'success' | 'danger' | 'warning'
   onclick?: any
   isSelected?: boolean
+  className?: string
+  disabled?: boolean
 }
 
 export default function DayButton(props: DayButtonProps) {
@@ -59,11 +61,14 @@ export default function DayButton(props: DayButtonProps) {
     <Skeleton className="w-28 h-12 rounded-[14px]" />
   ) : (
     <Button
+      isDisabled={props.disabled}
       size="lg"
-      className={`w-28 text-lg ${isSelected ? '' : 'opacity-60'}`}
+      className={`w-28 text-lg ${isSelected ? '' : 'opacity-60'} ${
+        props.className || ''
+      }`}
       color={props.color || color}
       variant={isSelected ? 'shadow' : 'solid'}
-      onClick={handler}>
+      onPress={handler}>
       {day?.location ? <span className="absolute left-2 top-0">+</span> : ''}
       <span className="h-fit w-fit">
         {day.date}, {weekday}
