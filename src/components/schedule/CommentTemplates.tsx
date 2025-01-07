@@ -5,7 +5,7 @@ type TemplatesProps = {
   selected: string
 }
 
-const templates = ['Выходной', 'Болезнь', 'По согласнованию']
+const templates = ['Выходной', 'Болезнь', 'По согласованию']
 export default function CommenTemplates(props: TemplatesProps) {
   return (
     <div className="flex gap-2">
