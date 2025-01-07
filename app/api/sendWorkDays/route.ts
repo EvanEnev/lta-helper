@@ -67,8 +67,9 @@ export async function POST(req: NextRequest) {
       worker?.name?.toLowerCase(),
   )
 
-  if (!ADMIN_RANKS.includes(workerRow?.get('Ранг').toLowerCase()))
-    return NextResponse.json({})
+  if (!ADMIN_RANKS.includes(workerRow?.get('Ранг').toLowerCase())) {
+    return NextResponse.json({message: 'Нет прав'}, {status: 501})
+  }
 
   salaryData.forEach(async data => {
     const workerRow = getWorkerRow(data.worker, workersRows)
