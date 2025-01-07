@@ -14,6 +14,7 @@ import {useMemo} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
+import CommenTemplates from './CommentTemplates'
 
 export default function DayInfo() {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
@@ -34,9 +35,8 @@ export default function DayInfo() {
   const selfLocationData: LocationData = useMemo(() => {
     if (!day.location) return {self: false}
 
-    return day.locationData?.find((data) => data?.self) || {self: false}
-  }, [day, worker.location])
-
+    return day.locationData?.find(data => data?.self) || {self: false}
+  }, [day])
 
   const currentDate: any = useMemo(() => new Date(), [])
 
@@ -52,9 +52,11 @@ export default function DayInfo() {
     setDays(newDays)
   }
 
-  const commentHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const commentHandler = (
+    event: React.ChangeEvent<HTMLInputElement> | string,
+  ) => {
     setSelectedDay({...selectedDay, invalidComment: false})
-    const text = event.target.value || ''
+    const text = typeof event === 'string' ? event : event?.target?.value
     const newDay: Day = {...day, comment: text}
     const newDays = days.map(day =>
       day.date === selectedDay.date ? newDay : day,
@@ -111,16 +113,15 @@ export default function DayInfo() {
         className="h-14"
         size="lg"
         color={day?.value === '-' ? 'danger' : 'default'}
-        onClick={() => possibilityHandler('-')}>
+        onPress={() => possibilityHandler('-')}>
         Не могу
       </Button>
-
       <Button
         isDisabled={isDisabled}
         className="h-14"
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}
-        onClick={() => possibilityHandler('+/-')}>
+        onPress={() => possibilityHandler('+/-')}>
         С ограничением
       </Button>
       <Input
@@ -135,6 +136,10 @@ export default function DayInfo() {
         onChange={commentHandler}
         color={selectedDay?.invalidComment ? 'danger' : 'default'}
       />
+      <CommenTemplates
+        onChange={commentHandler}
+        selected={day?.comment || ''}
+      />
       <Card className="h-16">
         <CardBody className="justify-center text-xl">
           {day?.location || (
@@ -145,22 +150,22 @@ export default function DayInfo() {
 
       {selfLocationData && Object.keys(selfLocationData)?.length > 1 && (
         <Accordion variant="shadow">
-          <AccordionItem
-            key="1"
-            title={title}>
-              {locationData.map(({data}, index) => {
-                return <div key={index} className='py-1'>
-                  <div className='flex gap-2 flex-1 flex-wrap'>
-                 <span>{data?.rank}</span>
-                 <SlashDivider />
-                 <span>{data?.worker}</span>
-                 <SlashDivider />
-                 <span>{data?.time}</span>
-                 </div>
-                 {data?.role && <span className='pl-2'>{data?.role}</span>}
+          <AccordionItem key="1" title={title}>
+            {locationData.map(({data}, index) => {
+              return (
+                <div key={index} className="py-1">
+                  <div className="flex gap-2 flex-1 flex-wrap">
+                    <span>{data?.rank}</span>
+                    <SlashDivider />
+                    <span>{data?.worker}</span>
+                    <SlashDivider />
+                    <span>{data?.time}</span>
+                  </div>
+                  {data?.role && <span className="pl-2">{data?.role}</span>}
                 </div>
-              })}
-            </AccordionItem>
+              )
+            })}
+          </AccordionItem>
         </Accordion>
       )}
     </div>
