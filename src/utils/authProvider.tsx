@@ -41,32 +41,10 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
     const data = await response.json()
 
-    const newDays: Day[] = []
-    data?.workingDays?.forEach(
-      (day: {
-        date: string
-        value?: string
-        location?: string
-        locationData: any
-      }) => {
-        const comment =
-          data?.comments?.find((c: Comment) => c.date === day.date)?.value || ''
+    if(data?.workingDays?.length) {
+      setDays(data.workingDays)
+    }
 
-        if (day.location) {
-          newDays.push({
-            date: day.date,
-            value: day.value,
-            location: day.location,
-            comment,
-            locationData: day.locationData,
-          })
-        } else {
-          newDays.push({date: day.date, value: day.value, comment})
-        }
-      },
-    )
-
-    setDays(newDays)
     setWorker(data)
   }, [])
 

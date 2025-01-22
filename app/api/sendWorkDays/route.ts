@@ -10,7 +10,7 @@ import {
 } from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 
-const ADMIN_RANKS = ['платиновый', 'золотой']
+const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
 const getWorkerRow = (workerName: string, rows: GoogleSpreadsheetRow[]) => {
   return rows.find(
@@ -70,6 +70,8 @@ export async function POST(req: NextRequest) {
   if (!ADMIN_RANKS.includes(workerRow?.get('Ранг').toLowerCase())) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
   }
+
+  const promises: Promise<boolean>[] = []
 
   salaryData.forEach(async data => {
     const workerRow = getWorkerRow(data.worker, workersRows)
@@ -135,22 +137,22 @@ export async function POST(req: NextRequest) {
       gamesCount,
     }
 
-    if (workerRow) {
-      await updateCells(
+    if (actorRow) {
+      promises.push(updateCells(
+        actorsSheet,
+        actorRow,
+        dateColoumnNumber,
+        data,
+        workerInfoData,
+      ))
+    } else if (workerRow) {
+      promises.push(updateCells(
         workersSheet,
         workerRow,
         dateColoumnNumber,
         data,
         workerInfoData,
-      )
-    } else if (actorRow) {
-      await updateCells(
-        workersSheet,
-        actorRow,
-        dateColoumnNumber,
-        data,
-        workerInfoData,
-      )
+      ))
     } else {
       let salary = ranksSalary[rank].default
       let message = `${date} ${data.location}\n\n${rank} | ${data.worker}\n\n${calculatedWorkingTime} ${ranksSalary[rank].default}`
@@ -186,7 +188,12 @@ export async function POST(req: NextRequest) {
     }
   })
 
-  await workersSheet.saveUpdatedCells()
-  await actorsSheet.saveUpdatedCells()
+
+if (promises.length) {
+	await Promise.all(promises).then(async () => {
+    await Promise.all([workersSheet.saveUpdatedCells(), actorsSheet.saveUpdatedCells()])
+    })
+}
+
   return NextResponse.json({}, {status: 200})
 }

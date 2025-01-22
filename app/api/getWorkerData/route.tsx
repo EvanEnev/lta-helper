@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   }
 
   const telegramId = user.id
-  const query = `SELECT "name" FROM lt_arena.workers WHERE telegram_id=${telegramId}`
+  const query = `SELECT workers.name, workers.rank, ranks.permission_level FROM lt_arena.workers workers LEFT JOIN lt_arena.ranks ranks ON ranks.name=workers.rank WHERE workers.telegram_id=${telegramId}`
   const result = await conn.query(query)
   const object = result.rows[0]
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     workingDays: [],
     type: '',
     comments: [],
-    isAdmin: false,
+    isAdmin: object?.permission_level === 4,
   }
 
   return NextResponse.json(object ? worker : {})

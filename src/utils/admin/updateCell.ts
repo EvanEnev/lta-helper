@@ -23,9 +23,9 @@ export default async function updateCells(
   data: WorkerSalary,
   workerData: WorkerData,
 ) {
-  console.debug(data, workerData)
-
   const rowIndex = row.rowNumber - 1
+
+  console.log(data, workerData, `rowIndex: ${rowIndex}`, `coloumnIndex: ${coloumnIndex}`)
 
   await sheet.loadCells({
     startRowIndex: rowIndex,
@@ -59,7 +59,7 @@ export default async function updateCells(
     salary = 1500
   }
 
-  workingSalaryCell.value = ranksSalary[workerData.rank].default
+  workingSalaryCell.value = salary
 
   if (workerData.isOverWork) {
     overWorkTimeCell.value = workerData.calculatedOverWorkTime
@@ -78,16 +78,16 @@ export default async function updateCells(
     } * ${workerData.gamesCount - 2}`
   }
 
+	const bonusesCell = sheet.getCell(rowIndex + 3, coloumnIndex + 1)
+	
   if (data.bonuses) {
-    const bonusesCell = sheet.getCell(rowIndex + 3, coloumnIndex + 1)
     bonusesCell.formula = `=${data.bonuses}`
-    bonusesCell.backgroundColor = locationColor
   }
 
+	const commentsCell = sheet.getCell(rowIndex + 4, coloumnIndex)
+	
   if (data.comment) {
-    const commentsCell = sheet.getCell(rowIndex + 4, coloumnIndex)
     commentsCell.value = data.comment
-    commentsCell.backgroundColor = locationColor
   }
 
   const emptyCell = sheet.getCell(rowIndex + 3, coloumnIndex)
@@ -98,4 +98,8 @@ export default async function updateCells(
   overWorkTimeCell.backgroundColor = locationColor
   overWorkSalaryCell.backgroundColor = locationColor
   emptyCell.backgroundColor = locationColor
+  bonusesCell.backgroundColor = locationColor
+  commentsCell.backgroundColor = locationColor
+
+  return true
 }

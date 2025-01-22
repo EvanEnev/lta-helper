@@ -1,7 +1,8 @@
 import conn from '@/lib/database'
 import validateData from '@/lib/validateData'
-import getWorkerData from '@/lib/getWorkerData'
+import getWorkerData from '@/lib/getDefaultDays'
 import {NextRequest, NextResponse} from 'next/server'
+import getDefaultDays from '@/lib/getDefaultDays'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -22,7 +23,8 @@ export async function POST(req: NextRequest) {
   const query = `INSERT INTO "lt_arena"."workers" (telegram_id, name) VALUES (${telegramId}, '${name.trim()}')`
   await conn.query(query)
 
-  const workingDays = await getWorkerData({name})
+  const defaultDays = await getDefaultDays()
+  const workingDays = defaultDays.map((day: string) => ({date: day}))
 
   return NextResponse.json({worker: {name, workingDays}}, {status: 200})
 }

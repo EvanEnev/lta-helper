@@ -5,10 +5,10 @@ type TemplatesProps = {
   selected: string
 }
 
-const templates = ['Выходной', 'Болезнь', 'По согласованию']
+const templates = ['Выходной', 'Болезнь', 'По согласованию', 'Учёба']
 export default function CommenTemplates(props: TemplatesProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap">
       {templates.map((template, index) => (
         <Button
           key={index}
