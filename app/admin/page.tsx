@@ -2,6 +2,7 @@
 import convertTZ from '@/lib/convertTZ'
 import WorkData from '@/src/components/admin/WorkData'
 import DayButton from '@/src/components/schedule/DayButton'
+import useIsMobile from '@/src/hooks/useIsMobile'
 import telegramState from '@/src/state/telegramState'
 import workerState from '@/src/state/workerState'
 import {WorkerSalary} from '@/src/utils/types'
@@ -23,6 +24,7 @@ type AlertData = {
 }
 
 export default function Admin() {
+  const isMobile = useIsMobile()
   const telegram = useRecoilValue(telegramState)
   const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
     {

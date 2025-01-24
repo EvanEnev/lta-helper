@@ -8,13 +8,13 @@ type TemplatesProps = {
 const templates = ['Выходной', 'Болезнь', 'По согласованию']
 export default function CommenTemplates(props: TemplatesProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 scrollbar-hide overflow-scroll">
       {templates.map((template, index) => (
         <Button
           key={index}
           onPress={() => props.onChange(template)}
           variant={template === props.selected ? 'faded' : 'flat'}
-          className="grow">
+          className="flex-grow">
           {template}
         </Button>
       ))}

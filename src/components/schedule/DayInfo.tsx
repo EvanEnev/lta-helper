@@ -16,15 +16,10 @@ import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommenTemplates from './CommentTemplates'
 
-export default function DayInfo() {
+export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
   const [days, setDays] = useRecoilState(daysState)
   const worker = useRecoilValue(workerState)
-
-  const day: Day = useMemo(
-    () => days?.find(d => d.date === selectedDay.date) || {date: ''},
-    [days, selectedDay],
-  )
 
   const locationData: LocationData[] = useMemo(() => {
     if (!day.location) return []
@@ -45,8 +40,8 @@ export default function DayInfo() {
     if (value === day?.value) return
 
     const newDay: Day = {...day, value}
-    const newDays = days.map(day =>
-      day.date === selectedDay.date ? newDay : day,
+    const newDays = days.map(selectedDay =>
+      day.date === selectedDay.date ? newDay : selectedDay,
     )
 
     setDays(newDays)
@@ -58,18 +53,18 @@ export default function DayInfo() {
     setSelectedDay({...selectedDay, invalidComment: false})
     const text = typeof event === 'string' ? event : event?.target?.value
     const newDay: Day = {...day, comment: text}
-    const newDays = days.map(day =>
-      day.date === selectedDay.date ? newDay : day,
+    const newDays = days.map(selectedDay =>
+      selectedDay.date === day.date ? newDay : selectedDay,
     )
 
     setDays(newDays)
   }
 
   const isDisabled = useMemo(() => {
-    if (!selectedDay.date) return true
+    if (!day.date) return true
     if (!day.location) return false
 
-    const dayProps = selectedDay.date.split('.')
+    const dayProps = day.date.split('.')
     const dayProp = parseInt(dayProps[0])
     const monthProp = parseInt(dayProps[1])
 
@@ -82,7 +77,7 @@ export default function DayInfo() {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
     if (diffDays === 1 || diffDays === 0) return true
-  }, [currentDate, day.location, selectedDay.date])
+  }, [currentDate, day.date, day.location])
 
   const title = `${selfLocationData.data?.worker} ${selfLocationData.data?.time}`
 
@@ -134,14 +129,14 @@ export default function DayInfo() {
           day?.value === '+/-'
         }
         onChange={commentHandler}
-        color={selectedDay?.invalidComment ? 'danger' : 'default'}
+        color={day?.invalidComment ? 'danger' : 'default'}
       />
       <CommenTemplates
         onChange={commentHandler}
         selected={day?.comment || ''}
       />
       <Card className="h-16">
-        <CardBody className="justify-center text-xl">
+        <CardBody className="justify-center text-xl overflow-hidden">
           {day?.location || (
             <span className="opacity-70 italic">Ещё никто не забрал</span>
           )}
