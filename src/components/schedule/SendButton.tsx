@@ -6,6 +6,7 @@ import {useRecoilState, useRecoilValue} from 'recoil'
 import selectedDayState from '@/src/state/selectedDayState'
 import workerState from '@/src/state/workerState'
 import useIsMobile from '@/src/hooks/useIsMobile'
+import {Plain} from 'solar-icon-set'
 
 export default function SendButton({className = ''}: {className?: string}) {
   const isMobile = useIsMobile()
@@ -55,7 +56,8 @@ export default function SendButton({className = ''}: {className?: string}) {
       size="lg"
       color="primary"
       variant="shadow"
-      className={`w-full h-16 ${className}`}>
+      endContent={<Plain color={'#ffffff'} size={24} />}
+      className={`w-full text-2xl  h-16 ${className}`}>
       Отправить
     </Button>
   )

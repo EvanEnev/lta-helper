@@ -17,12 +17,47 @@ export default function MobileSchedule() {
     [days, selectedDay],
   )
 
+  const getWeekday = (day: Day) => {
+    const dayProps = day.date.split('.')
+    const dayProp = parseInt(dayProps[0])
+    const monthProp = parseInt(dayProps[1])
+
+    const date: any = new Date()
+
+    date.setDate(dayProp)
+    date.setMonth(monthProp - 1)
+
+    return date.toLocaleDateString('ru-RU', {
+      weekday: 'long',
+    })
+  }
+
+  const weeks = useMemo(() => {
+    const weeks: Day[][] = [[], []]
+
+    days.forEach(day => {
+      if (!weeks[0].find(day => getWeekday(day) === 'воскресенье')) {
+        weeks[0].push(day)
+      } else {
+        weeks[1].push(day)
+      }
+    })
+
+    return weeks
+  }, [days])
+
   return (
-    <div className="flex justify-center gap-4 w-full max-h-[50%] flex-wrap">
+    <div className="flex  gap-4 w-full max-h-[50%] flex-wrap">
       {days.length ? (
-        days.map((day: Day, index: number) => (
-          <DayButton day={day} key={index} />
-        ))
+        <>
+          {weeks[0].map((day: Day, index: number) => (
+            <DayButton day={day} key={index} />
+          ))}
+          <Divider />
+          {weeks[1].map((day: Day, index: number) => (
+            <DayButton day={day} key={index} />
+          ))}
+        </>
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
       )}

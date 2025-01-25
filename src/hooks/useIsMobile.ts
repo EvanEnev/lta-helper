@@ -1,13 +1,13 @@
 import {useEffect, useState} from 'react'
 
-const useIsMobile = (breakpoint = 768) => {
+const useIsMobile = (breakpoint = 855) => {
   const [isMobile, setIsMobile] = useState(false)
 
-  const handleResize = () => {
-    setIsMobile(window.innerWidth <= breakpoint)
-  }
-
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= breakpoint)
+    }
+
     handleResize()
 
     window.addEventListener('resize', handleResize)

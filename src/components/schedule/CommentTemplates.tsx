@@ -14,7 +14,7 @@ export default function CommenTemplates(props: TemplatesProps) {
           key={index}
           onPress={() => props.onChange(template)}
           variant={template === props.selected ? 'faded' : 'flat'}
-          className="flex-grow">
+          className="flex-grow min-w-[8rem]">
           {template}
         </Button>
       ))}

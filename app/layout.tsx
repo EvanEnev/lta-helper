@@ -13,11 +13,7 @@ export const metadata: Metadata = {
   description: 'Сайт для удобной генерации расписаний',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="ru" className="dark">
       <head>
@@ -26,7 +22,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className + ' gradient'}>
         <StateProvider>
           <NextUIProvider locale="ru-RU">
             <AuthProvider>{children}</AuthProvider>

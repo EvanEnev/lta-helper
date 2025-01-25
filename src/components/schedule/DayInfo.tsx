@@ -15,9 +15,12 @@ import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommenTemplates from './CommentTemplates'
+import selectedDatesState from '@/src/state/selectedDatesState'
+import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 
 export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
+  const selectedDates = useRecoilValue(selectedDatesState)
   const [days, setDays] = useRecoilState(daysState)
   const worker = useRecoilValue(workerState)
 
@@ -39,12 +42,20 @@ export default function DayInfo({day}: {day: Day}) {
     if (value !== '-') setSelectedDay({...selectedDay, invalidComment: false})
     if (value === day?.value) return
 
-    const newDay: Day = {...day, value}
-    const newDays = days.map(selectedDay =>
-      day.date === selectedDay.date ? newDay : selectedDay,
-    )
+    if (selectedDates.length > 1) {
+      const newDays = days.map(curDay =>
+        selectedDates.includes(curDay.date) ? {...curDay, value} : curDay,
+      )
 
-    setDays(newDays)
+      setDays(newDays)
+    } else {
+      const newDay: Day = {...day, value}
+      const newDays = days.map(selectedDay =>
+        day.date === selectedDay.date ? newDay : selectedDay,
+      )
+
+      setDays(newDays)
+    }
   }
 
   const commentHandler = (
@@ -52,12 +63,23 @@ export default function DayInfo({day}: {day: Day}) {
   ) => {
     setSelectedDay({...selectedDay, invalidComment: false})
     const text = typeof event === 'string' ? event : event?.target?.value
-    const newDay: Day = {...day, comment: text}
-    const newDays = days.map(selectedDay =>
-      selectedDay.date === day.date ? newDay : selectedDay,
-    )
 
-    setDays(newDays)
+    if (selectedDates.length > 1) {
+      const newDays = days.map(curDay =>
+        selectedDates.includes(curDay.date)
+          ? {...curDay, comment: text}
+          : curDay,
+      )
+
+      setDays(newDays)
+    } else {
+      const newDay: Day = {...day, comment: text}
+      const newDays = days.map(selectedDay =>
+        selectedDay.date === day.date ? newDay : selectedDay,
+      )
+
+      setDays(newDays)
+    }
   }
 
   const isDisabled = useMemo(() => {
@@ -105,6 +127,7 @@ export default function DayInfo({day}: {day: Day}) {
 
       <Button
         isDisabled={isDisabled}
+        startContent={<MinusCircle size={24} />}
         className="h-14"
         size="lg"
         color={day?.value === '-' ? 'danger' : 'default'}
@@ -113,6 +136,7 @@ export default function DayInfo({day}: {day: Day}) {
       </Button>
       <Button
         isDisabled={isDisabled}
+        startContent={<QuestionCircle size={24} />}
         className="h-14"
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}

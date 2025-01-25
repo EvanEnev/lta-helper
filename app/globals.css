@@ -2,11 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-.scrollbar-hide {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
+  .scrollbar-hidden::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Hide scrollbar for Firefox */
+  .scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  .gradient {
+    background: linear-gradient(to right, #000000, #1e1e2f);
+
 }

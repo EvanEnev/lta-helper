@@ -102,13 +102,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
   return (
     <React.Fragment>
-      {isLoading ? (
-        <Loading />
-      ) : Object.keys(worker).length === 0 ? (
-        <Register />
-      ) : (
-        children
-      )}
+      {isLoading ? <Loading /> : !worker?.name ? <Register /> : children}
     </React.Fragment>
   )
 }
