@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
   await sheet.loadHeaderRow(7)
 
-  const {changes, commentsChanges} = await getChanges({
+  const {changes, commentsChanges, queries} = await getChanges({
     sheet,
     row,
     selectedDays,
@@ -116,6 +116,13 @@ export async function POST(req: NextRequest) {
     await conn.query(commentsUpdateQuery)
   }
 
+  const query = queries.join(';\n')
+
+  
+  if (query) {
+    await conn.query(query)
+  }
+
   const telegramPromises = [
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -133,6 +140,7 @@ export async function POST(req: NextRequest) {
         message_thread_id,
         text,
         parse_mode: 'Markdown',
+        disable_notification: true
       }),
     }),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {

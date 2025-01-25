@@ -30,12 +30,6 @@ export default function DayInfo({day}: {day: Day}) {
     return day.locationData || []
   }, [day])
 
-  const selfLocationData: LocationData = useMemo(() => {
-    if (!day.location) return {self: false}
-
-    return day.locationData?.find(data => data?.self) || {self: false}
-  }, [day])
-
   const currentDate: any = useMemo(() => new Date(), [])
 
   const possibilityHandler = (value: string) => {
@@ -101,7 +95,9 @@ export default function DayInfo({day}: {day: Day}) {
     if (diffDays === 1 || diffDays === 0) return true
   }, [currentDate, day.date, day.location])
 
-  const title = `${selfLocationData.data?.worker} ${selfLocationData.data?.time}`
+  const groupedData = Object.groupBy(locationData, (data) => data.locationName)
+
+  console.log(groupedData)
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -159,32 +155,31 @@ export default function DayInfo({day}: {day: Day}) {
         onChange={commentHandler}
         selected={day?.comment || ''}
       />
-      <Card className="h-16">
-        <CardBody className="justify-center text-xl overflow-hidden">
-          {day?.location || (
-            <span className="opacity-70 italic">Ещё никто не забрал</span>
-          )}
-        </CardBody>
-      </Card>
+      {locationData && (
+        <Accordion variant="splitted">
+            {Object.keys(groupedData).map((key, index) => {
+              const data = groupedData[key]
+              if(!data) return <></>
+              
+              const selfData = data.find(obj => obj.self)
 
-      {selfLocationData && Object.keys(selfLocationData)?.length > 1 && (
-        <Accordion variant="shadow">
-          <AccordionItem key="1" title={title}>
-            {locationData.map(({data}, index) => {
-              return (
-                <div key={index} className="py-1">
-                  <div className="flex gap-2 flex-1 flex-wrap">
-                    <span>{data?.rank}</span>
+              const title = selfData?.data ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}` : ''              return (
+                <AccordionItem key={index} className="py-1" title={title}>
+                  {data.map(data => {
+                    return (<>
+                    <div className="flex gap-2 flex-1 flex-wrap">
+                    <span>{data.data?.rank}</span>
                     <SlashDivider />
-                    <span>{data?.worker}</span>
+                    <span>{data.data?.worker}</span>
                     <SlashDivider />
-                    <span>{data?.time}</span>
+                    <span>{data.data?.time}</span>
                   </div>
-                  {data?.role && <span className="pl-2">{data?.role}</span>}
-                </div>
+                    {data.data?.role && <span className="pl-2">{data.data?.role}</span>}
+                    </>)
+                  })}
+                </AccordionItem>
               )
             })}
-          </AccordionItem>
         </Accordion>
       )}
     </div>

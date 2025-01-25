@@ -109,18 +109,18 @@ export default function Admin() {
       body: JSON.stringify(data),
     }).then(data => {
       setLoading(false)
-      data.json().then(data => {
-        if (data.ok) {
+      data.json().then(jsonData => {
+        if (data.status === 200) {
           setAlertData({
             title: 'Успешно',
-            message: data.message || 'Данные отправлены',
+            message: jsonData.message || 'Данные отправлены',
             color: 'success',
           })
         } else {
-          if (data.message) {
+          if (jsonData.message) {
             setAlertData({
               title: 'Ошибка',
-              message: data.message,
+              message: jsonData.message,
               color: 'danger',
             })
           } else {
@@ -167,7 +167,7 @@ export default function Admin() {
         onClose={() => setAlertData({title: '', message: '', color: 'danger'})}
         variant="solid"
         classNames={{
-          base: 'absolute z-10 top-4 w-[90%]',
+          base: 'sticky z-10 top-4 w-[90%]',
         }}
       />
       <div className="flex gap-4">
