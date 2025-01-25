@@ -5,7 +5,6 @@ import {NextRequest, NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/getDefaultDays'
 
 export async function POST(req: NextRequest) {
-  console.time('WITH DB')
   const body = await req.json()
 
   const initData: string | undefined = body?.initData
@@ -36,25 +35,44 @@ export async function POST(req: NextRequest) {
   WHERE workers.telegram_id=${telegramId}`
 
   const dataResult = await conn.query(dataQuery)
-  if(!dataResult.rows.length || !dataResult.rows[0].name) return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
+  if (!dataResult.rows.length || !dataResult.rows[0].name)
+    return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 
   const workerData = {
     name: dataResult.rows[0].name,
     rank: dataResult.rows[0].rank,
     permission_level: dataResult.rows[0].permission_level,
-    location: dataResult.rows[0].worker_location || ''
+    location: dataResult.rows[0].worker_location || '',
   }
 
-  const locations = new Set(dataResult.rows.map(data => {if (data.date && data.location_id) return{date: data.date, locationId: data.location_id}}))
+  const locations = new Set(
+    dataResult.rows.map(data => {
+      if (data.date && data.location_id)
+        return {date: data.date, locationId: data.location_id}
+    }),
+  )
 
-    console.log([...locations])
-  const locationsCondition = [...locations].filter(v => v).map((data) => {if (data) return `(schedule.location_id=${data.locationId} AND schedule.date='${data.date}')`}).join(' OR ')
+  const locationsCondition = [...locations]
+    .filter(v => v)
+    .map(data => {
+      if (data)
+        return `(schedule.location_id=${data.locationId} AND schedule.date='${data.date}')`
+    })
+    .join(' OR ')
 
-  console.log(locationsCondition)
+  let locationsData: {
+    rows: {
+      date: string
+      start_time: string
+      end_time: string
+      role: string
+      name: string
+      rank: string
+      location_name: string
+    }[]
+  } = {rows: []}
 
-  let locationsData: {rows: {date: string,start_time: string, end_time: string, role: string, name: string, rank: string, location_name: string}[]} = {rows: []}
-
-  if(locationsCondition) {
+  if (locationsCondition) {
     const locationsDataQuery = `SELECT
     w.name,
     role,
@@ -79,42 +97,46 @@ export async function POST(req: NextRequest) {
       return {date: day, value: ''}
     }
 
-    const locationData = locationsData.rows.filter(obj => obj?.date === day && obj.location_name === data.location)?.map(data => {
-      let startTime = data.start_time
-      let endTime = data.end_time
+    const locationData = locationsData.rows
+      .filter(obj => obj?.date === day && obj.location_name === data.location)
+      ?.map(data => {
+        let startTime = data.start_time
+        let endTime = data.end_time
 
-      if(!startTime) {
-        startTime = '?'
-      } else {
-        startTime = startTime.slice(0, -3)
-      }
+        if (!startTime) {
+          startTime = '?'
+        } else {
+          startTime = startTime.slice(0, -3)
+        }
 
-      if(!endTime) {
-        endTime = '?'
-      } else {
-        endTime = endTime.slice(0, -3)
-      }
+        if (!endTime) {
+          endTime = '?'
+        } else {
+          endTime = endTime.slice(0, -3)
+        }
 
-      const time = `${startTime}-${endTime}`
+        const time = `${startTime}-${endTime}`
 
+        return {
+          data: {
+            time,
+            role: data.role,
+            worker: data.name,
+            rank: data.rank,
+          },
+          self: workerData.name === data.name,
+          locationName: data.location_name,
+        }
+      })
 
-      return {
-        data: {
-          time,
-          role: data.role,
-          worker: data.name,
-          rank: data.rank,
-        },
-        self: workerData.name === data.name,
-        locationName: data.location_name
-      }
-    })
-
-    console.log(locationData)
-          
-    return {date: day, value: data.value, comment: data.comment, locationData, location: data.location}
+    return {
+      date: day,
+      value: data.value,
+      comment: data.comment,
+      locationData,
+      location: data.location,
+    }
   })
-
 
   let worker: Worker = {
     name: workerData?.name,
@@ -124,8 +146,6 @@ export async function POST(req: NextRequest) {
     comments: [],
     isAdmin: workerData.permission_level === 4,
   }
-
-  console.timeEnd('WITH DB')
 
   return NextResponse.json(worker)
 }

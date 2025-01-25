@@ -25,7 +25,12 @@ export default async function updateCells(
 ) {
   const rowIndex = row.rowNumber - 1
 
-  console.log(data, workerData, `rowIndex: ${rowIndex}`, `coloumnIndex: ${coloumnIndex}`)
+  console.log(
+    data,
+    workerData,
+    `rowIndex: ${rowIndex}`,
+    `coloumnIndex: ${coloumnIndex}`,
+  )
 
   await sheet.loadCells({
     startRowIndex: rowIndex,
@@ -78,14 +83,14 @@ export default async function updateCells(
     } * ${workerData.gamesCount - 2}`
   }
 
-	const bonusesCell = sheet.getCell(rowIndex + 3, coloumnIndex + 1)
-	
+  const bonusesCell = sheet.getCell(rowIndex + 3, coloumnIndex + 1)
+
   if (data.bonuses) {
     bonusesCell.formula = `=${data.bonuses}`
   }
 
-	const commentsCell = sheet.getCell(rowIndex + 4, coloumnIndex)
-	
+  const commentsCell = sheet.getCell(rowIndex + 4, coloumnIndex)
+
   if (data.comment) {
     commentsCell.value = data.comment
   }

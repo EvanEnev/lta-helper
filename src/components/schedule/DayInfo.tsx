@@ -17,6 +17,7 @@ import SlashDivider from './SlashDivider'
 import CommenTemplates from './CommentTemplates'
 import selectedDatesState from '@/src/state/selectedDatesState'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
+import groupBy from '@/src/utils/groupBy'
 
 export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
@@ -95,7 +96,7 @@ export default function DayInfo({day}: {day: Day}) {
     if (diffDays === 1 || diffDays === 0) return true
   }, [currentDate, day.date, day.location])
 
-  const groupedData = Object.groupBy(locationData, data => data.locationName)
+  const groupedData = groupBy(locationData, 'locationName')
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -159,14 +160,14 @@ export default function DayInfo({day}: {day: Day}) {
             const data = groupedData[key]
             if (!data) return <></>
 
-            const selfData = data.find(obj => obj.self)
+            const selfData = data.find((obj: any) => obj.self)
 
             const title = selfData?.data
               ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}`
               : ''
             return (
               <AccordionItem key={index} className="py-1" title={title}>
-                {data.map(data => {
+                {data.map((data: any) => {
                   return (
                     <>
                       <div className="flex gap-2 flex-1 flex-wrap">
