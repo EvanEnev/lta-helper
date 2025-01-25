@@ -95,9 +95,7 @@ export default function DayInfo({day}: {day: Day}) {
     if (diffDays === 1 || diffDays === 0) return true
   }, [currentDate, day.date, day.location])
 
-  const groupedData = Object.groupBy(locationData, (data) => data.locationName)
-
-  console.log(groupedData)
+  const groupedData = Object.groupBy(locationData, data => data.locationName)
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -157,29 +155,36 @@ export default function DayInfo({day}: {day: Day}) {
       />
       {locationData && (
         <Accordion variant="splitted">
-            {Object.keys(groupedData).map((key, index) => {
-              const data = groupedData[key]
-              if(!data) return <></>
-              
-              const selfData = data.find(obj => obj.self)
+          {Object.keys(groupedData).map((key, index) => {
+            const data = groupedData[key]
+            if (!data) return <></>
 
-              const title = selfData?.data ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}` : ''              return (
-                <AccordionItem key={index} className="py-1" title={title}>
-                  {data.map(data => {
-                    return (<>
-                    <div className="flex gap-2 flex-1 flex-wrap">
-                    <span>{data.data?.rank}</span>
-                    <SlashDivider />
-                    <span>{data.data?.worker}</span>
-                    <SlashDivider />
-                    <span>{data.data?.time}</span>
-                  </div>
-                    {data.data?.role && <span className="pl-2">{data.data?.role}</span>}
-                    </>)
-                  })}
-                </AccordionItem>
-              )
-            })}
+            const selfData = data.find(obj => obj.self)
+
+            const title = selfData?.data
+              ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}`
+              : ''
+            return (
+              <AccordionItem key={index} className="py-1" title={title}>
+                {data.map(data => {
+                  return (
+                    <>
+                      <div className="flex gap-2 flex-1 flex-wrap">
+                        <span>{data.data?.rank}</span>
+                        <SlashDivider />
+                        <span>{data.data?.worker}</span>
+                        <SlashDivider />
+                        <span>{data.data?.time}</span>
+                      </div>
+                      {data.data?.role && (
+                        <span className="pl-2">{data.data?.role}</span>
+                      )}
+                    </>
+                  )
+                })}
+              </AccordionItem>
+            )
+          })}
         </Accordion>
       )}
     </div>
