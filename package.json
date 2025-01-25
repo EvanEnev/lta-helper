@@ -18,7 +18,8 @@
     "pg": "^8.12.0",
     "react": "^18",
     "react-dom": "^18",
-    "recoil": "^0.7.7"
+    "recoil": "^0.7.7",
+    "solar-icon-set": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",

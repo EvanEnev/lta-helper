@@ -8,6 +8,7 @@ import {
   DropdownItem,
 } from '@nextui-org/react'
 import {useState} from 'react'
+import {AddCircle} from 'solar-icon-set'
 
 type Props = {
   isAdmin: boolean
@@ -30,6 +31,7 @@ export default function PossibilityButton({
   return (
     <ButtonGroup>
       <Button
+        startContent={<AddCircle size={24} />}
         isDisabled={isDisabled}
         className="h-14 w-full"
         size="lg"

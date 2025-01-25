@@ -15,16 +15,14 @@ import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommenTemplates from './CommentTemplates'
+import selectedDatesState from '@/src/state/selectedDatesState'
+import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 
-export default function DayInfo() {
+export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
+  const selectedDates = useRecoilValue(selectedDatesState)
   const [days, setDays] = useRecoilState(daysState)
   const worker = useRecoilValue(workerState)
-
-  const day: Day = useMemo(
-    () => days?.find(d => d.date === selectedDay.date) || {date: ''},
-    [days, selectedDay],
-  )
 
   const locationData: LocationData[] = useMemo(() => {
     if (!day.location) return []
@@ -38,12 +36,20 @@ export default function DayInfo() {
     if (value !== '-') setSelectedDay({...selectedDay, invalidComment: false})
     if (value === day?.value) return
 
-    const newDay: Day = {...day, value}
-    const newDays = days.map(day =>
-      day.date === selectedDay.date ? newDay : day,
-    )
+    if (selectedDates.length > 1) {
+      const newDays = days.map(curDay =>
+        selectedDates.includes(curDay.date) ? {...curDay, value} : curDay,
+      )
 
-    setDays(newDays)
+      setDays(newDays)
+    } else {
+      const newDay: Day = {...day, value}
+      const newDays = days.map(selectedDay =>
+        day.date === selectedDay.date ? newDay : selectedDay,
+      )
+
+      setDays(newDays)
+    }
   }
 
   const commentHandler = (
@@ -51,19 +57,30 @@ export default function DayInfo() {
   ) => {
     setSelectedDay({...selectedDay, invalidComment: false})
     const text = typeof event === 'string' ? event : event?.target?.value
-    const newDay: Day = {...day, comment: text}
-    const newDays = days.map(day =>
-      day.date === selectedDay.date ? newDay : day,
-    )
 
-    setDays(newDays)
+    if (selectedDates.length > 1) {
+      const newDays = days.map(curDay =>
+        selectedDates.includes(curDay.date)
+          ? {...curDay, comment: text}
+          : curDay,
+      )
+
+      setDays(newDays)
+    } else {
+      const newDay: Day = {...day, comment: text}
+      const newDays = days.map(selectedDay =>
+        selectedDay.date === day.date ? newDay : selectedDay,
+      )
+
+      setDays(newDays)
+    }
   }
 
   const isDisabled = useMemo(() => {
-    if (!selectedDay.date) return true
+    if (!day.date) return true
     if (!day.location) return false
 
-    const dayProps = selectedDay.date.split('.')
+    const dayProps = day.date.split('.')
     const dayProp = parseInt(dayProps[0])
     const monthProp = parseInt(dayProps[1])
 
@@ -76,7 +93,7 @@ export default function DayInfo() {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
     if (diffDays === 1 || diffDays === 0) return true
-  }, [currentDate, day.location, selectedDay.date])
+  }, [currentDate, day.date, day.location])
 
   const groupedData = Object.groupBy(locationData, (data) => data.locationName)
 
@@ -106,6 +123,7 @@ export default function DayInfo() {
 
       <Button
         isDisabled={isDisabled}
+        startContent={<MinusCircle size={24} />}
         className="h-14"
         size="lg"
         color={day?.value === '-' ? 'danger' : 'default'}
@@ -114,6 +132,7 @@ export default function DayInfo() {
       </Button>
       <Button
         isDisabled={isDisabled}
+        startContent={<QuestionCircle size={24} />}
         className="h-14"
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}
@@ -130,13 +149,12 @@ export default function DayInfo() {
           day?.value === '+/-'
         }
         onChange={commentHandler}
-        color={selectedDay?.invalidComment ? 'danger' : 'default'}
+        color={day?.invalidComment ? 'danger' : 'default'}
       />
       <CommenTemplates
         onChange={commentHandler}
         selected={day?.comment || ''}
       />
-
       {locationData && (
         <Accordion variant="splitted">
             {Object.keys(groupedData).map((key, index) => {
@@ -145,8 +163,7 @@ export default function DayInfo() {
               
               const selfData = data.find(obj => obj.self)
 
-              const title = selfData?.data ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}` : ''
-              return (
+              const title = selfData?.data ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}` : ''              return (
                 <AccordionItem key={index} className="py-1" title={title}>
                   {data.map(data => {
                     return (<>
