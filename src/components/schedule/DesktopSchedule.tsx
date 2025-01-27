@@ -64,58 +64,56 @@ export default function DesktopSchedule() {
   }, [days, initialDays])
 
   return (
-    <div className="flex w-full px-6">
+    <div className="flex w-full px-6 gap-4">
       {days.length ? (
-        <div className="w-full flex flex-wrap gap-4 max-w-[75vw] overflow-auto h-[80vh]">
-          {weeks[0].map((day: Day, index: number) => (
-            <Card
-              key={index}
-              className="max-w-[23%] scrollbar-hide overflow-hidden">
-              <CardHeader className="">
-                <Checkbox
-                  className=""
-                  size="lg"
-                  onValueChange={isSelected =>
-                    changeDates(day.date, isSelected)
-                  }>
-                  <span className="font-bold text-2xl">
-                    {day.date},
-                    <br />
-                    {getWeekday(day)}
-                  </span>
-                </Checkbox>
-              </CardHeader>
-              <CardBody>
-                <DayInfo day={day} />
-              </CardBody>
-            </Card>
-          ))}
-
-          <Divider />
-
-          {weeks[1].map((day: Day, index: number) => (
-            <Card
-              key={index}
-              className="max-w-[23%] scrollbar-hide overflow-hidden">
-              <CardHeader className="w-full">
-                <Checkbox
-                  className="w-full"
-                  size="lg"
-                  onValueChange={isSelected =>
-                    changeDates(day.date, isSelected)
-                  }>
-                  <span className="font-bold text-2xl w-full">
-                    {day.date},
-                    <br />
-                    {getWeekday(day)}
-                  </span>
-                </Checkbox>
-              </CardHeader>
-              <CardBody>
-                <DayInfo day={day} />
-              </CardBody>
-            </Card>
-          ))}
+        <div className="overflow-auto h-[80vh]">
+          <div className="w-full grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4">
+            {weeks[0].map((day: Day, index: number) => (
+              <Card key={index} className="scrollbar-hide overflow-hidden">
+                <CardHeader className="">
+                  <Checkbox
+                    className=""
+                    size="lg"
+                    onValueChange={isSelected =>
+                      changeDates(day.date, isSelected)
+                    }>
+                    <span className="font-bold text-2xl">
+                      {day.date},
+                      <br />
+                      {getWeekday(day)}
+                    </span>
+                  </Checkbox>
+                </CardHeader>
+                <CardBody>
+                  <DayInfo day={day} />
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+          <Divider className="my-4" />
+          <div className="w-full grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4">
+            {weeks[1].map((day: Day, index: number) => (
+              <Card key={index} className="scrollbar-hide overflow-hidden">
+                <CardHeader className="w-full">
+                  <Checkbox
+                    className="w-full"
+                    size="lg"
+                    onValueChange={isSelected =>
+                      changeDates(day.date, isSelected)
+                    }>
+                    <span className="font-bold text-2xl w-full">
+                      {day.date},
+                      <br />
+                      {getWeekday(day)}
+                    </span>
+                  </Checkbox>
+                </CardHeader>
+                <CardBody>
+                  <DayInfo day={day} />
+                </CardBody>
+              </Card>
+            ))}
+          </div>
         </div>
       ) : (
         <i className="opacity-50">Дат пока нет..</i>

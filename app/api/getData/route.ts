@@ -115,7 +115,10 @@ export async function POST(req: NextRequest) {
           endTime = endTime.slice(0, -3)
         }
 
-        const time = `${startTime}-${endTime}`
+        const time =
+          startTime === '?' && endTime === '?'
+            ? 'Не указано'
+            : `${startTime}-${endTime}`
 
         return {
           data: {

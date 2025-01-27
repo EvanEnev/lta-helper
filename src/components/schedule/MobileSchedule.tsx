@@ -47,16 +47,20 @@ export default function MobileSchedule() {
   }, [days])
 
   return (
-    <div className="flex  gap-4 w-full max-h-[50%] flex-wrap">
+    <div className="flex gap-4 w-full max-h-[50%] flex-wrap">
       {days.length ? (
         <>
-          {weeks[0].map((day: Day, index: number) => (
-            <DayButton day={day} key={index} />
-          ))}
+          <div className="flex flex-wrap gap-4">
+            {weeks[0].map((day: Day, index: number) => (
+              <DayButton day={day} key={index} className="flex-1" />
+            ))}
+          </div>
           <Divider />
-          {weeks[1].map((day: Day, index: number) => (
-            <DayButton day={day} key={index} />
-          ))}
+          <div className="flex flex-wrap gap-4">
+            {weeks[1].map((day: Day, index: number) => (
+              <DayButton day={day} key={index} className="flex-1" />
+            ))}
+          </div>
         </>
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
