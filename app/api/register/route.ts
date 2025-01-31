@@ -1,16 +1,16 @@
 import conn from '@/lib/database'
-import validateData from '@/lib/validateData'
-import getWorkerData from '@/lib/getDefaultDays'
 import {NextRequest, NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/getDefaultDays'
+import {auth} from '@/auth'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
 
-  const initData: string | undefined = body?.initData
   const name: string | undefined = body?.name
 
-  const user = await validateData(initData)
+  const session = await auth()
+  const user = session?.user
+
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }

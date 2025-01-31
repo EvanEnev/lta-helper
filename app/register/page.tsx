@@ -1,63 +1,91 @@
 'use client'
 
-import {Button, Input} from '@nextui-org/react'
-import {useState} from 'react'
-import {useRecoilValue, useSetRecoilState} from 'recoil'
-import telegramState from '@/src/state/telegramState'
-import workerState from '@/src/state/workerState'
+import {Button, Form, Input} from '@nextui-org/react'
+import {FormEvent, useState} from 'react'
+import {useSetRecoilState} from 'recoil'
 import daysState from '@/src/state/daysState'
+import {useSession} from 'next-auth/react'
 
 export default function Register() {
-  const [name, setName] = useState<string>('')
+  const {data: session} = useSession()
+  const [name, setName] = useState<string>(session?.user.name || '')
   const [isLoading, setLoading] = useState<boolean>(false)
-  const telegram = useRecoilValue(telegramState)
-  const setWorker = useSetRecoilState(workerState)
   const setDays = useSetRecoilState(daysState)
+  const [errors, setErrors] = useState({})
 
-  const handler = async () => {
-    setLoading(true)
+  const handler = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const data = Object.fromEntries(new FormData(e.currentTarget))
 
-    const body = {
-      name,
-      initData: telegram.initData,
-    }
-
-    const result = await fetch('/api/register', {
-      method: 'POST',
-      body: JSON.stringify(body),
+    console.log(data)
+    ;[
+      'name',
+      'last_name',
+      'middle_name',
+      'last_name',
+      'phone',
+      'email',
+    ].forEach(key => {
+      if (!data[key]) {
+        setErrors(prev => ({...prev, [key]: 'Поле обязательно'}))
+      }
     })
 
-    const data = await result.json()
+    // setLoading(true)
 
-    if (data.worker.name) {
-      setWorker(data.worker)
-      setDays(data.worker.workingDays || [])
-    }
+    // const body = {
+    //   name,
+    // }
 
-    if (result.ok) {
-      setLoading(false)
-    }
+    // const result = await fetch('/api/register', {
+    //   method: 'POST',
+    //   body: JSON.stringify(body),
+    // })
+
+    // const data = await result.json()
+
+    // if (data.worker.name) {
+    //   setDays(data.worker.workingDays || [])
+    // }
+
+    // if (result.ok) {
+    //   setLoading(false)
+    // }
   }
-
+  console.log(errors)
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
       <h1 className="text-5xl font-bold">Регистрация</h1>
-      <div className="flex justify-center gap-4 w-full max-h-[50%] flex-wrap">
-        <Input
-          label="Позывной"
-          size="lg"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-        <Button
-          className="w-full h-16"
-          variant="shadow"
-          color="primary"
-          size="lg"
-          onClick={handler}
-          isLoading={isLoading}>
-          Зарегистрироваться
-        </Button>
+      <div className="flex justify-center gap-4 w-full sm:w-1/2 max-h-[50%] flex-wrap">
+        <Form className="w-full" onSubmit={handler} validationErrors={errors}>
+          <Input
+            label="Позывной"
+            size="lg"
+            defaultValue={session?.user.name || ''}
+            name="name"
+            isRequired
+          />
+          <Input label="Фамилия" size="lg" isRequired name="last_name" />
+          <Input label="Имя" size="lg" isRequired name="first_name" />
+          <Input label="Отчество" size="lg" name="middle_name" />
+          <Input label="Номер телефона" size="lg" isRequired name="phone" />
+          <Input
+            label="Google-почта"
+            size="lg"
+            isRequired
+            type="email"
+            name="email"
+          />
+          <Button
+            className="w-full h-16"
+            variant="shadow"
+            color="primary"
+            size="lg"
+            type="submit"
+            isLoading={isLoading}>
+            Отправить
+          </Button>
+        </Form>
       </div>
     </main>
   )

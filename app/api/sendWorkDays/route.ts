@@ -1,6 +1,5 @@
 import {evaluate} from 'mathjs'
 import google from '@/lib/google'
-import validateData from '@/lib/validateData'
 import updateCells from '@/src/utils/admin/updateCell'
 import ranksSalary from '@/src/utils/ranksSalary'
 import {WorkerSalary} from '@/src/utils/types'
@@ -9,6 +8,7 @@ import {
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
+import {auth} from '@/auth'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
@@ -22,8 +22,8 @@ const getWorkerRow = (workerName: string, rows: GoogleSpreadsheetRow[]) => {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const user = await validateData(body?.initData)
-  const worker = body.worker
+  const session = await auth()
+  const user = session?.user
 
   const salaryData: WorkerSalary[] = body.salaryData?.filter(
     (data: WorkerSalary) => data.worker && data.workingHours && data.location,
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   const workerRow = scheduleRows.find(
     (row: GoogleSpreadsheetRow) =>
       row.get('Позывной')?.split('-')[0]?.trim()?.toLowerCase() ===
-      worker?.name?.toLowerCase(),
+      user.name?.toLowerCase(),
   )
 
   if (!ADMIN_RANKS.includes(workerRow?.get('Ранг').toLowerCase())) {
@@ -138,21 +138,25 @@ export async function POST(req: NextRequest) {
     }
 
     if (actorRow) {
-      promises.push(updateCells(
-        actorsSheet,
-        actorRow,
-        dateColoumnNumber,
-        data,
-        workerInfoData,
-      ))
+      promises.push(
+        updateCells(
+          actorsSheet,
+          actorRow,
+          dateColoumnNumber,
+          data,
+          workerInfoData,
+        ),
+      )
     } else if (workerRow) {
-      promises.push(updateCells(
-        workersSheet,
-        workerRow,
-        dateColoumnNumber,
-        data,
-        workerInfoData,
-      ))
+      promises.push(
+        updateCells(
+          workersSheet,
+          workerRow,
+          dateColoumnNumber,
+          data,
+          workerInfoData,
+        ),
+      )
     } else {
       let salary = ranksSalary[rank].default
       let message = `${date} ${data.location}\n\n${rank} | ${data.worker}\n\n${calculatedWorkingTime} ${ranksSalary[rank].default}`
@@ -188,12 +192,14 @@ export async function POST(req: NextRequest) {
     }
   })
 
-
-if (promises.length) {
-	await Promise.all(promises).then(async () => {
-    await Promise.all([workersSheet.saveUpdatedCells(), actorsSheet.saveUpdatedCells()])
+  if (promises.length) {
+    await Promise.all(promises).then(async () => {
+      await Promise.all([
+        workersSheet.saveUpdatedCells(),
+        actorsSheet.saveUpdatedCells(),
+      ])
     })
-}
+  }
 
   return NextResponse.json({}, {status: 200})
 }

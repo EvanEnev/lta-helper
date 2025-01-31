@@ -4,9 +4,9 @@ import {Button} from '@nextui-org/react'
 import {useState} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
 import selectedDayState from '@/src/state/selectedDayState'
-import workerState from '@/src/state/workerState'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
+import {useSession} from 'next-auth/react'
 
 export default function SendButton({className = ''}: {className?: string}) {
   const isMobile = useIsMobile()
@@ -14,14 +14,15 @@ export default function SendButton({className = ''}: {className?: string}) {
   const telegram = useRecoilValue(telegramState)
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
-  const worker = useRecoilValue(workerState)
-
+  const {data: session} = useSession()
   const handler = async () => {
     setLoading(true)
 
     const invalidDay = days.find(
       day =>
-        ((worker.type === 'worker' && day.value === '-') ||
+        ((session?.user.rank &&
+          session?.user.rank.toLowerCase() !== 'актёр' &&
+          day.value === '-') ||
           day.value === '+/-') &&
         !day.comment?.trim()?.length,
     )
@@ -34,7 +35,6 @@ export default function SendButton({className = ''}: {className?: string}) {
 
     const body = {
       selectedDays: days,
-      initData: telegram.initData,
     }
 
     const result = await fetch('/api/send', {

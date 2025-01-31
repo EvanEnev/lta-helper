@@ -1,6 +1,5 @@
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
-import workerState from '@/src/state/workerState'
 import {Day, LocationData} from '@/src/utils/types'
 import {
   Accordion,
@@ -18,12 +17,13 @@ import CommenTemplates from './CommentTemplates'
 import selectedDatesState from '@/src/state/selectedDatesState'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/src/utils/groupBy'
+import {useSession} from 'next-auth/react'
 
 export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
   const selectedDates = useRecoilValue(selectedDatesState)
   const [days, setDays] = useRecoilState(daysState)
-  const worker = useRecoilValue(workerState)
+  const {data: session} = useSession()
 
   const locationData: LocationData[] = useMemo(() => {
     if (!day.location) return []
@@ -112,8 +112,8 @@ export default function DayInfo({day}: {day: Day}) {
       )}
 
       <PossibilityButton
-        isAdmin={worker?.isAdmin}
-        location={worker?.location}
+        isAdmin={session?.user.permission_level === 4}
+        location={session?.user.location}
         value={day?.value}
         isDisabled={isDisabled}
         handler={value => possibilityHandler(value)}
@@ -144,7 +144,9 @@ export default function DayInfo({day}: {day: Day}) {
         size="lg"
         value={day?.comment || ''}
         isRequired={
-          (day?.value === '-' && worker.type === 'worker') ||
+          (day?.value === '-' &&
+            session?.user.rank &&
+            session?.user.rank.toLowerCase() !== 'актёр') ||
           day?.value === '+/-'
         }
         onChange={commentHandler}
@@ -167,10 +169,10 @@ export default function DayInfo({day}: {day: Day}) {
               : ''
             return (
               <AccordionItem key={index} className="py-1" title={title}>
-                {data.map((data: any) => {
+                {data.map((data: any, index: number) => {
                   return (
                     <>
-                      <div className="flex gap-2 flex-1 flex-wrap">
+                      <div className="flex gap-2 flex-1 flex-wrap" key={index}>
                         <span>{data.data?.rank}</span>
                         <SlashDivider />
                         <span>{data.data?.worker}</span>

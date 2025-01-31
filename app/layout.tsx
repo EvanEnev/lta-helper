@@ -6,6 +6,7 @@ import './globals.css'
 import StateProvider from '@/src/utils/stateProvider'
 import {NextUIProvider} from '@nextui-org/react'
 import AlertProvider from '@/src/utils/global/alertProvider'
+import AuthSessionProvider from '@/src/utils/global/authSessionProvider'
 
 const inter = Inter({subsets: ['latin']})
 
@@ -24,14 +25,16 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         />
       </head>
       <body className={inter.className + ' gradient'}>
-        <StateProvider>
-          <NextUIProvider locale="ru-RU">
-            <AuthProvider>
-              <AlertProvider />
-              {children}
-            </AuthProvider>
-          </NextUIProvider>
-        </StateProvider>
+        <AuthSessionProvider>
+          <StateProvider>
+            <NextUIProvider locale="ru-RU">
+              <AuthProvider>
+                <AlertProvider />
+                {children}
+              </AuthProvider>
+            </NextUIProvider>
+          </StateProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   )
