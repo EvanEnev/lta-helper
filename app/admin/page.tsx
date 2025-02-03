@@ -6,7 +6,6 @@ import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import alertState from '@/src/state/alertState'
 import telegramState from '@/src/state/telegramState'
-import workerState from '@/src/state/workerState'
 import {WorkerSalary} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
@@ -26,17 +25,13 @@ export default function Admin() {
     },
   ])
   const [workers, setWorkers] = useState([])
-  const worker = useRecoilValue(workerState)
   const [date, setDate] = useState<string>()
   const [isLoading, setLoading] = useState<boolean>(false)
   const [_, setAlertData] = useRecoilState(alertState)
 
   useEffect(() => {
     const getWorkersData = async () => {
-      const response = await fetch('/api/getWorkers', {
-        method: 'POST',
-        body: JSON.stringify({initData: telegram.initData}),
-      })
+      const response = await fetch('/api/getWorkers')
 
       const data = await response.json()
 
@@ -82,10 +77,8 @@ export default function Admin() {
       })
 
     const data = {
-      initData: telegram.initData,
       salaryData,
       date,
-      worker,
     }
 
     setLoading(true)

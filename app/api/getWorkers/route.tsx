@@ -1,11 +1,11 @@
+import {auth} from '@/auth'
 import google from '@/lib/google'
-import validateData from '@/lib/validateData'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const user = await validateData(body?.initData)
+export async function GET() {
+  const session = await auth()
+  const user = session?.user
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})

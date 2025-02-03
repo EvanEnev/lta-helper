@@ -1,6 +1,6 @@
+import {auth} from '@/auth'
 import conn from '@/lib/database'
 import google from '@/lib/google'
-import validateData from '@/lib/validateData'
 import getChanges from '@/src/utils/send/getChanges'
 import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
 import getWeekDay from '@/src/utils/send/getWeekDay'
@@ -11,7 +11,8 @@ import {NextRequest, NextResponse} from 'next/server'
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
-  const user = await validateData(body?.initData)
+  const session = await auth()
+  const user = session?.user
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
@@ -100,8 +101,16 @@ export async function POST(req: NextRequest) {
 
   const botToken = process.env.BOT_TOKEN
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
-  const chat_id = rank ? -1001949029897 : -1001540720827
-  const message_thread_id = rank ? 108 : 2682
+
+  const chat_id = rank
+    ? process.env.WORKERS_CHAT_ID
+    : process.env.ACTORS_CHAT_ID
+
+  const message_thread_id = rank
+    ? process.env.WORKERS_THREAD_ID
+    : process.env.ACTORS_THREAD_ID
+
+  console.log(chat_id, message_thread_id)
 
   if (commentsChanges.length) {
     const commentsUpdateEntries = commentsChanges
@@ -118,7 +127,6 @@ export async function POST(req: NextRequest) {
 
   const query = queries.join(';\n')
 
-  
   if (query) {
     await conn.query(query)
   }
@@ -140,15 +148,15 @@ export async function POST(req: NextRequest) {
         message_thread_id,
         text,
         parse_mode: 'Markdown',
-        disable_notification: true
+        disable_notification: true,
       }),
     }),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        chat_id: -1001990152890,
-        message_thread_id: 3,
+        chat_id: process.env.ADMINS_CHAT_ID,
+        message_thread_id: process.env.ADMINS_THREAD_ID,
         parse_mode: 'Markdown',
         text: locationsTexts,
       }),

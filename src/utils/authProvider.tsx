@@ -1,86 +1,95 @@
 'use client'
 
 import {useCallback, useEffect, useRef, useState} from 'react'
-import {Comment, Day} from './types'
 import React from 'react'
 import {useRecoilState, useSetRecoilState} from 'recoil'
 import telegramState from '../state/telegramState'
-import workerState from '../state/workerState'
 import daysState from '../state/daysState'
-import Register from '@/app/register/page'
+import {signIn, signOut, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
+import {useRouter} from 'next/navigation'
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
-  const [isLoading, setLoading] = useState<boolean>(true)
+  const router = useRouter()
+  const session = useSession()
   const [telegram, setTelegram] = useRecoilState(telegramState)
-  const [worker, setWorker] = useRecoilState(workerState)
-  const setDays = useSetRecoilState(daysState)
+  const [days, setDays] = useRecoilState(daysState)
 
-  const hasMounted = useRef(false)
+  const currentStatus = useRef('')
 
-  const getWorkerData = async (telegram: any) => {
-    const response = await fetch('/api/getWorkerData', {
-      method: 'POST',
-      body: JSON.stringify({initData: telegram.initData}),
-    })
+  const getWorker = useCallback(async () => {
+    const response = await fetch('/api/getData')
 
     const data = await response.json()
 
-    if (data.name) {
-      setWorker(data)
+    if (data?.length) {
+      setDays(data)
     }
-
-    setLoading(false)
-  }
-
-  const getWorker = useCallback(async (telegram: any) => {
-    const response = await fetch('/api/getData', {
-      method: 'POST',
-      body: JSON.stringify({initData: telegram.initData}),
-    })
-
-    const data = await response.json()
-
-    if (data?.workingDays?.length) {
-      setDays(data.workingDays)
-    }
-
-    setWorker(data)
   }, [])
 
   const testTelegramUser = {
     initData:
-      'query_id=AAFDzyovAAAAAEPPKi-SagWQ&user=%7B%22id%22%3A791334723%2C%22first_name%22%3A%22%D0%98%D0%B2%D0%B0%D0%BD%22%2C%22last_name%22%3A%22%D0%91%D1%83%D0%B1%D0%B5%D0%BD%D1%91%D0%B2%22%2C%22username%22%3A%22EvanEnev%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%7D&auth_date=1726580048&hash=b7361efd067b8a12dd9b112606c0a7d9cfe0cf68a765c75f6c9414bde57f782b',
+      'query_id=AAFDzyovAAAAAEPPKi8_oqAH&user=%7B%22id%22%3A791334723%2C%22first_name%22%3A%22%D0%98%D0%B2%D0%B0%D0%BD%22%2C%22last_name%22%3A%22%D0%91%D1%83%D0%B1%D0%B5%D0%BD%D1%91%D0%B2%22%2C%22username%22%3A%22EvanEnev%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FNXcC6y0ADOo2YcGDM8CsZ86kXpwARYXPDW2KI7o6ppQ.svg%22%7D&auth_date=1738182946&signature=EmNhbpnkOQ0SqtVuSkunCUBreJTyUxNQ8f2A92XJI3P9M6MZm-GOnIbkjCsqqtJJsr9PXaHv0qqWEQ8LFz4vBg&hash=94e366517234791fe39c3333f1b4cb845018b43466f78abb5e461b81b8ecde70',
   }
 
   useEffect(() => {
-    if (hasMounted.current) return
-    hasMounted.current = true
+    if (session?.status === currentStatus.current) return
 
-    if (Object.keys(telegram).length) return
+    currentStatus.current = session?.status
 
-    let appTelegram
+    let appTelegram = {}
+    console.log(process.env.NODE_ENV)
 
     if (process.env.NODE_ENV === 'development') {
       appTelegram = testTelegramUser
     } else {
-      appTelegram = (window as any)?.Telegram?.WebApp
+      const telegramObject = (window as any)?.Telegram?.WebApp
+      appTelegram = telegramObject.initData ? telegramObject : {}
     }
+
+    appTelegram = {}
+
+    if (
+      !session?.data?.user &&
+      !Object.keys(appTelegram).length &&
+      session?.status !== 'loading'
+    ) {
+      router.push('/login')
+      return
+    }
+
+    console.log(session)
+
+    if (Object.keys(telegram).length && session?.data?.user) return
 
     if (appTelegram) {
       try {
+        // @ts-ignore
         appTelegram.ready()
+        // @ts-ignore
         appTelegram.expand()
       } catch (e) {}
-      getWorkerData(appTelegram)
-      getWorker(appTelegram)
-      setTelegram(appTelegram)
+
+      if (session?.status === 'unauthenticated') {
+        signIn('telegram-login', {
+          // @ts-ignore
+          data: `https://lt.bubenev.su?${appTelegram.initData}`,
+        }).then(() => {
+          getWorker()
+          setTelegram(appTelegram)
+        })
+      } else {
+        getWorker()
+        setTelegram(appTelegram)
+      }
+    } else if (!days.length) {
+      getWorker()
     }
-  }, [])
+  }, [session.status])
 
   return (
     <React.Fragment>
-      {isLoading ? <Loading /> : !worker?.name ? <Register /> : children}
+      {session?.status === 'loading' ? <Loading /> : children}
     </React.Fragment>
   )
 }
