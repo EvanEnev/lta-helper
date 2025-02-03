@@ -7,16 +7,10 @@ import selectedDayState from '@/src/state/selectedDayState'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
 import {useSession} from 'next-auth/react'
-import {Day} from '@/src/utils/types'
 
-export default function SendButton({
-  className = '',
-  days,
-}: {
-  className?: string
-  days: Day[]
-}) {
+export default function SendButton({className = ''}: {className?: string}) {
   const isMobile = useIsMobile()
+  const days = useRecoilValue(daysState)
   const telegram = useRecoilValue(telegramState)
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)

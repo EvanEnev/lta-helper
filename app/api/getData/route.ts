@@ -39,7 +39,13 @@ export async function GET() {
     }),
   )
 
-  const locationsCondition = null
+  const locationsCondition = [...locations]
+    .filter(v => v)
+    .map(data => {
+      if (data)
+        return `(schedule.location_id=${data.locationId} AND schedule.date='${data.date}')`
+    })
+    .join(' OR ')
 
   let locationsData: {
     rows: {
@@ -56,15 +62,16 @@ export async function GET() {
   if (locationsCondition) {
     const locationsDataQuery = `SELECT
     w.name,
-    w.role,
+    role,
     start_time,
     end_time,
     date,
     w.rank,
     l.name AS location_name
-    FROM lt_arena.locations_schedule locations_schedule
-    LEFT JOIN lt_arena.workers w ON w.id = locations_schedule.worker_id
-    LEFT JOIN lt_arena.locations l ON l.id = locations_schedule.location_id`
+    FROM lt_arena.schedule schedule
+    LEFT JOIN lt_arena.workers w ON w.id = schedule.worker_id
+    LEFT JOIN lt_arena.locations l ON l.id = schedule.location_id
+    WHERE ${locationsCondition}`
 
     locationsData = await conn.query(locationsDataQuery)
   }
