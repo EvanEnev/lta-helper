@@ -5,7 +5,7 @@ import React from 'react'
 import {useRecoilState, useSetRecoilState} from 'recoil'
 import telegramState from '../state/telegramState'
 import daysState from '../state/daysState'
-import {signIn, useSession} from 'next-auth/react'
+import {signIn, signOut, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
 
@@ -37,15 +37,23 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
     currentStatus.current = session?.status
 
-    let appTelegram
+    let appTelegram = {}
+    console.log(process.env.NODE_ENV)
 
     if (process.env.NODE_ENV === 'development') {
       appTelegram = testTelegramUser
     } else {
-      appTelegram = (window as any)?.Telegram?.WebApp
+      const telegramObject = (window as any)?.Telegram?.WebApp
+      appTelegram = telegramObject.initData ? telegramObject : {}
     }
 
-    if (!session?.data?.user && !appTelegram && session?.status !== 'loading') {
+    appTelegram = {}
+
+    if (
+      !session?.data?.user &&
+      !Object.keys(appTelegram).length &&
+      session?.status !== 'loading'
+    ) {
       router.push('/login')
       return
     }
@@ -56,12 +64,15 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
     if (appTelegram) {
       try {
+        // @ts-ignore
         appTelegram.ready()
+        // @ts-ignore
         appTelegram.expand()
       } catch (e) {}
 
       if (session?.status === 'unauthenticated') {
         signIn('telegram-login', {
+          // @ts-ignore
           data: `https://lt.bubenev.su?${appTelegram.initData}`,
         }).then(() => {
           getWorker()

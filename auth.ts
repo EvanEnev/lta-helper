@@ -13,13 +13,14 @@ export const authOptions = {
     CredentialsProvider({
       id: 'telegram-login',
       name: 'Telegram Login',
-      //   credentials: {},
+      credentials: {},
       authorize: async credentials => {
         const validator = new AuthDataValidator({
           botToken: `${process.env.BOT_TOKEN}`,
           subtleCrypto: crypto.subtle,
         })
 
+        //  @ts-ignore
         let credentialsData = credentials?.data
 
         try {
