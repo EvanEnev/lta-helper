@@ -7,6 +7,7 @@ import {
   urlStrToAuthDataMap,
 } from '@telegram-auth/server'
 import conn from '@/lib/database'
+import convertTZ from './lib/convertTZ'
 
 export const authOptions = {
   providers: [
@@ -38,6 +39,11 @@ export const authOptions = {
         const user = await validator.validate(data)
 
         if (user.id) {
+          const date = convertTZ(
+            new Date(),
+            'Europe/Moscow',
+          ).toLocaleDateString('ru-RU', {day: 'numeric', month: 'numeric'})
+
           const query = `SELECT
           w.name,
           rank,
@@ -51,6 +57,7 @@ export const authOptions = {
           FROM lt_arena.workers w
           LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
           LEFT JOIN lt_arena.locations l ON l.id = w.location_id
+          LEFT JOIN lt_arena.admins admins ON admins.worker_id=workers.id AND admins.date='${date}'
           WHERE telegram_id = ${user.id}`
 
           const result = await conn.query(query)
@@ -66,6 +73,10 @@ export const authOptions = {
 
           if (data) {
             returned = {...returned, ...data}
+          }
+
+          if (data.today_location) {
+            returned.permission_level = 4
           }
 
           return returned
