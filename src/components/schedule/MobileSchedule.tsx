@@ -5,12 +5,13 @@ import SendButton from './SendButton'
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
 import {Day} from '@/src/utils/types'
-import {useMemo} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {useRecoilValue} from 'recoil'
 
 export default function MobileSchedule() {
   const days = useRecoilValue(daysState)
   const selectedDay = useRecoilValue(selectedDayState)
+  const [initialDays, setInitialDays] = useState(days)
 
   const day: Day = useMemo(
     () => days?.find(d => d.date === selectedDay.date) || {date: ''},
@@ -46,6 +47,11 @@ export default function MobileSchedule() {
     return weeks
   }, [days])
 
+  useEffect(() => {
+    if (initialDays.find(obj => obj?.date)) return
+    setInitialDays(days)
+  }, [days, initialDays])
+
   return (
     <div className="flex gap-4 w-full max-h-[50%] flex-wrap">
       {days.length ? (
@@ -67,7 +73,17 @@ export default function MobileSchedule() {
       )}
       <Divider />
       <DayInfo day={day} />
-      <SendButton />
+      <SendButton
+        days={days.filter(day => {
+          const initialDay = initialDays.find(
+            initDay => initDay.date === day.date,
+          )
+          return (
+            day.value !== initialDay?.value ||
+            day.comment !== initialDay?.comment
+          )
+        })}
+      />
     </div>
   )
 }

@@ -60,8 +60,6 @@ export default async function getChanges({
     const isDifferentComment =
       commentValue !== cellNote || commentValue !== dayComment
 
-    if (day.value === cellValue.value && !isDifferentComment) return
-
     if (isDifferentComment && day.comment) {
       cell.note = day?.comment || ''
       commentsChanges.push({date, value: day?.comment || ''})
@@ -90,44 +88,22 @@ export default async function getChanges({
           : '',
     })
 
-    conn
-      .query(
-        `SELECT s.location_id FROM lt_arena.schedule s
-    LEFT JOIN lt_arena.workers w ON LOWER(w.name) = '${workerName.toLowerCase()}'
-    WHERE s.worker_id = w.id AND s.date = '${date}'`,
-      )
-      .then(rawData => {
-        const currentSchedule = rawData.rows || []
-
-        const condition =
-          currentSchedule.length &&
-          currentSchedule?.find(
-            obj => obj.location_id === 0 || obj.location_id === null,
-          )
-
-        const query = `INSERT INTO lt_arena.schedule (worker_id, location_id, date, value, comment)
+    const query = `INSERT INTO
+        lt_arena.schedule (worker_id, date, value, comment)
         SELECT w.id AS worker_id,
-          COALESCE(${condition ? 0 : 'l.id'}, 0) AS location_id,
           '${date}' AS date,
           '${day?.value}' AS value,
           '${day?.comment || ''}' AS comment
         FROM lt_arena.workers w
-        LEFT JOIN lt_arena.locations l ON LOWER(l.name)='${
-          day.location?.toLowerCase() || 0
-        }'
           WHERE LOWER(w.name)='${workerName.toLowerCase()}'
-        ON CONFLICT (worker_id, date, location_id)
+        ON CONFLICT (worker_id, date)
           DO UPDATE SET
           value=EXCLUDED.value,
           comment=EXCLUDED.comment,
-          location_id=COALESCE((SELECT l.id FROM lt_arena.locations l WHERE LOWER(l.name) = '${
-            day.location?.toLowerCase() || 0
-          }' LIMIT 1), 0)
           WHERE lt_arena.schedule.date=EXCLUDED.date
           AND lt_arena.schedule.worker_id=EXCLUDED.worker_id`
 
-        queries.push(query)
-      })
+    queries.push(query)
   })
 
   return {changes, commentsChanges, queries}

@@ -164,7 +164,17 @@ export default function DesktopSchedule() {
               })}
           </CardBody>
           <CardFooter>
-            <SendButton />
+            <SendButton
+              days={days.filter(day => {
+                const initialDay = initialDays.find(
+                  initDay => initDay.date === day.date,
+                )
+                return (
+                  day.value !== initialDay?.value ||
+                  day.comment !== initialDay?.comment
+                )
+              })}
+            />
           </CardFooter>
         </Card>
       </div>
