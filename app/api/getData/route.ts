@@ -1,3 +1,4 @@
+import convertTZ from '@/lib/convertTZ'
 import conn from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/getDefaultDays'
@@ -12,6 +13,7 @@ export async function GET() {
   }
 
   const telegramId = user.id
+  const date = convertTZ(new Date(), 'Europe/Moscow').toLocaleDateString('ru-RU', {day: 'numeric', month: 'numeric'})
 
   const dataQuery = `SELECT
   workers.name,
@@ -23,12 +25,14 @@ export async function GET() {
   schedule.value,
   locationsData.name AS worker_location,
   locations.name AS location,
-  locations.id AS location_id
+  locations.id AS location_id,
+  admins.location_id AS today_location
   FROM lt_arena.workers workers
   LEFT JOIN lt_arena.ranks ranks ON ranks.name=workers.rank
   LEFT JOIN lt_arena.schedule schedule ON schedule.worker_id=workers.id
   LEFT JOIN lt_arena.locations locations ON locations.id=schedule.location_id
   LEFT JOIN lt_arena.locations locationsData ON locationsData.id=workers.location_id
+  LEFT JOIN lt_arena.admins admins ON admins.worker_id=workers.id AND admins.date='${date}'
   WHERE workers.telegram_id=${telegramId}`
 
   const dataResult = await conn.query(dataQuery)
@@ -39,6 +43,7 @@ export async function GET() {
     name: dataResult.rows[0].name,
     rank: dataResult.rows[0].rank,
     permission_level: dataResult.rows[0].permission_level,
+    todayLocation: dataResult.rows[0].today_location || 0,
     location: dataResult.rows[0].worker_location || '',
   }
 
@@ -137,6 +142,6 @@ export async function GET() {
       location: data.location,
     }
   })
-
+  
   return NextResponse.json(workingDays)
 }
