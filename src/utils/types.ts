@@ -1,5 +1,5 @@
 export type Day = {
-  date: string
+  date?: Date
   value?: string
   comment?: string
   location?: string
@@ -19,7 +19,7 @@ export type LocationData = {
 }
 
 export type SelectedDay = {
-  date: string
+  date?: Date
   invalidComment?: boolean
 }
 

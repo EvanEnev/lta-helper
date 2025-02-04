@@ -1,9 +1,8 @@
-import {SVGProps} from 'react'
-const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
+const SvgComponent = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={240}
-    height={240}
+    width={240 * props?.scale || 1}
+    height={240 * props?.scale || 1}
     fill="none"
     {...props}>
     <path

@@ -13,12 +13,12 @@ import DayButton from '../schedule/DayButton'
 
 type Options = {
   days: {
-    current: string
-    previous: string
+    current: Date
+    previous: Date
     today: Date
   }
   setDate: any
-  date?: string
+  date?: Date
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: string[]
@@ -81,7 +81,7 @@ export default function DesktopAdmin({
               day={{date: days.previous}}
               color="warning"
               className="w-full"
-              isSelected={date === days.previous}
+              isSelected={date?.getTime() === days.previous.getTime()}
               disabled={days.today.getHours() > 3}
             />
             <DayButton
@@ -89,7 +89,7 @@ export default function DesktopAdmin({
               day={{date: days.current}}
               color="success"
               className="w-full"
-              isSelected={date === days.current}
+              isSelected={date?.getTime() === days.current.getTime()}
             />
             <Button
               className="h-min p-2"

@@ -21,27 +21,24 @@ export default function DesktopSchedule() {
   const [selectedDates, setSelectedDates] = useRecoilState(selectedDatesState)
   const [initialDays, setInitialDays] = useState(days)
 
-  const changeDates = (date: string, isSelected: boolean) => {
+  const changeDates = (date: Date | undefined, isSelected: boolean) => {
+    if (!date) return
+
     if (isSelected) {
       setSelectedDates([...selectedDates, date])
     } else {
-      setSelectedDates(selectedDates.filter(cur => cur !== date))
+      setSelectedDates(
+        selectedDates.filter(cur => cur.getTime() !== date.getTime()),
+      )
     }
   }
 
   const getWeekday = (day: Day): string => {
-    const dayProps = day.date.split('.')
-    const dayProp = parseInt(dayProps[0])
-    const monthProp = parseInt(dayProps[1])
-
-    const date: any = new Date()
-
-    date.setDate(dayProp)
-    date.setMonth(monthProp - 1)
-
-    return date.toLocaleDateString('ru-RU', {
-      weekday: 'long',
-    })
+    return (
+      day.date?.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+      }) || ''
+    )
   }
 
   const weeks = useMemo(() => {
@@ -78,7 +75,11 @@ export default function DesktopSchedule() {
                       changeDates(day.date, isSelected)
                     }>
                     <span className="font-bold text-2xl">
-                      {day.date},
+                      {day.date?.toLocaleDateString('ru-RU', {
+                        month: 'numeric',
+                        day: 'numeric',
+                      })}
+                      ,
                       <br />
                       {getWeekday(day)}
                     </span>
@@ -102,7 +103,11 @@ export default function DesktopSchedule() {
                       changeDates(day.date, isSelected)
                     }>
                     <span className="font-bold text-2xl w-full">
-                      {day.date},
+                      {day.date?.toLocaleDateString('ru-RU', {
+                        month: 'numeric',
+                        day: 'numeric',
+                      })}
+                      ,
                       <br />
                       {getWeekday(day)}
                     </span>
@@ -131,12 +136,18 @@ export default function DesktopSchedule() {
                   initDay.comment !== days[index]?.comment,
               )
               .map((initialDay, index) => {
-                const day = days.find(day => initialDay.date === day.date)
+                const day = days.find(
+                  day => initialDay.date?.getTime() === day.date?.getTime(),
+                )
                 if (!day) return <></>
 
                 return (
                   <div key={index} className="text-xl flex gap-2">
-                    {day.date}:
+                    {day.date?.toLocaleDateString('ru-RU', {
+                      month: 'numeric',
+                      day: 'numeric',
+                    })}
+                    :
                     {initialDay?.value !== day.value ? (
                       <div className="flex gap-1">
                         <Code color={'danger'}>{initialDay?.value}</Code>
@@ -164,7 +175,17 @@ export default function DesktopSchedule() {
               })}
           </CardBody>
           <CardFooter>
-            <SendButton />
+            <SendButton
+              days={days.filter(day => {
+                const initialDay = initialDays.find(
+                  initDay => initDay.date?.getTime() === day.date?.getTime(),
+                )
+                return (
+                  day.value !== initialDay?.value ||
+                  day.comment !== initialDay?.comment
+                )
+              })}
+            />
           </CardFooter>
         </Card>
       </div>

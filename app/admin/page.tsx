@@ -25,7 +25,7 @@ export default function Admin() {
     },
   ])
   const [workers, setWorkers] = useState([])
-  const [date, setDate] = useState<string>()
+  const [date, setDate] = useState<Date>()
   const [isLoading, setLoading] = useState<boolean>(false)
   const [_, setAlertData] = useRecoilState(alertState)
 
@@ -50,14 +50,8 @@ export default function Admin() {
     previousDate.setDate(currentDate.getDate() - 1)
 
     const dates = {
-      current: currentDate.toLocaleString('ru-RU', {
-        day: 'numeric',
-        month: 'numeric',
-      }),
-      previous: previousDate.toLocaleString('ru-RU', {
-        day: 'numeric',
-        month: 'numeric',
-      }),
+      current: currentDate,
+      previous: previousDate,
       today: currentDate,
     }
 

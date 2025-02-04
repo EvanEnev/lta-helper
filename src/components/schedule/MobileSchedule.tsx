@@ -5,31 +5,28 @@ import SendButton from './SendButton'
 import daysState from '@/src/state/daysState'
 import selectedDayState from '@/src/state/selectedDayState'
 import {Day} from '@/src/utils/types'
-import {useMemo} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {useRecoilValue} from 'recoil'
 
 export default function MobileSchedule() {
   const days = useRecoilValue(daysState)
   const selectedDay = useRecoilValue(selectedDayState)
+  const [initialDays, setInitialDays] = useState(days)
 
   const day: Day = useMemo(
-    () => days?.find(d => d.date === selectedDay.date) || {date: ''},
+    () =>
+      days?.find(d => d.date?.getTime() === selectedDay.date?.getTime()) || {
+        date: undefined,
+      },
     [days, selectedDay],
   )
 
   const getWeekday = (day: Day) => {
-    const dayProps = day.date.split('.')
-    const dayProp = parseInt(dayProps[0])
-    const monthProp = parseInt(dayProps[1])
-
-    const date: any = new Date()
-
-    date.setDate(dayProp)
-    date.setMonth(monthProp - 1)
-
-    return date.toLocaleDateString('ru-RU', {
-      weekday: 'long',
-    })
+    return (
+      day.date?.toLocaleDateString('ru-RU', {
+        weekday: 'long',
+      }) || ''
+    )
   }
 
   const weeks = useMemo(() => {
@@ -45,6 +42,11 @@ export default function MobileSchedule() {
 
     return weeks
   }, [days])
+
+  useEffect(() => {
+    if (initialDays.find(obj => obj?.date)) return
+    setInitialDays(days)
+  }, [days, initialDays])
 
   return (
     <div className="flex gap-4 w-full max-h-[50%] flex-wrap">
@@ -67,7 +69,17 @@ export default function MobileSchedule() {
       )}
       <Divider />
       <DayInfo day={day} />
-      <SendButton />
+      <SendButton
+        days={days.filter(day => {
+          const initialDay = initialDays.find(
+            initDay => initDay.date?.getTime() === day.date?.getTime(),
+          )
+          return (
+            day.value !== initialDay?.value ||
+            day.comment !== initialDay?.comment
+          )
+        })}
+      />
     </div>
   )
 }

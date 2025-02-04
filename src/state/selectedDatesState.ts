@@ -1,6 +1,6 @@
 import {atom} from 'recoil'
 
-export default atom<string[]>({
+export default atom<Date[]>({
   key: 'selectedDates',
   default: [],
 })

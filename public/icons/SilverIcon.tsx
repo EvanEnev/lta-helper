@@ -1,12 +1,9 @@
-import { SVGProps } from "react"
-const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
+const SvgComponent = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={228}
-    height={244}
-    fill="none"
-    {...props}
-  >
+    width={228 * props?.scale || 1}
+    height={244 * props?.scale || 1}
+    fill="none">
     <path
       fill="#555754"
       d="m114 0 86.489 88.852c18.015 18.506 18.015 47.79 0 66.296L114 244V0Z"
@@ -17,15 +14,14 @@ const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
     />
     <mask
       id="a"
-      width={114}
-      height={138}
+      width={114 * props?.scale || 1}
+      height={138 * props?.scale || 1}
       x={57}
       y={53}
       maskUnits="userSpaceOnUse"
       style={{
-        maskType: "alpha",
-      }}
-    >
+        maskType: 'alpha',
+      }}>
       <path
         fill="#ADB2AF"
         d="M163.271 103.105 114 53l-49.271 50.105c-10.305 10.48-10.305 27.31 0 37.79L114 191l49.271-50.105c10.305-10.48 10.305-27.31 0-37.79Z"
@@ -73,15 +69,14 @@ const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
     />
     <mask
       id="b"
-      width={63}
-      height={74}
+      width={63 * props?.scale || 1}
+      height={74 * props?.scale || 1}
       x={83}
       y={85}
       maskUnits="userSpaceOnUse"
       style={{
-        maskType: "alpha",
-      }}
-    >
+        maskType: 'alpha',
+      }}>
       <path
         fill="#8E938E"
         d="M87.665 111.613 114.28 85l26.613 26.613c5.736 5.737 5.736 15.037 0 20.774L114.279 159l-26.614-26.613c-5.736-5.737-5.736-15.037 0-20.774Z"
@@ -154,13 +149,12 @@ const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
     <defs>
       <filter
         id="c"
-        width={64}
-        height={70}
+        width={64 * props?.scale || 1}
+        height={70 * props?.scale || 1}
         x={0}
         y={87}
         colorInterpolationFilters="sRGB"
-        filterUnits="userSpaceOnUse"
-      >
+        filterUnits="userSpaceOnUse">
         <feFlood floodOpacity={0} result="BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
@@ -180,13 +174,12 @@ const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
       </filter>
       <filter
         id="d"
-        width={64}
-        height={70}
+        width={64 * props?.scale || 1}
+        height={70 * props?.scale || 1}
         x={164}
         y={87}
         colorInterpolationFilters="sRGB"
-        filterUnits="userSpaceOnUse"
-      >
+        filterUnits="userSpaceOnUse">
         <feFlood floodOpacity={0} result="BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"
@@ -206,13 +199,12 @@ const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
       </filter>
       <filter
         id="e"
-        width={102}
-        height={116.143}
+        width={102 * props?.scale || 1}
+        height={116.143 * props?.scale || 1}
         x={63}
         y={64}
         colorInterpolationFilters="sRGB"
-        filterUnits="userSpaceOnUse"
-      >
+        filterUnits="userSpaceOnUse">
         <feFlood floodOpacity={0} result="BackgroundImageFix" />
         <feColorMatrix
           in="SourceAlpha"

@@ -7,12 +7,12 @@ import {Plain} from 'solar-icon-set'
 
 type Options = {
   days: {
-    current: string
-    previous: string
+    current: Date
+    previous: Date
     today: Date
   }
   setDate: any
-  date?: string
+  date?: Date
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: string[]
@@ -62,14 +62,14 @@ export default function MobileAdmin({
           onclick={() => setDate(days.previous)}
           day={{date: days.previous}}
           color="warning"
-          isSelected={date === days.previous}
+          isSelected={date?.getTime() === days.previous.getTime()}
           disabled={days.today.getHours() > 3}
         />
         <DayButton
           onclick={() => setDate(days.current)}
           day={{date: days.current}}
           color="success"
-          isSelected={date === days.current}
+          isSelected={date?.getTime() === days.current.getTime()}
         />
       </div>
 
