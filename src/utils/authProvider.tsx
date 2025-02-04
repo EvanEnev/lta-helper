@@ -52,8 +52,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
       appTelegram = telegramObject.initData ? telegramObject : {}
     }
 
-    appTelegram = {}
-
     if (
       !session?.data?.user &&
       !Object.keys(appTelegram).length &&
