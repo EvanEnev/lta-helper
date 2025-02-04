@@ -1,9 +1,11 @@
-const SvgComponent = (props: any) => (
+import {SVGProps} from 'react'
+const SvgComponent = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={228 * props?.scale || 1}
-    height={244 * props?.scale || 1}
-    fill="none">
+    width={228}
+    height={244}
+    fill="none"
+    {...props}>
     <path
       fill="#555754"
       d="m114 0 86.489 88.852c18.015 18.506 18.015 47.79 0 66.296L114 244V0Z"
@@ -14,8 +16,8 @@ const SvgComponent = (props: any) => (
     />
     <mask
       id="a"
-      width={114 * props?.scale || 1}
-      height={138 * props?.scale || 1}
+      width={114}
+      height={138}
       x={57}
       y={53}
       maskUnits="userSpaceOnUse"
@@ -69,8 +71,8 @@ const SvgComponent = (props: any) => (
     />
     <mask
       id="b"
-      width={63 * props?.scale || 1}
-      height={74 * props?.scale || 1}
+      width={63}
+      height={74}
       x={83}
       y={85}
       maskUnits="userSpaceOnUse"
@@ -149,8 +151,8 @@ const SvgComponent = (props: any) => (
     <defs>
       <filter
         id="c"
-        width={64 * props?.scale || 1}
-        height={70 * props?.scale || 1}
+        width={64}
+        height={70}
         x={0}
         y={87}
         colorInterpolationFilters="sRGB"
@@ -174,8 +176,8 @@ const SvgComponent = (props: any) => (
       </filter>
       <filter
         id="d"
-        width={64 * props?.scale || 1}
-        height={70 * props?.scale || 1}
+        width={64}
+        height={70}
         x={164}
         y={87}
         colorInterpolationFilters="sRGB"
@@ -199,8 +201,8 @@ const SvgComponent = (props: any) => (
       </filter>
       <filter
         id="e"
-        width={102 * props?.scale || 1}
-        height={116.143 * props?.scale || 1}
+        width={102}
+        height={116.143}
         x={63}
         y={64}
         colorInterpolationFilters="sRGB"

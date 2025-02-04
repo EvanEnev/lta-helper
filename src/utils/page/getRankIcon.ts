@@ -6,23 +6,23 @@ import PlatinumIcon from '@/public/icons/PlatinumIcon'
 import StoneIcon from '@/public/icons/StoneIcon'
 import ActorIcon from '@/public/icons/ActorIcon'
 
-export default function getRankIcon(rank: string, props: any = {}) {
+export default function getRankIcon(rank: string) {
   switch (rank?.toLowerCase()) {
     case 'актёр':
-      return ActorIcon(props)
+      return ActorIcon({})
     case 'каменный':
-      return StoneIcon(props)
+      return StoneIcon({})
     case 'железный':
-      return IronIcon(props)
+      return IronIcon({})
     case 'бронзовый':
-      return BronzeIcon(props)
+      return BronzeIcon({})
     case 'серебряный':
-      return SilverIcon(props)
+      return SilverIcon({})
     case 'золотой':
-      return GoldIcon(props)
+      return GoldIcon({})
     case 'платиновый':
-      return PlatinumIcon(props)
+      return PlatinumIcon({})
     default:
-      return ActorIcon(props)
+      return ActorIcon({})
   }
 }
