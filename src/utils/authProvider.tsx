@@ -46,7 +46,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     let appTelegram = {}
 
     if (process.env.NODE_ENV === 'development') {
-      appTelegram = testTelegramUser
+      appTelegram = {}
     } else {
       const telegramObject = (window as any)?.Telegram?.WebApp
       appTelegram = telegramObject.initData ? telegramObject : {}

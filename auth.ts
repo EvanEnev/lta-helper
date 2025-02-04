@@ -119,6 +119,9 @@ export const authOptions = {
       if (isLoggedIn) return true
       else return false
     },
+    redirect: async () => {
+      return 'https://lt.bubenev.su'
+    },
   },
   pages: {
     signIn: '/login',
