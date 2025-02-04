@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   await conn.query(query)
 
   const defaultDays = await getDefaultDays()
-  const workingDays = defaultDays.map((day: string) => ({date: day}))
+  const workingDays = defaultDays.map((day: Date) => ({date: day}))
 
   return NextResponse.json({worker: {name, workingDays}}, {status: 200})
 }
