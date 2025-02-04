@@ -4,6 +4,7 @@ import {Day, LocationData} from '@/src/utils/types'
 import {
   Accordion,
   AccordionItem,
+  Avatar,
   Button,
   Card,
   CardBody,
@@ -18,6 +19,7 @@ import selectedDatesState from '@/src/state/selectedDatesState'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/src/utils/groupBy'
 import {useSession} from 'next-auth/react'
+import getRankIcon from '@/src/utils/page/getRankIcon'
 
 export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
@@ -26,8 +28,6 @@ export default function DayInfo({day}: {day: Day}) {
   const {data: session} = useSession()
 
   const locationData: LocationData[] = useMemo(() => {
-    if (!day.location) return []
-
     return day.locationData || []
   }, [day])
 
@@ -39,14 +39,18 @@ export default function DayInfo({day}: {day: Day}) {
 
     if (selectedDates.length > 1) {
       const newDays = days.map(curDay =>
-        selectedDates.includes(curDay.date) ? {...curDay, value} : curDay,
+        selectedDates.find(date => date.getTime() === curDay.date?.getTime())
+          ? {...curDay, value}
+          : curDay,
       )
 
       setDays(newDays)
     } else {
       const newDay: Day = {...day, value}
       const newDays = days.map(selectedDay =>
-        day.date === selectedDay.date ? newDay : selectedDay,
+        day.date?.getTime() === selectedDay.date?.getTime()
+          ? newDay
+          : selectedDay,
       )
 
       setDays(newDays)
@@ -61,7 +65,7 @@ export default function DayInfo({day}: {day: Day}) {
 
     if (selectedDates.length > 1) {
       const newDays = days.map(curDay =>
-        selectedDates.includes(curDay.date)
+        selectedDates.find(date => date.getTime() === curDay.date?.getTime())
           ? {...curDay, comment: text}
           : curDay,
       )
@@ -70,7 +74,9 @@ export default function DayInfo({day}: {day: Day}) {
     } else {
       const newDay: Day = {...day, comment: text}
       const newDays = days.map(selectedDay =>
-        selectedDay.date === day.date ? newDay : selectedDay,
+        selectedDay.date?.getTime() === day.date?.getTime()
+          ? newDay
+          : selectedDay,
       )
 
       setDays(newDays)
@@ -81,14 +87,7 @@ export default function DayInfo({day}: {day: Day}) {
     if (!day.date) return true
     if (!day.location) return false
 
-    const dayProps = day.date.split('.')
-    const dayProp = parseInt(dayProps[0])
-    const monthProp = parseInt(dayProps[1])
-
-    const selectedDate: any = new Date()
-
-    selectedDate.setDate(dayProp)
-    selectedDate.setMonth(monthProp - 1)
+    const selectedDate: any = day.date
 
     const diffTime = selectedDate - currentDate
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))

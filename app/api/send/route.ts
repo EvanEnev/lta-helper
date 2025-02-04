@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
   }
 
-  const {id: telegramId} = user
+  const telegramId = parseInt(user.id)
   const workerResult = await conn.query(
     `SELECT "name", "number" FROM lt_arena.workers WHERE telegram_id = $1`,
     [telegramId],
@@ -36,11 +36,12 @@ export async function POST(req: NextRequest) {
   const doc = google()
   await doc.schedule.loadInfo()
   const sheet = doc.schedule.sheetsByIndex[0]
+  await sheet.loadHeaderRow(7)
   const rows = await sheet.getRows()
   const row = rows.find(
     (r: GoogleSpreadsheetRow) =>
       r.get('Позывной')?.split('-')[0]?.trim()?.toLowerCase() ===
-      worker.name.toLowerCase(),
+      user.name.toLowerCase(),
   )
 
   if (!row) {
@@ -49,8 +50,6 @@ export async function POST(req: NextRequest) {
       {status: 404},
     )
   }
-
-  await sheet.loadHeaderRow(7)
 
   const {changes, commentsChanges, queries} = await getChanges({
     sheet,
@@ -109,8 +108,6 @@ export async function POST(req: NextRequest) {
   const message_thread_id = rank
     ? process.env.WORKERS_THREAD_ID
     : process.env.ACTORS_THREAD_ID
-
-  console.log(chat_id, message_thread_id)
 
   if (commentsChanges.length) {
     const commentsUpdateEntries = commentsChanges

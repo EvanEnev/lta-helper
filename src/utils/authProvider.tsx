@@ -8,6 +8,7 @@ import daysState from '../state/daysState'
 import {signIn, signOut, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
+import convertTZ from '@/lib/convertTZ'
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
@@ -23,7 +24,12 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     const data = await response.json()
 
     if (data?.length) {
-      setDays(data)
+      const newDays = data.map((day: any) => ({
+        ...day,
+        date: convertTZ(new Date(day.date), 'Europe/Moscow'),
+      }))
+
+      setDays(newDays)
     }
   }, [])
 
@@ -38,7 +44,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     currentStatus.current = session?.status
 
     let appTelegram = {}
-    console.log(process.env.NODE_ENV)
 
     if (process.env.NODE_ENV === 'development') {
       appTelegram = testTelegramUser
@@ -57,8 +62,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
       router.push('/login')
       return
     }
-
-    console.log(session)
 
     if (Object.keys(telegram).length && session?.data?.user) return
 

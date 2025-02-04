@@ -1,7 +1,7 @@
 import selectedDayState from '@/src/state/selectedDayState'
 import locations from '@/src/utils/locations'
 import {Day} from '@/src/utils/types'
-import {Button, Skeleton} from '@nextui-org/react'
+import {Badge, Button, Skeleton} from '@nextui-org/react'
 import {useMemo} from 'react'
 import {useRecoilValue, useSetRecoilState} from 'recoil'
 
@@ -40,16 +40,7 @@ export default function DayButton(props: DayButtonProps) {
   }
 
   const weekday = useMemo(() => {
-    const dayProps = day.date.split('.')
-    const dayProp = parseInt(dayProps[0])
-    const monthProp = parseInt(dayProps[1])
-
-    const date: any = new Date()
-
-    date.setDate(dayProp)
-    date.setMonth(monthProp - 1)
-
-    return date.toLocaleDateString('ru-RU', {
+    return day.date?.toLocaleDateString('ru-RU', {
       weekday: 'short',
     })
   }, [day.date])
@@ -60,19 +51,32 @@ export default function DayButton(props: DayButtonProps) {
   return !day.date ? (
     <Skeleton className="w-28 h-12 rounded-[14px]" />
   ) : (
-    <Button
-      isDisabled={props.disabled}
-      size="lg"
-      className={`w-28 text-lg ${isSelected ? '' : 'opacity-60'} ${
-        props.className || ''
-      }`}
-      color={props.color || color}
-      variant={isSelected ? 'shadow' : 'solid'}
-      onPress={handler}>
-      {day?.location ? <span className="absolute left-2 top-0">+</span> : ''}
-      <span className="h-fit w-fit">
-        {day.date}, {weekday}
-      </span>
-    </Button>
+    <Badge
+      variant="solid"
+      color="success"
+      content="+"
+      size="md"
+      isInvisible={!day.locationData?.length}
+      className={props?.className || 'flex-1 flex'}
+      classNames={{
+        base: 'flex-1',
+        badge: 'justify-center items-center',
+      }}>
+      <Button
+        isDisabled={props.disabled}
+        size="lg"
+        className={`w-28 flex-1 text-lg ${isSelected ? '' : 'opacity-60'}`}
+        color={props.color || color}
+        variant={isSelected ? 'shadow' : 'solid'}
+        onPress={handler}>
+        <span className="h-fit w-fit">
+          {day.date.toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'numeric',
+          })}
+          , {weekday}
+        </span>
+      </Button>
+    </Badge>
   )
 }

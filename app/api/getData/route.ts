@@ -1,4 +1,3 @@
-import convertTZ from '@/lib/convertTZ'
 import conn from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/getDefaultDays'
@@ -15,77 +14,68 @@ export async function GET() {
   const telegramId = user.id
 
   const dataQuery = `SELECT
-  workers.name,
-  workers.rank,
-  workers.location_id,
-  schedule.date,
-  schedule.comment,
-  schedule.value,
-  locations.name AS location,
-  locations.id AS location_id,
-  FROM lt_arena.workers workers
-  LEFT JOIN lt_arena.schedule schedule ON schedule.worker_id=workers.id
-  LEFT JOIN lt_arena.locations locations ON locations.id=schedule.location_id
-  WHERE workers.telegram_id=${telegramId}`
+  w.name,
+  w.id AS worker_id,
+  s.date,
+  s.value,
+  s.comment
+  FROM lt_arena.schedule s
+  LEFT JOIN lt_arena.workers w ON telegram_id = ${telegramId}
+  LEFT JOIN lt_arena.dates dates ON dates.id = 2
+  WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 
   const dataResult = await conn.query(dataQuery)
+  const data = dataResult.rows[0]
+
+  const locationsQuery = `SELECT
+  l.name AS location,
+  w.name AS worker,
+  w.rank,
+  start_time,
+  end_time,
+  ls.date,
+  ls.comment AS location_comment
+  FROM lt_arena.locations_schedule ls
+  LEFT JOIN lt_arena.locations l ON l.id = ls.location_id
+  LEFT JOIN lt_arena.workers w ON w.id = ls.worker_id
+  LEFT JOIN lt_arena.dates dates ON dates.id = 2
+  WHERE
+  (ls.date BETWEEN dates.start_date AND dates.end_date)
+  AND ls.location_id IN (SELECT
+  location_id FROM lt_arena.locations_schedule
+  WHERE worker_id = ${data.worker_id}
+  AND date = ls.date)`
   if (!dataResult.rows.length || !dataResult.rows[0].name)
     return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 
-  const locations = new Set(
-    dataResult.rows.map(data => {
-      if (data.date && data.location_id)
-        return {date: data.date, locationId: data.location_id}
-    }),
-  )
-
-  const locationsCondition = [...locations]
-    .filter(v => v)
-    .map(data => {
-      if (data)
-        return `(schedule.location_id=${data.locationId} AND schedule.date='${data.date}')`
-    })
-    .join(' OR ')
-
   let locationsData: {
     rows: {
-      date: string
+      date: Date
       start_time: string
       end_time: string
-      role: string
-      name: string
+      location_comment: string
+      worker: string
       rank: string
-      location_name: string
+      location: string
     }[]
   } = {rows: []}
 
-  if (locationsCondition) {
-    const locationsDataQuery = `SELECT
-    w.name,
-    role,
-    start_time,
-    end_time,
-    date,
-    w.rank,
-    l.name AS location_name
-    FROM lt_arena.schedule schedule
-    LEFT JOIN lt_arena.workers w ON w.id = schedule.worker_id
-    LEFT JOIN lt_arena.locations l ON l.id = schedule.location_id
-    WHERE ${locationsCondition}`
-
-    locationsData = await conn.query(locationsDataQuery)
-  }
+  locationsData = await conn.query(locationsQuery)
 
   const defaultDays = await getDefaultDays()
-  const workingDays = defaultDays.map((day: string) => {
-    const data = dataResult.rows.find(data => data.date === day)
+  const workingDays = defaultDays.map((day: Date) => {
+    const data = dataResult.rows.find(
+      obj => obj?.date.getTime() === day.getTime(),
+    )
 
-    if (!data) {
-      return {date: day, value: ''}
-    }
+    if (!data)
+      return {
+        date: day,
+        value: '',
+      }
 
     const locationData = locationsData.rows
-      .filter(obj => obj?.date === day && obj.location_name === data.location)
+      .filter(obj => obj?.date.getTime() === day.getTime())
       ?.map(data => {
         let startTime = data.start_time
         let endTime = data.end_time
@@ -110,12 +100,12 @@ export async function GET() {
         return {
           data: {
             time,
-            role: data.role,
-            worker: data.name,
+            role: data.location_comment,
+            worker: data.worker,
             rank: data.rank,
           },
-          self: user.name === data.name,
-          locationName: data.location_name,
+          self: user.name === data.worker,
+          locationName: data.location,
         }
       })
 
@@ -124,7 +114,6 @@ export async function GET() {
       value: data.value,
       comment: data.comment,
       locationData,
-      location: data.location,
     }
   })
 

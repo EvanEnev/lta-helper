@@ -8,6 +8,7 @@ import getCellValue from './getCellValue'
 import getComments from './getComments'
 import locations from '../locations'
 import conn from '@/lib/database'
+import convertTZ from '@/lib/convertTZ'
 
 interface Options {
   sheet: GoogleSpreadsheetWorksheet
@@ -30,6 +31,10 @@ export default async function getChanges({
 }: Options) {
   const headerValues = sheet.headerValues
   const rowNumber = row.rowNumber
+  selectedDays = selectedDays.map(day => ({
+    ...day,
+    date: new Date(day?.date || ''),
+  }))
 
   const changes: Change[] = []
   const commentsChanges: Comment[] = []
@@ -41,7 +46,13 @@ export default async function getChanges({
 
   headerValues.slice(9, 23).forEach((headerValue: string) => {
     const date = headerValue.split(' ')[1]
-    const day = selectedDays.find(day => day.date === date)
+    const day = selectedDays.find(
+      day =>
+        day.date?.toLocaleDateString('ru-RU', {
+          month: 'numeric',
+          day: 'numeric',
+        }) === date,
+    )
 
     if (!day?.value) return
 
@@ -59,8 +70,6 @@ export default async function getChanges({
     const cellNote = cell.note || ''
     const isDifferentComment =
       commentValue !== cellNote || commentValue !== dayComment
-
-    if (day.value === cellValue.value && !isDifferentComment) return
 
     if (isDifferentComment && day.comment) {
       cell.note = day?.comment || ''
@@ -90,25 +99,14 @@ export default async function getChanges({
           : '',
     })
 
-    conn
-      .query(
-        `SELECT s.location_id FROM lt_arena.schedule s
-    LEFT JOIN lt_arena.workers w ON LOWER(w.name) = '${workerName.toLowerCase()}'
-    WHERE s.worker_id = w.id AND s.date = '${date}'`,
-      )
-      .then(rawData => {
-        const currentSchedule = rawData.rows || []
+    const year = day.date?.getFullYear().toString()
+    const month = ((day?.date?.getMonth() || 0) + 1).toString().padStart(2, '0')
+    const dayString = day.date?.getDate().toString().padStart(2, '0')
+    const formattedDate = `${year}-${month}-${dayString}`
 
-        const condition =
-          currentSchedule.length &&
-          currentSchedule?.find(
-            obj => obj.location_id === 0 || obj.location_id === null,
-          )
-
-        const query = `INSERT INTO lt_arena.schedule (worker_id, location_id, date, value, comment)
+    const query = `INSERT INTO lt_arena.schedule (worker_id, date, value, comment)
         SELECT w.id AS worker_id,
-          COALESCE(${condition ? 0 : 'l.id'}, 0) AS location_id,
-          '${date}' AS date,
+          '${formattedDate}' AS date,
           '${day?.value}' AS value,
           '${day?.comment || ''}' AS comment
         FROM lt_arena.workers w
@@ -116,18 +114,15 @@ export default async function getChanges({
           day.location?.toLowerCase() || 0
         }'
           WHERE LOWER(w.name)='${workerName.toLowerCase()}'
-        ON CONFLICT (worker_id, date, location_id)
+        ON CONFLICT (worker_id, date)
           DO UPDATE SET
           value=EXCLUDED.value,
-          comment=EXCLUDED.comment,
-          location_id=COALESCE((SELECT l.id FROM lt_arena.locations l WHERE LOWER(l.name) = '${
-            day.location?.toLowerCase() || 0
-          }' LIMIT 1), 0)
+          comment=EXCLUDED.comment
           WHERE lt_arena.schedule.date=EXCLUDED.date
-          AND lt_arena.schedule.worker_id=EXCLUDED.worker_id`
+          AND lt_arena.schedule.worker_id=EXCLUDED.worker_id
+          AND lt_arena.schedule.date = EXCLUDED.date`
 
-        queries.push(query)
-      })
+    queries.push(query)
   })
 
   return {changes, commentsChanges, queries}

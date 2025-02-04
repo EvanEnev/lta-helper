@@ -4,6 +4,6 @@ import {SelectedDay} from '../utils/types'
 export default atom<SelectedDay>({
   key: 'selectedDay',
   default: {
-    date: '',
+    date: undefined,
   },
 })

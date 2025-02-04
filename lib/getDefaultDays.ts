@@ -1,16 +1,19 @@
 import google from '@/lib/google'
+import conn from './database'
 
 export default async function getDefaultDays() {
-  const doc = google()
-  await doc.schedule.loadInfo()
+  const datesResult = await conn.query(
+    'SELECT start_date, end_date FROM lt_arena.dates WHERE id = 2',
+  )
+  const {start_date: startDate, end_date: endDate} = datesResult.rows[0]
 
-  const sheet = doc.schedule.sheetsByTitle['Сотрудники + расписание']
-  
-  await sheet.loadHeaderRow(7)
-  
-  const headerValues = sheet.headerValues
-    .slice(9, 23)
-    .map((value: string) => value.split(' ')[1])
+  let dates = []
+  let currentDate = startDate
 
-  return headerValues
+  while (currentDate <= endDate) {
+    dates.push(new Date(currentDate))
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+
+  return dates
 }

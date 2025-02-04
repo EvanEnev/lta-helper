@@ -13,14 +13,7 @@ export default function DesktopPage() {
 
   const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
-  const getDatesDiff = (dateString: string) => {
-    const dateParts = dateString.split('.')
-    const date = new Date(
-      new Date().getFullYear(),
-      parseInt(dateParts[1]) - 1,
-      parseInt(dateParts[0]),
-    )
-
+  const getDatesDiff = (date?: Date) => {
     // @ts-ignore
     const diffTime = date - currentDate
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
@@ -68,7 +61,10 @@ export default function DesktopPage() {
                     className="flex gap-4 flex-col border-1 rounded-xl p-4">
                     <span className="items-center flex gap-1">
                       <CalendarMinimalistic />
-                      {day.date}
+                      {day.date?.toLocaleDateString('ru-RU', {
+                        month: 'numeric',
+                        day: 'numeric',
+                      })}
                     </span>
                     <span className="items-center flex gap-1">
                       <MapPoint />
