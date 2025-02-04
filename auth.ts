@@ -57,7 +57,7 @@ export const authOptions = {
           FROM lt_arena.workers w
           LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
           LEFT JOIN lt_arena.locations l ON l.id = w.location_id
-          LEFT JOIN lt_arena.admins admins ON admins.worker_id=workers.id AND admins.date='${date}'
+          LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
           WHERE telegram_id = ${user.id}`
 
           const result = await conn.query(query)
