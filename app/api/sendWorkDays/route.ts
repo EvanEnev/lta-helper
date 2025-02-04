@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     (data: WorkerSalary) => data.worker && data.workingHours && data.location,
   )
 
-  const date = body.date
+  const date = new Date(body.date)
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
       {message: 'Нет данных для отправки'},
       {status: 500},
     )
+
+  if (!date) {
+    return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
+  }
 
   const doc = await google()
 
@@ -85,7 +89,9 @@ export async function POST(req: NextRequest) {
 
     const rank: string = scheduleRow?.get('Ранг')?.toLowerCase() || 'актёр'
     const dateColoumnNumber = workersSheet.headerValues.findIndex(
-      (value: string) => value.split(' ')[0] === date,
+      (value: string) =>
+        value.split(' ')[0] ===
+        date.toLocaleDateString('ru-RU', {day: 'numeric', month: 'numeric'}),
     )
     const gamesCount = data.gamesCount || 1
 
