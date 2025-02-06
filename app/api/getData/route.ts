@@ -13,6 +13,15 @@ export async function GET() {
 
   const telegramId = user.id
 
+  const workerQuery = `SELECT
+  name,
+  id
+  FROM lt_arena.workers
+  WHERE telegram_id=${telegramId}`
+  
+  const workerResult = await conn.query(workerQuery)
+  const worker = workerResult.rows[0]
+
   const dataQuery = `SELECT
   w.name,
   w.id AS worker_id,
@@ -43,9 +52,9 @@ export async function GET() {
   (ls.date BETWEEN dates.start_date AND dates.end_date)
   AND ls.location_id IN (SELECT
   location_id FROM lt_arena.locations_schedule
-  WHERE worker_id = ${data.worker_id}
+  WHERE worker_id = ${worker.id}
   AND date = ls.date)`
-  if (!dataResult.rows.length || !dataResult.rows[0].name)
+  if (!worker?.name)
     return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 
   let locationsData: {
