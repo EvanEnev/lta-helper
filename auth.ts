@@ -9,6 +9,33 @@ import {
 import conn from '@/lib/database'
 import convertTZ from './lib/convertTZ'
 
+const getUserDdata = async (id: number) => {
+  const date = convertTZ(new Date(), 'Europe/Moscow').toLocaleDateString(
+    'ru-RU',
+    {day: 'numeric', month: 'numeric'},
+  )
+
+  const query = `SELECT
+        w.name,
+        rank,
+        l.name as location,
+        ranks.permission_level,
+        first_name,
+        last_name,
+        middle_name,
+        phone_number,
+        email
+        FROM lt_arena.workers w
+        LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
+        LEFT JOIN lt_arena.locations l ON l.id = w.location_id
+        LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
+        WHERE telegram_id = ${id}`
+
+  const result = await conn.query(query)
+  const data = result.rows[0]
+  return data
+}
+
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -39,29 +66,7 @@ export const authOptions = {
         const user = await validator.validate(data)
 
         if (user.id) {
-          const date = convertTZ(
-            new Date(),
-            'Europe/Moscow',
-          ).toLocaleDateString('ru-RU', {day: 'numeric', month: 'numeric'})
-
-          const query = `SELECT
-          w.name,
-          rank,
-          l.name as location,
-          ranks.permission_level,
-          first_name,
-          last_name,
-          middle_name,
-          phone_number,
-          email
-          FROM lt_arena.workers w
-          LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
-          LEFT JOIN lt_arena.locations l ON l.id = w.location_id
-          LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
-          WHERE telegram_id = ${user.id}`
-
-          const result = await conn.query(query)
-          const data = result.rows[0]
+          const data = await getUserDdata(user.id)
 
           let returned = {
             id: user.id.toString(),
@@ -97,18 +102,21 @@ export const authOptions = {
         token.image = user.image
         token.location = user.location
       }
+
       return token
     },
 
     // @ts-ignore
     async session({session, token}) {
       if (token) {
+        const data = await getUserDdata(token.id)
+
         session.user.id = token.id
-        session.user.name = token.name
-        session.user.rank = token.rank
-        session.user.permission_level = token.permission_level
+        session.user.name = data.name
+        session.user.rank = data.rank
+        session.user.permission_level = data.permission_level
         session.user.image = token.image
-        session.user.location = token.location
+        session.user.location = data.location
       }
       return session
     },

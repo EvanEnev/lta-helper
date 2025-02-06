@@ -18,7 +18,7 @@ export async function GET() {
   id
   FROM lt_arena.workers
   WHERE telegram_id=${telegramId}`
-  
+
   const workerResult = await conn.query(workerQuery)
   const worker = workerResult.rows[0]
 
@@ -34,7 +34,6 @@ export async function GET() {
   WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 
   const dataResult = await conn.query(dataQuery)
-  const data = dataResult.rows[0]
 
   const locationsQuery = `SELECT
   l.name AS location,
@@ -54,6 +53,7 @@ export async function GET() {
   location_id FROM lt_arena.locations_schedule
   WHERE worker_id = ${worker.id}
   AND date = ls.date)`
+
   if (!worker?.name)
     return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 

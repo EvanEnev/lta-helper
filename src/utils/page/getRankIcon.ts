@@ -5,6 +5,7 @@ import GoldIcon from '@/public/icons/GoldIcon'
 import PlatinumIcon from '@/public/icons/PlatinumIcon'
 import StoneIcon from '@/public/icons/StoneIcon'
 import ActorIcon from '@/public/icons/ActorIcon'
+import CCIcon from '@/public/icons/CC'
 
 export default function getRankIcon(rank: string) {
   switch (rank?.toLowerCase()) {
@@ -22,6 +23,8 @@ export default function getRankIcon(rank: string) {
       return GoldIcon({})
     case 'платиновый':
       return PlatinumIcon({})
+    case 'оберфюрер':
+      return CCIcon({})
     default:
       return ActorIcon({})
   }
