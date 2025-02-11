@@ -101,7 +101,9 @@ export async function POST(req: NextRequest) {
   const botToken = process.env.BOT_TOKEN
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
 
-  const chat_id = rank
+  const isActor = rank && rank.toLowerCase() === 'актёр' && rank.toLowerCase() === 'актер'
+
+  const chat_id = !isActor
     ? process.env.WORKERS_CHAT_ID
     : process.env.ACTORS_CHAT_ID
 
