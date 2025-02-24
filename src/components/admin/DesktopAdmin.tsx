@@ -6,7 +6,7 @@ import {
   CardHeader,
   colors,
   semanticColors,
-} from "@heroui/react"
+} from '@heroui/react'
 import WorkData from './WorkData'
 import {AddCircle, MinusCircle, MinusSquare, Pen2, Plain} from 'solar-icon-set'
 import DayButton from '../schedule/DayButton'
@@ -74,7 +74,7 @@ export default function DesktopAdmin({
         })}
       </div>
       <div className="h-[70vh]">
-        <Card className="w-[22vw] h-full" isBlurred>
+        <Card className="w-[22vw] h-fit" isBlurred>
           <CardBody className="gap-4">
             <DayButton
               onclick={() => setDate(days.previous)}

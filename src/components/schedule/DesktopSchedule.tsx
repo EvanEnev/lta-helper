@@ -126,7 +126,8 @@ export default function DesktopSchedule() {
       <div className="h-[70vh]">
         <Card className="w-[22vw] h-full" isBlurred>
           <CardHeader className="text-2xl flex gap-2">
-            <Pen2 size={24} /> Изменённые дни:
+            <Pen2 size={24} svgProps={{width: 24, height: 24}} /> Изменённые
+            дни:
           </CardHeader>
           <CardBody className="gap-4">
             {initialDays
