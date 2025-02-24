@@ -9,6 +9,9 @@ import DesktopHeader from './DesktopHeader'
 export default function Header() {
   const {data: session} = useSession()
   const isMobile = useIsMobile()
+  const path = usePathname()
+
+  if (path === '/login') return ''
 
   return isMobile ? (
     <MobileHeader session={session} />
