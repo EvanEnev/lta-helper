@@ -24,7 +24,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           strategy="beforeInteractive"
         />
       </head>
-      <body className={inter.className + ' gradient'}>
+      <body className={inter.className + ' gradient relative'}>
         <AuthSessionProvider>
           <StateProvider>
             <NextUIProvider locale="ru-RU">
