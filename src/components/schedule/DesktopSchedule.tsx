@@ -6,7 +6,7 @@ import {
   Checkbox,
   Code,
   Divider,
-} from '@nextui-org/react'
+} from '@heroui/react'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
 import daysState from '@/src/state/daysState'
@@ -126,7 +126,8 @@ export default function DesktopSchedule() {
       <div className="h-[70vh]">
         <Card className="w-[22vw] h-full" isBlurred>
           <CardHeader className="text-2xl flex gap-2">
-            <Pen2 size={24} /> Изменённые дни:
+            <Pen2 size={24} svgProps={{width: 24, height: 24}} />
+            Изменённые дни:
           </CardHeader>
           <CardBody className="gap-4">
             {initialDays
@@ -139,7 +140,7 @@ export default function DesktopSchedule() {
                 const day = days.find(
                   day => initialDay.date?.getTime() === day.date?.getTime(),
                 )
-                if (!day) return <></>
+                if (!day) return ''
 
                 return (
                   <div key={index} className="text-xl flex gap-2">
@@ -150,20 +151,26 @@ export default function DesktopSchedule() {
                     :
                     {initialDay?.value !== day.value ? (
                       <div className="flex gap-1">
-                        <Code color={'danger'}>{initialDay?.value}</Code>
+                        <Code className="min-h-7 min-w-6" color={'danger'}>
+                          {initialDay?.value}
+                        </Code>
                         {'->'}
-                        <Code color="success">{day.value}</Code>
+                        <Code className="min-h-7 min-w-6" color="success">
+                          {day.value}
+                        </Code>
                       </div>
                     ) : (
                       ''
                     )}
                     {initialDay?.comment !== day.comment ? (
                       <div className="flex gap-1 w-full">
-                        <Code color={'danger'}>{initialDay?.comment}</Code>
+                        <Code className="min-h-7" color={'danger'}>
+                          {initialDay?.comment}
+                        </Code>
                         {'->'}
                         <Code
                           color="success"
-                          className="break-all whitespace-normal">
+                          className="break-all whitespace-normal min-h-7">
                           {day.comment}
                         </Code>
                       </div>

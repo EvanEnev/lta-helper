@@ -6,7 +6,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from '@nextui-org/react'
+} from "@heroui/react"
 import {useState} from 'react'
 import {AddCircle} from 'solar-icon-set'
 

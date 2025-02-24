@@ -4,9 +4,10 @@ import {Inter} from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import StateProvider from '@/src/utils/stateProvider'
-import {NextUIProvider} from '@nextui-org/react'
+import {HeroUIProvider} from '@heroui/react'
 import AlertProvider from '@/src/utils/global/alertProvider'
 import AuthSessionProvider from '@/src/utils/global/authSessionProvider'
+import Header from '@/src/components/global/header/Header'
 
 const inter = Inter({subsets: ['latin']})
 
@@ -24,16 +25,17 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           strategy="beforeInteractive"
         />
       </head>
-      <body className={inter.className + ' gradient'}>
+      <body className={inter.className + ' gradient relative'}>
         <AuthSessionProvider>
-          <StateProvider>
-            <NextUIProvider locale="ru-RU">
+          <HeroUIProvider locale="ru-RU" className="h-screen w-screen">
+            <Header />
+            <StateProvider>
               <AuthProvider>
                 <AlertProvider />
                 {children}
               </AuthProvider>
-            </NextUIProvider>
-          </StateProvider>
+            </StateProvider>
+          </HeroUIProvider>
         </AuthSessionProvider>
       </body>
     </html>
