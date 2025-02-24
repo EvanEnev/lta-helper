@@ -1,6 +1,6 @@
 'use client'
 
-import {Button, Form, Input} from "@heroui/react"
+import {Button, Form, Input} from '@heroui/react'
 import {FormEvent, useState} from 'react'
 import {useSetRecoilState} from 'recoil'
 import daysState from '@/src/state/daysState'
@@ -54,7 +54,7 @@ export default function Register() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
+    <main className="flex flex-col items-center justify-center p-4 gap-4">
       <h1 className="text-5xl font-bold">Регистрация</h1>
       <div className="flex justify-center gap-4 w-full sm:w-1/2 max-h-[50%] flex-wrap">
         <Form className="w-full" onSubmit={handler}>

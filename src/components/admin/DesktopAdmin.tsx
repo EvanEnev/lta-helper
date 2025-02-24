@@ -37,7 +37,7 @@ export default function DesktopAdmin({
   isLoading,
 }: Options) {
   return (
-    <main className="flex gap-4 min-h-screen p-4">
+    <main className="flex gap-4 p-4">
       <div className="grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4 w-full overflow-auto h-[95vh]">
         {salaryData.map((data, index) => {
           return (

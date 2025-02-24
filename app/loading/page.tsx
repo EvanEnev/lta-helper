@@ -1,8 +1,8 @@
-import {CircularProgress} from "@heroui/react"
+import {CircularProgress} from '@heroui/react'
 
 export default function Loading() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
+    <main className="flex flex-col items-center justify-center p-4 gap-4">
       <CircularProgress
         aria-label="Загрузка..."
         size="lg"
