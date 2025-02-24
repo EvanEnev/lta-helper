@@ -35,7 +35,6 @@ export default function Register() {
     })
   }
 
-  console.log(process.env.NEXT_PUBLIC_BOT_USERNAME)
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
