@@ -195,6 +195,20 @@ export async function POST(req: NextRequest) {
       } 2025`
 
       console.log(message)
+
+      await fetch(
+        `https://api.telegram.org/bot${
+          process.env.BOT_TOKEN || ''
+        }/sendMessage`,
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            chat_id: user.id,
+            text: message,
+          }),
+        },
+      )
     }
   })
 
