@@ -5,10 +5,11 @@ import {
   AutocompleteItem,
   Checkbox,
   Input,
+  NumberInput,
   Select,
   SelectItem,
   Textarea,
-} from "@heroui/react"
+} from '@heroui/react'
 import {Key} from 'react'
 
 type WorkDataProps = {
@@ -61,8 +62,8 @@ export default function WorkData({
     })
   }
 
-  const validate = (value: string) => {
-    if (parseInt(value) <= 0) {
+  const validate = (value: number) => {
+    if (value <= 0) {
       return 'Число должно быть положительным'
     }
 
@@ -96,11 +97,11 @@ export default function WorkData({
         onValueChange={value => updateData('workingHours', value)}
       />
       {worker?.rank === 'Актёр' ? (
-        <Input
+        <NumberInput
           label="Кол-во игр"
           type="number"
           validate={validate}
-          value={data.gamesCount.toString()}
+          value={data.gamesCount}
           onValueChange={value => updateData('gamesCount', value)}
         />
       ) : (

@@ -9,7 +9,7 @@ import {
   Card,
   CardBody,
   Input,
-} from "@heroui/react"
+} from '@heroui/react'
 import {useMemo} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'
@@ -19,7 +19,6 @@ import selectedDatesState from '@/src/state/selectedDatesState'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/src/utils/groupBy'
 import {useSession} from 'next-auth/react'
-import getRankIcon from '@/src/utils/page/getRankIcon'
 
 export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)

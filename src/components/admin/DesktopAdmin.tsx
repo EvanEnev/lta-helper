@@ -80,7 +80,7 @@ export default function DesktopAdmin({
               onclick={() => setDate(days.previous)}
               day={{date: days.previous}}
               color="warning"
-              className="w-full"
+              className="w-full h-16"
               isSelected={date?.getTime() === days.previous.getTime()}
               disabled={days.today.getHours() > 3}
             />
@@ -88,7 +88,7 @@ export default function DesktopAdmin({
               onclick={() => setDate(days.current)}
               day={{date: days.current}}
               color="success"
-              className="w-full"
+              className="w-full h-16"
               isSelected={date?.getTime() === days.current.getTime()}
             />
             <Button
@@ -98,8 +98,8 @@ export default function DesktopAdmin({
                   ...prev,
                   {
                     worker: '',
-                    workingHours: '',
-                    location: '',
+                    workingHours: prev[prev.length - 1]?.workingHours || '',
+                    location: prev[prev.length - 1]?.location || '',
                     bonuses: '',
                     comment: '',
                     isHardTime: false,
@@ -114,7 +114,7 @@ export default function DesktopAdmin({
               color="primary"
               className="w-full h-16"
               onPress={sendData}
-              endContent={<Plain size={24} />}
+              startContent={<Plain size={24} />}
               isLoading={isLoading}>
               Отправить
             </Button>
