@@ -101,15 +101,16 @@ export async function POST(req: NextRequest) {
   const botToken = process.env.BOT_TOKEN
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
 
-  const isActor = rank && rank.toLowerCase() === 'актёр' && rank.toLowerCase() === 'актер'
+  const isActor =
+    rank && rank.toLowerCase() === 'актёр' && rank.toLowerCase() === 'актер'
 
-  const chat_id = !isActor
-    ? process.env.WORKERS_CHAT_ID
-    : process.env.ACTORS_CHAT_ID
+  const chat_id = isActor
+    ? process.env.ACTORS_CHAT_ID
+    : process.env.WORKERS_CHAT_ID
 
-  const message_thread_id = rank
-    ? process.env.WORKERS_THREAD_ID
-    : process.env.ACTORS_THREAD_ID
+  const message_thread_id = isActor
+    ? process.env.ACTORS_THREAD_ID
+    : process.env.WORKERS_THREAD_ID
 
   if (commentsChanges.length) {
     const commentsUpdateEntries = commentsChanges
