@@ -1,6 +1,6 @@
 'use client'
 
-import {Button, Form, Input} from '@nextui-org/react'
+import {Button, Form, Input} from "@heroui/react"
 import {FormEvent, useState} from 'react'
 import {useSetRecoilState} from 'recoil'
 import daysState from '@/src/state/daysState'

@@ -8,7 +8,7 @@ import {
   Select,
   SelectItem,
   Textarea,
-} from '@nextui-org/react'
+} from "@heroui/react"
 import {Key} from 'react'
 
 type WorkDataProps = {

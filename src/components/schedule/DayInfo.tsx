@@ -9,7 +9,7 @@ import {
   Card,
   CardBody,
   Input,
-} from '@nextui-org/react'
+} from "@heroui/react"
 import {useMemo} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'

@@ -1,4 +1,4 @@
-import {Accordion, AccordionItem, Button, Selection} from '@nextui-org/react'
+import {Accordion, AccordionItem, Button, Selection} from "@heroui/react"
 import DayButton from '../schedule/DayButton'
 import WorkData from './WorkData'
 import {useState} from 'react'

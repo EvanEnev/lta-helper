@@ -6,7 +6,7 @@ import {
   Checkbox,
   Code,
   Divider,
-} from '@nextui-org/react'
+} from '@heroui/react'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
 import daysState from '@/src/state/daysState'

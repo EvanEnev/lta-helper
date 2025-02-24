@@ -1,6 +1,6 @@
 import daysState from '@/src/state/daysState'
 import telegramState from '@/src/state/telegramState'
-import {Button} from '@nextui-org/react'
+import {Button} from "@heroui/react"
 import {useState} from 'react'
 import {useRecoilState, useRecoilValue} from 'recoil'
 import selectedDayState from '@/src/state/selectedDayState'

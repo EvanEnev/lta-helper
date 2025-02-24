@@ -1,6 +1,6 @@
 import {atom} from 'recoil'
 import {Day} from '../utils/types'
-import {AlertVariantProps} from '@nextui-org/react'
+import {AlertVariantProps} from "@heroui/react"
 
 type AlertData = {
   color: AlertVariantProps['color']

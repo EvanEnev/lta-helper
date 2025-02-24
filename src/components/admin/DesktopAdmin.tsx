@@ -6,7 +6,7 @@ import {
   CardHeader,
   colors,
   semanticColors,
-} from '@nextui-org/react'
+} from "@heroui/react"
 import WorkData from './WorkData'
 import {AddCircle, MinusCircle, MinusSquare, Pen2, Plain} from 'solar-icon-set'
 import DayButton from '../schedule/DayButton'
