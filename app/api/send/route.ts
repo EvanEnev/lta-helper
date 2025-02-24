@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
 
   const isActor =
-    rank && rank.toLowerCase() === 'актёр' && rank.toLowerCase() === 'актер'
+    rank && (rank.toLowerCase() === 'актёр' || rank.toLowerCase() === 'актер')
 
   const chat_id = isActor
     ? process.env.ACTORS_CHAT_ID
