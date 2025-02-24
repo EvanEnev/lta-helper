@@ -7,7 +7,7 @@ import StateProvider from '@/src/utils/stateProvider'
 import {HeroUIProvider} from '@heroui/react'
 import AlertProvider from '@/src/utils/global/alertProvider'
 import AuthSessionProvider from '@/src/utils/global/authSessionProvider'
-import Header from '@/src/components/global/Header'
+import Header from '@/src/components/global/header/Header'
 
 const inter = Inter({subsets: ['latin']})
 
