@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {useEffect} from 'react'
 import {useSetRecoilState} from 'recoil'
 import daysState from '@/src/state/daysState'
 import {LoginButton} from '@telegram-auth/react'
