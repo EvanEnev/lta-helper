@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {useEffect} from 'react'
 import {useSetRecoilState} from 'recoil'
 import daysState from '@/src/state/daysState'
 import {LoginButton} from '@telegram-auth/react'
@@ -39,7 +39,10 @@ export default function Register() {
     <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
       <div className="flex justify-center gap-4 w-full max-h-[50%] flex-wrap">
-        <LoginButton botUsername="lta_helper_bot" onAuthCallback={handler} />
+        <LoginButton
+          botUsername="lta_helper_beta_bot"
+          onAuthCallback={handler}
+        />
       </div>
     </main>
   )
