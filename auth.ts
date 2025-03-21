@@ -80,7 +80,7 @@ export const authOptions = {
             returned = {...returned, ...data}
           }
 
-          if (data.today_location) {
+          if (data?.today_location) {
             returned.permission_level = 4
           }
 

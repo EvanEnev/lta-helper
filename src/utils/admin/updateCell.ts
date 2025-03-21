@@ -64,7 +64,7 @@ export default async function updateCells(
     salary = 1500
   }
 
-  workingSalaryCell.value = salary
+  workingSalaryCell.formula = `=${salary}`
 
   if (workerData.isOverWork) {
     overWorkTimeCell.value = workerData.calculatedOverWorkTime

@@ -5,7 +5,7 @@ type TemplatesProps = {
   selected: string
 }
 
-const templates = ['Выходной', 'Болезнь', 'По согласованию', 'Учёба']
+const templates = ['Выходной', 'Болезнь', 'Учёба']
 export default function CommenTemplates(props: TemplatesProps) {
   return (
     <div className="flex flex-wrap gap-2 scrollbar-hide overflow-scroll">
