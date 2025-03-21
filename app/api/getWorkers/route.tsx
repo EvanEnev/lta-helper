@@ -1,7 +1,7 @@
 import {auth} from '@/auth'
 import google from '@/lib/google'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
-import {NextRequest, NextResponse} from 'next/server'
+import {NextResponse} from 'next/server'
 
 export async function GET() {
   const session = await auth()
