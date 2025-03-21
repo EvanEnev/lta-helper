@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect} from 'react'
+import {useEffect, useState} from 'react'
 import {useSetRecoilState} from 'recoil'
 import daysState from '@/src/state/daysState'
 import {LoginButton} from '@telegram-auth/react'
@@ -36,7 +36,7 @@ export default function Register() {
   }
 
   return (
-    <main className="flex flex-col items-center justify-center p-4 gap-4">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
       <div className="flex justify-center gap-4 w-full max-h-[50%] flex-wrap">
         <LoginButton

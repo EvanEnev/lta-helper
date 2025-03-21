@@ -1,13 +1,13 @@
-import getSalaryData from '@/src/utils/admin/getSalaryData'
 import locations from '@/src/utils/locations'
 import {WorkerSalary, Worker} from '@/src/utils/types'
 import {
   Autocomplete,
   AutocompleteItem,
   Checkbox,
-  Divider,
   Input,
   NumberInput,
+  Select,
+  SelectItem,
   Textarea,
 } from '@heroui/react'
 import {Key} from 'react'
@@ -69,15 +69,6 @@ export default function WorkData({
 
     return null
   }
-  const salary = getSalaryData({
-    worker: data.worker,
-    rank: worker?.rank as string || 'актёр',
-    workingHours: data.workingHours,
-    isHardTime: data.isHardTime,
-    gamesCount: data.gamesCount,
-    comment: data.comment,
-    bonuses: data.bonuses,
-  })
 
   return (
     <div className="flex flex-col gap-4 w-full">
@@ -130,18 +121,6 @@ export default function WorkData({
         value={data.comment}
         onValueChange={value => updateData('comment', value)}
       />
-      <Divider />
-      <div className='flex gap-2 flex-col'>
-        <div>
-          <p>Смена: {salary?.salary || 0} {salary?.calculatedWorkingTime && <>({salary?.calculatedWorkingTime})</>}</p>
-        </div>
-        <div>
-          <p>Переработка: {salary?.overWorkSalary || 0} {salary?.calculatedOverWorkTime && <>({salary?.calculatedOverWorkTime})</>}</p>
-        </div>
-        <div>
-          <p>Бонусы/штрафы: {salary?.bonuses || 0}</p>
-        </div>
-      </div>
     </div>
   )
 }

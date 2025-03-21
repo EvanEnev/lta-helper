@@ -1,5 +1,5 @@
 import {auth} from '@/auth'
-import db from '@/lib/database'
+import conn from '@/lib/database'
 import google from '@/lib/google'
 import getChanges from '@/src/utils/send/getChanges'
 import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   }
 
   const telegramId = parseInt(user.id)
-  const workerResult = await db.query(
+  const workerResult = await conn.query(
     `SELECT "name", "number" FROM lt_arena.workers WHERE telegram_id = $1`,
     [telegramId],
   )
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
   const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
 
   const isActor =
-    rank && (rank.toLowerCase() === 'актёр' || rank.toLowerCase() === 'актер')
+    rank && rank.toLowerCase() === 'актёр' && rank.toLowerCase() === 'актер'
 
   const chat_id = isActor
     ? process.env.ACTORS_CHAT_ID
@@ -122,13 +122,13 @@ export async function POST(req: NextRequest) {
     const commentsUpdateQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsUpdateEntries}
      ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
 
-    await db.query(commentsUpdateQuery)
+    await conn.query(commentsUpdateQuery)
   }
 
   const query = queries.join(';\n')
 
   if (query) {
-    await db.query(query)
+    await conn.query(query)
   }
 
   const telegramPromises = [

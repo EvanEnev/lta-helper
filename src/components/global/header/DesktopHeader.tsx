@@ -18,7 +18,7 @@ export default function DesktopHeader({session}: {session: Session | null}) {
         {buttons.map((button, index) => {
           if (
             button?.permission_level &&
-            (session?.user.permission_level || 0) <= button?.permission_level
+            (session?.user.permission_level || 0 <= button?.permission_level)
           )
             return ''
 

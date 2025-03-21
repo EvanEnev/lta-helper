@@ -1,11 +1,11 @@
 import {Pool} from 'pg'
 
 // @ts-ignore
-let db: Pool = global.pg
+let conn: Pool = global.pg
 
-if (!db) {
+if (!conn) {
   // @ts-ignore
-  db = global.pg = new Pool({
+  conn = global.pg = new Pool({
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
     host: process.env.DATABASE_URL,
@@ -13,4 +13,4 @@ if (!db) {
   })
 }
 
-export default db
+export default conn

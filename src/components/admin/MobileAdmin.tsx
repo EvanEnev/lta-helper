@@ -1,4 +1,4 @@
-import {Accordion, AccordionItem, Button, Selection} from '@heroui/react'
+import {Accordion, AccordionItem, Button, Selection} from "@heroui/react"
 import DayButton from '../schedule/DayButton'
 import WorkData from './WorkData'
 import {useState} from 'react'
@@ -56,7 +56,7 @@ export default function MobileAdmin({
   }
 
   return (
-    <main className="flex flex-col items-center justify-start p-4 gap-4">
+    <main className="flex min-h-screen flex-col items-center justify-start p-4 gap-4">
       <div className="flex gap-4">
         <DayButton
           onclick={() => setDate(days.previous)}

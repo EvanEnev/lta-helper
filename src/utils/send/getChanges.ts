@@ -7,7 +7,7 @@ import {CellBGColorStyle, Change, Comment} from './types'
 import getCellValue from './getCellValue'
 import getComments from './getComments'
 import locations from '../locations'
-import db from '@/lib/database'
+import conn from '@/lib/database'
 import convertTZ from '@/lib/convertTZ'
 
 interface Options {

@@ -1,4 +1,4 @@
-import db from '@/lib/database'
+import conn from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/getDefaultDays'
 import {auth} from '@/auth'
@@ -19,7 +19,7 @@ export async function GET() {
   FROM lt_arena.workers
   WHERE telegram_id=${telegramId}`
 
-  const workerResult = await db.query(workerQuery)
+  const workerResult = await conn.query(workerQuery)
   const worker = workerResult.rows[0]
 
   const dataQuery = `SELECT
@@ -33,7 +33,7 @@ export async function GET() {
   LEFT JOIN lt_arena.dates dates ON dates.id = 2
   WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 
-  const dataResult = await db.query(dataQuery)
+  const dataResult = await conn.query(dataQuery)
 
   const locationsQuery = `SELECT
   l.name AS location,
@@ -69,7 +69,7 @@ export async function GET() {
     }[]
   } = {rows: []}
 
-  locationsData = await db.query(locationsQuery)
+  locationsData = await conn.query(locationsQuery)
 
   const defaultDays = await getDefaultDays()
   const workingDays = defaultDays.map((day: Date) => {

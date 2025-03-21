@@ -3,7 +3,7 @@
 import useIsMobile from '@/src/hooks/useIsMobile'
 import MobileSchedule from '@/src/components/schedule/MobileSchedule'
 import DesktopSchedule from '@/src/components/schedule/DesktopSchedule'
-import {Calendar} from 'solar-icon-set'
+import {Calendar, User} from 'solar-icon-set'
 import {useSession} from 'next-auth/react'
 import {Avatar} from '@heroui/react'
 

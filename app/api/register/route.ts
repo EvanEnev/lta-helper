@@ -1,4 +1,4 @@
-import db from '@/lib/database'
+import conn from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/getDefaultDays'
 import {auth} from '@/auth'
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   const telegramId = user.id
   const query = `INSERT INTO "lt_arena"."workers" (telegram_id, name) VALUES (${telegramId}, '${name.trim()}')`
-  await db.query(query)
+  await conn.query(query)
 
   const defaultDays = await getDefaultDays()
   const workingDays = defaultDays.map((day: Date) => ({date: day}))
