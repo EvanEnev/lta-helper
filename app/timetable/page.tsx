@@ -3,7 +3,7 @@
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Calendar} from 'solar-icon-set'
 import {useSession} from 'next-auth/react'
-import {Avatar} from '@nextui-org/react'
+import {Avatar} from '@heroui/react'
 import MobileTimetable from '@/src/components/timetable/MobileTimetable'
 import DesktopTimetable from '@/src/components/timetable/DesktopTimetable'
 import {useEffect, useState} from 'react'

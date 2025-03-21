@@ -6,7 +6,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
   Tooltip,
-} from '@nextui-org/react'
+} from '@heroui/react'
 import Header from './Header'
 import {useMemo, useState} from 'react'
 import Row from './Row'
