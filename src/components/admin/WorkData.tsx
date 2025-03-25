@@ -10,7 +10,7 @@ import {
   NumberInput,
   Textarea,
 } from '@heroui/react'
-import {Key} from 'react'
+import {Key, useMemo} from 'react'
 
 type WorkDataProps = {
   data: WorkerSalary
@@ -69,7 +69,7 @@ export default function WorkData({
 
     return null
   }
-  const salary = getSalaryData({
+  const salary = useMemo(() => getSalaryData({
     worker: data.worker,
     rank: (worker?.rank as string) || 'актёр',
     workingHours: data.workingHours,
@@ -77,7 +77,7 @@ export default function WorkData({
     gamesCount: data.gamesCount,
     comment: data.comment,
     bonuses: data.bonuses,
-  })
+  }), [data.worker, data.workingHours, data.isHardTime, data.gamesCount, data.bonuses])
 
   return (
     <div className="flex flex-col gap-4 w-full">
