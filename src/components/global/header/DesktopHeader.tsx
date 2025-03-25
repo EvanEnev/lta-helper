@@ -16,10 +16,7 @@ export default function DesktopHeader({session}: {session: Session | null}) {
     <header className="flex justify-between h-fit p-4 items-center">
       <div className="flex gap-4 items-center">
         {buttons.map((button, index) => {
-          if (
-            button?.permission_level &&
-            (session?.user.permission_level || 0) <= button?.permission_level
-          )
+          if (session?.user.permission_level < (button?.permission_level || -1))
             return ''
 
           return (
