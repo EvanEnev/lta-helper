@@ -24,7 +24,8 @@ const getUserDdata = async (id: number) => {
         last_name,
         middle_name,
         phone_number,
-        email
+        email,
+        admins.location_id as today_location
         FROM lt_arena.workers w
         LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
         LEFT JOIN lt_arena.locations l ON l.id = w.location_id
@@ -33,6 +34,11 @@ const getUserDdata = async (id: number) => {
 
   const result = await conn.query(query)
   const data = result.rows[0]
+
+  if (data?.today_location) {
+  	data.permission_level = 4	
+  }
+  
   return data
 }
 
@@ -80,9 +86,6 @@ export const authOptions = {
             returned = {...returned, ...data}
           }
 
-          if (data?.today_location) {
-            returned.permission_level = 4
-          }
 
           return returned
         }
