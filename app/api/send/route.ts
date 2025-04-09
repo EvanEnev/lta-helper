@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
   const locationsTexts = locationsChangesTexts.join('\n')
 
   const botToken = process.env.BOT_TOKEN
-  const rank = sheet.getCellByA1(`F${row.rowNumber}`).value
+  const rank = sheet.getCellByA1(`F${row.rowNumber}`).stringValue
 
   const isActor =
     rank && (rank.toLowerCase() === 'актёр' || rank.toLowerCase() === 'актер')
