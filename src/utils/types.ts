@@ -65,6 +65,7 @@ export interface WorkerSalary {
   workingHours: string
   bonuses: string
   comment: string
+  hasGames?: boolean
   isHardTime: boolean
   gamesCount: number
 }
