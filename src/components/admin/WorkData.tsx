@@ -1,6 +1,6 @@
 import getSalaryData from '@/src/utils/admin/getSalaryData'
 import locations from '@/src/utils/locations'
-import {WorkerSalary, Worker} from '@/src/utils/types'
+import {WorkerSalary} from '@/src/utils/types'
 import {
   Autocomplete,
   AutocompleteItem,
@@ -18,14 +18,6 @@ type WorkDataProps = {
   workers: any[]
   index: number
 }
-
-const bonuses = [
-  {name: 'ТГ', value: 500},
-  {name: 'ТГМ', value: 500},
-  {name: 'ТГР', value: 500},
-  {name: 'ТГС', value: 500},
-  {name: 'П6.1', value: -300},
-]
 
 export default function WorkData({
   data,
@@ -46,7 +38,8 @@ export default function WorkData({
       | 'bonuses'
       | 'comment'
       | 'isHardTime'
-      | 'gamesCount',
+      | 'gamesCount'
+      | 'hasGames',
     value: Key | string | boolean | null,
   ) => {
     const currentData = {...data}
@@ -69,15 +62,27 @@ export default function WorkData({
 
     return null
   }
-  const salary = useMemo(() => getSalaryData({
-    worker: data.worker,
-    rank: (worker?.rank as string) || 'актёр',
-    workingHours: data.workingHours,
-    isHardTime: data.isHardTime,
-    gamesCount: data.gamesCount,
-    comment: data.comment,
-    bonuses: data.bonuses,
-  }), [data.worker, data.workingHours, data.isHardTime, data.gamesCount, data.bonuses])
+  const salary = useMemo(
+    () =>
+      getSalaryData({
+        worker: data.worker,
+        rank: (worker?.rank as string) || 'актёр',
+        workingHours: data.workingHours,
+        isHardTime: data.isHardTime,
+        gamesCount: data.gamesCount,
+        comment: data.comment,
+        bonuses: data.bonuses,
+      }),
+    [
+      data.worker,
+      data.workingHours,
+      data.isHardTime,
+      data.gamesCount,
+      data.comment,
+      data.bonuses,
+      worker?.rank,
+    ],
+  )
 
   return (
     <div className="flex flex-col gap-4 w-full">
@@ -105,6 +110,13 @@ export default function WorkData({
         value={data.workingHours}
         onValueChange={value => updateData('workingHours', value)}
       />
+      {worker?.rank === 'Каменный' && (
+        <Checkbox
+          onValueChange={value => updateData('hasGames', value)}
+          className="max-w-full">
+          Есть игры?
+        </Checkbox>
+      )}
       {worker?.rank === 'Актёр' ? (
         <NumberInput
           label="Кол-во игр"
@@ -117,7 +129,7 @@ export default function WorkData({
         <Checkbox
           onValueChange={value => updateData('isHardTime', value)}
           className="max-w-full">
-          Загруз
+          Загруз?
         </Checkbox>
       )}
       <Input

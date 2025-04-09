@@ -17,19 +17,19 @@ type WorkerData = {
 }
 
 export default async function updateCells(
-  sheet: GoogleSpreadsheetWorksheet,
-  row: GoogleSpreadsheetRow,
-  coloumnIndex: number,
-  data: WorkerSalary,
-  workerData: WorkerData,
+    sheet: GoogleSpreadsheetWorksheet,
+    row: GoogleSpreadsheetRow,
+    coloumnIndex: number,
+    data: WorkerSalary,
+    workerData: WorkerData,
 ) {
   const rowIndex = row.rowNumber - 1
 
   console.log(
-    data,
-    workerData,
-    `rowIndex: ${rowIndex}`,
-    `coloumnIndex: ${coloumnIndex}`,
+      data,
+      workerData,
+      `rowIndex: ${rowIndex}`,
+      `coloumnIndex: ${coloumnIndex}`,
   )
 
   await sheet.loadCells({
@@ -69,17 +69,17 @@ export default async function updateCells(
   if (workerData.isOverWork) {
     overWorkTimeCell.value = workerData.calculatedOverWorkTime
     overWorkSalaryCell.formula = `=${
-      ranksSalary[workerData.rank].overWork || 0
+        ranksSalary[workerData.rank].overWork || 0
     } * ${workerData.overWorkTime}`
   }
 
   if (
-    workerData.rank === 'актёр' &&
-    workerData.gamesCount &&
-    workerData.gamesCount > 2
+      workerData.rank === 'актёр' &&
+      workerData.gamesCount &&
+      workerData.gamesCount > 2
   ) {
     overWorkSalaryCell.formula = `=${
-      ranksSalary[workerData.rank].overWork || 0
+        ranksSalary[workerData.rank].overWork || 0
     } * ${workerData.gamesCount - 2}`
   }
 
@@ -96,6 +96,27 @@ export default async function updateCells(
   }
 
   const emptyCell = sheet.getCell(rowIndex + 3, coloumnIndex)
+
+  locationCell.horizontalAlignment = 'CENTER'
+  locationCell.verticalAlignment = 'MIDDLE'
+
+  timeCell.horizontalAlignment = 'LEFT'
+  timeCell.verticalAlignment = 'MIDDLE'
+
+  workingSalaryCell.horizontalAlignment = 'RIGHT'
+  workingSalaryCell.verticalAlignment = 'MIDDLE'
+
+  overWorkTimeCell.horizontalAlignment = 'LEFT'
+  overWorkTimeCell.verticalAlignment = 'MIDDLE'
+
+  overWorkSalaryCell.horizontalAlignment = 'RIGHT'
+  overWorkSalaryCell.verticalAlignment = 'MIDDLE'
+
+  bonusesCell.horizontalAlignment = 'RIGHT'
+  bonusesCell.verticalAlignment = 'MIDDLE'
+
+  commentsCell.horizontalAlignment = 'CENTER'
+  commentsCell.verticalAlignment = 'MIDDLE'
 
   locationCell.backgroundColor = locationColor
   timeCell.backgroundColor = locationColor
