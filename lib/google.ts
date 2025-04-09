@@ -1,10 +1,40 @@
-import {JWT} from 'google-auth-library'
+import {GoogleAuth, JWT} from 'google-auth-library'
 import {GoogleSpreadsheet} from 'google-spreadsheet'
+import {google as rawGoogle} from 'googleapis'
 
-export default function google() {
-  const cached = (global as any).google
-  if (cached && cached.actors && cached.workers && cached.schedule) {
-    return cached
+export interface GoogleDocument {
+  schedule: GoogleSpreadsheet
+  workers: GoogleSpreadsheet
+  actors: GoogleSpreadsheet
+  auth: GoogleAuth
+}
+
+const credentials = {
+  type: 'service_account',
+  project_id: 'lt-arena-426723',
+  private_key_id: '9af53a63932751cf47546c8a5a564580b933334c',
+  private_key:
+    '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDLYXzt9PPWhEb3\npb/V4nuZe5UXS2mHkQpEB6BQ1I6MqTb6Yxl11e+7X1BZvlOGKu/sb1UZmpvRdZm5\n2u7p1vUeZwAS4D95DHrFSuMaW1lebvfjtZQF0RyvDf6kl6B5u4gPkncES68pmlYK\n1FIovuKSNYS9bejWqGZd7bZvxemK/MIIvptA3W3VATZtFcALjqyqMKydDHazSaXK\nN2fEtIHuRkFW6xNDk3d7XBCiE0trWDLz3vTtRLI6jA8E/PAJ+NkIRJ7sabYHRFT+\npB7Zbo9GV3x4vIW4QLHj/AxhEjvW9G/YlISQwjg45hctp0g+9e/UVL9ykRZw/Ug+\n8YidBZnHAgMBAAECggEAWzRRL27pSFpSbu0sDZD+x5H1hphBb1N6LI7U9FqVwHuD\n1Z5KRR8W3kp8gHpK/4BSzo8QtSYx2SkpMoD9Ie1NSAB9tnlMzY5sofwWwvOTLLeL\nv9hmVIN1nwUiHBKJGv4foogWil0cZIY7LqkPXQlZFqMcb0ySHW0wVs/qv84bkMFB\nnxDB72hrOKoWS0A+ODDGw2ft42E/Wgdkhb9exthHvUV3x2NS1R+gv82VhhswTWua\nWTN3OXUkcz2I+u4evHYeEbBBJqW1PPHzr+ILrFG9DmG6tDVenZxhelaKPfKO0YlQ\nl+/cBA1c6JKSQ4X/rbmfDLn/wBUF1OV4l150OiHBsQKBgQDMGD6d+uyEUWKowwXI\nDzelMFGyaYhW5lZcg86y7b12chO+sjDLDkEsCH82aQi4gDm8Bsh9VnFUVMn9uOZD\n3+Rkf9T7acH0LK5e4JiPu/nHrx9LMwIkIhXrMU42yoIjeUOpPIqVIjYLMjzbqyy/\nxwLHGLHVip6X9DqaOZ1XheOCdwKBgQD/GsPK6Dh/whJVv4DQj+f6bivGrgMTIygu\nTSx48Zw4ASmn0226InWCJt091wGODFrnr7x+/mwB94ce/ZZ7SvoLXyQE4w+flKfN\nzCaFrsNBJV+4bBEs0oS6zT8GstW4kyM4BO6kG5SIttvwMVUzut3KJVxcyPYWhLXq\nHLvdShKnMQKBgQCsMvyKEI+EKKLEXx++p1A82OLlVHNLVrahAjjg8QP9Ls0IBZJz\nkMheHaEvyDkqak3MHjEEx22BSLTQlTP7KqmqPcz2f0m8+gH5XSh7hY9+8nvF1/jD\ngdragNRMGFrrEUKMRN9satwMYEvGz8tG1+O5FlXdJUMgVFkpjNj7YqUNiwKBgQCU\nhfSwUftzBn6+RbytsNsSxsnd5roLjlB6hJv73k9hm+uwtjwQPrfDivUMZ/2TwkW6\n1mocVex0SLT2qhXOupxRupax8bDK7DW2b8GN2236o9PS/7gQLJDyYUTslXow+Blt\nKBH4ocYcwrnSYiaE86rlYlMgAjCkc6emIgyOje3GQQKBgDox2um63Uvq+LCVNf2I\nq1tdFoUyXao4IW+ZpItp2gn9BgCRSJN3vb/ZDz6DGh2w0jKI9R80afS/qZCaDylm\njKcXhRsZEwT1AJvgYIQUH2oWhNn5tL2a0Mg/El6i/wxXgWGQ3glCukmUmrZqW6Kk\neltaYjUVCsfCgmdj5A3Wsd4e\n-----END PRIVATE KEY-----\n',
+  client_email: 'schedule@lt-arena-426723.iam.gserviceaccount.com',
+  client_id: '105873889181002237295',
+  auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+  token_uri: 'https://oauth2.googleapis.com/token',
+  auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+  client_x509_cert_url:
+    'https://www.googleapis.com/robot/v1/metadata/x509/schedule%40lt-arena-426723.iam.gserviceaccount.com',
+  universe_domain: 'googleapis.com',
+}
+
+let cachedGoogle: GoogleDocument
+
+export default function google(): GoogleDocument {
+  if (
+    cachedGoogle &&
+    cachedGoogle.actors &&
+    cachedGoogle.workers &&
+    cachedGoogle.schedule
+  ) {
+    return cachedGoogle
   } else {
     const serviceAccountAuth = new JWT({
       email: 'schedule@lt-arena-426723.iam.gserviceaccount.com',
@@ -27,9 +57,14 @@ export default function google() {
       serviceAccountAuth,
     )
 
-    const google = {schedule, workers, actors}
+    const auth = new rawGoogle.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    })
 
-    ;(global as any).google = google
+    const google: GoogleDocument = {schedule, workers, actors, auth}
+
+    cachedGoogle = google
     return google
   }
 }

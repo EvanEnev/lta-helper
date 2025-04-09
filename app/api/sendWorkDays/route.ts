@@ -1,5 +1,5 @@
 import {evaluate} from 'mathjs'
-import google from '@/lib/google'
+import google, {GoogleDocument} from '@/lib/google'
 import updateCells from '@/src/utils/admin/updateCell'
 import ranksSalary from '@/src/utils/ranksSalary'
 import {WorkerSalary} from '@/src/utils/types'
@@ -9,8 +9,88 @@ import {
 } from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 import {auth} from '@/auth'
+import updatePoints from '@/src/utils/admin/updatePoints'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
+
+export interface SheetData {
+  sheets: {
+    workersSheet: GoogleSpreadsheetWorksheet
+    actorsSheet: GoogleSpreadsheetWorksheet
+    scheduleSheet: GoogleSpreadsheetWorksheet
+    pointsSheet: GoogleSpreadsheetWorksheet
+    goldPointsSheet: GoogleSpreadsheetWorksheet
+    platinumPointsSheet: GoogleSpreadsheetWorksheet
+  }
+  rows: {
+    workersRows: GoogleSpreadsheetRow[]
+    actorsRows: GoogleSpreadsheetRow[]
+    scheduleRows: GoogleSpreadsheetRow[]
+    pointsRows: GoogleSpreadsheetRow[]
+    goldPointsRows: GoogleSpreadsheetRow[]
+    platinumPointsRows: GoogleSpreadsheetRow[]
+  }
+}
+
+const loadData = async (doc: GoogleDocument): Promise<SheetData> => {
+  await Promise.all([
+    doc.actors.loadInfo(),
+    doc.workers.loadInfo(),
+    doc.schedule.loadInfo(),
+  ])
+
+  const workersSheet = doc.workers.sheetsByIndex[0]
+  const actorsSheet = doc.actors.sheetsByIndex[0]
+  const scheduleSheet = doc.schedule.sheetsByTitle['Сотрудники + расписание']
+  const pointsSheet = doc.schedule.sheetsByTitle['Баллы онлайн']
+  const goldPointsSheet = doc.schedule.sheetsByTitle['Баллы онлайн (ЗОЛОТО)']
+  const platinumPointsSheet =
+    doc.schedule.sheetsByTitle['Баллы онлайн (ПЛАТИНА) ']
+
+  await Promise.all([
+    workersSheet.loadHeaderRow(),
+    actorsSheet.loadHeaderRow(),
+    scheduleSheet.loadHeaderRow(7),
+    pointsSheet.loadHeaderRow(),
+    goldPointsSheet.loadHeaderRow(),
+    platinumPointsSheet.loadHeaderRow(),
+  ])
+
+  const [
+    workersRows,
+    actorsRows,
+    scheduleRows,
+    pointsRows,
+    goldPointsRows,
+    platinumPointsRows,
+  ]: GoogleSpreadsheetRow[][] = await Promise.all([
+    workersSheet.getRows(),
+    actorsSheet.getRows(),
+    scheduleSheet.getRows(),
+    pointsSheet.getRows(),
+    goldPointsSheet.getRows(),
+    platinumPointsSheet.getRows(),
+  ])
+
+  return {
+    sheets: {
+      workersSheet,
+      actorsSheet,
+      scheduleSheet,
+      pointsSheet,
+      goldPointsSheet,
+      platinumPointsSheet,
+    },
+    rows: {
+      workersRows,
+      actorsRows,
+      scheduleRows,
+      pointsRows,
+      goldPointsRows,
+      platinumPointsRows,
+    },
+  }
+}
 
 const getWorkerRow = (workerName: string, rows: GoogleSpreadsheetRow[]) => {
   return rows.find(
@@ -45,25 +125,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
-  const doc = await google()
+  const doc = google()
 
-  await doc.actors.loadInfo()
-  await doc.workers.loadInfo()
-  await doc.schedule.loadInfo()
-
-  const workersSheet: GoogleSpreadsheetWorksheet = doc.workers.sheetsByIndex[0]
-  const actorsSheet: GoogleSpreadsheetWorksheet = doc.actors.sheetsByIndex[0]
-  const scheduleSheet = doc.schedule.sheetsByTitle['Сотрудники + расписание']
-
-  await Promise.all([
-    workersSheet.loadHeaderRow(),
-    actorsSheet.loadHeaderRow(),
-    scheduleSheet.loadHeaderRow(7),
-  ])
-
-  const workersRows: GoogleSpreadsheetRow[] = await workersSheet.getRows()
-  const actorsRows: GoogleSpreadsheetRow[] = await actorsSheet.getRows()
-  const scheduleRows: GoogleSpreadsheetRow[] = await scheduleSheet.getRows()
+  const sheetData = await loadData(doc)
+  const {scheduleRows, workersRows, actorsRows} = sheetData.rows
+  const {
+    workersSheet,
+    actorsSheet,
+    scheduleSheet,
+    pointsSheet,
+    goldPointsSheet,
+    platinumPointsSheet,
+  } = sheetData.sheets
 
   const workerRow = scheduleRows.find(
     (row: GoogleSpreadsheetRow) =>
@@ -77,7 +150,7 @@ export async function POST(req: NextRequest) {
 
   const promises: Promise<boolean>[] = []
 
-  salaryData.forEach(async data => {
+  for (const data of salaryData) {
     const workerRow = getWorkerRow(data.worker, workersRows)
     const actorRow = getWorkerRow(data.worker, actorsRows)
 
@@ -96,7 +169,7 @@ export async function POST(req: NextRequest) {
     const gamesCount = data.gamesCount || 1
 
     let workingTimeParts: string[] | number[] = data.workingHours.split('-')
-    if (workingTimeParts.length < 2) return
+    if (workingTimeParts.length < 2) continue
 
     workingTimeParts = workingTimeParts.map(v => parseInt(v))
 
@@ -154,6 +227,20 @@ export async function POST(req: NextRequest) {
         ),
       )
     } else if (workerRow) {
+      if (!data.comment?.toLowerCase().includes('под игру')) {
+        promises.push(
+          updatePoints({
+            name: data.worker,
+            rank,
+            sheetData,
+            hasGames: !!data.hasGames,
+            comment: data.comment,
+            location: data.location,
+            date,
+          }),
+        )
+      }
+
       promises.push(
         updateCells(
           workersSheet,
@@ -194,8 +281,6 @@ export async function POST(req: NextRequest) {
         rank === 'актёр' ? 'актёров' : 'персонала'
       } 2025`
 
-      console.log(message)
-
       await fetch(
         `https://api.telegram.org/bot${
           process.env.BOT_TOKEN || ''
@@ -210,13 +295,17 @@ export async function POST(req: NextRequest) {
         },
       )
     }
-  })
+  }
 
   if (promises.length) {
     await Promise.all(promises).then(async () => {
       await Promise.all([
         workersSheet.saveUpdatedCells(),
         actorsSheet.saveUpdatedCells(),
+        scheduleSheet.saveUpdatedCells(),
+        pointsSheet.saveUpdatedCells(),
+        goldPointsSheet.saveUpdatedCells(),
+        platinumPointsSheet.saveUpdatedCells(),
       ])
     })
   }
