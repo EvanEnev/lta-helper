@@ -87,7 +87,7 @@ export default async function updatePoints({
     )
   })
 
-  if (dateIndex === -1) return false
+  if (dateIndex === -1 || !dateIndex) return false
 
   await sheet.loadCells({
     startRowIndex: row.rowNumber - 1,
@@ -98,6 +98,7 @@ export default async function updatePoints({
 
   const commentCell = sheet.getCell(row.rowNumber - 1, dateIndex)
   const numberCell = sheet.getCell(row.rowNumber - 1, dateIndex + 1)
+
 
   const currentPoints = parseInt(rawData[4])
 
@@ -112,7 +113,11 @@ export default async function updatePoints({
   const data = result.rows[0]
   const maxPoints: number = data?.max || 0
 
-  const text = `, ${date.toLocaleDateString('ru-RU', {month: 'numeric', day: 'numeric'})} ${data.location}`
+  let text = `, ${date.toLocaleDateString('ru-RU', {month: 'numeric', day: 'numeric'})} ${data.location}`
+
+  if (!commentCell.stringValue) {
+  	text = text.slice(2)
+  }
 
   if (commentCell.stringValue?.toLowerCase().includes(text.toLowerCase()))
     return false
@@ -160,7 +165,7 @@ export default async function updatePoints({
               values: [
                 {
                   userEnteredValue: {
-                    stringValue: commentCell.stringValue + text,
+                    stringValue: (commentCell.stringValue || '') + text,
                   },
                   textFormatRuns: [
                     {
@@ -173,7 +178,7 @@ export default async function updatePoints({
                       },
                       startIndex:
                         startIndex ||
-                        (commentCell.stringValue + text).indexOf(text),
+                        ((commentCell.stringValue || '') + text).indexOf(text),
                     },
                   ],
                 },
@@ -198,7 +203,7 @@ export default async function updatePoints({
     })
   } else {
     numberCell.numberValue = (numberCell.numberValue || 0) + pointsToAdd
-    commentCell.stringValue = commentCell.stringValue + text
+    commentCell.stringValue = (commentCell.stringValue || '') + text
   }
 
   return true
