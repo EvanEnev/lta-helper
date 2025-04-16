@@ -65,7 +65,7 @@ export default function Register() {
             name="name"
             isRequired
           />
-          {/* <Input label="Фамилия" size="lg" isRequired name="last_name" />
+          <Input label="Фамилия" size="lg" isRequired name="last_name" />
           <Input label="Имя" size="lg" isRequired name="first_name" />
           <Input label="Отчество" size="lg" name="middle_name" />
           <Input label="Номер телефона" size="lg" isRequired name="phone" />
@@ -75,7 +75,7 @@ export default function Register() {
             isRequired
             type="email"
             name="email"
-          /> */}
+          />
           <Button
             className="w-full h-16"
             variant="shadow"
