@@ -216,6 +216,20 @@ export async function POST(req: NextRequest) {
       gamesCount,
     }
 
+    if (!data.comment?.toLowerCase().includes('под игру')) {
+      promises.push(
+        updatePoints({
+          name: data.worker,
+          rank,
+          sheetData,
+          hasGames: !!data.hasGames,
+          comment: data.comment,
+          location: data.location,
+          date,
+        }),
+      )
+    }
+
     if (actorRow) {
       promises.push(
         updateCells(
@@ -227,20 +241,6 @@ export async function POST(req: NextRequest) {
         ),
       )
     } else if (workerRow) {
-      if (!data.comment?.toLowerCase().includes('под игру')) {
-        promises.push(
-          updatePoints({
-            name: data.worker,
-            rank,
-            sheetData,
-            hasGames: !!data.hasGames,
-            comment: data.comment,
-            location: data.location,
-            date,
-          }),
-        )
-      }
-
       promises.push(
         updateCells(
           workersSheet,

@@ -49,12 +49,16 @@ export default async function updatePoints({
   const rawData = Reflect.get(row, '_rawData')
 
   let currentRow: GoogleSpreadsheetRow = row
+  let rowIndex = rows.findIndex(
+    (row: GoogleSpreadsheetRow) => row.rowNumber === currentRow.rowNumber,
+  )
 
-  while (Reflect.get(currentRow, '_rawData')[3] !== 'Штрафы') {
-    currentRow = rows[currentRow.rowNumber]
+  while (currentRow && Reflect.get(currentRow, '_rawData')[3] !== 'Штрафы') {
+    rowIndex++
+    currentRow = rows[rowIndex]
   }
 
-  const fines = parseInt(Reflect.get(currentRow, '_rawData')[4])
+  const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
 
   const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
     const splittedValue = headerValue?.split('-')
@@ -112,7 +116,10 @@ export default async function updatePoints({
   const data = result.rows[0]
   const maxPoints: number = data?.max || 0
 
-  const text = `, ${date.toLocaleDateString('ru-RU', {month: 'numeric', day: 'numeric'})} ${data.location}`
+  const oldValue = commentCell.stringValue || ''
+  const text = `${date.toLocaleDateString('ru-RU', {month: 'numeric', day: 'numeric'})} ${data.location}`
+
+  const newText = oldValue ? `${oldValue}, ${text}` : text
 
   if (commentCell.stringValue?.toLowerCase().includes(text.toLowerCase()))
     return false
@@ -143,8 +150,7 @@ export default async function updatePoints({
     const sheets = rawGoogle.sheets({version: 'v4', auth: googleAuth})
 
     const textFormatRuns = Reflect.get(commentCell, '_rawData')?.textFormatRuns
-
-    let startIndex = (commentCell.stringValue + text).indexOf(text)
+    let startIndex = newText.indexOf(oldValue ? `, ${text}` : text)
 
     if (textFormatRuns?.length) {
       startIndex =
@@ -160,7 +166,7 @@ export default async function updatePoints({
               values: [
                 {
                   userEnteredValue: {
-                    stringValue: commentCell.stringValue + text,
+                    stringValue: newText,
                   },
                   textFormatRuns: [
                     {
@@ -171,9 +177,7 @@ export default async function updatePoints({
                           blue: 0.7176471,
                         },
                       },
-                      startIndex:
-                        startIndex ||
-                        (commentCell.stringValue + text).indexOf(text),
+                      startIndex,
                     },
                   ],
                 },
@@ -198,7 +202,7 @@ export default async function updatePoints({
     })
   } else {
     numberCell.numberValue = (numberCell.numberValue || 0) + pointsToAdd
-    commentCell.stringValue = commentCell.stringValue + text
+    commentCell.stringValue = newText
   }
 
   return true
