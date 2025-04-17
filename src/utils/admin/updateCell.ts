@@ -52,6 +52,7 @@ export default async function updateCells(
   const locationCell = sheet.getCell(rowIndex, coloumnIndex)
   locationCell.value = data.location
 
+console.log(locationCell.a1Address)
   const timeCell = sheet.getCell(rowIndex + 1, coloumnIndex)
   const workingSalaryCell = sheet.getCell(rowIndex + 1, coloumnIndex + 1)
 

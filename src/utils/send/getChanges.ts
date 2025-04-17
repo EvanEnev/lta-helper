@@ -40,11 +40,11 @@ export default async function getChanges({
   const commentsChanges: Comment[] = []
   const queries: string[] = []
 
-  await sheet.loadCells(`F${rowNumber}:W${rowNumber}`)
+  await sheet.loadCells(`G${rowNumber}:X${rowNumber}`)
 
   const comments = await getComments(workerName)
 
-  headerValues.slice(9, 23).forEach((headerValue: string) => {
+  headerValues.slice(10, 24).forEach((headerValue: string) => {
     const date = headerValue.split(' ')[1]
     const day = selectedDays.find(
       day =>
