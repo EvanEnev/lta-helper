@@ -10,6 +10,8 @@ import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
 import convertTZ from '@/lib/convertTZ'
 
+const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
+
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
   const session = useSession()
@@ -33,11 +35,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     }
   }, [])
 
-  const testTelegramUser = {
-    initData:
-      'query_id=AAFDzyovAAAAAEPPKi8_oqAH&user=%7B%22id%22%3A791334723%2C%22first_name%22%3A%22%D0%98%D0%B2%D0%B0%D0%BD%22%2C%22last_name%22%3A%22%D0%91%D1%83%D0%B1%D0%B5%D0%BD%D1%91%D0%B2%22%2C%22username%22%3A%22EvanEnev%22%2C%22language_code%22%3A%22en%22%2C%22is_premium%22%3Atrue%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FNXcC6y0ADOo2YcGDM8CsZ86kXpwARYXPDW2KI7o6ppQ.svg%22%7D&auth_date=1738182946&signature=EmNhbpnkOQ0SqtVuSkunCUBreJTyUxNQ8f2A92XJI3P9M6MZm-GOnIbkjCsqqtJJsr9PXaHv0qqWEQ8LFz4vBg&hash=94e366517234791fe39c3333f1b4cb845018b43466f78abb5e461b81b8ecde70',
-  }
-
   useEffect(() => {
     if (session?.status === currentStatus.current) return
 
@@ -59,6 +56,12 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     ) {
       router.push('/login')
       return
+    }
+
+    if (session?.status === 'authenticated') {
+      if (requiredFields.some(key => !session?.data?.user[key])) {
+        return router.push('/register')
+      }
     }
 
     if (Object.keys(telegram).length && session?.data?.user) return

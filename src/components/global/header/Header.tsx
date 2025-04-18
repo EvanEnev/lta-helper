@@ -12,6 +12,7 @@ export default function Header() {
   const path = usePathname()
 
   if (path === '/login') return ''
+  if (path === '/register') return ''
 
   return isMobile ? (
     <MobileHeader session={session} />

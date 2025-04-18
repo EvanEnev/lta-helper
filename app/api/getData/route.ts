@@ -35,6 +35,9 @@ export async function GET() {
 
   const dataResult = await conn.query(dataQuery)
 
+  if (!worker?.name)
+    return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
+
   const locationsQuery = `SELECT
   l.name AS location,
   w.name AS worker,
@@ -53,9 +56,6 @@ export async function GET() {
   location_id FROM lt_arena.locations_schedule
   WHERE worker_id = ${worker.id}
   AND date = ls.date)`
-
-  if (!worker?.name)
-    return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 
   let locationsData: {
     rows: {

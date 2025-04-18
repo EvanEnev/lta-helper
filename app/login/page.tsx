@@ -7,6 +7,8 @@ import {LoginButton} from '@telegram-auth/react'
 import {signIn, useSession} from 'next-auth/react'
 import {useRouter} from 'next/navigation'
 
+const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
+
 export default function Register() {
   const session = useSession()
   const router = useRouter()
@@ -14,8 +16,12 @@ export default function Register() {
 
   useEffect(() => {
     if (session.status === 'authenticated') {
-      router.push('/')
-      return
+      if (session?.data?.user) {
+        if (requiredFields.some(key => !session?.data?.user[key])) {
+          return router.push('/register')
+        }
+      }
+      return router.push('/')
     }
   }, [session.status])
 

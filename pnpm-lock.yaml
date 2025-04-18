@@ -47,6 +47,9 @@ importers:
       react-dom:
         specifier: ^18
         version: 18.2.0(react@18.2.0)
+      react-input-mask:
+        specifier: 2.0.4
+        version: 2.0.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       recoil:
         specifier: ^0.7.7
         version: 0.7.7(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -66,6 +69,9 @@ importers:
       '@types/react-dom':
         specifier: ^18
         version: 18.2.19
+      '@types/react-input-mask':
+        specifier: ^3.0.6
+        version: 3.0.6
       autoprefixer:
         specifier: ^10.0.1
         version: 10.4.17(postcss@8.4.35)
@@ -1501,6 +1507,9 @@ packages:
   '@types/react-dom@18.2.19':
     resolution: {integrity: sha512-aZvQL6uUbIJpjZk4U8JZGbau9KDeAwMfmhyWorxgBkqDIEf6ROjRozcmPIicqsUwPUjbkDfHKgGee1Lq65APcA==}
 
+  '@types/react-input-mask@3.0.6':
+    resolution: {integrity: sha512-+5I18WKyG3eWIj7TVPWfK1VitI9mPpS9y6jE/BfmTCe+iL27NfBw/yzKRvCFp1DRBvlvvcsiZf05bub0YC1k8A==}
+
   '@types/react@18.3.18':
     resolution: {integrity: sha512-t4yC+vtgnkYjNSKlFx1jkAhH8LgTo2N/7Qvi83kdEaUtMDiwpbLAktKDaAMlRcJ5eSxZkH74eEGt1ky31d7kfQ==}
 
@@ -2401,6 +2410,9 @@ packages:
   intl-messageformat@10.5.14:
     resolution: {integrity: sha512-IjC6sI0X7YRjjyVH9aUgdftcmZK7WXdHeil4KwbjDnRWjnVitKpAx3rr6t6di1joFp5188VqKcobOPA6mCLG/w==}
 
+  invariant@2.2.4:
+    resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
+
   is-array-buffer@3.0.4:
     resolution: {integrity: sha512-wcjaerHw0ydZwfhiKbXJWLDY8A7yV7KhjQOpb83hGgGfId/aQa4TOvwyzn2PuswW2gPCYEL/nEAiSVpdOj1lXw==}
     engines: {node: '>= 0.4'}
@@ -3022,6 +3034,12 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
+  react-input-mask@2.0.4:
+    resolution: {integrity: sha512-1hwzMr/aO9tXfiroiVCx5EtKohKwLk/NT8QlJXHQ4N+yJJFyUuMT+zfTpLBwX/lK3PkuMlievIffncpMZ3HGRQ==}
+    peerDependencies:
+      react: '>=0.14.0'
+      react-dom: '>=0.14.0'
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -3439,6 +3457,9 @@ packages:
 
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
+
+  warning@4.0.3:
+    resolution: {integrity: sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==}
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -5831,6 +5852,10 @@ snapshots:
     dependencies:
       '@types/react': 18.3.18
 
+  '@types/react-input-mask@3.0.6':
+    dependencies:
+      '@types/react': 18.3.18
+
   '@types/react@18.3.18':
     dependencies:
       '@types/prop-types': 15.7.11
@@ -6940,6 +6965,10 @@ snapshots:
       '@formatjs/icu-messageformat-parser': 2.7.8
       tslib: 2.6.2
 
+  invariant@2.2.4:
+    dependencies:
+      loose-envify: 1.4.0
+
   is-array-buffer@3.0.4:
     dependencies:
       call-bind: 1.0.7
@@ -7516,6 +7545,13 @@ snapshots:
       react: 18.2.0
       scheduler: 0.23.0
 
+  react-input-mask@2.0.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+    dependencies:
+      invariant: 2.2.4
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      warning: 4.0.3
+
   react-is@16.13.1: {}
 
   react-textarea-autosize@8.5.3(@types/react@18.3.18)(react@18.2.0):
@@ -8017,6 +8053,10 @@ snapshots:
   uuid@9.0.1: {}
 
   v8-compile-cache-lib@3.0.1: {}
+
+  warning@4.0.3:
+    dependencies:
+      loose-envify: 1.4.0
 
   webidl-conversions@3.0.1: {}
 

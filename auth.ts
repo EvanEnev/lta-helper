@@ -1,9 +1,9 @@
-import NextAuth from 'next-auth'
+import NextAuth, {DefaultSession, NextAuthConfig} from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
 import {
-  objectToAuthDataMap,
   AuthDataValidator,
+  objectToAuthDataMap,
   urlStrToAuthDataMap,
 } from '@telegram-auth/server'
 import conn from '@/lib/database'
@@ -33,12 +33,12 @@ const getUserDdata = async (id: number) => {
         WHERE telegram_id = ${id}`
 
   const result = await conn.query(query)
-  const data = result.rows[0]
+  const data = result.rows[0] || {}
 
   if (data?.today_location) {
-  	data.permission_level = 4	
+    data.permission_level = 4
   }
-  
+
   return data
 }
 
@@ -64,10 +64,8 @@ export const authOptions = {
 
         const data =
           typeof credentialsData === 'string'
-            ? // @ts-ignore
-              urlStrToAuthDataMap(credentialsData)
-            : // @ts-ignore
-              objectToAuthDataMap(credentialsData)
+            ? urlStrToAuthDataMap(credentialsData)
+            : objectToAuthDataMap(credentialsData)
 
         const user = await validator.validate(data)
 
@@ -86,7 +84,6 @@ export const authOptions = {
             returned = {...returned, ...data}
           }
 
-
           return returned
         }
 
@@ -95,11 +92,16 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    //@ts-ignore
+    // @ts-ignore
     async jwt({token, user}) {
       if (user) {
         token.id = user.id
         token.name = user.name
+        token.first_name = user.first_name
+        token.last_name = user.last_name
+        token.middle_name = user.middle_name
+        token.phone_number = user.phone_number
+        token.email = user.email
         token.rank = user.rank
         token.permission_level = user.permission_level
         token.image = user.image
@@ -108,7 +110,6 @@ export const authOptions = {
 
       return token
     },
-
     // @ts-ignore
     async session({session, token}) {
       if (token) {
@@ -117,6 +118,11 @@ export const authOptions = {
         session.user.id = token.id
         session.user.name = data.name
         session.user.rank = data.rank
+        session.user.first_name = data.first_name
+        session.user.last_name = data.last_name
+        session.user.middle_name = data.middle_name
+        session.user.phone_number = data.phone_number
+        session.user.email = data.email
         session.user.permission_level = data.permission_level
         session.user.image = token.image
         session.user.location = data.location
@@ -125,10 +131,7 @@ export const authOptions = {
     },
     // @ts-ignore
     authorized: async ({auth}) => {
-      const isLoggedIn = !!auth?.user
-
-      if (isLoggedIn) return true
-      else return false
+      return !!auth?.user
     },
     redirect: async () => {
       return 'https://lt.bubenev.su'
