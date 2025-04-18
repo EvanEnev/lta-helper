@@ -21,11 +21,15 @@ export default function DesktopPage() {
       </div>
       <div className="flex flex-col gap-4 items-center justify-center">
         {buttons.map((button, index) => {
-          if (session?.user.permission_level < (button?.permission_level || -1))
+          if (
+            (session?.user.permission_level || 0) <
+            (button?.permission_level || 0)
+          )
             return ''
 
           return (
             <Button
+              className="w-full"
               key={index}
               as={Link}
               href={button.href}

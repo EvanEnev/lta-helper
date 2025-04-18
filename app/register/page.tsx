@@ -1,55 +1,90 @@
 'use client'
 
-import {Button, Form, Input} from "@heroui/react"
-import {FormEvent, useState} from 'react'
-import {useSetRecoilState} from 'recoil'
-import daysState from '@/src/state/daysState'
+import {Button, Form, Input, InputProps} from '@heroui/react'
+import InputMask from 'react-input-mask'
+import {FormEvent, useEffect, useState} from 'react'
 import {useSession} from 'next-auth/react'
+import {useRouter} from 'next/navigation'
+import {useSetRecoilState} from 'recoil'
+import alertState from '@/src/state/alertState'
+
+const emailRegexp = new RegExp(
+  /^[a-z0-9](\.?[a-z0-9]){5,}@g(oogle)?mail\.com$/gm,
+)
 
 export default function Register() {
+  const router = useRouter()
   const {data: session} = useSession()
-  const [name, setName] = useState<string>(session?.user.name || '')
+  const setAlertData = useSetRecoilState(alertState)
+
+  const [email, setEmail] = useState<string>(session?.user.email || undefined)
+  const [emailErrors, setEmailErrors] = useState<string[]>([])
+
+  const [phoneNumber, setPhoneNumber] = useState<string>(
+    session?.user.phone_number || undefined,
+  )
+  const [phoneNumberError, setPhoneNumberError] = useState<string>()
+
   const [isLoading, setLoading] = useState<boolean>(false)
-  const setDays = useSetRecoilState(daysState)
-  const [errors, setErrors] = useState({})
+
+  useEffect(() => {
+    // console.log(emailErrors, email !== undefined && !emailRegexp.test(email))
+
+    const errors: string[] = []
+
+    if (email === '') {
+      errors.push('Поле обязательно')
+    }
+
+    // if (email && !emailRegexp.test(email)) {
+    //   errors.push('Это не почта Google')
+    // }
+
+    setEmailErrors(errors)
+
+    if (phoneNumber !== undefined && phoneNumber.includes('_')) {
+      setPhoneNumberError('Поле обязательно')
+    } else {
+      setPhoneNumberError('')
+    }
+  }, [email, phoneNumber])
 
   const handler = async (e: FormEvent<HTMLFormElement>) => {
-    // e.preventDefault()
-    // const data = Object.fromEntries(new FormData(e.currentTarget))
-
-    // console.log(data)
-    // ;[
-    //   'name',
-    //   'last_name',
-    //   'middle_name',
-    //   'last_name',
-    //   'phone',
-    //   'email',
-    // ].forEach(key => {
-    //   if (!data[key]) {
-    //     setErrors(prev => ({...prev, [key]: 'Поле обязательно'}))
-    //   }
-    // })
+    e.preventDefault()
+    const data = Object.fromEntries(new FormData(e.currentTarget))
 
     setLoading(true)
 
-    const body = {
-      name,
-    }
-
     const result = await fetch('/api/register', {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify({data: data}),
     })
+    setLoading(false)
 
-    const data = await result.json()
+    const resultData = await result.json()
 
-    if (data.worker.name) {
-      setDays(data.worker.workingDays || [])
+    if (resultData.message) {
+      if (!result.ok) {
+        setAlertData({
+          title: 'Ошибка',
+          message: resultData.message,
+          color: 'danger',
+        })
+      } else {
+        setAlertData({
+          title: 'Успешно',
+          message: resultData.message,
+          color: 'success',
+        })
+      }
     }
 
     if (result.ok) {
-      setLoading(false)
+      const result = await fetch('/api/getData')
+
+      const data = await result.json()
+
+      router.push('/')
     }
   }
 
@@ -64,18 +99,67 @@ export default function Register() {
             defaultValue={session?.user.name || ''}
             name="name"
             isRequired
+            errorMessage="Поле обязательно"
           />
-          {/* <Input label="Фамилия" size="lg" isRequired name="last_name" />
-          <Input label="Имя" size="lg" isRequired name="first_name" />
-          <Input label="Отчество" size="lg" name="middle_name" />
-          <Input label="Номер телефона" size="lg" isRequired name="phone" />
+          <Input
+            label="Фамилия"
+            defaultValue={session?.user.last_name || ''}
+            size="lg"
+            isRequired
+            name="last_name"
+            errorMessage="Поле обязательно"
+          />
+          <Input
+            label="Имя"
+            defaultValue={session?.user.first_name || ''}
+            size="lg"
+            isRequired
+            name="first_name"
+            errorMessage="Поле обязательно"
+          />
+          <Input
+            label="Отчество"
+            defaultValue={session?.user.middle_name || ''}
+            size="lg"
+            name="middle_name"
+            errorMessage="Поле обязательно"
+          />
+          <InputMask
+            mask="+7 999 999-99-99"
+            maskChar="_"
+            value={phoneNumber}
+            onChange={e => setPhoneNumber(e.target.value)}>
+            {(inputProps: InputProps) => (
+              <Input
+                {...inputProps}
+                label="Номер телефона"
+                size="lg"
+                isRequired
+                isInvalid={!!phoneNumberError}
+                name="phone"
+                type="tel"
+                value={phoneNumber}
+                onValueChange={setPhoneNumber}
+                errorMessage={() => <span>{phoneNumberError}</span>}
+              />
+            )}
+          </InputMask>
+
           <Input
             label="Google-почта"
             size="lg"
             isRequired
+            isInvalid={emailErrors.length > 0}
             type="email"
             name="email"
-          /> */}
+            value={email}
+            onValueChange={setEmail}
+            errorMessage={() =>
+              emailErrors.map((error, index) => {
+                return <p key={index}>{error}</p>
+              })
+            }
+          />
           <Button
             className="w-full h-16"
             variant="shadow"

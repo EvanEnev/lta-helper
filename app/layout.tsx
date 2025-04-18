@@ -27,7 +27,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       </head>
       <body className={inter.className + ' gradient relative'}>
         <AuthSessionProvider>
-          <HeroUIProvider locale="ru-RU" className="h-screen w-screen">
+          <HeroUIProvider
+            locale="ru-RU"
+            className="h-screen w-screen max-h-screen max-w-screen">
             <Header />
             <StateProvider>
               <AuthProvider>
