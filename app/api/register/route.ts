@@ -1,4 +1,4 @@
-import conn from '@/lib/database'
+import db from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
 import {auth} from '@/lib/auth'
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
                     rank = EXCLUDED.rank,
                     email = EXCLUDED.email
                  `
-  await conn.query(query)
+  await db.query(query)
 
   const defaultDays = await getDefaultDays()
   const workingDays = defaultDays.map((day: Date) => ({date: day}))

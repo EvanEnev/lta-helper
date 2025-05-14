@@ -1,6 +1,6 @@
 import {SheetData} from '@/app/api/sendWorkDays/route'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
-import conn from '@/lib/database'
+import db from '@/lib/database'
 import google from '@/lib/google'
 import {google as rawGoogle} from 'googleapis'
 
@@ -112,7 +112,7 @@ export default async function updatePoints({
   LEFT JOIN lt_arena.locations l ON LOWER(l.name) = '${location.toLowerCase()}'
   WHERE LOWER(r.name) = '${rank.toLowerCase()}'`
 
-  const result = await conn.query(query)
+  const result = await db.query(query)
   const data = result.rows[0]
   const maxPoints: number = data?.max || 0
 

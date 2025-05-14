@@ -6,7 +6,7 @@ import {
   objectToAuthDataMap,
   urlStrToAuthDataMap,
 } from '@telegram-auth/server'
-import conn from '@/lib/database'
+import db from '@/lib/database'
 import convertTZ from './functions/convertTZ'
 
 const getUserData = async (id: number) => {
@@ -32,7 +32,7 @@ const getUserData = async (id: number) => {
         LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
         WHERE telegram_id = ${id}`
 
-  const result = await conn.query(query)
+  const result = await db.query(query)
   const data = result.rows[0] || {}
 
   if (data?.today_location) {
