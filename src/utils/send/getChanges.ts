@@ -7,8 +7,6 @@ import {CellBGColorStyle, Change, Comment} from './types'
 import getCellValue from './getCellValue'
 import getComments from './getComments'
 import locations from '../locations'
-import db from '@/lib/database'
-import convertTZ from '@/lib/functions/convertTZ'
 
 interface Options {
   sheet: GoogleSpreadsheetWorksheet

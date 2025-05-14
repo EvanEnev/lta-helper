@@ -6,7 +6,7 @@ type TemplatesProps = {
 }
 
 const templates = ['Выходной', 'Болезнь', 'Учёба']
-export default function CommenTemplates(props: TemplatesProps) {
+export default function CommentTemplates(props: TemplatesProps) {
   return (
     <div className="flex flex-wrap gap-2 scrollbar-hide overflow-scroll">
       {templates.map((template, index) => (

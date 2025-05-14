@@ -19,7 +19,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
   const currentStatus = useRef('')
 
-  const getWorker = useCallback(async () => {
+  const getWorker = useCallback(async (): Promise<void> => {
     const response = await fetch('/api/getData')
 
     const data = await response.json()
@@ -32,7 +32,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
       setDays(newDays)
     }
-  }, [])
+  }, [setDays])
 
   useEffect(() => {
     if (session?.status === currentStatus.current) return
@@ -88,7 +88,15 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     } else if (!days.length) {
       getWorker()
     }
-  }, [session.status])
+  }, [
+    days.length,
+    getWorker,
+    router,
+    session?.data?.user,
+    session?.status,
+    setTelegram,
+    telegram,
+  ])
 
   return (
     <React.Fragment>

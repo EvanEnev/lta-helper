@@ -1,5 +1,5 @@
 import getRankIcon from '@/src/utils/page/getRankIcon'
-import {Avatar, Button} from '@heroui/react'
+import {Button} from '@heroui/react'
 import {useSession} from 'next-auth/react'
 import Link from 'next/link'
 import UpcomingShifts from './UpcomingShifts'

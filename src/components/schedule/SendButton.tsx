@@ -54,7 +54,7 @@ export default function SendButton({
 
   return (
     <Button
-      isDisabled={selectedDay.date ? false : isMobile ? true : false}
+      isDisabled={selectedDay.date ? false : isMobile}
       onPress={handler}
       isLoading={isLoading}
       size="lg"

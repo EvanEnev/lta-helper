@@ -1,14 +1,7 @@
 import {WorkerSalary} from '@/src/utils/types'
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  colors,
-  semanticColors,
-} from '@heroui/react'
+import {Button, Card, CardBody, CardHeader, semanticColors} from '@heroui/react'
 import WorkData from './WorkData'
-import {AddCircle, MinusCircle, MinusSquare, Pen2, Plain} from 'solar-icon-set'
+import {AddCircle, MinusCircle, Plain} from 'solar-icon-set'
 import DayButton from '../schedule/DayButton'
 
 type Options = {

@@ -8,10 +8,6 @@ import {useRouter} from 'next/navigation'
 import {useSetAtom} from 'jotai'
 import {alertAtom} from '@/src/utils/global/atoms'
 
-const emailRegexp = new RegExp(
-  /^[a-z0-9](\.?[a-z0-9]){5,}@g(oogle)?mail\.com$/gm,
-)
-
 export default function Register() {
   const router = useRouter()
   const {data: session} = useSession()
@@ -80,10 +76,6 @@ export default function Register() {
     }
 
     if (result.ok) {
-      const result = await fetch('/api/getData')
-
-      const data = await result.json()
-
       router.push('/')
     }
   }

@@ -25,5 +25,3 @@ export const selectedDatesAtom = atom<Date[]>([])
 export const selectedDayAtom = atom<SelectedDay>({date: undefined})
 
 export const telegramAtom = atom<any>({})
-
-export const workerAtom = atom<any>({})

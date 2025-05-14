@@ -22,11 +22,3 @@ export interface CellValue {
   value: string
   effectiveValue?: string
 }
-
-export interface LocationChange {
-  date: string
-  weekday: string
-  location: string
-  value?: string
-  comment?: string
-}

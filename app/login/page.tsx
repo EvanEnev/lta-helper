@@ -23,7 +23,7 @@ export default function Register() {
       }
       return router.push('/')
     }
-  }, [session.status])
+  }, [router, session?.data?.user, session.status])
 
   const handler = async (data: any) => {
     signIn('telegram-login', {

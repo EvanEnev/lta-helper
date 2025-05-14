@@ -29,7 +29,7 @@ export default function Admin() {
   const setAlertData = useSetAtom(alertAtom)
 
   useEffect(() => {
-    const getWorkersData = async () => {
+    const getWorkersData = async (): Promise<void> => {
       const response = await fetch('/api/getWorkers')
 
       const data = await response.json()
@@ -48,13 +48,11 @@ export default function Admin() {
 
     previousDate.setDate(currentDate.getDate() - 1)
 
-    const dates = {
+    return {
       current: currentDate,
       previous: previousDate,
       today: currentDate,
     }
-
-    return dates
   }, [])
 
   useEffect(() => {

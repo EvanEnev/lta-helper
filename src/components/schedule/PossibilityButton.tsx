@@ -6,7 +6,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@heroui/react"
+} from '@heroui/react'
 import {useState} from 'react'
 import {AddCircle} from 'solar-icon-set'
 
@@ -26,7 +26,7 @@ export default function PossibilityButton({
   handler,
   selectedValue,
 }: Props) {
-  const [selectedOption, setSelecteOption] = useState<string>('Могу')
+  const [selectedOption, setSelectedOption] = useState<string>('Могу')
 
   return (
     <ButtonGroup>
@@ -58,7 +58,7 @@ export default function PossibilityButton({
             selectedKeys={selectedOption}
             selectionMode="single"
             onSelectionChange={selected =>
-              setSelecteOption(Array.from(selected)[0].toString())
+              setSelectedOption(Array.from(selected)[0].toString())
             }
             className="max-w-[300px]">
             <DropdownItem key="Могу">Могу</DropdownItem>

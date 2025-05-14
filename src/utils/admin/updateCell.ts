@@ -19,7 +19,7 @@ type WorkerData = {
 export default async function updateCells(
   sheet: GoogleSpreadsheetWorksheet,
   row: GoogleSpreadsheetRow,
-  coloumnIndex: number,
+  columnIndex: number,
   data: WorkerSalary,
   workerData: WorkerData,
 ) {
@@ -29,14 +29,14 @@ export default async function updateCells(
     data,
     workerData,
     `rowIndex: ${rowIndex}`,
-    `coloumnIndex: ${coloumnIndex}`,
+    `columnIndex: ${columnIndex}`,
   )
 
   await sheet.loadCells({
     startRowIndex: rowIndex,
     endRowIndex: rowIndex + 5,
-    startColumnIndex: coloumnIndex,
-    endColumnIndex: coloumnIndex + 2,
+    startColumnIndex: columnIndex,
+    endColumnIndex: columnIndex + 2,
   })
 
   const locationColor = hexToRgb(locationsColors[data.location])
@@ -49,15 +49,15 @@ export default async function updateCells(
 
   let salary = ranksSalary[workerData.rank].default
 
-  const locationCell = sheet.getCell(rowIndex, coloumnIndex)
+  const locationCell = sheet.getCell(rowIndex, columnIndex)
   locationCell.value = data.location
 
   console.log(locationCell.a1Address)
-  const timeCell = sheet.getCell(rowIndex + 1, coloumnIndex)
-  const workingSalaryCell = sheet.getCell(rowIndex + 1, coloumnIndex + 1)
+  const timeCell = sheet.getCell(rowIndex + 1, columnIndex)
+  const workingSalaryCell = sheet.getCell(rowIndex + 1, columnIndex + 1)
 
-  const overWorkTimeCell = sheet.getCell(rowIndex + 2, coloumnIndex)
-  const overWorkSalaryCell = sheet.getCell(rowIndex + 2, coloumnIndex + 1)
+  const overWorkTimeCell = sheet.getCell(rowIndex + 2, columnIndex)
+  const overWorkSalaryCell = sheet.getCell(rowIndex + 2, columnIndex + 1)
 
   timeCell.value = workerData.calculatedWorkingTime
 
@@ -84,19 +84,19 @@ export default async function updateCells(
     } * ${workerData.gamesCount - 2}`
   }
 
-  const bonusesCell = sheet.getCell(rowIndex + 3, coloumnIndex + 1)
+  const bonusesCell = sheet.getCell(rowIndex + 3, columnIndex + 1)
 
   if (data.bonuses) {
     bonusesCell.formula = `=${data.bonuses}`
   }
 
-  const commentsCell = sheet.getCell(rowIndex + 4, coloumnIndex)
+  const commentsCell = sheet.getCell(rowIndex + 4, columnIndex)
 
   if (data.comment) {
     commentsCell.value = data.comment
   }
 
-  const emptyCell = sheet.getCell(rowIndex + 3, coloumnIndex)
+  const emptyCell = sheet.getCell(rowIndex + 3, columnIndex)
 
   locationCell.horizontalAlignment = 'CENTER'
   locationCell.verticalAlignment = 'MIDDLE'

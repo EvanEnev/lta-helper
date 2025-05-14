@@ -61,11 +61,11 @@ export default async function updatePoints({
   const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
 
   const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
-    const splittedValue = headerValue?.split('-')
-    if (!splittedValue.length || splittedValue.length < 2) return false
+    const splitValue = headerValue?.split('-')
+    if (!splitValue.length || splitValue.length < 2) return false
 
-    const startDateParts = splittedValue[0].split('.')
-    const endDateParts = splittedValue[1].split('.')
+    const startDateParts = splitValue[0].split('.')
+    const endDateParts = splitValue[1].split('.')
 
     const startDate = new Date(
       new Date().getFullYear(),

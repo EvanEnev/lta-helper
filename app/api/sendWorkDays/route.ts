@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     )
 
     const rank: string = scheduleRow?.get('Ранг')?.toLowerCase() || 'актёр'
-    const dateColoumnNumber = workersSheet.headerValues.findIndex(
+    const dateColumnNumber = workersSheet.headerValues.findIndex(
       (value: string) =>
         value.split(' ')[0] ===
         date.toLocaleDateString('ru-RU', {day: 'numeric', month: 'numeric'}),
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
         updateCells(
           actorsSheet,
           actorRow,
-          dateColoumnNumber,
+          dateColumnNumber,
           data,
           workerInfoData,
         ),
@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
         updateCells(
           workersSheet,
           workerRow,
-          dateColoumnNumber,
+          dateColumnNumber,
           data,
           workerInfoData,
         ),
