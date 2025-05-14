@@ -1,6 +1,5 @@
 old
 .vscode
-pnpm-lock.yaml
 package-lock.json
 
 app/api/sendMessage
