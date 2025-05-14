@@ -1,4 +1,4 @@
-import convertTZ from '@/lib/convertTZ'
+import convertTZ from '@/lib/functions/convertTZ'
 import {Card, CardHeader, CardBody} from '@heroui/react'
 import {CalendarMinimalistic, MapPoint, ClockCircle} from 'solar-icon-set'
 import {useAtomValue} from 'jotai'

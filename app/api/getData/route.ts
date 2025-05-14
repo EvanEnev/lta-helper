@@ -1,7 +1,7 @@
 import conn from '@/lib/database'
 import {NextResponse} from 'next/server'
-import getDefaultDays from '@/lib/getDefaultDays'
-import {auth} from '@/auth'
+import getDefaultDays from '@/lib/functions/getDefaultDays'
+import {auth} from '@/lib/auth'
 
 export async function GET() {
   const session = await auth()

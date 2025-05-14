@@ -8,7 +8,7 @@ import getCellValue from './getCellValue'
 import getComments from './getComments'
 import locations from '../locations'
 import conn from '@/lib/database'
-import convertTZ from '@/lib/convertTZ'
+import convertTZ from '@/lib/functions/convertTZ'
 
 interface Options {
   sheet: GoogleSpreadsheetWorksheet

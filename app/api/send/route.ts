@@ -1,4 +1,4 @@
-import {auth} from '@/auth'
+import {auth} from '@/lib/auth'
 import conn from '@/lib/database'
 import google from '@/lib/google'
 import getChanges from '@/src/utils/send/getChanges'

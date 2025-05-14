@@ -1,4 +1,4 @@
-import {auth} from '@/auth'
+import {auth} from '@/lib/auth'
 import google from '@/lib/google'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'

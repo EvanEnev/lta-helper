@@ -1,14 +1,9 @@
 import '@/app/globals.css'
 
-import AuthProvider from '@/src/utils/authProvider'
 import type {Metadata} from 'next'
 import {Inter} from 'next/font/google'
 import Script from 'next/script'
-import StateProvider from '@/src/utils/stateProvider'
-import {HeroUIProvider} from '@heroui/react'
-import AlertProvider from '@/src/utils/global/alertProvider'
-import AuthSessionProvider from '@/src/utils/global/authSessionProvider'
-import Header from '@/src/components/global/header/Header'
+import Providers from '@/src/components/global/providers/Providers'
 
 const inter = Inter({subsets: ['latin']})
 
@@ -27,19 +22,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         />
       </head>
       <body className={inter.className + ' gradient relative'}>
-        <AuthSessionProvider>
-          <HeroUIProvider
-            locale="ru-RU"
-            className="h-screen w-screen max-h-screen max-w-screen">
-            <Header />
-            <StateProvider>
-              <AuthProvider>
-                <AlertProvider />
-                {children}
-              </AuthProvider>
-            </StateProvider>
-          </HeroUIProvider>
-        </AuthSessionProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

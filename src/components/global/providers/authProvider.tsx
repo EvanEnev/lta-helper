@@ -5,7 +5,7 @@ import React from 'react'
 import {signIn, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
-import convertTZ from '@/lib/convertTZ'
+import convertTZ from '@/lib/functions/convertTZ'
 import {useAtom} from 'jotai'
 import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
 

@@ -1,6 +1,6 @@
 'use client'
 
-import convertTZ from '@/lib/convertTZ'
+import convertTZ from '@/lib/functions/convertTZ'
 import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
 import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'

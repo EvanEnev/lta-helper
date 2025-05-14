@@ -12,7 +12,7 @@ import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommentTemplates from './CommentTemplates'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
-import groupBy from '@/src/utils/groupBy'
+import groupBy from '@/lib/functions/groupBy'
 import {useSession} from 'next-auth/react'
 import {useAtom, useAtomValue} from 'jotai'
 import {

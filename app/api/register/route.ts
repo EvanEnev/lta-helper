@@ -1,8 +1,8 @@
 import conn from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
-import getDefaultDays from '@/lib/getDefaultDays'
-import {auth} from '@/auth'
-import capitalize from '@/src/utils/capitalize'
+import getDefaultDays from '@/lib/functions/getDefaultDays'
+import {auth} from '@/lib/auth'
+import capitalize from '@/lib/functions/capitalize'
 import google from '@/lib/google'
 
 export async function POST(req: NextRequest) {

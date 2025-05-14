@@ -1,5 +1,4 @@
-import google from '@/lib/google'
-import conn from './database'
+import conn from '../database'
 
 export default async function getDefaultDays() {
   const datesResult = await conn.query(

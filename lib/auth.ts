@@ -7,9 +7,9 @@ import {
   urlStrToAuthDataMap,
 } from '@telegram-auth/server'
 import conn from '@/lib/database'
-import convertTZ from './lib/convertTZ'
+import convertTZ from './functions/convertTZ'
 
-const getUserDdata = async (id: number) => {
+const getUserData = async (id: number) => {
   const date = convertTZ(new Date(), 'Europe/Moscow').toLocaleDateString(
     'ru-RU',
     {day: 'numeric', month: 'numeric'},
@@ -70,7 +70,7 @@ export const authOptions = {
         const user = await validator.validate(data)
 
         if (user.id) {
-          const data = await getUserDdata(user.id)
+          const data = await getUserData(user.id)
 
           let returned = {
             id: user.id.toString(),
@@ -113,7 +113,7 @@ export const authOptions = {
     // @ts-ignore
     async session({session, token}) {
       if (token) {
-        const data = await getUserDdata(token.id)
+        const data = await getUserData(token.id)
 
         session.user.id = token.id
         session.user.name = data.name
