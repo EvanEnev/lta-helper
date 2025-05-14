@@ -9,13 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@heroui/react": "^2.7.8",
+    "@heroui/react": "2.8.0-beta.4",
     "@telegram-auth/react": "^1.0.4",
     "@telegram-auth/server": "^1.0.4",
     "framer-motion": "^12.11.3",
     "google-auth-library": "^9.15.1",
     "google-spreadsheet": "^4.1.4",
     "googleapis": "^148.0.0",
+    "jotai": "^2.12.4",
     "mathjs": "^14.4.0",
     "next": "15.3.2",
     "next-auth": "5.0.0-beta.25",
@@ -23,7 +24,6 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-input-mask": "2.0.4",
-    "recoil": "^0.7.7",
     "solar-icon-set": "^1.0.0"
   },
   "devDependencies": {

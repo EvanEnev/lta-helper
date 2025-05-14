@@ -1,21 +1,18 @@
 @import 'tailwindcss';
-@plugin './hero.ts';
+@plugin '../hero.ts';
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @source '../src/**/*.tsx';
 @source '../app/**/*.tsx';
-@custom-variant dark (&:is(.dark *))
 
 .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
 
   /* Hide scrollbar for Firefox */
-  .scrollbar-hide {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */-ms-overflow-style: none; /* IE and Edge */
+}
 
-  .gradient {
-    background: linear-gradient(to right, #000000, #1e1e2f);
-
+.gradient {
+  background: linear-gradient(to right, #000000, #1e1e2f);
 }

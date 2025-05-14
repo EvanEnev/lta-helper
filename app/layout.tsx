@@ -1,8 +1,9 @@
+import '@/app/globals.css'
+
 import AuthProvider from '@/src/utils/authProvider'
 import type {Metadata} from 'next'
 import {Inter} from 'next/font/google'
 import Script from 'next/script'
-import './globals.css'
 import StateProvider from '@/src/utils/stateProvider'
 import {HeroUIProvider} from '@heroui/react'
 import AlertProvider from '@/src/utils/global/alertProvider'

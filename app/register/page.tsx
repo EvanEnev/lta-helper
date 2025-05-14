@@ -5,8 +5,8 @@ import InputMask from 'react-input-mask'
 import {FormEvent, useEffect, useState} from 'react'
 import {useSession} from 'next-auth/react'
 import {useRouter} from 'next/navigation'
-import {useSetRecoilState} from 'recoil'
-import alertState from '@/src/state/alertState'
+import {useSetAtom} from 'jotai'
+import {alertAtom} from '@/src/utils/global/atoms'
 
 const emailRegexp = new RegExp(
   /^[a-z0-9](\.?[a-z0-9]){5,}@g(oogle)?mail\.com$/gm,
@@ -15,7 +15,7 @@ const emailRegexp = new RegExp(
 export default function Register() {
   const router = useRouter()
   const {data: session} = useSession()
-  const setAlertData = useSetRecoilState(alertState)
+  const setAlertData = useSetAtom(alertAtom)
 
   const [email, setEmail] = useState<string>(session?.user.email || undefined)
   const [emailErrors, setEmailErrors] = useState<string[]>([])

@@ -1,29 +1,30 @@
-import daysState from '@/src/state/daysState'
-import selectedDayState from '@/src/state/selectedDayState'
 import {Day, LocationData} from '@/src/utils/types'
 import {
   Accordion,
   AccordionItem,
-  Avatar,
   Button,
   Card,
   CardBody,
   Input,
 } from '@heroui/react'
 import {useMemo} from 'react'
-import {useRecoilState, useRecoilValue} from 'recoil'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
-import CommenTemplates from './CommentTemplates'
-import selectedDatesState from '@/src/state/selectedDatesState'
+import CommentTemplates from './CommentTemplates'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/src/utils/groupBy'
 import {useSession} from 'next-auth/react'
+import {useAtom, useAtomValue} from 'jotai'
+import {
+  daysAtom,
+  selectedDatesAtom,
+  selectedDayAtom,
+} from '@/src/utils/global/atoms'
 
 export default function DayInfo({day}: {day: Day}) {
-  const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
-  const selectedDates = useRecoilValue(selectedDatesState)
-  const [days, setDays] = useRecoilState(daysState)
+  const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
+  const selectedDates = useAtomValue(selectedDatesAtom)
+  const [days, setDays] = useAtom(daysAtom)
   const {data: session} = useSession()
 
   const locationData: LocationData[] = useMemo(() => {
@@ -150,7 +151,7 @@ export default function DayInfo({day}: {day: Day}) {
         onChange={commentHandler}
         color={day?.invalidComment ? 'danger' : 'default'}
       />
-      <CommenTemplates
+      <CommentTemplates
         onChange={commentHandler}
         selected={day?.comment || ''}
       />

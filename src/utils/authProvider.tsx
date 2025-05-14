@@ -1,22 +1,21 @@
 'use client'
 
-import {useCallback, useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 import React from 'react'
-import {useRecoilState, useSetRecoilState} from 'recoil'
-import telegramState from '../state/telegramState'
-import daysState from '../state/daysState'
-import {signIn, signOut, useSession} from 'next-auth/react'
+import {signIn, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
 import convertTZ from '@/lib/convertTZ'
+import {useAtom} from 'jotai'
+import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
 
 const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
   const session = useSession()
-  const [telegram, setTelegram] = useRecoilState(telegramState)
-  const [days, setDays] = useRecoilState(daysState)
+  const [telegram, setTelegram] = useAtom(telegramAtom)
+  const [days, setDays] = useAtom(daysAtom)
 
   const currentStatus = useRef('')
 

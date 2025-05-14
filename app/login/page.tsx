@@ -1,18 +1,18 @@
 'use client'
 
-import {useEffect, useState} from 'react'
-import {useSetRecoilState} from 'recoil'
-import daysState from '@/src/state/daysState'
+import {useEffect} from 'react'
 import {LoginButton} from '@telegram-auth/react'
 import {signIn, useSession} from 'next-auth/react'
 import {useRouter} from 'next/navigation'
+import {useSetAtom} from 'jotai'
+import {daysAtom} from '@/src/utils/global/atoms'
 
 const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
 
 export default function Register() {
   const session = useSession()
   const router = useRouter()
-  const setDays = useSetRecoilState(daysState)
+  const setDays = useSetAtom(daysAtom)
 
   useEffect(() => {
     if (session.status === 'authenticated') {

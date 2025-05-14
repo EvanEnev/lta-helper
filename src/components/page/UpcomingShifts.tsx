@@ -1,11 +1,11 @@
 import convertTZ from '@/lib/convertTZ'
-import daysState from '@/src/state/daysState'
 import {Card, CardHeader, CardBody} from '@heroui/react'
-import {useRecoilValue} from 'recoil'
 import {CalendarMinimalistic, MapPoint, ClockCircle} from 'solar-icon-set'
+import {useAtomValue} from 'jotai'
+import {daysAtom} from '@/src/utils/global/atoms'
 
 export default function UpcomingShifts({className = ''}: {className?: string}) {
-  const days = useRecoilValue(daysState)
+  const days = useAtomValue(daysAtom)
 
   const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 

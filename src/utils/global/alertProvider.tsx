@@ -1,11 +1,11 @@
 'use client'
 
-import alertState from '@/src/state/alertState'
 import {Alert} from '@heroui/react'
-import {useRecoilState} from 'recoil'
+import {useAtom} from 'jotai'
+import {alertAtom} from '@/src/utils/global/atoms'
 
 export default function AlertProvider() {
-  const [alertData, setAlertData] = useRecoilState(alertState)
+  const [alertData, setAlertData] = useAtom(alertAtom)
 
   return (
     <div

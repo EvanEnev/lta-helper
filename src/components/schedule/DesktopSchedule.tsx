@@ -9,16 +9,15 @@ import {
 } from '@heroui/react'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
-import daysState from '@/src/state/daysState'
 import {Day} from '@/src/utils/types'
-import {useRecoilState, useRecoilValue} from 'recoil'
-import selectedDatesState from '@/src/state/selectedDatesState'
 import {useEffect, useMemo, useState} from 'react'
 import {Pen2} from 'solar-icon-set'
+import {useAtom, useAtomValue} from 'jotai'
+import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
 
 export default function DesktopSchedule() {
-  const days = useRecoilValue(daysState)
-  const [selectedDates, setSelectedDates] = useRecoilState(selectedDatesState)
+  const days = useAtomValue(daysAtom)
+  const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
   const [initialDays, setInitialDays] = useState(days)
 
   const changeDates = (date: Date | undefined, isSelected: boolean) => {

@@ -1,16 +1,15 @@
-import {Divider} from "@heroui/react"
+import {Divider} from '@heroui/react'
 import DayButton from './DayButton'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
-import daysState from '@/src/state/daysState'
-import selectedDayState from '@/src/state/selectedDayState'
 import {Day} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
-import {useRecoilValue} from 'recoil'
+import {useAtomValue} from 'jotai'
+import {daysAtom, selectedDayAtom} from '@/src/utils/global/atoms'
 
 export default function MobileSchedule() {
-  const days = useRecoilValue(daysState)
-  const selectedDay = useRecoilValue(selectedDayState)
+  const days = useAtomValue(daysAtom)
+  const selectedDay = useAtomValue(selectedDayAtom)
   const [initialDays, setInitialDays] = useState(days)
 
   const day: Day = useMemo(
