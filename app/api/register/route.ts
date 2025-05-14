@@ -3,6 +3,7 @@ import {NextRequest, NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
 import {auth} from '@/lib/auth'
 import capitalize from '@/lib/functions/capitalize'
+import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import google from '@/lib/google'
 
 export async function POST(req: NextRequest) {
@@ -41,16 +42,14 @@ export async function POST(req: NextRequest) {
   const lastName = capitalize(data.last_name.trim())
   const middleName = capitalize(data.middle_name.trim())
 
-  const doc = google().schedule
+  await google.schedule.loadInfo()
 
-  await doc.loadInfo()
-
-  const sheet = doc.sheetsByTitle['Сотрудники + расписание']
+  const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
   await sheet.loadHeaderRow(7)
   const rows = await sheet.getRows()
 
   const row = rows.find(
-    row =>
+    (row: GoogleSpreadsheetRow) =>
       row.get('Позывной')?.split('-')[0]?.trim().toLowerCase() ===
       data.name.toLowerCase(),
   )

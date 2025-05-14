@@ -33,9 +33,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({}, {status: 404})
   }
 
-  const doc = google()
-  await doc.schedule.loadInfo()
-  const sheet = doc.schedule.sheetsByIndex[0]
+  await google.schedule.loadInfo()
+  const sheet = google.schedule.sheetsByIndex[0]
   await sheet.loadHeaderRow(7)
   const rows = await sheet.getRows()
   const row = rows.find(

@@ -145,7 +145,7 @@ export default async function updatePoints({
   }
 
   if (currentPoints + fines + 1 > maxPoints) {
-    const googleAuth = google().auth
+    const googleAuth = google.auth
 
     const sheets = rawGoogle.sheets({version: 'v4', auth: googleAuth})
 

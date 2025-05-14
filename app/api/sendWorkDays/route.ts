@@ -32,20 +32,20 @@ export interface SheetData {
   }
 }
 
-const loadData = async (doc: GoogleDocument): Promise<SheetData> => {
+const loadData = async (google: GoogleDocument): Promise<SheetData> => {
   await Promise.all([
-    doc.actors.loadInfo(),
-    doc.workers.loadInfo(),
-    doc.schedule.loadInfo(),
+    google.actors.loadInfo(),
+    google.workers.loadInfo(),
+    google.schedule.loadInfo(),
   ])
 
-  const workersSheet = doc.workers.sheetsByIndex[0]
-  const actorsSheet = doc.actors.sheetsByIndex[0]
-  const scheduleSheet = doc.schedule.sheetsByTitle['Сотрудники + расписание']
-  const pointsSheet = doc.schedule.sheetsByTitle['Баллы онлайн']
-  const goldPointsSheet = doc.schedule.sheetsByTitle['Баллы онлайн (ЗОЛОТО)']
+  const workersSheet = google.workers.sheetsByIndex[0]
+  const actorsSheet = google.actors.sheetsByIndex[0]
+  const scheduleSheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
+  const pointsSheet = google.schedule.sheetsByTitle['Баллы онлайн']
+  const goldPointsSheet = google.schedule.sheetsByTitle['Баллы онлайн (ЗОЛОТО)']
   const platinumPointsSheet =
-    doc.schedule.sheetsByTitle['Баллы онлайн (ПЛАТИНА) ']
+    google.schedule.sheetsByTitle['Баллы онлайн (ПЛАТИНА) ']
 
   await Promise.all([
     workersSheet.loadHeaderRow(),
@@ -125,9 +125,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
-  const doc = google()
-
-  const sheetData = await loadData(doc)
+  const sheetData = await loadData(google)
   const {scheduleRows, workersRows, actorsRows} = sheetData.rows
   const {
     workersSheet,
