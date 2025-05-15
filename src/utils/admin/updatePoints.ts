@@ -1,6 +1,6 @@
 import {SheetData} from '@/app/api/sendWorkDays/route'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
-import conn from '@/lib/database'
+import db from '@/lib/database'
 import google from '@/lib/google'
 import {google as rawGoogle} from 'googleapis'
 
@@ -61,11 +61,11 @@ export default async function updatePoints({
   const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
 
   const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
-    const splittedValue = headerValue?.split('-')
-    if (!splittedValue.length || splittedValue.length < 2) return false
+    const splitValue = headerValue?.split('-')
+    if (!splitValue.length || splitValue.length < 2) return false
 
-    const startDateParts = splittedValue[0].split('.')
-    const endDateParts = splittedValue[1].split('.')
+    const startDateParts = splitValue[0].split('.')
+    const endDateParts = splitValue[1].split('.')
 
     const startDate = new Date(
       new Date().getFullYear(),
@@ -112,7 +112,7 @@ export default async function updatePoints({
   LEFT JOIN lt_arena.locations l ON LOWER(l.name) = '${location.toLowerCase()}'
   WHERE LOWER(r.name) = '${rank.toLowerCase()}'`
 
-  const result = await conn.query(query)
+  const result = await db.query(query)
   const data = result.rows[0]
   const maxPoints: number = data?.max || 0
 
@@ -145,7 +145,7 @@ export default async function updatePoints({
   }
 
   if (currentPoints + fines + 1 > maxPoints) {
-    const googleAuth = google().auth
+    const googleAuth = google.auth
 
     const sheets = rawGoogle.sheets({version: 'v4', auth: googleAuth})
 

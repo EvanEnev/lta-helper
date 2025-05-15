@@ -1,9 +1,9 @@
-import selectedDayState from '@/src/state/selectedDayState'
 import locations from '@/src/utils/locations'
 import {Day} from '@/src/utils/types'
 import {Badge, Button, Skeleton} from '@heroui/react'
 import {useMemo} from 'react'
-import {useRecoilValue, useSetRecoilState} from 'recoil'
+import {useAtom} from 'jotai'
+import {selectedDayAtom} from '@/src/utils/global/atoms'
 
 type DayButtonProps = {
   day: Day
@@ -16,9 +16,8 @@ type DayButtonProps = {
 
 export default function DayButton(props: DayButtonProps) {
   const day = props.day
-  const setSelectedDay = useSetRecoilState(selectedDayState)
 
-  const selectedDay = useRecoilValue(selectedDayState)
+  const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
 
   let color: 'default' | 'success' | 'danger' | 'warning' = 'default'
   if (

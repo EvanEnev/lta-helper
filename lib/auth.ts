@@ -1,4 +1,4 @@
-import NextAuth, {DefaultSession, NextAuthConfig} from 'next-auth'
+import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
 import {
@@ -6,10 +6,10 @@ import {
   objectToAuthDataMap,
   urlStrToAuthDataMap,
 } from '@telegram-auth/server'
-import conn from '@/lib/database'
-import convertTZ from './lib/convertTZ'
+import db from '@/lib/database'
+import convertTZ from './functions/convertTZ'
 
-const getUserDdata = async (id: number) => {
+const getUserData = async (id: number) => {
   const date = convertTZ(new Date(), 'Europe/Moscow').toLocaleDateString(
     'ru-RU',
     {day: 'numeric', month: 'numeric'},
@@ -32,7 +32,7 @@ const getUserDdata = async (id: number) => {
         LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
         WHERE telegram_id = ${id}`
 
-  const result = await conn.query(query)
+  const result = await db.query(query)
   const data = result.rows[0] || {}
 
   if (data?.today_location) {
@@ -70,7 +70,7 @@ export const authOptions = {
         const user = await validator.validate(data)
 
         if (user.id) {
-          const data = await getUserDdata(user.id)
+          const data = await getUserData(user.id)
 
           let returned = {
             id: user.id.toString(),
@@ -113,7 +113,7 @@ export const authOptions = {
     // @ts-ignore
     async session({session, token}) {
       if (token) {
-        const data = await getUserDdata(token.id)
+        const data = await getUserData(token.id)
 
         session.user.id = token.id
         session.user.name = data.name

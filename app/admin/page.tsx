@@ -1,18 +1,17 @@
 'use client'
 
-import convertTZ from '@/lib/convertTZ'
+import convertTZ from '@/lib/functions/convertTZ'
 import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
 import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import alertState from '@/src/state/alertState'
-import telegramState from '@/src/state/telegramState'
 import {WorkerSalary} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
-import {useRecoilState, useRecoilValue} from 'recoil'
+import {useAtomValue, useSetAtom} from 'jotai'
+import {alertAtom, telegramAtom} from '@/src/utils/global/atoms'
 
 export default function Admin() {
   const isMobile = useIsMobile()
-  const telegram = useRecoilValue(telegramState)
+  const telegram = useAtomValue(telegramAtom)
   const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
     {
       worker: '',
@@ -27,10 +26,10 @@ export default function Admin() {
   const [workers, setWorkers] = useState([])
   const [date, setDate] = useState<Date>()
   const [isLoading, setLoading] = useState<boolean>(false)
-  const [_, setAlertData] = useRecoilState(alertState)
+  const setAlertData = useSetAtom(alertAtom)
 
   useEffect(() => {
-    const getWorkersData = async () => {
+    const getWorkersData = async (): Promise<void> => {
       const response = await fetch('/api/getWorkers')
 
       const data = await response.json()
@@ -49,13 +48,11 @@ export default function Admin() {
 
     previousDate.setDate(currentDate.getDate() - 1)
 
-    const dates = {
+    return {
       current: currentDate,
       previous: previousDate,
       today: currentDate,
     }
-
-    return dates
   }, [])
 
   useEffect(() => {

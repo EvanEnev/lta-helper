@@ -1,16 +1,10 @@
 import {Pool} from 'pg'
 
-// @ts-ignore
-let conn: Pool = global.pg
+const db = new Pool({
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  host: process.env.DATABASE_URL,
+  port: 5432,
+})
 
-if (!conn) {
-  // @ts-ignore
-  conn = global.pg = new Pool({
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASSWORD,
-    host: process.env.DATABASE_URL,
-    port: 5432,
-  })
-}
-
-export default conn
+export default db

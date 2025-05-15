@@ -1,26 +1,25 @@
 'use client'
 
-import {useCallback, useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useRef} from 'react'
 import React from 'react'
-import {useRecoilState, useSetRecoilState} from 'recoil'
-import telegramState from '../state/telegramState'
-import daysState from '../state/daysState'
-import {signIn, signOut, useSession} from 'next-auth/react'
+import {signIn, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
-import convertTZ from '@/lib/convertTZ'
+import convertTZ from '@/lib/functions/convertTZ'
+import {useAtom} from 'jotai'
+import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
 
 const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
   const session = useSession()
-  const [telegram, setTelegram] = useRecoilState(telegramState)
-  const [days, setDays] = useRecoilState(daysState)
+  const [telegram, setTelegram] = useAtom(telegramAtom)
+  const [days, setDays] = useAtom(daysAtom)
 
   const currentStatus = useRef('')
 
-  const getWorker = useCallback(async () => {
+  const getWorker = useCallback(async (): Promise<void> => {
     const response = await fetch('/api/getData')
 
     const data = await response.json()
@@ -33,7 +32,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
       setDays(newDays)
     }
-  }, [])
+  }, [setDays])
 
   useEffect(() => {
     if (session?.status === currentStatus.current) return
@@ -89,7 +88,15 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     } else if (!days.length) {
       getWorker()
     }
-  }, [session.status])
+  }, [
+    days.length,
+    getWorker,
+    router,
+    session?.data?.user,
+    session?.status,
+    setTelegram,
+    telegram,
+  ])
 
   return (
     <React.Fragment>

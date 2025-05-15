@@ -35,8 +35,8 @@ export default function getSalaryData(data: SalaryData) {
   const overWorkTime = workingTime - (data.isHardTime ? 8 : 9)
   const isOverWork = overWorkTime > 0 && rank !== 'актёр'
 
-  let calculatedWorkingTime = ''
-  let calculatedOverWorkTime = ''
+  let calculatedWorkingTime: string
+  let calculatedOverWorkTime: string = ''
 
   if (data.isHardTime && isOverWork) {
     calculatedWorkingTime = `${workingTimeParts[0]}-${
@@ -61,7 +61,7 @@ export default function getSalaryData(data: SalaryData) {
   let overWorkSalary = isOverWork
     ? (ranksSalary[rank].overWork || 0) * overWorkTime
     : 0
-console.log(gamesCount, ranksSalary[rank].overWork * (gamesCount - 2))
+  console.log(gamesCount, ranksSalary[rank].overWork * (gamesCount - 2))
   if (rank === 'актёр' && gamesCount && gamesCount > 2) {
     overWorkSalary = (ranksSalary[rank].overWork || 0) * (gamesCount - 2)
   }

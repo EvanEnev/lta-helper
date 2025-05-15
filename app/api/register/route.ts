@@ -1,8 +1,9 @@
-import conn from '@/lib/database'
+import db from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
-import getDefaultDays from '@/lib/getDefaultDays'
-import {auth} from '@/auth'
-import capitalize from '@/src/utils/capitalize'
+import getDefaultDays from '@/lib/functions/getDefaultDays'
+import {auth} from '@/lib/auth'
+import capitalize from '@/lib/functions/capitalize'
+import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import google from '@/lib/google'
 
 export async function POST(req: NextRequest) {
@@ -41,16 +42,14 @@ export async function POST(req: NextRequest) {
   const lastName = capitalize(data.last_name.trim())
   const middleName = capitalize(data.middle_name.trim())
 
-  const doc = google().schedule
+  await google.schedule.loadInfo()
 
-  await doc.loadInfo()
-
-  const sheet = doc.sheetsByTitle['Сотрудники + расписание']
+  const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
   await sheet.loadHeaderRow(7)
   const rows = await sheet.getRows()
 
   const row = rows.find(
-    row =>
+    (row: GoogleSpreadsheetRow) =>
       row.get('Позывной')?.split('-')[0]?.trim().toLowerCase() ===
       data.name.toLowerCase(),
   )
@@ -78,7 +77,7 @@ export async function POST(req: NextRequest) {
                     rank = EXCLUDED.rank,
                     email = EXCLUDED.email
                  `
-  await conn.query(query)
+  await db.query(query)
 
   const defaultDays = await getDefaultDays()
   const workingDays = defaultDays.map((day: Date) => ({date: day}))

@@ -6,7 +6,7 @@ type TemplatesProps = {
 }
 
 const templates = ['Выходной', 'Болезнь', 'Учёба']
-export default function CommenTemplates(props: TemplatesProps) {
+export default function CommentTemplates(props: TemplatesProps) {
   return (
     <div className="flex flex-wrap gap-2 scrollbar-hide overflow-scroll">
       {templates.map((template, index) => (
@@ -14,7 +14,7 @@ export default function CommenTemplates(props: TemplatesProps) {
           key={index}
           onPress={() => props.onChange(template)}
           variant={template === props.selected ? 'faded' : 'flat'}
-          className="flex-grow">
+          className="grow">
           {template}
         </Button>
       ))}

@@ -1,7 +1,7 @@
-import {auth} from '@/auth'
+import {auth} from '@/lib/auth'
 import google from '@/lib/google'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
-import {NextRequest, NextResponse} from 'next/server'
+import {NextResponse} from 'next/server'
 
 export async function GET() {
   const session = await auth()
@@ -11,10 +11,9 @@ export async function GET() {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
-  const doc = google()
-  await doc.schedule.loadInfo()
+  await google.schedule.loadInfo()
 
-  const sheet = doc.schedule.sheetsByTitle['Сотрудники + расписание']
+  const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
   await sheet.loadHeaderRow(7)
 
   const rows = await sheet.getRows()

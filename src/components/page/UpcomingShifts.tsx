@@ -1,19 +1,18 @@
-import convertTZ from '@/lib/convertTZ'
-import daysState from '@/src/state/daysState'
-import {Card, CardHeader, CardBody} from '@heroui/react'
-import {useRecoilValue} from 'recoil'
-import {CalendarMinimalistic, MapPoint, ClockCircle} from 'solar-icon-set'
+import convertTZ from '@/lib/functions/convertTZ'
+import {Card, CardBody, CardHeader} from '@heroui/react'
+import {CalendarMinimalistic, ClockCircle, MapPoint} from 'solar-icon-set'
+import {useAtomValue} from 'jotai'
+import {daysAtom} from '@/src/utils/global/atoms'
 
 export default function UpcomingShifts({className = ''}: {className?: string}) {
-  const days = useRecoilValue(daysState)
+  const days = useAtomValue(daysAtom)
 
   const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
   const getDatesDiff = (date?: Date) => {
     // @ts-ignore
     const diffTime = date - currentDate
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24))
   }
 
   return (

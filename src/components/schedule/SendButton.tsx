@@ -1,13 +1,11 @@
-import daysState from '@/src/state/daysState'
-import telegramState from '@/src/state/telegramState'
-import {Button} from "@heroui/react"
+import {Button} from '@heroui/react'
 import {useState} from 'react'
-import {useRecoilState, useRecoilValue} from 'recoil'
-import selectedDayState from '@/src/state/selectedDayState'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
 import {useSession} from 'next-auth/react'
 import {Day} from '@/src/utils/types'
+import {selectedDayAtom, telegramAtom} from '@/src/utils/global/atoms'
+import {useAtom, useAtomValue} from 'jotai'
 
 export default function SendButton({
   className = '',
@@ -17,9 +15,9 @@ export default function SendButton({
   days: Day[]
 }) {
   const isMobile = useIsMobile()
-  const telegram = useRecoilValue(telegramState)
+  const telegram = useAtomValue(telegramAtom)
   const [isLoading, setLoading] = useState<boolean>(false)
-  const [selectedDay, setSelectedDay] = useRecoilState(selectedDayState)
+  const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
   const {data: session} = useSession()
   const handler = async () => {
     setLoading(true)
@@ -56,7 +54,7 @@ export default function SendButton({
 
   return (
     <Button
-      isDisabled={selectedDay.date ? false : isMobile ? true : false}
+      isDisabled={selectedDay.date ? false : isMobile}
       onPress={handler}
       isLoading={isLoading}
       size="lg"

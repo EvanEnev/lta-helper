@@ -1,4 +1,4 @@
-import getRandomNumber from '@/src/utils/getRandomNumber'
+import getRandomNumber from '@/lib/functions/getRandomNumber'
 
 const variants = [
   'сотрудник',
