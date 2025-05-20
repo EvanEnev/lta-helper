@@ -1,7 +1,7 @@
 import {Button, Avatar, Link} from '@heroui/react'
 import {Session} from 'next-auth'
 import {usePathname} from 'next/navigation'
-import path from 'path'
+import {useEffect, useState} from "react";
 
 const buttons = [
   {name: 'Главная', href: '/'},
@@ -11,9 +11,19 @@ const buttons = [
 
 export default function DesktopHeader({session}: {session: Session | null}) {
   const path = usePathname()
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+      const handleScroll = () => {
+          setScrolled(window.scrollY > 60)
+      }
+
+      window.addEventListener('scroll', handleScroll)
+      return () => window.removeEventListener('scroll', handleScroll)
+  }, []);
 
   return (
-    <header className="flex justify-between h-fit p-4 items-center">
+    <header className={`flex justify-between h-fit p-4 items-center sticky top-0 z-1000 ${scrolled ? ' scrolled' : ''}`}>
       <div className="flex gap-4 items-center">
         {buttons.map((button, index) => {
           if (

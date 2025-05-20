@@ -1,24 +1,25 @@
-import AuthSessionProvider from '@/src/components/global/providers/authSessionProvider'
+'use client'
 import {HeroUIProvider} from '@heroui/react'
 import Header from '@/src/components/global/header/Header'
-import StateProvider from '@/src/components/global/providers/stateProvider'
 import AuthProvider from '@/src/components/global/providers/authProvider'
 import AlertProvider from '@/src/components/global/providers/alertProvider'
+import {SessionProvider} from "next-auth/react";
+import {Provider} from "jotai";
 
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
-    <AuthSessionProvider>
+    <SessionProvider>
       <HeroUIProvider
         locale="ru-RU"
-        className="h-screen w-screen max-h-screen max-w-screen">
+        className="min-h-screen min-w-screen">
         <Header />
-        <StateProvider>
+        <Provider>
           <AuthProvider>
             <AlertProvider />
             {children}
           </AuthProvider>
-        </StateProvider>
+        </Provider>
       </HeroUIProvider>
-    </AuthSessionProvider>
+    </SessionProvider>
   )
 }

@@ -23,15 +23,17 @@ export type SelectedDay = {
   invalidComment?: boolean
 }
 
-export type WorkingDay = {
-  date: string
-  value: string
+export interface Worker {
+  name: string
+  telegramId: number
+  isFormer?: boolean
   location?: string
-}
-
-export interface Comment {
-  date: string
-  value: string
+  rank: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  phoneNumber?: string
+  email?: string
 }
 
 export interface WorkerSalary {
@@ -43,4 +45,32 @@ export interface WorkerSalary {
   hasGames?: boolean
   isHardTime: boolean
   gamesCount: number
+}
+
+export interface SalaryData {
+  date: Date,
+  start_time: string,
+  end_time: string,
+  value: number,
+  bonuses: string | null,
+  fines: string,
+  comment: string | null,
+  created_at: Date,
+  worker_name: string,
+  created_by: string,
+  location: {
+    name: string,
+    color: string,
+  }
+}
+
+export interface SalaryUser {
+  name: string,
+  rank: string | null,
+  firstName: string | null
+}
+
+export interface UserSalary {
+  user: SalaryUser
+  [key: string]: string | SalaryData | SalaryUser
 }
