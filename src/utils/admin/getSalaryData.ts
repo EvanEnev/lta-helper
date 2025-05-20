@@ -9,10 +9,11 @@ type SalaryData = {
   gamesCount: number
   comment: string
   bonuses: string
+  fines: string
 }
 
 export default function getSalaryData(data: SalaryData) {
-  const rank: string = data.rank.toLowerCase()
+  const rank: string = data.rank.toLowerCase().trim()
   const gamesCount = data.gamesCount || 1
 
   let workingTimeParts: string[] | number[] = data.workingHours.split('-')
@@ -24,7 +25,7 @@ export default function getSalaryData(data: SalaryData) {
     workingTimeParts[1] += 24
   }
 
-  let salary = ranksSalary[rank].default
+  let salary = ranksSalary[rank].default || 0
 
   if (data.comment?.toLowerCase().includes('под игру')) {
     salary = 1500
@@ -59,11 +60,11 @@ export default function getSalaryData(data: SalaryData) {
   }
 
   let overWorkSalary = isOverWork
-    ? (ranksSalary[rank].overWork || 0) * overWorkTime
+    ? (ranksSalary[rank]?.overWork || 0) * overWorkTime
     : 0
   console.log(gamesCount, ranksSalary[rank].overWork * (gamesCount - 2))
   if (rank === 'актёр' && gamesCount && gamesCount > 2) {
-    overWorkSalary = (ranksSalary[rank].overWork || 0) * (gamesCount - 2)
+    overWorkSalary = (ranksSalary[rank]?.overWork || 0) * (gamesCount - 2)
   }
 
   let bonuses = 0

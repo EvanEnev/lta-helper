@@ -39,6 +39,7 @@ export interface WorkerSalary {
   location: string
   workingHours: string
   bonuses: string
+  fines: string
   comment: string
   hasGames?: boolean
   isHardTime: boolean

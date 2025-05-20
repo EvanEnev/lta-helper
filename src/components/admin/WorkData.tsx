@@ -39,7 +39,8 @@ export default function WorkData({
       | 'comment'
       | 'isHardTime'
       | 'gamesCount'
-      | 'hasGames',
+      | 'hasGames'
+      | 'fines',
     value: Key | string | boolean | null,
   ) => {
     const currentData = {...data}
@@ -85,7 +86,7 @@ export default function WorkData({
   )
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex w-full flex-col gap-4">
       <Autocomplete
         isRequired
         label="Сотрудник"
@@ -133,9 +134,14 @@ export default function WorkData({
         </Checkbox>
       )}
       <Input
-        label="Бонусы/штрафы"
+        label="Бонусы"
         value={data.bonuses}
         onValueChange={value => updateData('bonuses', value)}
+      />
+      <Input
+        label="Штрафы"
+        value={data.bonuses}
+        onValueChange={value => updateData('fines', value)}
       />
       <Textarea
         label="Комментарий"
@@ -143,7 +149,7 @@ export default function WorkData({
         onValueChange={value => updateData('comment', value)}
       />
       <Divider />
-      <div className="flex gap-2 flex-col">
+      <div className="flex flex-col gap-2">
         <div>
           <p>
             Смена: {salary?.salary || 0}{' '}

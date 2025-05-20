@@ -147,10 +147,13 @@ export async function POST(req: NextRequest) {
   }
 
   const promises: Promise<boolean>[] = []
+  const queries = []
 
   for (const data of salaryData) {
     const workerRow = getWorkerRow(data.worker, workersRows)
     const actorRow = getWorkerRow(data.worker, actorsRows)
+
+    let bonuses = data.bonuses || '' + data.fines || ''
 
     const scheduleRow = scheduleRows.find(
       (row: GoogleSpreadsheetRow) =>
@@ -201,8 +204,8 @@ export async function POST(req: NextRequest) {
       calculatedWorkingTime = `${workingTimeParts[0]}-${workingTimeParts[1]}`
     }
 
-    if (data.bonuses.startsWith('=')) {
-      data.bonuses = data.bonuses.slice(1)
+    if (bonuses.includes('=')) {
+      bonuses = bonuses.replaceAll('=', '')
     }
 
     const workerInfoData = {
@@ -213,6 +216,9 @@ export async function POST(req: NextRequest) {
       overWorkTime,
       gamesCount,
     }
+
+    let defaultSalary = ranksSalary[rank]?.default
+    let overworkSalary = 0
 
     if (!data.comment?.toLowerCase().includes('под игру')) {
       promises.push(
@@ -250,19 +256,24 @@ export async function POST(req: NextRequest) {
       )
     } else {
       let salary = ranksSalary[rank].default
-      let message = `${date} ${data.location}\n\n${rank} | ${data.worker}\n\n${calculatedWorkingTime} ${ranksSalary[rank].default}`
+      let message = `${date.toLocaleDateString('ru-RU', {month: 'numeric', day: 'numeric'})} ${data.location}\n\n${rank} | ${data.worker}\n\n${calculatedWorkingTime} ${ranksSalary[rank].default}`
 
       if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
         message += `\n${ranksSalary[rank].overWork * (data.gamesCount - 2)} (${
           ranksSalary[rank].overWork
         } * ${data.gamesCount - 2})`
         salary += ranksSalary[rank].overWork * (data.gamesCount - 2)
+
+        overworkSalary += ranksSalary[rank].overWork * (data.gamesCount - 2)
       }
 
       if (isOverWork) {
         message += `\n${calculatedOverWorkTime} ${
           ranksSalary[rank].overWork * overWorkTime
         }`
+
+        overworkSalary += ranksSalary[rank].overWork * overWorkTime
+
         salary += ranksSalary[rank].overWork * overWorkTime
       }
 
@@ -270,9 +281,9 @@ export async function POST(req: NextRequest) {
         message += `\n\n${data.comment}`
       }
 
-      if (data.bonuses) {
-        message += `\n\nБонусы: ${data.bonuses} ${evaluate(data.bonuses)}`
-        salary += evaluate(data.bonuses)
+      if (bonuses) {
+        message += `\n\nБонусы: ${bonuses} ${evaluate(bonuses)}`
+        salary += evaluate(bonuses)
       }
 
       message += `\n\nИтог: ${salary}\n\nНет в графике ${
@@ -293,6 +304,16 @@ export async function POST(req: NextRequest) {
         },
       )
     }
+
+    queries.push(`INSERT INTO lt_arena.salary (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time)
+                  VALUES
+                    (
+                     (SELECT id FROM lt_arena.workers WHERE LOWER(name) = ${data.worker.toLowerCase()}),
+                      '${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}',
+                     ${defaultSalary},
+                     '${data.bonuses}',
+                     
+                    )`)
   }
 
   if (promises.length) {
@@ -307,6 +328,10 @@ export async function POST(req: NextRequest) {
       ])
     })
   }
+
+  const query = `INSERT INTO lt_arena.salary (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time)
+    VALUES
+    ()`
 
   return NextResponse.json({}, {status: 200})
 }
