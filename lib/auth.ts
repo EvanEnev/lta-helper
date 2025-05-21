@@ -47,14 +47,13 @@ export const authOptions = {
     CredentialsProvider({
       id: 'telegram-login',
       name: 'Telegram Login',
-      credentials: {},
       authorize: async credentials => {
         const validator = new AuthDataValidator({
           botToken: `${process.env.BOT_TOKEN}`,
           subtleCrypto: crypto.subtle,
         })
 
-        //  @ts-ignore
+        // @ts-ignore
         let credentialsData = credentials?.data
 
         try {
@@ -65,7 +64,8 @@ export const authOptions = {
         const data =
           typeof credentialsData === 'string'
             ? urlStrToAuthDataMap(credentialsData)
-            : objectToAuthDataMap(credentialsData)
+            : // @ts-ignore
+              objectToAuthDataMap(credentialsData)
 
         const user = await validator.validate(data)
 
@@ -73,7 +73,7 @@ export const authOptions = {
           const data = await getUserData(user.id)
 
           let returned = {
-            id: user.id.toString(),
+            id: user.id,
             rank: '',
             permission_level: 0,
             name: [user?.first_name, user?.last_name || ''].join(' '),

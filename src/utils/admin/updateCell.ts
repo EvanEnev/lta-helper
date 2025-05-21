@@ -48,7 +48,15 @@ export default async function updateCells(
   })
 
   let salary = ranksSalary[workerData.rank].default
-  const bonuses = (data.bonuses || '') + '+' + (data.fines || '')
+  let bonuses = ''
+
+  if (data.bonuses && data.fines) {
+    bonuses = data.bonuses + '+' + data.fines
+  } else if (data.bonuses) {
+    bonuses = data.bonuses
+  } else if (data.fines) {
+    bonuses = data.fines
+  }
 
   const locationCell = sheet.getCell(rowIndex, columnIndex)
   locationCell.value = data.location

@@ -7,6 +7,7 @@ declare module 'next-auth' {
     permission_level: number
     name: string
     location_id?: number
+    photo?: string
   }
 
   interface Session {
