@@ -18,6 +18,7 @@ export default function Admin() {
       workingHours: '',
       location: '',
       bonuses: '',
+      fines: '',
       comment: '',
       isHardTime: false,
       gamesCount: 1,

@@ -70,7 +70,7 @@ export default function getSalaryData(data: SalaryData) {
   let bonuses = 0
 
   try {
-    bonuses = evaluate(data.bonuses)
+    bonuses = evaluate(`${data.bonuses || 0} + ${data.fines || 0}`)
   } catch (e) {}
 
   return {

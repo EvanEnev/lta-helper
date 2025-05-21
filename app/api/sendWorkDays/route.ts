@@ -10,6 +10,7 @@ import {
 import {NextRequest, NextResponse} from 'next/server'
 import {auth} from '@/lib/auth'
 import updatePoints from '@/src/utils/admin/updatePoints'
+import db from '@/lib/database'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
@@ -153,7 +154,7 @@ export async function POST(req: NextRequest) {
     const workerRow = getWorkerRow(data.worker, workersRows)
     const actorRow = getWorkerRow(data.worker, actorsRows)
 
-    let bonuses = data.bonuses || '' + data.fines || ''
+    let bonuses = (data.bonuses || '') + '+' + (data.fines || '')
 
     const scheduleRow = scheduleRows.find(
       (row: GoogleSpreadsheetRow) =>
@@ -219,6 +220,14 @@ export async function POST(req: NextRequest) {
 
     let defaultSalary = ranksSalary[rank]?.default
     let overworkSalary = 0
+
+    if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
+      overworkSalary += ranksSalary[rank].overWork * (data.gamesCount - 2)
+    }
+
+    if (isOverWork) {
+      overworkSalary += ranksSalary[rank].overWork * overWorkTime
+    }
 
     if (!data.comment?.toLowerCase().includes('под игру')) {
       promises.push(
@@ -305,19 +314,48 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    queries.push(`INSERT INTO lt_arena.salary (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time)
+    const workingStart = calculatedWorkingTime.split('-')[0]
+    const workingEnd = calculatedWorkingTime.split('-')[1]
+
+    const overworkStart = calculatedOverWorkTime.split('-')[0]
+    const overworkEnd = calculatedOverWorkTime.split('-')[1]
+
+    queries.push(`INSERT INTO lt_arena.salary
+  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork)
                   VALUES
                     (
-                     (SELECT id FROM lt_arena.workers WHERE LOWER(name) = ${data.worker.toLowerCase()}),
+                     (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
                       '${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}',
                      ${defaultSalary},
-                     '${data.bonuses}',
-                     
-                    )`)
+                     '${data.bonuses || 0}',
+                     '${data.fines || 0}',
+                     '${data.comment}',
+                     (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
+                      (SELECT id FROM lt_arena.workers WHERE telegram_id = ${user.id}),
+                     '${workingStart}:00',
+                     '${workingEnd}:00',
+                     ${overworkStart ? `'${overworkStart}:00'` : 'NULL'},
+                     ${overworkEnd ? `'${overworkEnd}:00'` : 'NULL'},
+                      ${overworkSalary || 'NULL'}
+                    )
+                    ON CONFLICT (worker_id, date, location_id) DO UPDATE
+                    SET 
+                      value=excluded.value,
+                      bonuses=excluded.bonuses,
+                      fines=excluded.fines,
+                      comment=excluded.comment,
+                      created_by=excluded.created_by,
+                      start_time=excluded.start_time,
+                      end_time=excluded.end_time,
+                      overwork_start=excluded.overwork_start,
+                      overwork_end=excluded.overwork_end,
+                      overwork=excluded.overwork
+                        `)
   }
 
   if (promises.length) {
-    await Promise.all(promises).then(async () => {
+    const queriesPromises = queries.map(query => db.query(query))
+    await Promise.all([...promises, ...queriesPromises]).then(async () => {
       await Promise.all([
         workersSheet.saveUpdatedCells(),
         actorsSheet.saveUpdatedCells(),
@@ -328,10 +366,6 @@ export async function POST(req: NextRequest) {
       ])
     })
   }
-
-  const query = `INSERT INTO lt_arena.salary (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time)
-    VALUES
-    ()`
 
   return NextResponse.json({}, {status: 200})
 }
