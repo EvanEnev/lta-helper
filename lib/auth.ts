@@ -8,6 +8,8 @@ import {
 } from '@telegram-auth/server'
 import db from '@/lib/database'
 import convertTZ from './functions/convertTZ'
+import {Pool} from 'pg'
+import PostgresAdapter from '@auth/pg-adapter'
 
 const getUserData = async (id: number): Promise<Session['user']> => {
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
@@ -55,11 +57,14 @@ const getUserData = async (id: number): Promise<Session['user']> => {
 }
 
 export const authOptions = {
+  debug: true,
+  session: {strategy: 'jwt'},
   providers: [
     CredentialsProvider({
       id: 'telegram-login',
       name: 'Telegram Login',
       credentials: {},
+      // @ts-ignore
       authorize: async credentials => {
         const validator = new AuthDataValidator({
           botToken: `${process.env.BOT_TOKEN}`,
@@ -85,6 +90,7 @@ export const authOptions = {
           const data = await getUserData(user.id)
 
           let returned = {
+            id: data.id,
             telegramId: user.id,
             rank: '',
             permission_level: 0,
@@ -106,7 +112,7 @@ export const authOptions = {
   ],
   callbacks: {
     // @ts-ignore
-    async jwt({token, user}) {
+    async jwt({token, trigger, session, user}) {
       if (user) {
         token.id = user.id
         token.telegramId = user.telegramId
@@ -151,13 +157,25 @@ export const authOptions = {
     authorized: async ({auth}) => {
       return !!auth?.user
     },
-    redirect: async () => {
-      return 'https://lt.bubenev.su'
+    redirect: async ({url, baseUrl}: {url: string; baseUrl: string}) => {
+      if (baseUrl.includes('localhost')) {
+        return 'http://127.0.0.1'
+      }
+
+      return baseUrl
     },
-  },
-  pages: {
-    signIn: '/login',
   },
 }
 
-export const {handlers, signIn, signOut, auth} = NextAuth(authOptions)
+export const {handlers, signIn, signOut, auth} = NextAuth(() => {
+  const pool = new Pool({
+    host: 'lt.bubenev.su',
+    user: 'evan',
+    password: 'Ghjdthrfcdzpb98',
+    database: 'lt_arena',
+    port: 1672,
+    max: 20,
+  })
+
+  return {...authOptions, adapter: PostgresAdapter(pool)}
+})

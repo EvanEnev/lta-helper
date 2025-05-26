@@ -1,15 +1,21 @@
 import getRankIcon from '@/src/utils/page/getRankIcon'
-import {useSession} from 'next-auth/react'
 import UpcomingShifts from './UpcomingShifts'
+import useTelegramLogin from '@/src/hooks/useTelegramLogin'
+import {useEffect} from 'react'
 
 export default function DesktopPage() {
-  const {data: session} = useSession()
+  const {user} = useTelegramLogin()
+
+  useEffect(() => {
+    console.log(user)
+  }, [user])
 
   return (
-    <main className="w-screen h-screen">
+    <main className="h-screen w-screen">
       <div className="flex justify-between gap-4 p-4">
-        <div className="text-3xl flex items-center gap-4 h-fit">
-          {getRankIcon(session?.user.rank)} {session?.user.rank}
+        <div className="flex h-fit items-center gap-4 text-3xl">
+          // @ts-ignore
+          {getRankIcon(user?.rank || '')} {user?.rank || ''}
         </div>
         <UpcomingShifts />
       </div>

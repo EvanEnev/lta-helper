@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const {changes, commentsChanges, queries} = await getChanges({
+  const {changes, queries} = await getChanges({
     sheet,
     row,
     selectedDays,
@@ -73,10 +73,12 @@ export async function POST(req: NextRequest) {
   const workerName = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
 
   changes.forEach(change => {
-    const weekday = getWeekDay(change.date)
+    const date = change.date
+    const formattedDate = date.toFormat('dd.MM')
+    const weekday = date.toFormat('EEEE', {locale: 'ru-RU'})
 
     changesTexts.push(
-      `${change.date} ${change.newValue}${
+      `${formattedDate} ${change.newValue}${
         change.comment ? `, ${change.comment}` : ''
       }`,
     )
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
         change.newValue === '+/-' ? 'может с ограничем' : 'не может'
       locationsChangesTexts.push(
         `⚠️ ${change.location}, ${workerName} **${possibilityText}** ${
-          change.date
+          formattedDate
         } (${weekday})${change.comment ? `, ${change.comment}` : ''}`,
       )
     }
@@ -110,19 +112,6 @@ export async function POST(req: NextRequest) {
   const message_thread_id = isActor
     ? process.env.ACTORS_THREAD_ID
     : process.env.WORKERS_THREAD_ID
-
-  if (commentsChanges.length) {
-    const commentsUpdateEntries = commentsChanges
-      .map(comment => {
-        return `('${worker.name}', '${comment.date}', '${comment.value}')`
-      })
-      .join(',\n')
-
-    const commentsUpdateQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsUpdateEntries}
-     ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
-
-    await db.query(commentsUpdateQuery)
-  }
 
   const query = queries.join(';\n')
 

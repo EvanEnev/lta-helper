@@ -12,7 +12,7 @@ export default async function Salary() {
   const session = await auth()
 
   const user: Session['user'] = session?.user
-
+  console.log(DateTime.now().toFormat('ww', {locale: 'ru-RU'}))
   const canView = checkPermissions(['view_salary'], user)
   const canViewLocation = checkPermissions(['view_location_salary'], user)
   const canViewFull = checkPermissions(['view_full_salary'], user)

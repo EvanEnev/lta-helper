@@ -1,4 +1,4 @@
-import {Accordion, AccordionItem, Button, Selection} from "@heroui/react"
+import {Accordion, AccordionItem, Button, Selection} from '@heroui/react'
 import DayButton from '../schedule/DayButton'
 import WorkData from './WorkData'
 import {useState} from 'react'
@@ -7,12 +7,12 @@ import {Plain} from 'solar-icon-set'
 
 type Options = {
   days: {
-    current: Date
-    previous: Date
-    today: Date
+    current: any
+    previous: any
+    today: any
   }
   setDate: any
-  date?: Date
+  date?: any
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: string[]
@@ -56,7 +56,7 @@ export default function MobileAdmin({
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start p-4 gap-4">
+    <main className="flex min-h-screen flex-col items-center justify-start gap-4 p-4">
       <div className="flex gap-4">
         <DayButton
           onclick={() => setDate(days.previous)}
@@ -69,7 +69,9 @@ export default function MobileAdmin({
           onclick={() => setDate(days.current)}
           day={{date: days.current}}
           color="success"
-          isSelected={date?.getTime() === days.current.getTime()}
+          isSelected={
+            date.toFormat('yyyy-dd-MM') === days.current.toFormat('yyyy-dd-MM')
+          }
         />
       </div>
 
@@ -114,14 +116,14 @@ export default function MobileAdmin({
       <Button
         size="lg"
         color="default"
-        className="w-full h-16"
+        className="h-16 w-full"
         onPress={addSalaryData}>
         Добавить
       </Button>
       <Button
         size="lg"
         color="primary"
-        className="w-full h-16"
+        className="h-16 w-full"
         onPress={sendData}
         endContent={<Plain size={24} />}
         isLoading={isLoading}>

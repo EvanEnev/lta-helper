@@ -6,12 +6,12 @@ import DayButton from '../schedule/DayButton'
 
 type Options = {
   days: {
-    current: Date
-    previous: Date
-    today: Date
+    current: any
+    previous: any
+    today: any
   }
   setDate: any
-  date?: Date
+  date?: any
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: string[]
@@ -30,8 +30,8 @@ export default function DesktopAdmin({
   isLoading,
 }: Options) {
   return (
-    <main className="flex gap-4 min-h-screen p-4">
-      <div className="grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4 w-full overflow-auto h-[95vh]">
+    <main className="flex min-h-screen gap-4 p-4">
+      <div className="grid h-[95vh] w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 overflow-auto lg:grid-cols-4">
         {salaryData.map((data, index) => {
           return (
             <Card key={index} className="">
@@ -67,22 +67,28 @@ export default function DesktopAdmin({
         })}
       </div>
       <div className="h-[70vh]">
-        <Card className="w-[22vw] h-fit" isBlurred>
+        <Card className="h-fit w-[22vw]" isBlurred>
           <CardBody className="gap-4">
             <DayButton
               onclick={() => setDate(days.previous)}
               day={{date: days.previous}}
               color="warning"
-              className="w-full h-16"
-              isSelected={date?.getTime() === days.previous.getTime()}
+              className="h-16 w-full"
+              isSelected={
+                date.toFormat('yyyy-dd-MM') ===
+                days.previous.toFormat('yyyy-dd-MM')
+              }
               disabled={days.today.getHours() > 3}
             />
             <DayButton
               onclick={() => setDate(days.current)}
               day={{date: days.current}}
               color="success"
-              className="w-full h-16"
-              isSelected={date?.getTime() === days.current.getTime()}
+              className="h-16 w-full"
+              isSelected={
+                date.toFormat('yyyy-dd-MM') ===
+                days.current.toFormat('yyyy-dd-MM')
+              }
             />
             <Button
               className="h-min p-2"
@@ -105,7 +111,7 @@ export default function DesktopAdmin({
             <Button
               size="lg"
               color="primary"
-              className="w-full h-16"
+              className="h-16 w-full"
               onPress={sendData}
               startContent={<Plain size={24} />}
               isLoading={isLoading}>

@@ -7,7 +7,7 @@ import {daysAtom} from '@/src/utils/global/atoms'
 export default function UpcomingShifts({className = ''}: {className?: string}) {
   const days = useAtomValue(daysAtom)
 
-  const currentDate = convertTZ(new Date(), 'Europe/Moscow')
+  const currentDate = new Date()
 
   const getDatesDiff = (date?: Date) => {
     // @ts-ignore
@@ -18,7 +18,7 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
   return (
     <Card isBlurred className={`w-full max-w-fit ${className}`}>
       <CardHeader className="text-3xl">Ближайшие смены</CardHeader>
-      <CardBody className="flex gap-4 overflow-auto flex-row">
+      <CardBody className="flex flex-row gap-4 overflow-auto">
         {days
           .filter(
             day =>
@@ -32,8 +32,8 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
             return (
               <div
                 key={index}
-                className="flex gap-4 flex-col border-1 rounded-xl p-4">
-                <span className="items-center flex gap-1">
+                className="flex flex-col gap-4 rounded-xl border-1 p-4">
+                <span className="flex items-center gap-1">
                   <CalendarMinimalistic />
                   {day.date?.toLocaleDateString('ru-RU', {
                     month: 'numeric',
@@ -41,11 +41,11 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
                     weekday: 'short',
                   })}
                 </span>
-                <span className="items-center flex gap-1">
+                <span className="flex items-center gap-1">
                   <MapPoint />
                   {dayData?.locationName}
                 </span>
-                <span className="items-center flex gap-1">
+                <span className="flex items-center gap-1">
                   <ClockCircle />
                   {dayData?.data?.time}
                 </span>

@@ -1,23 +1,22 @@
 'use client'
 
-import {useCallback, useEffect, useRef} from 'react'
+import {useCallback, useEffect} from 'react'
 import React from 'react'
-import {signIn, useSession} from 'next-auth/react'
 import Loading from '@/app/loading/page'
 import {useRouter} from 'next/navigation'
-import convertTZ from '@/lib/functions/convertTZ'
 import {useAtom} from 'jotai'
 import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
+import useTelegramLogin from '@/src/hooks/useTelegramLogin'
+import supabase from '@/lib/supabase'
 
 const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
-  const session = useSession()
+  const {login, isLoading} = useTelegramLogin()
+
   const [telegram, setTelegram] = useAtom(telegramAtom)
   const [days, setDays] = useAtom(daysAtom)
-
-  const currentStatus = useRef('')
 
   const getWorker = useCallback(async (): Promise<void> => {
     const response = await fetch('/api/getData')
@@ -27,7 +26,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
     if (data?.length) {
       const newDays = data.map((day: any) => ({
         ...day,
-        date: convertTZ(new Date(day.date), 'Europe/Moscow'),
+        date: day.date,
       }))
 
       setDays(newDays)
@@ -35,72 +34,59 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
   }, [setDays])
 
   useEffect(() => {
-    if (session?.status === currentStatus.current) return
+    const main = async () => {
+      const {data: user} = await supabase.auth.getUser()
 
-    currentStatus.current = session?.status
+      let appTelegram = {}
 
-    let appTelegram = {}
-
-    if (process.env.NODE_ENV === 'development') {
-      appTelegram = {}
-    } else {
-      const telegramObject = (window as any)?.Telegram?.WebApp
-      appTelegram = telegramObject.initData ? telegramObject : {}
-    }
-
-    if (
-      !session?.data?.user &&
-      !Object.keys(appTelegram).length &&
-      session?.status !== 'loading'
-    ) {
-      router.push('/login')
-      return
-    }
-
-    if (session?.status === 'authenticated') {
-      if (requiredFields.some(key => !session?.data?.user[key])) {
-        return router.push('/register')
+      if (process.env.NODE_ENV === 'development') {
+        appTelegram = {}
+      } else {
+        const telegramObject = (window as any)?.Telegram?.WebApp
+        appTelegram = telegramObject.initData ? telegramObject : {}
       }
-    }
 
-    if (Object.keys(telegram).length && session?.data?.user) return
+      console.log(user)
+      if (!user && !Object.keys(appTelegram).length) {
+        router.push('/login')
+        return
+      }
 
-    if (appTelegram) {
-      try {
-        // @ts-ignore
-        appTelegram.ready()
-        // @ts-ignore
-        appTelegram.expand()
-      } catch (e) {}
+      if (user) {
+        if (requiredFields.some(key => !user[key])) {
+          return router.push('/register')
+        }
+      }
 
-      if (session?.status === 'unauthenticated') {
-        signIn('telegram-login', {
+      if (Object.keys(telegram).length && user) return
+
+      if (appTelegram) {
+        try {
           // @ts-ignore
-          data: `https://lt.bubenev.su?${appTelegram.initData}`,
-        }).then(() => {
+          appTelegram.ready()
+          // @ts-ignore
+          appTelegram.expand()
+        } catch (e) {}
+
+        if (!user) {
+          login({
+            // @ts-ignore
+            credentials: `https://lt.bubenev.su?${appTelegram.initData}`,
+          }).then(() => {
+            getWorker()
+            setTelegram(appTelegram)
+          })
+        } else {
           getWorker()
           setTelegram(appTelegram)
-        })
-      } else {
+        }
+      } else if (!days.length) {
         getWorker()
-        setTelegram(appTelegram)
       }
-    } else if (!days.length) {
-      getWorker()
     }
-  }, [
-    days.length,
-    getWorker,
-    router,
-    session?.data?.user,
-    session?.status,
-    setTelegram,
-    telegram,
-  ])
 
-  return (
-    <React.Fragment>
-      {session?.status === 'loading' ? <Loading /> : children}
-    </React.Fragment>
-  )
+    main()
+  }, [days.length, getWorker, router, setTelegram, telegram, login])
+
+  return <React.Fragment>{isLoading ? <Loading /> : children}</React.Fragment>
 }

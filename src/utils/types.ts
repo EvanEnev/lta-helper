@@ -1,7 +1,7 @@
-import {DateTime} from "luxon";
+import {DateTime} from 'luxon'
 
 export type Day = {
-  date?: Date
+  date?: DateTime
   value?: string
   comment?: string
   location?: string
@@ -51,31 +51,31 @@ export interface WorkerSalary {
 }
 
 export interface SalaryData {
-  date: string,
-  start_time: string,
-  end_time: string,
-  overwork_start: string | null,
-  overwork_end: string | null,
-  overwork: number | null,
-  value: number,
-  bonuses: string | null,
-  fines: string,
-  comment: string | null,
-  created_at: string,
-  worker_name: string,
-  worker_id: number,
-  created_by: string,
-  updated_by?: number,
+  date: string
+  start_time: string
+  end_time: string
+  overwork_start: string | null
+  overwork_end: string | null
+  overwork: number | null
+  value: number
+  bonuses: string | null
+  fines: string
+  comment: string | null
+  created_at: string
+  worker_name: string
+  worker_id: number
+  created_by: string
+  updated_by?: number
   location: {
-    name: string,
-    color: string,
+    name: string
+    color: string
   }
 }
 
 export interface SalaryUser {
   id: number
-  name: string,
-  rank: string | null,
+  name: string
+  rank: string | null
   firstName: string | null
 }
 

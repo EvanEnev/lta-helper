@@ -3,7 +3,7 @@ import {
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
 import {Day} from '../types'
-import {CellBGColorStyle, Change, Comment} from './types'
+import {CellBGColorStyle, Change} from './types'
 import getCellValue from './getCellValue'
 import getComments from './getComments'
 import locations from '../locations'
@@ -29,13 +29,8 @@ export default async function getChanges({
 }: Options) {
   const headerValues = sheet.headerValues
   const rowNumber = row.rowNumber
-  selectedDays = selectedDays.map(day => ({
-    ...day,
-    date: new Date(day?.date || ''),
-  }))
 
   const changes: Change[] = []
-  const commentsChanges: Comment[] = []
   const queries: string[] = []
 
   await sheet.loadCells(`G${rowNumber}:X${rowNumber}`)
@@ -44,15 +39,9 @@ export default async function getChanges({
 
   headerValues.slice(10, 24).forEach((headerValue: string) => {
     const date = headerValue.split(' ')[1]
-    const day = selectedDays.find(
-      day =>
-        day.date?.toLocaleDateString('ru-RU', {
-          month: 'numeric',
-          day: 'numeric',
-        }) === date,
-    )
+    const day = selectedDays.find(day => day.date?.toFormat('dd.MM') === date)
 
-    if (!day?.value) return
+    if (!(day?.value && day.date)) return
 
     const colNumber = headerValues.indexOf(headerValue)
 
@@ -71,7 +60,6 @@ export default async function getChanges({
 
     if (isDifferentComment && day.comment) {
       cell.note = day?.comment || ''
-      commentsChanges.push({date, value: day?.comment || ''})
     }
 
     const providedLocation = locations.find(
@@ -88,7 +76,7 @@ export default async function getChanges({
     }
 
     changes.push({
-      date,
+      date: day.date,
       newValue: day.value,
       comment: day?.comment || '',
       location:
@@ -97,10 +85,7 @@ export default async function getChanges({
           : '',
     })
 
-    const year = day.date?.getFullYear().toString()
-    const month = ((day?.date?.getMonth() || 0) + 1).toString().padStart(2, '0')
-    const dayString = day.date?.getDate().toString().padStart(2, '0')
-    const formattedDate = `${year}-${month}-${dayString}`
+    const formattedDate = day.date?.toFormat('yyyy-MM-dd')
 
     const query = `INSERT INTO lt_arena.schedule (worker_id, date, value, comment)
         SELECT w.id AS worker_id,
@@ -123,5 +108,5 @@ export default async function getChanges({
     queries.push(query)
   })
 
-  return {changes, commentsChanges, queries}
+  return {changes, queries}
 }

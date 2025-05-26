@@ -1,25 +1,31 @@
-import {createServer} from 'node:http'
-import next from 'next'
+import 'dotenv/config'
+import {createServer, request} from 'node:http'
 import {Server} from 'socket.io'
-import {SalaryData, UserSalary} from '@/src/utils/types'
-import db from '@/lib/database'
+import {SalaryData} from '@/src/utils/types'
 import {initListener} from '@/lib/dbListener'
-import convertTZ from '@/lib/functions/convertTZ'
 import {DateTime} from 'luxon'
 
+const port = 4000
 const dev = process.env.NODE_ENV !== 'production'
+const test = process.env.NODE_ENV === 'test'
 
-const hostname = process.env.HOST || ''
-const port = parseInt(dev ? '80' : process.env.PORT || '')
+const hostname = dev
+  ? 'http://127.0.0.1'
+  : test
+    ? 'https://lt-test.bubenev.su'
+    : 'https://lt.bubenev.su'
 
-const app = next({dev, hostname, port, turbopack: dev})
-const handler = app.getRequestHandler()
+async function startSocketServer() {
+  const httpServer = createServer()
 
-app.prepare().then(async () => {
-  console.log(`> Next.js ready`)
-  const httpServer = createServer(handler)
+  const io = new Server(httpServer, {
+    cors: {
+      origin: hostname,
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
+  })
 
-  const io = new Server(httpServer)
   const client = await initListener(io)
 
   io.on('connection', socket => {
@@ -63,6 +69,11 @@ app.prepare().then(async () => {
       process.exit(1)
     })
     .listen(port, () => {
-      console.log(`> WebSocker ready on port ${port}`)
+      console.log(`> WebSocket ready on port ${port}`)
     })
+}
+
+startSocketServer().catch(err => {
+  console.error(err.message)
+  process.exit(1)
 })

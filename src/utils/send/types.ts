@@ -1,3 +1,5 @@
+import {DateTime} from 'luxon'
+
 export interface CellBGColorStyle {
   rgbColor: {
     red: number
@@ -12,7 +14,7 @@ export interface Comment {
 }
 
 export interface Change {
-  date: string
+  date: DateTime
   newValue: string
   comment?: string
   location?: string

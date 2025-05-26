@@ -2,16 +2,17 @@ import db from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
 import {auth} from '@/lib/auth'
+import {DateTime} from 'luxon'
+import authh from '@/lib/authh'
 
 export async function GET() {
-  const session = await auth()
-  const user = session?.user
+  const {user} = await authh()
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
-  const telegramId = user.id
+  const telegramId = user.telegramId
 
   const workerQuery = `SELECT
   name,
@@ -59,7 +60,7 @@ export async function GET() {
 
   let locationsData: {
     rows: {
-      date: Date
+      date: DateTime
       start_time: string
       end_time: string
       location_comment: string
@@ -72,9 +73,9 @@ export async function GET() {
   locationsData = await db.query(locationsQuery)
 
   const defaultDays = await getDefaultDays()
-  const workingDays = defaultDays.map((day: Date) => {
+  const workingDays = defaultDays.map(day => {
     const data = dataResult.rows.find(
-      obj => obj?.date.getTime() === day.getTime(),
+      obj => obj.date.toFormat('yyyy-dd-MM') === day.toFormat('yyyy-dd-MM'),
     )
 
     if (!data)
@@ -84,7 +85,9 @@ export async function GET() {
       }
 
     const locationData = locationsData.rows
-      .filter(obj => obj?.date.getTime() === day.getTime())
+      .filter(
+        obj => obj?.date.toFormat('yyyy-dd-MM') === day.toFormat('yyyy-dd-MM'),
+      )
       ?.map(data => {
         let startTime = data.start_time
         let endTime = data.end_time

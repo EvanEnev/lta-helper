@@ -55,6 +55,7 @@ export default function Register() {
       method: 'POST',
       body: JSON.stringify({data: data}),
     })
+
     setLoading(false)
 
     const resultData = await result.json()
@@ -81,9 +82,9 @@ export default function Register() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Регистрация</h1>
-      <div className="flex justify-center gap-4 w-full sm:w-1/2 max-h-[50%] flex-wrap">
+      <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4 sm:w-1/2">
         <Form className="w-full" onSubmit={handler}>
           <Input
             label="Позывной"
@@ -153,7 +154,7 @@ export default function Register() {
             }
           />
           <Button
-            className="w-full h-16"
+            className="h-16 w-full"
             variant="shadow"
             color="primary"
             size="lg"

@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   await db.query(query)
 
   const defaultDays = await getDefaultDays()
-  const workingDays = defaultDays.map((day: Date) => ({date: day}))
+  const workingDays = defaultDays.map(day => ({date: day}))
 
   return NextResponse.json({workingDays}, {status: 200})
 }

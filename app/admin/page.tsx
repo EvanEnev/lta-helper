@@ -24,7 +24,7 @@ export default function Admin() {
     },
   ])
   const [workers, setWorkers] = useState([])
-  const [date, setDate] = useState<Date>()
+  const [date, setDate] = useState()
   const [isLoading, setLoading] = useState<boolean>(false)
   const setAlertData = useSetAtom(alertAtom)
 
@@ -46,7 +46,7 @@ export default function Admin() {
     const currentDate = convertTZ(new Date(), 'Europe/Moscow')
     const previousDate = convertTZ(new Date(), 'Europe/Moscow')
 
-    previousDate.setDate(currentDate.getDate() - 1)
+    previousDate.set({day: previousDate.day - 1})
 
     return {
       current: currentDate,
@@ -56,6 +56,7 @@ export default function Admin() {
   }, [])
 
   useEffect(() => {
+    // @ts-ignore
     setDate(days.current)
   }, [days])
 
@@ -69,7 +70,8 @@ export default function Admin() {
 
     const data = {
       salaryData,
-      date,
+      // @ts-ignore
+      date: date?.toISO() || '',
     }
 
     setLoading(true)
