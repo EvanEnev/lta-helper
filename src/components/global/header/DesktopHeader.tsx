@@ -2,6 +2,7 @@ import {Button, Avatar, Link} from '@heroui/react'
 import {Session} from 'next-auth'
 import {usePathname} from 'next/navigation'
 import {useEffect, useState} from "react";
+import {signOut} from "next-auth/react";
 
 const buttons = [
   {name: 'Главная', href: '/'},
@@ -43,7 +44,8 @@ export default function DesktopHeader({session}: {session: Session | null}) {
             </Button>
           )
         })}
-      </div>
+
+          <Button onPress={() => signOut()}>Выйти</Button>      </div>
       <div className="flex gap-4 items-center text-3xl h-fit">
         <Avatar src={session?.user.image} size="lg" />
         {session?.user.name}

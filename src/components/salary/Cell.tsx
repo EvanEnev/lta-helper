@@ -1,31 +1,64 @@
-import {SalaryData} from "@/src/utils/types";
-import {Card, CardBody, CardFooter, CardHeader, Tooltip} from "@heroui/react";
-import {evaluate} from "mathjs";
+import {SalaryData, UserSalary} from '@/src/utils/types'
+import {Card, CardBody, CardHeader, Divider} from '@heroui/react'
+import CellHeader from '@/src/components/salary/CellHeader'
+import CellHeaderEditable from '@/src/components/salary/CellHeaderEditable'
+import CellBodyEditable from '@/src/components/salary/CellBodyEditable'
+import CellBody from '@/src/components/salary/CellBody'
+import {memo, useCallback, useEffect, useState} from 'react'
+import {ChatRoundDots, ChatRoundLine} from 'solar-icon-set'
 
-export default function Cell({data}: {data?: SalaryData}) {
-    if (!data) return null
+export default memo(function Cell({
+  data,
+  canEdit,
+  handleEdit,
+}: {
+  data?: SalaryData
+  canEdit: boolean
+  handleEdit: (data: SalaryData) => void
+}) {
+  const [cellData, setCellData] = useState<SalaryData | undefined>(data)
 
-    const startTime = data.start_time.slice(0, -3)
-    const endTime = data.end_time.slice(0, -3)
-    const time = `${startTime}-${endTime}`
+  useEffect(() => {
+    setCellData(data)
+  }, [data])
 
-    return <Card className={`w-[12rem] h-[15rem]`}>
-        <CardHeader className='grid grid-cols-2 grid-rows-4 h-fit max-h-fit pb-0'>
-            <p className='col-span-2 mb-2'>{data.location.name}</p>
-            <p className='text-start'>{time}</p>
-            <p className='text-end'>{data.value}</p>
-            {parseInt(data.bonuses || '') ?
-                <Tooltip content={data.bonuses}>
-                    <p className='col-2 text-end'>{evaluate(data.bonuses || '')}</p>
-                </Tooltip> : ''}
-        </CardHeader>
-        <CardBody className="grid grid-cols-2 grid-rows-5 pt-0">
-                <p className='col-span-2'>{data.comment}</p>
-        </CardBody>
-        <CardFooter className='flex flex-col gap-2 items-center justify-center relative'>
-            <p className='text-xs'>{data.created_by}</p>
-            <p className='text-xs'>{data.created_at.toLocaleDateString('ru-RU')}</p>
-            <span className='absolute bottom-2 left-2 rounded-full h-5 w-5' style={{backgroundColor: data.location.color}}/>
-        </CardFooter>
+  const handleCellEdit = useCallback(
+    (data: SalaryData) => {
+      if (!data) return
+      handleEdit(data)
+
+      setCellData(data)
+    },
+    [handleEdit],
+  )
+
+  if (!cellData) return null
+
+  return (
+    <Card className={`min-h-[15rem] w-[12rem]`}>
+      <CardHeader
+        className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2 pb-0"
+        style={{backgroundColor: cellData.location.color}}>
+        {canEdit ? (
+          <CellHeaderEditable data={cellData} handleEdit={handleCellEdit} />
+        ) : (
+          <CellHeader data={cellData} />
+        )}
+      </CardHeader>
+      <CardBody
+        className="grid h-fit grid-cols-2 grid-rows-1 gap-2 text-center"
+        style={{backgroundColor: cellData.location.color}}>
+        <Divider className="bg-default-100 col-span-2 w-full" />
+        <p className="text-default-100 col-span-2 text-xs">
+          {<ChatRoundLine iconStyle="Bold" className="mr-1 align-middle" />}
+          Комментарий
+        </p>
+        {canEdit ? (
+          <CellBodyEditable data={cellData} handleEdit={handleCellEdit} />
+        ) : (
+          <CellBody data={cellData} />
+        )}
+      </CardBody>
     </Card>
-}
+  )
+})

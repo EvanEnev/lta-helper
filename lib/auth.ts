@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import NextAuth, {Session} from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 
 import {
@@ -9,14 +9,12 @@ import {
 import db from '@/lib/database'
 import convertTZ from './functions/convertTZ'
 
-const getUserData = async (id: number) => {
-  const date = convertTZ(new Date(), 'Europe/Moscow').toLocaleDateString(
-    'ru-RU',
-    {day: 'numeric', month: 'numeric'},
-  )
+const getUserData = async (id: number): Promise<Session['user']> => {
+  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
 
   const query = `SELECT
         w.name,
+        w.id,
         rank,
         l.name as location,
         ranks.permission_level,
@@ -32,8 +30,22 @@ const getUserData = async (id: number) => {
         LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
         WHERE telegram_id = ${id}`
 
+  const permissionQuery = `SELECT
+        pm.name, description, pm.id
+    FROM lt_arena.permissions pm
+           LEFT JOIN lt_arena.workers w ON telegram_id=${id}
+           LEFT JOIN lt_arena.default_permissions dp ON (SELECT weight FROM lt_arena.ranks WHERE id = dp.rank_id) <= (SELECT weight FROM lt_arena.ranks WHERE name = w.rank)
+           LEFT JOIN lt_arena.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires < NOW(), true)
+    WHERE
+      pm.id = dp.permission_id
+       OR pm.id = w_pm.permission_id`
+
   const result = await db.query(query)
+  const permissionsResult = await db.query(permissionQuery)
+  const permissions = permissionsResult.rows
   const data = result.rows[0] || {}
+
+  data.permissions = permissions
 
   if (data?.today_location) {
     data.permission_level = 4
@@ -73,11 +85,12 @@ export const authOptions = {
           const data = await getUserData(user.id)
 
           let returned = {
-            id: user.id.toString(),
+            telegramId: user.id,
             rank: '',
             permission_level: 0,
             name: [user?.first_name, user?.last_name || ''].join(' '),
             image: user.photo_url,
+            permissions: [],
           }
 
           if (data) {
@@ -96,6 +109,7 @@ export const authOptions = {
     async jwt({token, user}) {
       if (user) {
         token.id = user.id
+        token.telegramId = user.telegramId
         token.name = user.name
         token.first_name = user.first_name
         token.last_name = user.last_name
@@ -106,6 +120,7 @@ export const authOptions = {
         token.permission_level = user.permission_level
         token.image = user.image
         token.location = user.location
+        token.permissions = user.permissions
       }
 
       return token
@@ -113,9 +128,10 @@ export const authOptions = {
     // @ts-ignore
     async session({session, token}) {
       if (token) {
-        const data = await getUserData(token.id)
+        const data = await getUserData(token.telegramId)
 
-        session.user.id = token.id
+        session.user.telegramId = token.telegramId
+        session.user.id = data.id
         session.user.name = data.name
         session.user.rank = data.rank
         session.user.first_name = data.first_name
@@ -126,7 +142,9 @@ export const authOptions = {
         session.user.permission_level = data.permission_level
         session.user.image = token.image
         session.user.location = data.location
+        session.user.permissions = data.permissions
       }
+
       return session
     },
     // @ts-ignore
