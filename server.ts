@@ -1,8 +1,7 @@
 import {createServer} from 'node:http'
 import next from 'next'
 import {Server} from 'socket.io'
-import {SalaryData} from '@/src/utils/types'
-import {initListener} from '@/lib/dbListener'
+import {initListener} from '@/dbListener'
 import {DateTime} from 'luxon'
 
 const dev = process.env.NODE_ENV !== 'production'
@@ -23,7 +22,7 @@ app.prepare().then(async () => {
   io.on('connection', socket => {
     console.log(`> Socket ${socket.id}`)
 
-    socket.on('update:user_salary', async (data: SalaryData) => {
+    socket.on('update:user_salary', async (data: any) => {
       console.log(data)
       const date = DateTime.fromISO(data.date)
 
