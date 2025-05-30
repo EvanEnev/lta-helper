@@ -7,7 +7,7 @@ import {DateTime} from 'luxon'
 const dev = process.env.NODE_ENV !== 'production'
 
 const hostname = process.env.HOST || ''
-const port = parseInt(dev ? '80' : process.env.PORT || '')
+const port = parseInt(dev ? '80' : '5001')
 
 const app = next({dev, hostname, port, turbopack: dev})
 const handler = app.getRequestHandler()
