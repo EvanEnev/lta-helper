@@ -2,10 +2,10 @@ import {Button} from '@heroui/react'
 import {useState} from 'react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
-import {useSession} from 'next-auth/react'
 import {Day} from '@/src/utils/types'
 import {selectedDayAtom, telegramAtom} from '@/src/utils/global/atoms'
 import {useAtom, useAtomValue} from 'jotai'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function SendButton({
   className = '',
@@ -18,14 +18,14 @@ export default function SendButton({
   const telegram = useAtomValue(telegramAtom)
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
-  const {data: session} = useSession()
+  const {worker} = useAuth()
   const handler = async () => {
     setLoading(true)
 
     const invalidDay = days.find(
       day =>
-        ((session?.user.rank &&
-          session?.user.rank.toLowerCase() !== 'актёр' &&
+        ((worker.rank &&
+          worker.rank.toLowerCase() !== 'актёр' &&
           day.value === '-') ||
           day.value === '+/-') &&
         !day.comment?.trim()?.length,
@@ -61,7 +61,7 @@ export default function SendButton({
       color="primary"
       variant="shadow"
       endContent={<Plain color={'#ffffff'} size={24} />}
-      className={`w-full text-2xl  h-16 ${className}`}>
+      className={`h-16 w-full text-2xl ${className}`}>
       Отправить
     </Button>
   )

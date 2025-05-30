@@ -10,11 +10,5 @@ export default async function getDefaultDays() {
     datesResult.rows[0]
   const interval = Interval.fromDateTimes(start_date, end_date)
 
-  const dates = []
-
-  for (let i = 1; i <= interval.length(); i++) {
-    dates.push(start_date.plus({day: 1}))
-  }
-
-  return dates
+  return interval.splitBy({day: 1}).map(date => date.start!)
 }

@@ -1,14 +1,15 @@
-import {auth} from '@/lib/auth'
 import google from '@/lib/google'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextResponse} from 'next/server'
+import createAdminSupabase from '@/lib/createAdminSupabase'
 
 export async function GET() {
-  const session = await auth()
+  const supabase = await createAdminSupabase()
+  const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
   if (!user) {
-    return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
+    return NextResponse.json({message: 'Ошибка авторизации'}, {status: 500})
   }
 
   await google.schedule.loadInfo()

@@ -1,5 +1,13 @@
-import {SalaryData} from "@/src/utils/types";
+import {SalaryData} from '@/src/utils/types'
+import {Textarea} from '@heroui/react'
 
-export default function CellBody({data}: {data: SalaryData}) {
-    return  <p className='col-span-2 mix-blend-difference'>{data.comment}</p>
+export default function CellBodyEditable({data}: {data: SalaryData}) {
+  return (
+    <Textarea
+      classNames={{input: 'max-h-[4.5rem] min-h-[4.5rem]'}}
+      className="col-span-2"
+      value={data.comment || ''}
+      isReadOnly
+    />
+  )
 }

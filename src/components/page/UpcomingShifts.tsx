@@ -1,18 +1,18 @@
-import convertTZ from '@/lib/functions/convertTZ'
 import {Card, CardBody, CardHeader} from '@heroui/react'
 import {CalendarMinimalistic, ClockCircle, MapPoint} from 'solar-icon-set'
-import {useAtomValue} from 'jotai'
-import {daysAtom} from '@/src/utils/global/atoms'
+import {DateTime} from 'luxon'
+import convertTZ from '@/lib/functions/convertTZ'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function UpcomingShifts({className = ''}: {className?: string}) {
-  const days = useAtomValue(daysAtom)
+  const {workingDays: days} = useAuth()
 
-  const currentDate = new Date()
+  const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
-  const getDatesDiff = (date?: Date) => {
-    // @ts-ignore
-    const diffTime = date - currentDate
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  const getDatesDiff = (date?: DateTime) => {
+    if (!date) return -1
+
+    return -1 * parseInt(currentDate.diff(date).toFormat('dd'))
   }
 
   return (
@@ -35,11 +35,7 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
                 className="flex flex-col gap-4 rounded-xl border-1 p-4">
                 <span className="flex items-center gap-1">
                   <CalendarMinimalistic />
-                  {day.date?.toLocaleDateString('ru-RU', {
-                    month: 'numeric',
-                    day: 'numeric',
-                    weekday: 'short',
-                  })}
+                  {day.date?.toFormat('dd.MM EEE', {locale: 'ru-RU'})}
                 </span>
                 <span className="flex items-center gap-1">
                   <MapPoint />

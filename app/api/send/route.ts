@@ -1,17 +1,17 @@
-import {auth} from '@/lib/auth'
 import db from '@/lib/database'
 import google from '@/lib/google'
 import getChanges from '@/src/utils/send/getChanges'
 import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
-import getWeekDay from '@/src/utils/send/getWeekDay'
 import {Day} from '@/src/utils/types'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
+import createAdminSupabase from '@/lib/createAdminSupabase'
 
 export async function POST(req: NextRequest) {
+  const supabase = await createAdminSupabase()
   const body = await req.json()
   const selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
-  const session = await auth()
+  const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
   if (!user) {
@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
   }
 
-  const telegramId = parseInt(user.id)
+  const telegramId: number = user.user_metadata.telegram_id
+
   const workerResult = await db.query(
     `SELECT "name", "number" FROM lt_arena.workers WHERE telegram_id = $1`,
     [telegramId],
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
   const row = rows.find(
     (r: GoogleSpreadsheetRow) =>
       r.get('Позывной')?.split('-')[0]?.trim()?.toLowerCase() ===
-      user.name.toLowerCase(),
+      worker.name.toLowerCase(),
   )
 
   if (!row) {

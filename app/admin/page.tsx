@@ -8,6 +8,7 @@ import {WorkerSalary} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {useAtomValue, useSetAtom} from 'jotai'
 import {alertAtom, telegramAtom} from '@/src/utils/global/atoms'
+import {DateTime} from 'luxon'
 
 export default function Admin() {
   const isMobile = useIsMobile()
@@ -24,7 +25,7 @@ export default function Admin() {
     },
   ])
   const [workers, setWorkers] = useState([])
-  const [date, setDate] = useState()
+  const [date, setDate] = useState<DateTime>()
   const [isLoading, setLoading] = useState<boolean>(false)
   const setAlertData = useSetAtom(alertAtom)
 
@@ -48,17 +49,14 @@ export default function Admin() {
 
     previousDate.set({day: previousDate.day - 1})
 
+    setDate(currentDate)
+
     return {
       current: currentDate,
       previous: previousDate,
       today: currentDate,
     }
   }, [])
-
-  useEffect(() => {
-    // @ts-ignore
-    setDate(days.current)
-  }, [days])
 
   const sendData = async () => {
     if (!salaryData.length)

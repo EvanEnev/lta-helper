@@ -1,27 +1,67 @@
 import db from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
-import {auth} from '@/lib/auth'
 import {DateTime} from 'luxon'
-import authh from '@/lib/authh'
+import createAdminSupabase from '@/lib/createAdminSupabase'
+import convertTZ from '@/lib/functions/convertTZ'
 
 export async function GET() {
-  const {user} = await authh()
+  const supabase = await createAdminSupabase()
+
+  const {data: session} = await supabase.auth.getUser()
+  const user = session?.user
 
   if (!user) {
+    return NextResponse.json({message: 'Пользователь не найден'}, {status: 500})
+  }
+
+  const telegramId = user.user_metadata.telegram_id
+
+  if (!telegramId) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
-  const telegramId = user.telegramId
+  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
 
-  const workerQuery = `SELECT
-  name,
-  id
-  FROM lt_arena.workers
-  WHERE telegram_id=${telegramId}`
+  const query = `SELECT
+                   w.name,
+                   w.id,
+                   rank,
+                   l.name as location,
+                   ranks.permission_level,
+                   first_name,
+                   last_name,
+                   middle_name,
+                   phone_number,
+                   email,
+                   photo_url,
+                   admins.location_id as today_location
+                 FROM lt_arena.workers w
+                        LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
+                        LEFT JOIN lt_arena.locations l ON l.id = w.location_id
+                        LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
+                 WHERE telegram_id = ${telegramId}`
 
-  const workerResult = await db.query(workerQuery)
-  const worker = workerResult.rows[0]
+  const permissionsQuery = `SELECT
+        pm.name, description, pm.id
+    FROM lt_arena.permissions pm
+           LEFT JOIN lt_arena.workers w ON telegram_id=${telegramId}
+           LEFT JOIN lt_arena.default_permissions dp ON (SELECT weight FROM lt_arena.ranks WHERE id = dp.rank_id) <= (SELECT weight FROM lt_arena.ranks WHERE name = w.rank)
+           LEFT JOIN lt_arena.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires < NOW(), true)
+    WHERE
+      pm.id = dp.permission_id
+       OR pm.id = w_pm.permission_id`
+
+  const result = await db.query(query)
+  const permissionsResult = await db.query(permissionsQuery)
+  const permissions = permissionsResult.rows
+  const worker = result.rows[0] || {}
+
+  worker.permissions = permissions
+
+  if (worker?.today_location) {
+    worker.permission_level = 4
+  }
 
   const dataQuery = `SELECT
   w.name,
@@ -35,7 +75,6 @@ export async function GET() {
   WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 
   const dataResult = await db.query(dataQuery)
-
   if (!worker?.name)
     return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 
@@ -116,18 +155,18 @@ export async function GET() {
             worker: data.worker,
             rank: data.rank,
           },
-          self: user.name === data.worker,
+          self: worker.name === data.worker,
           locationName: data.location,
         }
       })
 
     return {
-      date: day,
+      date: day.toISO(),
       value: data.value,
       comment: data.comment,
       locationData,
     }
   })
 
-  return NextResponse.json(workingDays)
+  return NextResponse.json({workingDays, worker})
 }

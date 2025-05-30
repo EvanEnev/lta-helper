@@ -1,11 +1,11 @@
-import {SalaryData, UserSalary} from '@/src/utils/types'
+import {SalaryData} from '@/src/utils/types'
 import {Card, CardBody, CardHeader, Divider} from '@heroui/react'
 import CellHeader from '@/src/components/salary/CellHeader'
 import CellHeaderEditable from '@/src/components/salary/CellHeaderEditable'
 import CellBodyEditable from '@/src/components/salary/CellBodyEditable'
 import CellBody from '@/src/components/salary/CellBody'
 import {memo, useCallback, useEffect, useState} from 'react'
-import {ChatRoundDots, ChatRoundLine} from 'solar-icon-set'
+import {ChatRoundLine} from 'solar-icon-set'
 
 export default memo(function Cell({
   data,

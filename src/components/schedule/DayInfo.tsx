@@ -13,19 +13,19 @@ import SlashDivider from './SlashDivider'
 import CommentTemplates from './CommentTemplates'
 import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/lib/functions/groupBy'
-import {useSession} from 'next-auth/react'
 import {useAtom, useAtomValue} from 'jotai'
 import {
   daysAtom,
   selectedDatesAtom,
   selectedDayAtom,
 } from '@/src/utils/global/atoms'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function DayInfo({day}: {day: Day}) {
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
   const selectedDates = useAtomValue(selectedDatesAtom)
   const [days, setDays] = useAtom(daysAtom)
-  const {data: session} = useSession()
+  const {worker} = useAuth()
 
   const locationData: LocationData[] = useMemo(() => {
     return day.locationData || []
@@ -39,7 +39,10 @@ export default function DayInfo({day}: {day: Day}) {
 
     if (selectedDates.length > 1) {
       const newDays = days.map(curDay =>
-        selectedDates.find(date => date.getTime() === curDay.date?.getTime())
+        selectedDates.find(
+          date =>
+            date.toFormat('YYYY-MM-dd') === curDay.date?.toFormat('YYYY-MM-dd'),
+        )
           ? {...curDay, value}
           : curDay,
       )
@@ -48,7 +51,8 @@ export default function DayInfo({day}: {day: Day}) {
     } else {
       const newDay: Day = {...day, value}
       const newDays = days.map(selectedDay =>
-        day.date?.getTime() === selectedDay.date?.getTime()
+        day.date?.toFormat('YYYY-MM-dd') ===
+        selectedDay.date?.toFormat('YYYY-MM-dd')
           ? newDay
           : selectedDay,
       )
@@ -65,7 +69,10 @@ export default function DayInfo({day}: {day: Day}) {
 
     if (selectedDates.length > 1) {
       const newDays = days.map(curDay =>
-        selectedDates.find(date => date.getTime() === curDay.date?.getTime())
+        selectedDates.find(
+          date =>
+            date.toFormat('YYYY-MM-dd') === curDay.date?.toFormat('YYYY-MM-dd'),
+        )
           ? {...curDay, comment: text}
           : curDay,
       )
@@ -74,7 +81,8 @@ export default function DayInfo({day}: {day: Day}) {
     } else {
       const newDay: Day = {...day, comment: text}
       const newDays = days.map(selectedDay =>
-        selectedDay.date?.getTime() === day.date?.getTime()
+        selectedDay.date?.toFormat('YYYY-MM-dd') ===
+        day.date?.toFormat('YYYY-MM-dd')
           ? newDay
           : selectedDay,
       )
@@ -98,10 +106,10 @@ export default function DayInfo({day}: {day: Day}) {
   const groupedData = groupBy(locationData, 'locationName')
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       {isDisabled && selectedDay.date && (
         <Card className="bg-warning/70 h-18">
-          <CardBody className="justify-center items-center">
+          <CardBody className="items-center justify-center">
             <p>Нельзя изменить график за день до или в день смены</p>
             <p>
               Необходимо написать старшему площадки и в топик График LT Arena
@@ -111,8 +119,8 @@ export default function DayInfo({day}: {day: Day}) {
       )}
 
       <PossibilityButton
-        isAdmin={session?.user.permission_level === 4}
-        location={session?.user.location}
+        isAdmin={worker.permission_level === 4}
+        location={worker.location}
         value={day?.value}
         isDisabled={isDisabled}
         handler={value => possibilityHandler(value)}
@@ -144,8 +152,8 @@ export default function DayInfo({day}: {day: Day}) {
         value={day?.comment || ''}
         isRequired={
           (day?.value === '-' &&
-            session?.user.rank &&
-            session?.user.rank.toLowerCase() !== 'актёр') ||
+            worker.rank &&
+            worker.rank.toLowerCase() !== 'актёр') ||
           day?.value === '+/-'
         }
         onChange={commentHandler}
@@ -171,7 +179,7 @@ export default function DayInfo({day}: {day: Day}) {
                 {data.map((data: any, index: number) => {
                   return (
                     <>
-                      <div className="flex gap-2 flex-1 flex-wrap" key={index}>
+                      <div className="flex flex-1 flex-wrap gap-2" key={index}>
                         <span>{data.data?.rank}</span>
                         <SlashDivider />
                         <span>{data.data?.worker}</span>

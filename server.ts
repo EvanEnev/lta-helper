@@ -1,31 +1,23 @@
-import 'dotenv/config'
-import {createServer, request} from 'node:http'
+import {createServer} from 'node:http'
+import next from 'next'
 import {Server} from 'socket.io'
 import {SalaryData} from '@/src/utils/types'
 import {initListener} from '@/lib/dbListener'
 import {DateTime} from 'luxon'
 
-const port = 4000
 const dev = process.env.NODE_ENV !== 'production'
-const test = process.env.NODE_ENV === 'test'
 
-const hostname = dev
-  ? 'http://127.0.0.1'
-  : test
-    ? 'https://lt-test.bubenev.su'
-    : 'https://lt.bubenev.su'
+const hostname = process.env.HOST || ''
+const port = parseInt(dev ? '80' : process.env.PORT || '')
 
-async function startSocketServer() {
-  const httpServer = createServer()
+const app = next({dev, hostname, port, turbopack: dev})
+const handler = app.getRequestHandler()
 
-  const io = new Server(httpServer, {
-    cors: {
-      origin: hostname,
-      methods: ['GET', 'POST'],
-      credentials: true,
-    },
-  })
+app.prepare().then(async () => {
+  console.log(`> Next.js ready`)
+  const httpServer = createServer(handler)
 
+  const io = new Server(httpServer)
   const client = await initListener(io)
 
   io.on('connection', socket => {
@@ -36,10 +28,10 @@ async function startSocketServer() {
       const date = DateTime.fromISO(data.date)
 
       const overworkStart =
-        data.overwork_start === 'NULL' ? 'NULL' : `'${data.overwork_start}'`
+        data.overwork_start === null ? 'NULL' : `'${data.overwork_start}'`
 
       const overworkEnd =
-        data.overwork_end === 'NULL' ? 'NULL' : `'${data.overwork_end}'`
+        data.overwork_end === null ? 'NULL' : `'${data.overwork_end}'`
 
       const query = `UPDATE lt_arena.salary
                 SET
@@ -69,11 +61,6 @@ async function startSocketServer() {
       process.exit(1)
     })
     .listen(port, () => {
-      console.log(`> WebSocket ready on port ${port}`)
+      console.log(`> WebSocker ready on port ${port}`)
     })
-}
-
-startSocketServer().catch(err => {
-  console.error(err.message)
-  process.exit(1)
 })

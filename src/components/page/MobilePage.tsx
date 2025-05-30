@@ -1,30 +1,22 @@
 import getRankIcon from '@/src/utils/page/getRankIcon'
 import {Button} from '@heroui/react'
-import {useSession} from 'next-auth/react'
 import Link from 'next/link'
 import UpcomingShifts from './UpcomingShifts'
-
-const buttons = [
-  {name: 'Главная', href: '/'},
-  {name: 'График работы', href: '/schedule'},
-  {name: 'График персонала', href: '/admin', permission_level: 4},
-]
+import buttons from '@/src/utils/global/pathButtons'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function DesktopPage() {
-  const {data: session} = useSession()
+  const {worker} = useAuth()
 
   return (
-    <main className="flex flex-col gap-4 p-4 items-center">
-      <div className="flex flex-col gap-4 items-center text-3xl h-fit">
-        {getRankIcon(session?.user.rank)}
-        {session?.user.rank}
+    <main className="flex flex-col items-center gap-4 p-4">
+      <div className="flex h-fit flex-col items-center gap-4 text-3xl">
+        {getRankIcon(worker.rank)}
+        {worker.rank}
       </div>
-      <div className="flex flex-col gap-4 items-center justify-center">
+      <div className="flex flex-col items-center justify-center gap-4">
         {buttons.map((button, index) => {
-          if (
-            (session?.user.permission_level || 0) <
-            (button?.permission_level || 0)
-          )
+          if ((worker.permission_level || 0) < (button?.permission_level || 0))
             return ''
 
           return (

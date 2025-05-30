@@ -3,20 +3,69 @@ import Table from '@/src/components/salary/Table'
 import {SalaryData, UserSalary, Worker} from '@/src/utils/types'
 import convertTZ from '@/lib/functions/convertTZ'
 import sortByRank from '@/lib/functions/sortByRank'
-import {auth} from '@/lib/auth'
-import {Session} from 'next-auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {DateTime} from 'luxon'
+import createAdminSupabase from '@/lib/createAdminSupabase'
+import {redirect} from 'next/navigation'
 
 export default async function Salary() {
-  const session = await auth()
+  const supabase = await createAdminSupabase()
 
-  const user: Session['user'] = session?.user
-  console.log(DateTime.now().toFormat('ww', {locale: 'ru-RU'}))
-  const canView = checkPermissions(['view_salary'], user)
-  const canViewLocation = checkPermissions(['view_location_salary'], user)
-  const canViewFull = checkPermissions(['view_full_salary'], user)
-  const canEdit = checkPermissions(['edit_salary'], user)
+  const {data: session} = await supabase.auth.getUser()
+  const user = session?.user
+
+  if (!user) {
+    redirect('/')
+  }
+
+  const telegramId = user?.user_metadata.telegram_id
+
+  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
+
+  const query = `SELECT
+                   w.name,
+                   w.id,
+                   rank,
+                   l.name as location,
+                   ranks.permission_level,
+                   first_name,
+                   last_name,
+                   middle_name,
+                   phone_number,
+                   email,
+                   photo_url,
+                   admins.location_id as today_location
+                 FROM lt_arena.workers w
+                        LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
+                        LEFT JOIN lt_arena.locations l ON l.id = w.location_id
+                        LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
+                 WHERE telegram_id = ${telegramId}`
+
+  const permissionsQuery = `SELECT
+        pm.name, description, pm.id
+    FROM lt_arena.permissions pm
+           LEFT JOIN lt_arena.workers w ON telegram_id=${telegramId}
+           LEFT JOIN lt_arena.default_permissions dp ON (SELECT weight FROM lt_arena.ranks WHERE id = dp.rank_id) <= (SELECT weight FROM lt_arena.ranks WHERE name = w.rank)
+           LEFT JOIN lt_arena.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires < NOW(), true)
+    WHERE
+      pm.id = dp.permission_id
+       OR pm.id = w_pm.permission_id`
+
+  const result = await db.query(query)
+  const permissionsResult = await db.query(permissionsQuery)
+  const permissions = permissionsResult.rows
+  const worker = result.rows[0] || {}
+
+  worker.permissions = permissions
+
+  if (worker?.today_location) {
+    worker.permission_level = 4
+  }
+
+  const canView = checkPermissions(['view_salary'], worker)
+  const canViewLocation = checkPermissions(['view_location_salary'], worker)
+  const canViewFull = checkPermissions(['view_full_salary'], worker)
+  const canEdit = checkPermissions(['edit_salary'], worker)
 
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate()
@@ -31,10 +80,10 @@ export default async function Salary() {
   let salaryResult = {rows: []}
 
   if (canView) {
-    let queryAddon = `WHERE s.worker_id = (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${user.name.toLowerCase()}')`
+    let queryAddon = `WHERE s.worker_id = (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${worker.name.toLowerCase()}')`
 
     if (canViewLocation) {
-      queryAddon = `WHERE s.location_id = (SELECT location_id FROM lt_arena.workers WHERE LOWER(name) = '${user.name.toLowerCase()}')`
+      queryAddon = `WHERE s.location_id = (SELECT location_id FROM lt_arena.workers WHERE LOWER(name) = '${worker.name.toLowerCase()}')`
     }
 
     if (canViewFull) {
@@ -67,7 +116,7 @@ export default async function Salary() {
 
     const workersQuery = `SELECT id, name, first_name, rank, telegram_id
                               FROM lt_arena.workers
-                                  ${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${user.name.toLowerCase()}'` : ''}`
+                                  ${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker.name.toLowerCase()}'` : ''}`
 
     const workersResult = await db.query(workersQuery)
     workersRows = workersResult.rows

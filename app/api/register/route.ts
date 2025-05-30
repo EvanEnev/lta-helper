@@ -1,17 +1,19 @@
 import db from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
-import {auth} from '@/lib/auth'
 import capitalize from '@/lib/functions/capitalize'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import google from '@/lib/google'
+import createAdminSupabase from '@/lib/createAdminSupabase'
 
 export async function POST(req: NextRequest) {
+  const supabase = await createAdminSupabase()
+
   const body = await req.json()
 
   const data = body.data
 
-  const session = await auth()
+  const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
   if (!user) {
@@ -56,7 +58,8 @@ export async function POST(req: NextRequest) {
 
   const rank = row?.get('Ранг')
 
-  const telegramId = user.id
+  const telegramId: number = user.user_metadata.telegram_id
+
   const query = `INSERT
                  INTO lt_arena.workers
                      (name, telegram_id, first_name, last_name, middle_name, email, phone_number, rank)

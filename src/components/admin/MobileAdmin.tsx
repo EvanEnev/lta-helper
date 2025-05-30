@@ -4,15 +4,16 @@ import WorkData from './WorkData'
 import {useState} from 'react'
 import {WorkerSalary} from '@/src/utils/types'
 import {Plain} from 'solar-icon-set'
+import {DateTime} from 'luxon'
 
 type Options = {
   days: {
-    current: any
-    previous: any
-    today: any
+    current: DateTime
+    previous: DateTime
+    today: DateTime
   }
   setDate: any
-  date?: any
+  date?: DateTime
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: string[]
@@ -62,15 +63,18 @@ export default function MobileAdmin({
           onclick={() => setDate(days.previous)}
           day={{date: days.previous}}
           color="warning"
-          isSelected={date?.getTime() === days.previous.getTime()}
-          disabled={days.today.getHours() > 3}
+          isSelected={
+            date?.toFormat('yyyy-dd-MM') ===
+            days.previous?.toFormat('yyyy-dd-MM')
+          }
+          disabled={days.today.hour > 3}
         />
         <DayButton
           onclick={() => setDate(days.current)}
           day={{date: days.current}}
           color="success"
           isSelected={
-            date.toFormat('yyyy-dd-MM') === days.current.toFormat('yyyy-dd-MM')
+            date?.toFormat('yyyy-dd-MM') === days.current.toFormat('yyyy-dd-MM')
           }
         />
       </div>

@@ -1,92 +1,168 @@
 'use client'
 
-import {useCallback, useEffect} from 'react'
+import {useCallback, useContext, useEffect, useState} from 'react'
 import React from 'react'
 import Loading from '@/app/loading/page'
-import {useRouter} from 'next/navigation'
+import {usePathname, useRouter} from 'next/navigation'
 import {useAtom} from 'jotai'
 import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
-import useTelegramLogin from '@/src/hooks/useTelegramLogin'
+import AuthContext from '@/src/components/global/contexts/AuthContext'
 import supabase from '@/lib/supabase'
+import {DateTime} from 'luxon'
+import {Day} from '@/src/utils/types'
 
 const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
-  const {login, isLoading} = useTelegramLogin()
+  const [worker, setWorker] = useState<any>({})
+  const [workingDays, setWorkingDays] = useState<Day[]>([])
+  const [isLoading, setLoading] = useState<boolean>(true)
+  const path = usePathname()
 
   const [telegram, setTelegram] = useAtom(telegramAtom)
   const [days, setDays] = useAtom(daysAtom)
 
-  const getWorker = useCallback(async (): Promise<void> => {
-    const response = await fetch('/api/getData')
+  const autoLogin = useCallback(() => {
+    console.debug('autologin')
 
-    const data = await response.json()
+    let appTelegram: any = {}
 
-    if (data?.length) {
-      const newDays = data.map((day: any) => ({
-        ...day,
-        date: day.date,
-      }))
-
-      setDays(newDays)
+    if (process.env.NODE_ENV === 'development') {
+      appTelegram = {}
+    } else {
+      const telegramObject = (window as any)?.Telegram?.WebApp
+      appTelegram = telegramObject.initData ? telegramObject : {}
     }
-  }, [setDays])
+
+    if (!appTelegram.initData) {
+      router.push('/login')
+      setLoading(false)
+      return
+    }
+
+    setTelegram(appTelegram)
+
+    try {
+      fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          credentials: `https://lt.bubenev.su?${appTelegram.initData}`,
+          initiator: 'auto',
+        }),
+      }).then(async response => {
+        if (response.ok) {
+          const userRes = await fetch('/api/getData')
+          const userData = await userRes.json()
+
+          const {access_token, refresh_token} = await response.json()
+          await supabase.auth.setSession({access_token, refresh_token})
+
+          const workingDays = userData.workingDays.map((day: any) => ({
+            ...day,
+            date: DateTime.fromISO(day.date),
+          }))
+
+          setWorker(userData.worker)
+          setWorkingDays(workingDays)
+          setLoading(false)
+        } else {
+          console.error('Login failed')
+          setLoading(false)
+        }
+      })
+    } catch (err) {
+      console.error(err)
+      setLoading(false)
+    }
+  }, [router, setTelegram])
+
+  const login = useCallback(async (telegramData: any) => {
+    if (typeof telegramData !== 'string' && !Object.keys(telegramData).length) {
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/telegram', {
+        method: 'POST',
+        body: JSON.stringify({credentials: telegramData, initiator: 'login'}),
+      })
+
+      console.debug(response)
+      if (response.ok) {
+        const userRes = await fetch('/api/getData')
+        const userData = await userRes.json()
+
+        const {access_token, refresh_token} = await response.json()
+        await supabase.auth.setSession({access_token, refresh_token})
+
+        const workingDays = userData.workingDays.map((day: any) => ({
+          ...day,
+          date: DateTime.fromISO(day.date),
+        }))
+
+        setWorker(userData.worker)
+        setWorkingDays(workingDays)
+      } else {
+        console.error('Login failed')
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    const main = async () => {
-      const {data: user} = await supabase.auth.getUser()
+    supabase.auth.getSession().then(async session => {
+      console.debug(session)
+      if (session.data.session?.user) {
+        const response = await fetch('/api/getData')
 
-      let appTelegram = {}
+        if (response.ok) {
+          console.debug('session login')
+          const userData = await response.json()
 
-      if (process.env.NODE_ENV === 'development') {
-        appTelegram = {}
-      } else {
-        const telegramObject = (window as any)?.Telegram?.WebApp
-        appTelegram = telegramObject.initData ? telegramObject : {}
-      }
+          const workingDays = userData.workingDays.map((day: any) => ({
+            ...day,
+            date: DateTime.fromISO(day.date),
+          }))
 
-      console.log(user)
-      if (!user && !Object.keys(appTelegram).length) {
-        router.push('/login')
-        return
-      }
-
-      if (user) {
-        if (requiredFields.some(key => !user[key])) {
-          return router.push('/register')
-        }
-      }
-
-      if (Object.keys(telegram).length && user) return
-
-      if (appTelegram) {
-        try {
-          // @ts-ignore
-          appTelegram.ready()
-          // @ts-ignore
-          appTelegram.expand()
-        } catch (e) {}
-
-        if (!user) {
-          login({
-            // @ts-ignore
-            credentials: `https://lt.bubenev.su?${appTelegram.initData}`,
-          }).then(() => {
-            getWorker()
-            setTelegram(appTelegram)
-          })
+          setWorker(userData.worker)
+          setWorkingDays(workingDays)
+          setLoading(false)
         } else {
-          getWorker()
-          setTelegram(appTelegram)
+          console.error('Autologin failed')
         }
-      } else if (!days.length) {
-        getWorker()
+      } else {
+        autoLogin()
       }
+    })
+  }, [autoLogin])
+
+  useEffect(() => {
+    if (workingDays?.length) {
+      setDays(workingDays)
     }
 
-    main()
-  }, [days.length, getWorker, router, setTelegram, telegram, login])
+    if (Object.keys(worker).length) {
+      if (requiredFields.some(key => !worker[key])) {
+        return router.push('/register')
+      } else if (path === '/login') {
+        router.push('/')
+      }
+    }
+  }, [path, router, setDays, worker, workingDays])
 
-  return <React.Fragment>{isLoading ? <Loading /> : children}</React.Fragment>
+  return (
+    // @ts-ignore
+    <AuthContext.Provider value={{worker, workingDays, login, isLoading}}>
+      {isLoading ? <Loading /> : children}
+    </AuthContext.Provider>
+  )
 }
+
+export const useAuth = () => useContext(AuthContext)

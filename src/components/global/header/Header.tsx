@@ -1,13 +1,13 @@
 'use client'
 
 import useIsMobile from '@/src/hooks/useIsMobile'
-import {useSession} from 'next-auth/react'
 import {usePathname} from 'next/navigation'
 import MobileHeader from './MobileHeader'
 import DesktopHeader from './DesktopHeader'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Header() {
-  const {data: session} = useSession()
+  const {worker} = useAuth()
   const isMobile = useIsMobile()
   const path = usePathname()
 
@@ -15,8 +15,8 @@ export default function Header() {
   if (path === '/register') return ''
 
   return isMobile ? (
-    <MobileHeader session={session} />
+    <MobileHeader worker={worker} />
   ) : (
-    <DesktopHeader session={session} />
+    <DesktopHeader worker={worker} />
   )
 }

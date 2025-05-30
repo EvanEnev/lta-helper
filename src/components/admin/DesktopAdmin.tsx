@@ -3,15 +3,16 @@ import {Button, Card, CardBody, CardHeader, semanticColors} from '@heroui/react'
 import WorkData from './WorkData'
 import {AddCircle, MinusCircle, Plain} from 'solar-icon-set'
 import DayButton from '../schedule/DayButton'
+import {DateTime} from 'luxon'
 
 type Options = {
   days: {
-    current: any
-    previous: any
-    today: any
+    current: DateTime
+    previous: DateTime
+    today: DateTime
   }
   setDate: any
-  date?: any
+  date?: DateTime
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: string[]
@@ -75,10 +76,10 @@ export default function DesktopAdmin({
               color="warning"
               className="h-16 w-full"
               isSelected={
-                date.toFormat('yyyy-dd-MM') ===
+                date?.toFormat('yyyy-dd-MM') ===
                 days.previous.toFormat('yyyy-dd-MM')
               }
-              disabled={days.today.getHours() > 3}
+              disabled={days.today.hour > 3}
             />
             <DayButton
               onclick={() => setDate(days.current)}
@@ -86,7 +87,7 @@ export default function DesktopAdmin({
               color="success"
               className="h-16 w-full"
               isSelected={
-                date.toFormat('yyyy-dd-MM') ===
+                date?.toFormat('yyyy-dd-MM') ===
                 days.current.toFormat('yyyy-dd-MM')
               }
             />

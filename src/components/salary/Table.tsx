@@ -4,15 +4,13 @@ import {SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
 import {flexRender, getCoreRowModel, useReactTable} from '@tanstack/react-table'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import Cell from './Cell'
-import InfoCell from '@/src/components/salary/InfoCell'
 import {RowData} from '@tanstack/react-table'
 import WorkerCell from '@/src/components/salary/WorkerCell'
 import {io} from 'socket.io-client'
-import {useSession} from 'next-auth/react'
 import {Socket} from 'socket.io-client'
-import convertTZ from '@/lib/functions/convertTZ'
 import {DateTime} from 'luxon'
 import {Button, Checkbox, DateRangePicker} from '@heroui/react'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -29,7 +27,7 @@ export default function Table({
   canEdit: boolean
 }) {
   const socketRef = useRef<Socket | null>(null)
-  const {data: session} = useSession()
+  const {worker} = useAuth()
   const [dateRange, setDateRange] = useState(null)
   const [bonuses, setBonuses] = useState<boolean>(false)
 
@@ -37,10 +35,11 @@ export default function Table({
 
   useEffect(() => {
     const socket = io()
+
     socketRef.current = socket
 
     socket.on('salary:update', (data: SalaryData) => {
-      if (data.updated_by === session?.user.id) return
+      if (data.updated_by === worker.id) return
 
       const date = DateTime.fromISO(data.date)
 
@@ -69,14 +68,17 @@ export default function Table({
       socket.off('salary:update')
       socket.disconnect()
     }
-  }, [session?.user.id])
+  }, [worker.id])
 
-  const handleEdit = useCallback((data: SalaryData) => {
-    socketRef.current?.emit('update:user_salary', {
-      ...data,
-      updated_by: session?.user.id,
-    })
-  }, [])
+  const handleEdit = useCallback(
+    (data: SalaryData) => {
+      socketRef.current?.emit('update:user_salary', {
+        ...data,
+        updated_by: worker.id,
+      })
+    },
+    [worker],
+  )
 
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate()

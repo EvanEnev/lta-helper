@@ -21,7 +21,7 @@ export type LocationData = {
 }
 
 export type SelectedDay = {
-  date?: Date
+  date?: DateTime
   invalidComment?: boolean
 }
 

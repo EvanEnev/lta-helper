@@ -1,6 +1,7 @@
 import {AlertVariantProps} from '@heroui/react'
 import {atom} from 'jotai'
 import {Day, SelectedDay} from '@/src/utils/types'
+import {DateTime} from 'luxon'
 
 type AlertData = {
   color: AlertVariantProps['color']
@@ -20,7 +21,7 @@ export const daysAtom = atom<Day[]>(
   }),
 )
 
-export const selectedDatesAtom = atom<Date[]>([])
+export const selectedDatesAtom = atom<DateTime[]>([])
 
 export const selectedDayAtom = atom<SelectedDay>({date: undefined})
 

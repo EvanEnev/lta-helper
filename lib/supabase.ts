@@ -1,9 +1,13 @@
-import {createClient} from '@supabase/supabase-js'
+import {createBrowserClient} from '@supabase/ssr'
 
-const supabaseClient = createClient(
+const supabaseClient = createBrowserClient(
   'https://db.bubenev.su',
-  process.env.NEXT_PUBLIC_ANON_KEY || '',
-  {db: {schema: 'lt_arena'}},
+  process.env.NEXT_PUBLIC_ANON_KEY!,
+  {
+    db: {
+      schema: 'lt_arena',
+    },
+  },
 )
 
 export default supabaseClient

@@ -1,26 +1,119 @@
-import {SalaryData} from "@/src/utils/types";
-import {Tooltip} from "@heroui/react";
-import {evaluate} from "mathjs";
-import {DateTime} from "luxon";
-import {useMemo} from "react";
+import {SalaryData} from '@/src/utils/types'
+import {Divider, Input, TimeInput, Tooltip} from '@heroui/react'
+import {useMemo} from 'react'
+import CellChip from '@/src/components/salary/CellChip'
+import {DateTime} from 'luxon'
+import {MapPoint, Ruble} from 'solar-icon-set'
 
 export default function CellHeader({data}: {data: SalaryData}) {
-    const time = useMemo(() => {
-            const startTime = data.start_time.slice(0, -3)
-            const endTime = data.end_time.slice(0, -3)
-            return `${startTime}-${endTime}`
-        },
-        [data.start_time, data.end_time])
+  const time = useMemo(() => {
+    const startTime = data.start_time.slice(0, -3)
+    const endTime = data.end_time.slice(0, -3)
 
-    const date = useMemo(() => DateTime.fromISO(data.created_at), [data.created_at])
+    return {
+      start: {
+        hour: startTime.split(':')[0],
+        minute: startTime.split(':')[1],
+      },
+      end: {
+        hour: endTime.split(':')[0],
+        minute: endTime.split(':')[1],
+      },
+    }
+  }, [data.start_time, data.end_time])
 
-    return <>
-        <Tooltip content={<p className='text-xs mix-blend-difference'>{data.created_by} {date.toFormat('dd.MM yyyy')}</p>}><p className='col-span-2 mb-2 mix-blend-difference'>{data.location.name}</p></Tooltip>
-        <p className='text-start mix-blend-difference w-fit justify-self-start'>{time}</p>
-        <p className='text-end mix-blend-difference w-fit justify-self-end'>{data.value}</p>
-        {parseInt(data.bonuses || '') ?
-            <Tooltip content={data.bonuses}>
-                <p className='col-2 text-end mix-blend-difference w-fit justify-self-end'>{evaluate(data.bonuses || '')}</p>
-            </Tooltip> : ''}
+  const overWorkTime = useMemo(() => {
+    if (!(data.overwork_start && data.overwork_end)) {
+      return {}
+    }
+
+    const startTime =
+      data.overwork_start === '--' ? '--' : data.overwork_start.slice(0, -3)
+    const endTime =
+      data.overwork_end === '--' ? '--' : data.overwork_end.slice(0, -3)
+
+    return {
+      start: {
+        hour: startTime.split(':')[0],
+        minute: startTime.split(':')[1],
+      },
+      end: {
+        hour: endTime.split(':')[0],
+        minute: endTime.split(':')[1],
+      },
+    }
+  }, [data.overwork_start, data.overwork_end])
+
+  const date = useMemo(
+    () => DateTime.fromISO(data.created_at),
+    [data.created_at],
+  )
+  const workDate = useMemo(() => DateTime.fromISO(data.date), [data.date])
+
+  return (
+    <>
+      <div className="col-span-2 flex items-center justify-center gap-1 mix-blend-difference">
+        <MapPoint iconStyle="Bold" />
+        <Tooltip
+          content={
+            <p className="text-xs mix-blend-difference">
+              {data.created_by} {date.toFormat('dd.MM yyyy')}
+            </p>
+          }>
+          <p>{data.location.name}</p>
+        </Tooltip>
+      </div>
+
+      <Divider className="bg-default-100 col-span-2 w-full" />
+      <p className="text-default-100 col-span-2 text-xs">
+        Смена {workDate.toFormat('dd.MM')}
+      </p>
+      <TimeInput
+        // @ts-ignore
+        value={time.start}
+        isReadOnly
+      />
+      <TimeInput
+        // @ts-ignore
+        value={time.end}
+        isReadOnly
+      />
+      <Input
+        isReadOnly
+        className="col-span-2"
+        value={data.value.toString()}
+        endContent={<Ruble />}></Input>
+      <Divider className="bg-default-100 col-span-2 w-full" />
+      <p className="text-default-100 col-span-2 text-xs">Переработка</p>
+      {/*// @ts-ignore*/}
+      <TimeInput
+        isReadOnly
+        // @ts-ignore
+        value={overWorkTime.start}
+      />
+      {/*// @ts-ignore*/}
+      <TimeInput
+        isReadOnly
+        // @ts-ignore
+        value={overWorkTime.end}
+      />
+      <Input
+        className="col-span-2 w-fit justify-self-end text-end text-xs"
+        value={data.overwork?.toString() || ''}
+        isReadOnly
+        endContent={<Ruble />}></Input>
+      <CellChip>Бонусы</CellChip>
+      <Input
+        className="col-2 w-fit justify-self-end text-end"
+        isReadOnly
+        value={data.bonuses || ''}
+      />
+      <CellChip>Штрафы</CellChip>
+      <Input
+        className="col-2 w-fit justify-self-end text-end"
+        isReadOnly
+        value={data.fines || ''}
+      />
     </>
+  )
 }

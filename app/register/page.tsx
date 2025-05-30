@@ -1,23 +1,23 @@
 'use client'
 
-import {Button, Form, Input, InputProps} from '@heroui/react'
-import InputMask from 'react-input-mask'
+import {Button, Form, Input} from '@heroui/react'
+import MaskedInput from 'react-text-mask'
 import {FormEvent, useEffect, useState} from 'react'
-import {useSession} from 'next-auth/react'
 import {useRouter} from 'next/navigation'
 import {useSetAtom} from 'jotai'
 import {alertAtom} from '@/src/utils/global/atoms'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Register() {
   const router = useRouter()
-  const {data: session} = useSession()
+  const {worker} = useAuth()
   const setAlertData = useSetAtom(alertAtom)
 
-  const [email, setEmail] = useState<string>(session?.user.email || undefined)
+  const [email, setEmail] = useState<string>(worker?.email || '')
   const [emailErrors, setEmailErrors] = useState<string[]>([])
 
   const [phoneNumber, setPhoneNumber] = useState<string>(
-    session?.user.phone_number || undefined,
+    worker?.phone_number || '',
   )
   const [phoneNumberError, setPhoneNumberError] = useState<string>()
 
@@ -89,14 +89,14 @@ export default function Register() {
           <Input
             label="Позывной"
             size="lg"
-            defaultValue={session?.user.name || ''}
+            defaultValue={worker.name || ''}
             name="name"
             isRequired
             errorMessage="Поле обязательно"
           />
           <Input
             label="Фамилия"
-            defaultValue={session?.user.last_name || ''}
+            defaultValue={worker.last_name || ''}
             size="lg"
             isRequired
             name="last_name"
@@ -104,7 +104,7 @@ export default function Register() {
           />
           <Input
             label="Имя"
-            defaultValue={session?.user.first_name || ''}
+            defaultValue={worker.first_name || ''}
             size="lg"
             isRequired
             name="first_name"
@@ -112,19 +112,35 @@ export default function Register() {
           />
           <Input
             label="Отчество"
-            defaultValue={session?.user.middle_name || ''}
+            defaultValue={worker.middle_name || ''}
             size="lg"
             name="middle_name"
             errorMessage="Поле обязательно"
           />
-          <InputMask
-            mask="+7 999 999-99-99"
-            maskChar="_"
+          <MaskedInput
+            mask={[
+              '+7',
+              '(',
+              /[1-9]/,
+              /\d/,
+              /\d/,
+              ')',
+              ' ',
+              /\d/,
+              /\d/,
+              /\d/,
+              '-',
+              /\d/,
+              /\d/,
+              /\d/,
+              /\d/,
+            ]}
             value={phoneNumber}
-            onChange={e => setPhoneNumber(e.target.value)}>
-            {(inputProps: InputProps) => (
+            onChange={e => setPhoneNumber(e.target.value)}
+            render={(ref: any, props) => (
               <Input
-                {...inputProps}
+                ref={ref}
+                {...props}
                 label="Номер телефона"
                 size="lg"
                 isRequired
@@ -136,7 +152,7 @@ export default function Register() {
                 errorMessage={() => <span>{phoneNumberError}</span>}
               />
             )}
-          </InputMask>
+          />
 
           <Input
             label="Google-почта"

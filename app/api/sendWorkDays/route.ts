@@ -8,8 +8,9 @@ import {
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
-import {auth} from '@/lib/auth'
 import updatePoints from '@/src/utils/admin/updatePoints'
+import createAdminSupabase from '@/lib/createAdminSupabase'
+import db from '@/lib/database'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
@@ -101,8 +102,10 @@ const getWorkerRow = (workerName: string, rows: GoogleSpreadsheetRow[]) => {
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = await createAdminSupabase()
+
   const body = await req.json()
-  const session = await auth()
+  const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
   const salaryData: WorkerSalary[] = body.salaryData?.filter(
@@ -125,6 +128,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
+  const telegramId: number = user.user_metadata.telegram_id
+
+  const workerQuery = `SELECT
+  name
+  FROM lt_arena.workers
+  WHERE telegram_id = ${telegramId}`
+
+  const workerResult = await db.query(workerQuery)
+  const worker = workerResult.rows[0] || {}
+
   const sheetData = await loadData(google)
   const {scheduleRows, workersRows, actorsRows} = sheetData.rows
   const {
@@ -139,7 +152,7 @@ export async function POST(req: NextRequest) {
   const workerRow = scheduleRows.find(
     (row: GoogleSpreadsheetRow) =>
       row.get('Позывной')?.split('-')[0]?.trim()?.toLowerCase() ===
-      user.name?.toLowerCase(),
+      worker.name?.toLowerCase(),
   )
 
   if (!ADMIN_RANKS.includes(workerRow?.get('Ранг').toLowerCase())) {
