@@ -13,7 +13,7 @@ const app = next({dev, hostname, port, turbopack: dev})
 const handler = app.getRequestHandler()
 
 app.prepare().then(async () => {
-  console.log(`> Next.js ready`)
+  console.log(`> Next.js ready on port ${port}`)
   const httpServer = createServer(handler)
 
   const io = new Server(httpServer)
