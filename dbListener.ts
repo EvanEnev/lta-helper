@@ -8,7 +8,7 @@ export async function initListener(io: SocketIOServer) {
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
     host: process.env.DATABASE_URL,
-    port: 1672,
+    port: parseInt(process.env.DATABASE_PORT!),
   })
 
   await client.connect()
