@@ -1,7 +1,7 @@
 import {createServer} from 'node:http'
 import next from 'next'
 import {Server} from 'socket.io'
-import {initListener} from '@/dbListener'
+import {initListener} from './dbListener'
 import {DateTime} from 'luxon'
 
 const dev = process.env.NODE_ENV !== 'production'
