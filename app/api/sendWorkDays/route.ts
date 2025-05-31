@@ -315,10 +315,18 @@ export async function POST(req: NextRequest) {
     }
 
     const workingStart = calculatedWorkingTime.split('-')[0]
-    const workingEnd = calculatedWorkingTime.split('-')[1]
+    let workingEnd = calculatedWorkingTime.split('-')[1]
+
+    if (parseInt(workingEnd) > 25) {
+      workingEnd = `${parseInt(workingEnd) - 24}`
+    }
 
     const overworkStart = calculatedOverWorkTime.split('-')[0]
-    const overworkEnd = calculatedOverWorkTime.split('-')[1]
+    let overworkEnd = calculatedOverWorkTime.split('-')[1]
+
+    if (parseInt(overworkEnd) > 25) {
+      overworkEnd = `${parseInt(overworkEnd) - 24}`
+    }
 
     queries.push(`INSERT INTO lt_arena.salary
   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork)
