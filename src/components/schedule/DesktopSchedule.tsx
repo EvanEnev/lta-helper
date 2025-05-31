@@ -43,11 +43,15 @@ export default function DesktopSchedule() {
   const weeks = useMemo(() => {
     const weeks: Day[][] = [[], []]
 
-    days?.forEach(day => {
-      if (!weeks[0].find(day => getWeekday(day) === 'воскресенье')) {
-        weeks[0].push(day)
-      } else {
-        weeks[1].push(day)
+    let index = 0
+
+    days.forEach(day => {
+      if (!weeks[index]) weeks[index] = []
+
+      weeks[index].push(day)
+
+      if (getWeekday(day) === 'воскресенье') {
+        index++
       }
     })
 
@@ -64,15 +68,18 @@ export default function DesktopSchedule() {
       {days.length ? (
         <div className="overflow-auto h-[80vh]">
           <div className="w-full grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4">
-            {weeks[0].map((day: Day, index: number) => (
-              <Card key={index} className="scrollbar-hide overflow-hidden">
-                <CardHeader className="">
-                  <Checkbox
-                    className=""
-                    size="lg"
-                    onValueChange={isSelected =>
-                      changeDates(day.date, isSelected)
-                    }>
+            {weeks.map((week, index) => (
+                <>
+                  {index !== 0 && <Divider className="col-span-3 lg:col-span-4" />}
+                  {week.map((day, index) => (
+                      <Card key={index} className="scrollbar-hide overflow-hidden">
+                        <CardHeader className="">
+                          <Checkbox
+                              className=""
+                              size="lg"
+                              onValueChange={isSelected =>
+                                  changeDates(day.date, isSelected)
+                              }>
                     <span className="font-bold text-2xl">
                       {day.date?.toLocaleDateString('ru-RU', {
                         month: 'numeric',
@@ -82,40 +89,14 @@ export default function DesktopSchedule() {
                       <br />
                       {getWeekday(day)}
                     </span>
-                  </Checkbox>
-                </CardHeader>
-                <CardBody>
-                  <DayInfo day={day} />
-                </CardBody>
-              </Card>
-            ))}
-          </div>
-          <Divider className="my-4" />
-          <div className="w-full grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4">
-            {weeks[1].map((day: Day, index: number) => (
-              <Card key={index} className="scrollbar-hide overflow-hidden">
-                <CardHeader className="w-full">
-                  <Checkbox
-                    className="w-full"
-                    size="lg"
-                    onValueChange={isSelected =>
-                      changeDates(day.date, isSelected)
-                    }>
-                    <span className="font-bold text-2xl w-full">
-                      {day.date?.toLocaleDateString('ru-RU', {
-                        month: 'numeric',
-                        day: 'numeric',
-                      })}
-                      ,
-                      <br />
-                      {getWeekday(day)}
-                    </span>
-                  </Checkbox>
-                </CardHeader>
-                <CardBody>
-                  <DayInfo day={day} />
-                </CardBody>
-              </Card>
+                          </Checkbox>
+                        </CardHeader>
+                        <CardBody>
+                          <DayInfo day={day} />
+                        </CardBody>
+                      </Card>
+                  ))}
+                </>
             ))}
           </div>
         </div>
