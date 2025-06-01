@@ -11,6 +11,7 @@ import {NextRequest, NextResponse} from 'next/server'
 import updatePoints from '@/src/utils/admin/updatePoints'
 import createAdminSupabase from '@/lib/createAdminSupabase'
 import db from '@/lib/database'
+import auth from '@/lib/auth'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
@@ -128,15 +129,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
-  const telegramId: number = user.user_metadata.telegram_id
-
-  const workerQuery = `SELECT
-  name
-  FROM lt_arena.workers
-  WHERE telegram_id = ${telegramId}`
-
-  const workerResult = await db.query(workerQuery)
-  const worker = workerResult.rows[0] || {}
+  const worker = await auth()
 
   const sheetData = await loadData(google)
   const {scheduleRows, workersRows, actorsRows} = sheetData.rows

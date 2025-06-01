@@ -21,7 +21,8 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           strategy="beforeInteractive"
         />
       </head>
-      <body className={inter.className + ' gradient relative'}>
+      <body
+        className={inter.className + ' gradient relative w-fit min-w-screen'}>
         <Providers>{children}</Providers>
       </body>
     </html>

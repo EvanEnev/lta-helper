@@ -1,4 +1,4 @@
-import {Worker} from '@/src/utils/types'
+import {LTWorker} from '@/src/utils/types'
 
 const ranksMap: {[key: string]: number} = {
   советник: 9,
@@ -13,24 +13,25 @@ const ranksMap: {[key: string]: number} = {
   бывший: 0,
 }
 
-export default function sortByRank(array: Worker[]) {
+export default function sortByRank(
+  array: LTWorker[] | Omit<LTWorker, 'permissions' | 'permissionLevel'>[],
+) {
   return array.sort((worker1, worker2) => {
-    if (worker1.isFormer || !worker1.rank) {
-      worker1.rank = 'Бывший'
+    let rank1 = worker1.rank
+    let rank2 = worker2.rank
+
+    if (worker1.isFormer || !rank1) {
+      rank1 = 'Бывший'
     }
 
-    if (worker2.isFormer || !worker2.rank) {
-      worker2.rank = 'Бывший'
+    if (worker2.isFormer || !rank2) {
+      rank2 = 'Бывший'
     }
 
-    const ranksComparison =
-      ranksMap[worker2.rank.toLowerCase()] -
-      ranksMap[worker1.rank.toLowerCase()]
-
-    if (ranksComparison !== 0) {
-      return ranksComparison
-    }
-
-    return worker1.name.localeCompare(worker2.name)
+    return (
+      ranksMap[rank2.toLowerCase().trim()] -
+        ranksMap[rank1.toLowerCase().trim()] ||
+      worker1.name.localeCompare(worker2.name)
+    )
   })
 }

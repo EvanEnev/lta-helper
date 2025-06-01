@@ -25,9 +25,16 @@ export type SelectedDay = {
   invalidComment?: boolean
 }
 
-export interface Worker {
+export interface Permission {
+  name: string
+  description: string
+  id: number
+}
+
+export interface LTWorker {
   name: string
   id: number
+  number?: number
   telegramId: number
   isFormer?: boolean
   location?: string
@@ -37,6 +44,9 @@ export interface Worker {
   lastName?: string
   phoneNumber?: string
   email?: string
+  photoUrl?: string
+  permissionLevel: number
+  permissions: Permission[]
 }
 
 export interface WorkerSalary {
@@ -77,9 +87,11 @@ export interface SalaryUser {
   name: string
   rank: string | null
   firstName: string | null
+  isFormer: boolean | null
 }
 
 export interface UserSalary {
   user: SalaryUser
-  [key: string]: string | SalaryData | SalaryUser
+  dates: (SalaryData | null)[]
+  [key: string]: string | SalaryData | SalaryUser | (SalaryData | null)[]
 }

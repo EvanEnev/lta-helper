@@ -2,8 +2,9 @@ import {Avatar, Button, Link} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import {ArrowLeft} from 'solar-icon-set'
 import buttons from '@/src/utils/global/pathButtons'
+import {LTWorker} from '@/src/utils/types'
 
-export default function MobileHeader({worker}: {worker: any | null}) {
+export default function MobileHeader({worker}: {worker: LTWorker}) {
   const path = usePathname()
 
   return (
@@ -23,7 +24,7 @@ export default function MobileHeader({worker}: {worker: any | null}) {
         {buttons.find(obj => obj.href === path)?.name}
       </span>
       <div className="flex flex-1 items-center justify-center gap-2 text-2xl">
-        <Avatar src={worker.photo_url} />
+        <Avatar src={worker.photoUrl} />
         {worker.name}
       </div>
     </header>

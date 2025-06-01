@@ -1,16 +1,24 @@
 import {createContext} from 'react'
-import {Day} from '@/src/utils/types'
+import {Day, LTWorker} from '@/src/utils/types'
+import {TelegramAuthData} from '@telegram-auth/react'
 
 type Auth = {
-  worker: any
+  worker: LTWorker
   workingDays: Day[]
-  login: (data: any) => Promise<any>
+  login: (data: TelegramAuthData | string) => Promise<void>
   isLoading: boolean
 }
 const AuthContext = createContext<Auth>({
-  worker: {},
+  worker: {
+    name: '',
+    id: 0,
+    telegramId: 0,
+    rank: '',
+    permissionLevel: 0,
+    permissions: [],
+  },
   workingDays: [],
-  login: async (data: any) => {},
+  login: async (data: TelegramAuthData | string): Promise<void> => {},
   isLoading: false,
 })
 

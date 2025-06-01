@@ -2,14 +2,15 @@ import {Button, Avatar, Link} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import buttons from '@/src/utils/global/pathButtons'
+import {LTWorker} from '@/src/utils/types'
 
-export default function DesktopHeader({worker}: {worker: any | null}) {
+export default function DesktopHeader({worker}: {worker: LTWorker}) {
   const path = usePathname()
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 60)
+      setScrolled(window.scrollY > 10)
     }
 
     window.addEventListener('scroll', handleScroll)
@@ -18,10 +19,10 @@ export default function DesktopHeader({worker}: {worker: any | null}) {
 
   return (
     <header
-      className={`sticky top-0 z-1000 flex h-fit items-center justify-between p-4 ${scrolled ? 'scrolled' : ''}`}>
+      className={`sticky top-0 left-0 z-1000 flex h-fit w-screen items-center justify-between p-4 ${scrolled ? 'scrolled' : ''}`}>
       <div className="flex items-center gap-4">
         {buttons.map((button, index) => {
-          if ((worker.permission_level || 0) < (button?.permission_level || 0))
+          if ((worker.permissionLevel || 0) < (button?.permission_level || 0))
             return ''
 
           return (
@@ -37,7 +38,7 @@ export default function DesktopHeader({worker}: {worker: any | null}) {
         })}
       </div>
       <div className="flex h-fit items-center gap-4 text-3xl">
-        <Avatar src={worker.photo_url} size="lg" />
+        <Avatar src={worker.photoUrl} size="lg" />
         {worker.name}
       </div>
     </header>

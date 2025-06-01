@@ -1,5 +1,12 @@
 import {SalaryData} from '@/src/utils/types'
-import {Divider, Input, TimeInput, Tooltip} from '@heroui/react'
+import {
+  colors,
+  Divider,
+  Input,
+  semanticColors,
+  TimeInput,
+  Tooltip,
+} from '@heroui/react'
 import {useCallback, useMemo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
@@ -54,7 +61,6 @@ export default function CellHeaderEditable({
     () => DateTime.fromISO(data.created_at),
     [data.created_at],
   )
-  const workDate = useMemo(() => DateTime.fromISO(data.date), [data.date])
 
   const update = useCallback(
     (
@@ -107,22 +113,17 @@ export default function CellHeaderEditable({
 
   return (
     <>
-      <div className="col-span-2 flex items-center justify-center gap-1 mix-blend-difference">
+      <div className={`col-span-2 flex items-center justify-center gap-1`}>
         <MapPoint iconStyle="Bold" />
         <Tooltip
           content={
-            <p className="text-xs mix-blend-difference">
+            <p className="text-xs">
               {data.created_by} {date.toFormat('dd.MM yyyy')}
             </p>
           }>
           <p>{data.location.name}</p>
         </Tooltip>
       </div>
-
-      <Divider className="bg-default-100 col-span-2 w-full" />
-      <p className="text-default-100 col-span-2 text-xs">
-        Смена {workDate.toFormat('dd.MM')}
-      </p>
       <TimeInput
         // @ts-ignore
         value={time.start}
@@ -136,12 +137,12 @@ export default function CellHeaderEditable({
         onChange={value => update(value, 'end_time')}
       />
       <Input
-        className="col-span-2"
+        className="text-foreground col-span-2"
         value={data.value.toString()}
         onValueChange={value => update(value, 'value')}
         endContent={<Ruble />}></Input>
-      <Divider className="bg-default-100 col-span-2 w-full" />
-      <p className="text-default-100 col-span-2 text-xs">Переработка</p>
+      <Divider className="col-span-2 w-full" />
+      <p className="col-span-2 text-xs">Переработка</p>
       {/*// @ts-ignore*/}
       <TimeInput
         className=""
@@ -159,7 +160,7 @@ export default function CellHeaderEditable({
         onChange={value => update(value, 'overwork_end')}
       />
       <Input
-        className="col-span-2 w-fit justify-self-end text-end text-xs"
+        className="text-foreground col-span-2 w-fit justify-self-end text-end text-xs"
         value={data.overwork?.toString() || ''}
         onValueChange={value => update(value, 'overwork')}
         endContent={<Ruble />}></Input>

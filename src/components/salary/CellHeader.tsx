@@ -48,26 +48,20 @@ export default function CellHeader({data}: {data: SalaryData}) {
     () => DateTime.fromISO(data.created_at),
     [data.created_at],
   )
-  const workDate = useMemo(() => DateTime.fromISO(data.date), [data.date])
 
   return (
     <>
-      <div className="col-span-2 flex items-center justify-center gap-1 mix-blend-difference">
+      <div className={`col-span-2 flex items-center justify-center gap-1`}>
         <MapPoint iconStyle="Bold" />
         <Tooltip
           content={
-            <p className="text-xs mix-blend-difference">
+            <p className="text-xs">
               {data.created_by} {date.toFormat('dd.MM yyyy')}
             </p>
           }>
           <p>{data.location.name}</p>
         </Tooltip>
       </div>
-
-      <Divider className="bg-default-100 col-span-2 w-full" />
-      <p className="text-default-100 col-span-2 text-xs">
-        Смена {workDate.toFormat('dd.MM')}
-      </p>
       <TimeInput
         // @ts-ignore
         value={time.start}
@@ -83,8 +77,8 @@ export default function CellHeader({data}: {data: SalaryData}) {
         className="col-span-2"
         value={data.value.toString()}
         endContent={<Ruble />}></Input>
-      <Divider className="bg-default-100 col-span-2 w-full" />
-      <p className="text-default-100 col-span-2 text-xs">Переработка</p>
+      <Divider className="col-span-2 w-full" />
+      <p className="col-span-2 text-xs">Переработка</p>
       {/*// @ts-ignore*/}
       <TimeInput
         isReadOnly

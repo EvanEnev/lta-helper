@@ -1,7 +1,5 @@
-import jwt from 'jsonwebtoken'
 import createAdminSupabase from '@/lib/createAdminSupabase'
 import {NextRequest, NextResponse} from 'next/server'
-import {cookies} from 'next/headers'
 import {
   AuthDataValidator,
   objectToAuthDataMap,

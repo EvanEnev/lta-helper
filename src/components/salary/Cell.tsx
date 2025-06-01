@@ -6,14 +6,17 @@ import CellBodyEditable from '@/src/components/salary/CellBodyEditable'
 import CellBody from '@/src/components/salary/CellBody'
 import {memo, useCallback, useEffect, useState} from 'react'
 import {ChatRoundLine} from 'solar-icon-set'
+import isDark from '@/lib/functions/isDark'
 
 export default memo(function Cell({
   data,
   canEdit,
+  canViewFull,
   handleEdit,
 }: {
   data?: SalaryData
   canEdit: boolean
+  canViewFull: boolean
   handleEdit: (data: SalaryData) => void
 }) {
   const [cellData, setCellData] = useState<SalaryData | undefined>(data)
@@ -35,9 +38,10 @@ export default memo(function Cell({
   if (!cellData) return null
 
   return (
-    <Card className={`min-h-[15rem] w-[12rem]`}>
+    <Card
+      className={`${canViewFull ? 'w-[11rem]' : 'min-h-[15rem] w-[12rem]'} ${isDark(cellData.location.color) ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100' : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'}`}>
       <CardHeader
-        className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2 pb-0"
+        className={`grid-rows-auto grid grid-flow-row grid-cols-2 ${canEdit ? 'gap-1' : 'gap-2'} pb-0`}
         style={{backgroundColor: cellData.location.color}}>
         {canEdit ? (
           <CellHeaderEditable data={cellData} handleEdit={handleCellEdit} />
@@ -46,10 +50,10 @@ export default memo(function Cell({
         )}
       </CardHeader>
       <CardBody
-        className="grid h-fit grid-cols-2 grid-rows-1 gap-2 text-center"
+        className={`grid h-fit grid-cols-2 grid-rows-1 ${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} text-center`}
         style={{backgroundColor: cellData.location.color}}>
         <Divider className="bg-default-100 col-span-2 w-full" />
-        <p className="text-default-100 col-span-2 text-xs">
+        <p className="col-span-2 text-xs">
           {<ChatRoundLine iconStyle="Bold" className="mr-1 align-middle" />}
           Комментарий
         </p>

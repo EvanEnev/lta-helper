@@ -6,6 +6,7 @@ import {Day} from '@/src/utils/types'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 import createAdminSupabase from '@/lib/createAdminSupabase'
+import auth from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   const supabase = await createAdminSupabase()
@@ -24,13 +25,9 @@ export async function POST(req: NextRequest) {
 
   const telegramId: number = user.user_metadata.telegram_id
 
-  const workerResult = await db.query(
-    `SELECT "name", "number" FROM lt_arena.workers WHERE telegram_id = $1`,
-    [telegramId],
-  )
-  const worker = workerResult.rows[0]
+  const worker = await auth()
 
-  if (!worker) {
+  if (!worker.name) {
     return NextResponse.json({}, {status: 404})
   }
 

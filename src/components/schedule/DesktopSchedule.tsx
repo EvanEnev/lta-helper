@@ -12,12 +12,13 @@ import SendButton from './SendButton'
 import {Day} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {Pen2} from 'solar-icon-set'
-import {useAtom, useAtomValue} from 'jotai'
-import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
+import {useAtom} from 'jotai'
+import {selectedDatesAtom} from '@/src/utils/global/atoms'
 import {DateTime} from 'luxon'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function DesktopSchedule() {
-  const days = useAtomValue(daysAtom)
+  const {workingDays: days} = useAuth()
   const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
   const [initialDays, setInitialDays] = useState(days)
 
