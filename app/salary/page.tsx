@@ -94,7 +94,7 @@ export default async function Salary() {
     const createdAt: DateTime = convertTZ(row.created_at, 'Europe/Moscow')
 
     return {
-      date: date.toISO() || '',
+      date: date.toFormat('yyyy-MM-dd'),
       value: row.value,
       bonuses: row.bonuses,
       fines: row.fines,
@@ -134,7 +134,9 @@ export default async function Salary() {
       )
 
       const salary: SalaryData | undefined = salaryData.find(
-        s => s.date === date.toISO() && s.worker_name === worker.name,
+        s =>
+          s.date === date.toFormat('yyyy-MM-dd') &&
+          s.worker_name === worker.name,
       )
 
       if (!salary) {
