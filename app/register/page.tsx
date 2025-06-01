@@ -17,7 +17,7 @@ export default function Register() {
   const [emailErrors, setEmailErrors] = useState<string[]>([])
 
   const [phoneNumber, setPhoneNumber] = useState<string>(
-    worker?.phone_number || '',
+    worker?.phoneNumber || '',
   )
   const [phoneNumberError, setPhoneNumberError] = useState<string>()
 
@@ -96,7 +96,7 @@ export default function Register() {
           />
           <Input
             label="Фамилия"
-            defaultValue={worker.last_name || ''}
+            defaultValue={worker.lastName || ''}
             size="lg"
             isRequired
             name="last_name"
@@ -104,7 +104,7 @@ export default function Register() {
           />
           <Input
             label="Имя"
-            defaultValue={worker.first_name || ''}
+            defaultValue={worker.firstName || ''}
             size="lg"
             isRequired
             name="first_name"
@@ -112,19 +112,19 @@ export default function Register() {
           />
           <Input
             label="Отчество"
-            defaultValue={worker.middle_name || ''}
+            defaultValue={worker.middleName || ''}
             size="lg"
             name="middle_name"
             errorMessage="Поле обязательно"
           />
           <MaskedInput
             mask={[
-              '+7',
-              '(',
+              '+',
+              '7',
+              ' ',
               /[1-9]/,
               /\d/,
               /\d/,
-              ')',
               ' ',
               /\d/,
               /\d/,
@@ -132,10 +132,11 @@ export default function Register() {
               '-',
               /\d/,
               /\d/,
+              '-',
               /\d/,
               /\d/,
             ]}
-            value={phoneNumber}
+            value={phoneNumber || ''}
             onChange={e => setPhoneNumber(e.target.value)}
             render={(ref: any, props) => (
               <Input

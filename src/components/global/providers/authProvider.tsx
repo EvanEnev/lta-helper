@@ -12,7 +12,7 @@ import {DateTime} from 'luxon'
 import {Day, LTWorker} from '@/src/utils/types'
 import {TelegramAuthData} from '@telegram-auth/react'
 
-const requiredFields = ['email', 'phone_number', 'first_name', 'last_name']
+const requiredFields = ['email', 'phoneNumber', 'firstName', 'lastName']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
@@ -130,7 +130,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
         const response = await fetch('/api/getData')
 
         if (response.ok) {
-          console.debug('session login')
           const userData = await response.json()
 
           const workingDays = userData.workingDays.map((day: any) => ({
@@ -155,7 +154,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
       setDays(workingDays)
     }
 
-    console.log({worker})
     if (worker.name) {
       if (requiredFields.some(key => !(worker as any)[key])) {
         return router.push('/register')
