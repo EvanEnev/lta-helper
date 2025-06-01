@@ -119,7 +119,7 @@ export default function DayInfo({day}: {day: Day}) {
       )}
 
       <PossibilityButton
-        isAdmin={worker.permission_level === 4}
+        isAdmin={worker.permissionLevel === 4}
         location={worker.location}
         value={day?.value}
         isDisabled={isDisabled}

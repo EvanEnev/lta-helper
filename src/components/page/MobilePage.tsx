@@ -16,7 +16,7 @@ export default function DesktopPage() {
       </div>
       <div className="flex flex-col items-center justify-center gap-4">
         {buttons.map((button, index) => {
-          if ((worker.permission_level || 0) < (button?.permission_level || 0))
+          if ((worker.permissionLevel || 0) < (button?.permission_level || 0))
             return ''
 
           return (
