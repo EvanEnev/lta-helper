@@ -53,7 +53,7 @@ export default memo(function Table({
 
       setData((prev: UserSalary[]) =>
         prev.map(row => {
-          const cell = row[`day${date.toFormat('dd')}`] as SalaryData
+          const cell = row[`day${date.toFormat('d')}`] as SalaryData
 
           const cellDate = DateTime.fromISO(cell.date)
 
@@ -66,7 +66,7 @@ export default memo(function Table({
 
           return {
             ...row,
-            [`day${date.toFormat('dd')}`]: {...data},
+            [`day${date.toFormat('d')}`]: {...data},
           }
         }),
       )
