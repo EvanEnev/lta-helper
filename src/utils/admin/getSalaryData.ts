@@ -9,6 +9,8 @@ type SalaryData = {
   gamesCount: number
   comment: string
   bonuses: string
+  fines: string
+  value?: number
 }
 
 export default function getSalaryData(data: SalaryData) {
@@ -69,14 +71,14 @@ export default function getSalaryData(data: SalaryData) {
   let bonuses = 0
 
   try {
-    bonuses = evaluate(data.bonuses)
+    bonuses = bonuses = evaluate(`${data.bonuses || 0} + ${data.fines || 0}`)
   } catch (e) {}
 
   return {
     calculatedWorkingTime,
     calculatedOverWorkTime,
     overWorkSalary,
-    salary,
+    salary: data.value || salary,
     bonuses,
   }
 }

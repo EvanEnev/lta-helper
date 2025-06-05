@@ -1,9 +1,19 @@
-import {WorkerSalary} from '@/src/utils/types'
-import {Button, Card, CardBody, CardHeader, semanticColors} from '@heroui/react'
+import {LTWorker, WorkerSalary} from '@/src/utils/types'
+import {
+  Button,
+  CalendarDate,
+  Card,
+  CardBody,
+  CardHeader,
+  DatePicker,
+  semanticColors,
+} from '@heroui/react'
 import WorkData from './WorkData'
 import {AddCircle, MinusCircle, Plain} from 'solar-icon-set'
-import DayButton from '../schedule/DayButton'
-import {DateTime} from 'luxon'
+import {DateTime, Interval} from 'luxon'
+import {today} from '@internationalized/date'
+import {useCallback, useEffect, useState} from 'react'
+import convertTZ from '@/lib/functions/convertTZ'
 
 type Options = {
   days: {
@@ -12,12 +22,13 @@ type Options = {
     today: DateTime
   }
   setDate: any
-  date?: DateTime
+  date: DateTime
   salaryData: WorkerSalary[]
   setSalaryData: any
-  workers: string[]
+  workers: LTWorker[]
   sendData: any
   isLoading: boolean
+  canEdit: boolean
 }
 
 export default function DesktopAdmin({
@@ -29,10 +40,53 @@ export default function DesktopAdmin({
   workers,
   sendData,
   isLoading,
+  canEdit,
 }: Options) {
+  const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
+
+  const checkDateValid = useCallback(
+    (date: DateTime) => {
+      const now = convertTZ(new Date(), 'Europe/Moscow').set({
+        hour: 0,
+      })
+
+      let isInvalid = false
+
+      const diff = Math.floor(now.diff(date).as('days'))
+
+      if (!canEdit && diff >= 1) {
+        if (date > now) {
+          isInvalid = true
+        } else if (diff === 1 && date < now && now.hour > 3) {
+          isInvalid = true
+        } else if (diff >= 2) {
+          isInvalid = true
+        }
+      }
+
+      setIsDateInvalid(isInvalid)
+      return isInvalid
+    },
+    [canEdit],
+  )
+
+  const updateDate = (date: CalendarDate) => {
+    const datetime = DateTime.fromObject({
+      day: date.day,
+      month: date.month,
+      year: date.year,
+    })
+
+    const isInvalid = checkDateValid(datetime)
+
+    if (!isInvalid) {
+      setDate(datetime)
+    }
+  }
+
   return (
-    <main className="flex min-h-screen gap-4 p-4">
-      <div className="grid h-[95vh] w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 overflow-auto lg:grid-cols-4">
+    <main className="flex min-h-full gap-4 p-4">
+      <div className="grid h-full w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 overflow-auto lg:grid-cols-4">
         {salaryData.map((data, index) => {
           return (
             <Card key={index} className="">
@@ -68,28 +122,27 @@ export default function DesktopAdmin({
         })}
       </div>
       <div className="h-[70vh]">
-        <Card className="h-fit w-[22vw]" isBlurred>
+        <Card className="h-fit w-[22vw]">
           <CardBody className="gap-4">
-            <DayButton
-              onclick={() => setDate(days.previous)}
-              day={{date: days.previous}}
-              color="warning"
-              className="h-16 w-full"
-              isSelected={
-                date?.toFormat('yyyy-dd-MM') ===
-                days.previous.toFormat('yyyy-dd-MM')
+            <DatePicker
+              isInvalid={isDateInvalid}
+              errorMessage="Дата вне диапазона"
+              isDateUnavailable={date =>
+                date.compare(today('Europe/Moscow').subtract({days: 1})) ===
+                  0 &&
+                days.today.hour > 3 &&
+                !canEdit
               }
-              disabled={days.today.hour > 3}
-            />
-            <DayButton
-              onclick={() => setDate(days.current)}
-              day={{date: days.current}}
-              color="success"
+              selectorButtonPlacement="start"
+              firstDayOfWeek="mon"
               className="h-16 w-full"
-              isSelected={
-                date?.toFormat('yyyy-dd-MM') ===
-                days.current.toFormat('yyyy-dd-MM')
-              }
+              classNames={{inputWrapper: 'h-16'}}
+              // @ts-ignore
+              onChange={(date: CalendarDate) => updateDate(date)}
+              minValue={today('Europe/Moscow').subtract({days: 1})}
+              maxValue={today('Europe/Moscow')}
+              // @ts-ignore
+              defaultValue={today('Europe/Moscow')}
             />
             <Button
               className="h-min p-2"
@@ -110,6 +163,7 @@ export default function DesktopAdmin({
               <AddCircle size={48} />
             </Button>
             <Button
+              isDisabled={isDateInvalid}
               size="lg"
               color="primary"
               className="h-16 w-full"

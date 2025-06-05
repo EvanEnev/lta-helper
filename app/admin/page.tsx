@@ -1,135 +1,31 @@
-'use client'
+import AdminPage from '@/src/components/admin/AdminPage'
+import db from '@/lib/database'
+import sortByRank from '@/lib/functions/sortByRank'
+import {LTWorker} from '@/src/utils/types'
+import auth from '@/lib/auth'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
-import convertTZ from '@/lib/functions/convertTZ'
-import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
-import MobileAdmin from '@/src/components/admin/MobileAdmin'
-import useIsMobile from '@/src/hooks/useIsMobile'
-import {WorkerSalary} from '@/src/utils/types'
-import {useEffect, useMemo, useState} from 'react'
-import {useAtomValue, useSetAtom} from 'jotai'
-import {alertAtom, telegramAtom} from '@/src/utils/global/atoms'
-import {DateTime} from 'luxon'
+export default async function Admin() {
+  const worker = await auth()
 
-export default function Admin() {
-  const isMobile = useIsMobile()
-  const telegram = useAtomValue(telegramAtom)
-  const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
-    {
-      worker: '',
-      workingHours: '',
-      location: '',
-      bonuses: '',
-      comment: '',
-      isHardTime: false,
-      gamesCount: 1,
-    },
-  ])
-  const [workers, setWorkers] = useState([])
-  const [date, setDate] = useState<DateTime>()
-  const [isLoading, setLoading] = useState<boolean>(false)
-  const setAlertData = useSetAtom(alertAtom)
+  const workersQuery = `SELECT
+  name,
+  rank,
+  is_former
+  FROM lt_arena.workers`
 
-  useEffect(() => {
-    const getWorkersData = async (): Promise<void> => {
-      const response = await fetch('/api/getWorkers')
+  const workersResult = await db.query(workersQuery)
 
-      const data = await response.json()
+  const workersRows = workersResult.rows.map(w => ({
+    name: w.name as string,
+    rank: w.rank,
+    isFormer: !!w.is_former,
+  }))
 
-      if (data?.workers?.length) {
-        setWorkers(data.workers)
-      }
-    }
+  const canEdit = checkPermissions(['edit_salary'], worker)
 
-    getWorkersData()
-  }, [telegram.initData])
+  // @ts-ignore
+  const workers = sortByRank(workersRows) as LTWorker[]
 
-  const days = useMemo(() => {
-    const currentDate = convertTZ(new Date(), 'Europe/Moscow')
-    const previousDate = convertTZ(new Date(), 'Europe/Moscow')
-
-    previousDate.set({day: previousDate.day - 1})
-
-    setDate(currentDate)
-
-    return {
-      current: currentDate,
-      previous: previousDate,
-      today: currentDate,
-    }
-  }, [])
-
-  const sendData = async () => {
-    if (!salaryData.length)
-      return setAlertData({
-        title: 'Ошибка',
-        message: 'Нет данных для отправки',
-        color: 'danger',
-      })
-
-    const data = {
-      salaryData,
-      // @ts-ignore
-      date: date?.toISO() || '',
-    }
-
-    setLoading(true)
-
-    fetch('/api/sendWorkDays', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }).then(data => {
-      setLoading(false)
-      data.json().then(jsonData => {
-        if (data.status === 200) {
-          setAlertData({
-            title: 'Успешно',
-            message: jsonData.message || 'Данные отправлены',
-            color: 'success',
-          })
-        } else {
-          if (jsonData.message) {
-            setAlertData({
-              title: 'Ошибка',
-              message: jsonData.message,
-              color: 'danger',
-            })
-          } else {
-            setAlertData({
-              title: 'Ошибка',
-              message: 'Неизвестно, что произошло...',
-              color: 'danger',
-            })
-          }
-        }
-      })
-    })
-  }
-
-  return isMobile ? (
-    <MobileAdmin
-      {...{
-        sendData,
-        workers,
-        days,
-        date,
-        setDate,
-        setSalaryData,
-        salaryData,
-        isLoading,
-      }}
-    />
-  ) : (
-    <DesktopAdmin
-      {...{
-        sendData,
-        workers,
-        days,
-        date,
-        setDate,
-        setSalaryData,
-        salaryData,
-        isLoading,
-      }}
-    />
-  )
+  return <AdminPage workers={workers} canEdit={canEdit} />
 }

@@ -1,0 +1,19 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Внешний круг -->
+    <circle cx="100" cy="100" r="80" fill="none" stroke="black" stroke-width="8"/>
+
+    <!-- Центральный круг -->
+    <circle cx="100" cy="100" r="25" fill="black"/>
+
+    <!-- 3 лопасти (под 120° друг к другу) -->
+    <path d="M100 20 L100 70 M40 50 L80 80 M160 50 L120 80 M40 150 L80 120 M160 150 L120 120"
+          stroke="black" stroke-width="12" stroke-linecap="round"/>
+
+    <!-- Треугольные секции между лопастями -->
+    <path d="M100 20 L80 80 L120 80 Z" fill="black"/>
+    <path d="M40 50 L80 80 L80 120 Z" fill="black"/>
+    <path d="M40 150 L80 120 L80 80 Z" fill="black"/>
+    <path d="M100 180 L120 120 L80 120 Z" fill="black"/>
+    <path d="M160 150 L120 120 L120 80 Z" fill="black"/>
+    <path d="M160 50 L120 80 L120 120 Z" fill="black"/>
+</svg>

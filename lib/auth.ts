@@ -40,6 +40,7 @@ export default async function auth(): Promise<LTWorker> {
                    w.rank,
                    w.number,
                    l.name as location,
+                   l.id as location_id,
                    ranks.permission_level,
                    w.first_name,
                    w.last_name,
@@ -83,6 +84,7 @@ export default async function auth(): Promise<LTWorker> {
   worker.middleName = workerResult.middle_name
   worker.phoneNumber = workerResult.phone_number
   worker.photoUrl = workerResult.photo_url
+  worker.locationId = workerResult.location_id
 
   return worker
 }

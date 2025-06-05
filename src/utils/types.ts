@@ -38,6 +38,7 @@ export interface LTWorker {
   telegramId: number
   isFormer?: boolean
   location?: string
+  locationId?: number
   rank: string
   firstName?: string
   middleName?: string
@@ -54,10 +55,12 @@ export interface WorkerSalary {
   location: string
   workingHours: string
   bonuses: string
+  fines: string
   comment: string
   hasGames?: boolean
   isHardTime: boolean
   gamesCount: number
+  value?: number
 }
 
 export interface SalaryData {

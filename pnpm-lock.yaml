@@ -11,6 +11,9 @@ importers:
       '@heroui/react':
         specifier: 2.8.0-beta.4
         version: 2.8.0-beta.4(@types/react@19.1.4)(framer-motion@12.11.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.6)
+      '@internationalized/date':
+        specifier: ^3.8.1
+        version: 3.8.1
       '@supabase/ssr':
         specifier: ^0.6.1
         version: 0.6.1(@supabase/supabase-js@2.49.8)
@@ -74,6 +77,9 @@ importers:
       react-input-mask:
         specifier: 2.0.4
         version: 2.0.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-responsive:
+        specifier: ^10.0.1
+        version: 10.0.1(react@19.1.0)
       react-text-mask:
         specifier: ^5.5.0
         version: 5.5.0(react@19.1.0)
@@ -111,6 +117,9 @@ importers:
       '@types/react-input-mask':
         specifier: ^3.0.6
         version: 3.0.6
+      '@types/react-responsive':
+        specifier: ^9.0.0
+        version: 9.0.0(react@19.1.0)
       '@types/react-text-mask':
         specifier: ^5.4.14
         version: 5.4.14
@@ -1081,6 +1090,9 @@ packages:
   '@internationalized/date@3.8.0':
     resolution: {integrity: sha512-J51AJ0fEL68hE4CwGPa6E0PO6JDaVLd8aln48xFCSy7CZkZc96dGEGmLs2OEEbBxcsVZtfrqkXJwI2/MSG8yKw==}
 
+  '@internationalized/date@3.8.1':
+    resolution: {integrity: sha512-PgVE6B6eIZtzf9Gu5HvJxRK3ufUFz9DhspELuhW/N0GuMGMTLvPQNRkHP2hTuP9lblOk+f+1xi96sPiPXANXAA==}
+
   '@internationalized/message@3.1.7':
     resolution: {integrity: sha512-gLQlhEW4iO7DEFPf/U7IrIdA3UyLGS0opeqouaFwlMObLUzwexRjbygONHDVbC9G9oFLXsLyGKYkJwqXw/QADg==}
 
@@ -1952,6 +1964,10 @@ packages:
   '@types/react-input-mask@3.0.6':
     resolution: {integrity: sha512-+5I18WKyG3eWIj7TVPWfK1VitI9mPpS9y6jE/BfmTCe+iL27NfBw/yzKRvCFp1DRBvlvvcsiZf05bub0YC1k8A==}
 
+  '@types/react-responsive@9.0.0':
+    resolution: {integrity: sha512-2B/tmI2OE5Ul57/yo6szbTmI6rbWus6K317lk6baf6Ngvs1RPfvwerns+c0FtmoIDaK7wwVGllZjTTrpYfW2fA==}
+    deprecated: This is a stub types definition. react-responsive provides its own type definitions, so you do not need this installed.
+
   '@types/react-text-mask@5.4.14':
     resolution: {integrity: sha512-VkQuH+7Ol+ue/EFe9EFqJAmDe3ay5VML29l3aJkdzAriMhiprJOmdAFjZ3jOT6p3+nBgEUHxaQtUgg8k8Sk5wA==}
 
@@ -2427,6 +2443,9 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
+
+  css-mediaquery@0.1.2:
+    resolution: {integrity: sha512-COtn4EROW5dBGlE/4PiKnh6rZpAPxDeFLaEEwt4i10jpDMFt2EhQGS79QmmrO+iKCHv0PU/HrOWEhijFd1x99Q==}
 
   css-select@4.3.0:
     resolution: {integrity: sha512-wPpOYtnsVontu2mODhA19JrqWxNsfdatRKd64kmpRbQgh1KtItko5sTnEpPdpSaJszTOhEMlF/RPz28qj4HqhQ==}
@@ -3009,6 +3028,9 @@ packages:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
 
+  hyphenate-style-name@1.1.0:
+    resolution: {integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==}
+
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
@@ -3437,6 +3459,9 @@ packages:
 
   make-error@1.3.6:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
+
+  matchmediaquery@0.4.2:
+    resolution: {integrity: sha512-wrZpoT50ehYOudhDjt/YvUJc6eUzcdFPdmbizfgvswCKNHD1/OBOHYJpHie+HXpu6bSkEGieFMYk6VuutaiRfA==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -3888,6 +3913,12 @@ packages:
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
+  react-responsive@10.0.1:
+    resolution: {integrity: sha512-OM5/cRvbtUWEX8le8RCT8scA8y2OPtb0Q/IViEyCEM5FBN8lRrkUOZnu87I88A6njxDldvxG+rLBxWiA7/UM9g==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      react: '>=16.8.0'
+
   react-text-mask@5.5.0:
     resolution: {integrity: sha512-SLJlJQxa0uonMXsnXRpv5abIepGmHz77ylQcra0GNd7Jtk4Wj2Mtp85uGQHv1avba2uI8ZvRpIEQPpJKsqRGYw==}
     peerDependencies:
@@ -4020,6 +4051,9 @@ packages:
 
   setimmediate@1.0.5:
     resolution: {integrity: sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==}
+
+  shallow-equal@3.1.0:
+    resolution: {integrity: sha512-pfVOw8QZIXpMbhBWvzBISicvToTiM5WBF1EeAUZDDSb5Dt29yl4AYbyywbJFSEsRUMr7gJaxqCdr4L3tQf9wVg==}
 
   sharp@0.34.1:
     resolution: {integrity: sha512-1j0w61+eVxu7DawFJtnfYcvSv6qPFvfTaqzTQ2BLknVhHTwGS8sc63ZBF4rzkWMBVKybo4S5OBtDdZahh2A1xg==}
@@ -5945,6 +5979,10 @@ snapshots:
     dependencies:
       '@swc/helpers': 0.5.17
 
+  '@internationalized/date@3.8.1':
+    dependencies:
+      '@swc/helpers': 0.5.17
+
   '@internationalized/message@3.1.7':
     dependencies:
       '@swc/helpers': 0.5.17
@@ -6060,7 +6098,7 @@ snapshots:
 
   '@react-aria/calendar@3.8.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@react-aria/i18n': 3.12.8(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@react-aria/interactions': 3.25.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@react-aria/live-announcer': 3.4.2
@@ -6112,7 +6150,7 @@ snapshots:
 
   '@react-aria/datepicker@3.14.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@internationalized/number': 3.6.1
       '@internationalized/string': 3.2.6
       '@react-aria/focus': 3.20.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -6184,7 +6222,7 @@ snapshots:
 
   '@react-aria/i18n@3.12.8(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@internationalized/message': 3.1.7
       '@internationalized/number': 3.6.1
       '@internationalized/string': 3.2.6
@@ -6492,7 +6530,7 @@ snapshots:
 
   '@react-stately/calendar@3.8.0(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@react-stately/utils': 3.10.6(react@19.1.0)
       '@react-types/calendar': 3.7.0(react@19.1.0)
       '@react-types/shared': 3.29.0(react@19.1.0)
@@ -6529,7 +6567,7 @@ snapshots:
 
   '@react-stately/datepicker@3.14.0(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@internationalized/string': 3.2.6
       '@react-stately/form': 3.1.3(react@19.1.0)
       '@react-stately/overlays': 3.6.15(react@19.1.0)
@@ -6708,7 +6746,7 @@ snapshots:
 
   '@react-types/calendar@3.7.0(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@react-types/shared': 3.29.0(react@19.1.0)
       react: 19.1.0
 
@@ -6724,7 +6762,7 @@ snapshots:
 
   '@react-types/datepicker@3.12.0(react@19.1.0)':
     dependencies:
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.1
       '@react-types/calendar': 3.7.0(react@19.1.0)
       '@react-types/overlays': 3.8.14(react@19.1.0)
       '@react-types/shared': 3.29.0(react@19.1.0)
@@ -7125,6 +7163,12 @@ snapshots:
   '@types/react-input-mask@3.0.6':
     dependencies:
       '@types/react': 19.1.4
+
+  '@types/react-responsive@9.0.0(react@19.1.0)':
+    dependencies:
+      react-responsive: 10.0.1(react@19.1.0)
+    transitivePeerDependencies:
+      - react
 
   '@types/react-text-mask@5.4.14':
     dependencies:
@@ -7652,6 +7696,8 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
+  css-mediaquery@0.1.2: {}
+
   css-select@4.3.0:
     dependencies:
       boolbase: 1.0.0
@@ -8001,7 +8047,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.32.1(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0)(eslint@8.57.1))(eslint@8.57.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.32.1(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -8023,7 +8069,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.32.1(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.31.0)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.32.1(eslint@8.57.1)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -8456,6 +8502,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  hyphenate-style-name@1.1.0: {}
+
   ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
@@ -8857,6 +8905,10 @@ snapshots:
 
   make-error@1.3.6: {}
 
+  matchmediaquery@0.4.2:
+    dependencies:
+      css-mediaquery: 0.1.2
+
   math-intrinsics@1.1.0: {}
 
   mathjs@14.4.0:
@@ -9230,6 +9282,14 @@ snapshots:
 
   react-is@16.13.1: {}
 
+  react-responsive@10.0.1(react@19.1.0):
+    dependencies:
+      hyphenate-style-name: 1.1.0
+      matchmediaquery: 0.4.2
+      prop-types: 15.8.1
+      react: 19.1.0
+      shallow-equal: 3.1.0
+
   react-text-mask@5.5.0(react@19.1.0):
     dependencies:
       prop-types: 15.8.1
@@ -9390,6 +9450,8 @@ snapshots:
       es-object-atoms: 1.1.1
 
   setimmediate@1.0.5: {}
+
+  shallow-equal@3.1.0: {}
 
   sharp@0.34.1:
     dependencies:

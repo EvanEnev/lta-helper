@@ -18,7 +18,7 @@ export default function Summarized() {
   const [data, setData] = useState([])
 
   const render = useCallback((data: any) => {
-    return <CellChip className="text-medium!">{data}</CellChip>
+    return <CellChip className="text-medium! h-fit p-2">{data}</CellChip>
   }, [])
 
   const columns = useMemo(() => {

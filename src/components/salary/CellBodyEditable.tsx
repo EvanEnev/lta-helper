@@ -18,7 +18,11 @@ export default function CellBodyEditable({
 
   return (
     <Textarea
-      classNames={{input: 'max-h-[4.5rem] min-h-[4.5rem]'}}
+      classNames={{
+        innerWrapper: 'min-h-[4.5rem] items-center justify-center',
+        input: 'text-center h-fit',
+      }}
+      style={{height: 'fit-content'}}
       className="col-span-2"
       value={data.comment || ''}
       onValueChange={update}

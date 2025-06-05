@@ -4,18 +4,14 @@ import {useEffect, useState} from 'react'
 import buttons from '@/src/utils/global/pathButtons'
 import {LTWorker} from '@/src/utils/types'
 
-export default function DesktopHeader({worker}: {worker: LTWorker}) {
+export default function DesktopHeader({
+  worker,
+  scrolled,
+}: {
+  worker: LTWorker
+  scrolled: boolean
+}) {
   const path = usePathname()
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   return (
     <header

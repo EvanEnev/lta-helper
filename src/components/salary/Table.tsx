@@ -18,6 +18,7 @@ import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import capitalize from '@/lib/functions/capitalize'
 import {Divider} from '@heroui/react'
+import {useIsMobile} from '@heroui/use-is-mobile'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -35,6 +36,7 @@ export default memo(function Table({
   canViewFull: boolean
   canEdit: boolean
 }) {
+  const isMobile = useIsMobile()
   const socketRef = useRef<Socket | null>(null)
   const {worker} = useAuth()
   const [data, setData] = useState<UserSalary[]>(initialData)
@@ -112,7 +114,7 @@ export default memo(function Table({
     const daysColumns = Array.from({length: daysInMonth}, (_, i) => {
       const day = i + 1
       const date = DateTime.now().set({day})
-      const dateValue = date.toFormat('dd.MM')
+      const dateValue = date.toFormat('EEE, dd.MM', {locale: 'ru-RU'})
 
       return {
         header: dateValue,
@@ -148,12 +150,12 @@ export default memo(function Table({
   }
 
   return (
-    <div className="w-full px-2">
+    <div className="h-full w-full px-2">
       <div className="sticky left-0 mb-4 w-fit pl-4 text-xl font-bold">
         {capitalize(DateTime.now().toFormat('LLLL yyyy', {locale: 'ru-RU'}))}
       </div>
-      <div className="bg-content1 rounded-large relative pt-4">
-        <table className="h-auto min-w-full table-fixed">
+      <div className={`bg-content1 rounded-large relative w-full pt-4`}>
+        <table className="h-auto w-full max-w-full">
           <thead
             className="[&>tr]:first:shadow-small sticky z-1000"
             style={{
@@ -165,7 +167,7 @@ export default memo(function Table({
                   <>
                     <th
                       key={header.id}
-                      className={`bg-default-100 test-start h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider uppercase first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}
+                      className={`bg-default-100 test-start h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}
                       style={{
                         width: `${header.getSize()}px`,
                         minWidth: `${header.getSize()}px`,
