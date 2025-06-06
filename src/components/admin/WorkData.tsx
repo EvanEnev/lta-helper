@@ -74,6 +74,7 @@ export default function WorkData({
         worker: data.worker,
         rank: (worker?.rank as string) || 'актёр',
         workingHours: data.workingHours,
+        fines: data.fines,
         isHardTime: data.isHardTime,
         gamesCount: data.gamesCount,
         comment: data.comment,
@@ -88,6 +89,7 @@ export default function WorkData({
       data.gamesCount,
       data.comment,
       data.bonuses,
+      data.fines,
       worker?.rank,
       data.value,
     ],
@@ -177,7 +179,7 @@ export default function WorkData({
       />
       <Input
         label="Штрафы"
-        value={data.bonuses}
+        value={data.fines}
         onValueChange={value => updateData('fines', value)}
       />
       <Textarea

@@ -66,6 +66,7 @@ export default async function auth(): Promise<LTWorker> {
        OR pm.id = w_pm.permission_id`
 
   const result = await db.query(query)
+  
   const permissionsResult = await db.query(permissionsQuery)
   const permissions = permissionsResult.rows
   const workerResult = result.rows[0] || {}

@@ -30,5 +30,6 @@ COPY dbListener.ts dbListener.ts
 COPY .env .env.production
 
 ENV NODE_ENV=production
+COPY .env.production .env.production
 
 CMD ["pnpm", "start"]

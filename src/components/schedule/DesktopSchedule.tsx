@@ -43,11 +43,15 @@ export default function DesktopSchedule() {
   const weeks = useMemo(() => {
     const weeks: Day[][] = [[], []]
 
-    days?.forEach(day => {
-      if (!weeks[0].find(day => getWeekday(day) === 'воскресенье')) {
-        weeks[0].push(day)
-      } else {
-        weeks[1].push(day)
+    let index = 0
+
+    days.forEach(day => {
+      if (!weeks[index]) weeks[index] = []
+
+      weeks[index].push(day)
+
+      if (getWeekday(day) === 'воскресенье') {
+        index++
       }
     })
 

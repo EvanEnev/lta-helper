@@ -32,13 +32,17 @@ export default function MobileSchedule() {
   const weeks = useMemo(() => {
     const weeks: Day[][] = [[], []]
 
-    days.forEach(day => {
-      if (!weeks[0].find(day => getWeekday(day) === 'воскресенье')) {
-        weeks[0].push(day)
-      } else {
-        weeks[1].push(day)
-      }
-    })
+      let index = 0
+
+      days.forEach(day => {
+          if (!weeks[index]) weeks[index] = []
+
+          weeks[index].push(day)
+
+          if (getWeekday(day) === 'воскресенье') {
+              index++
+          }
+      })
 
     return weeks
   }, [days])
@@ -51,19 +55,16 @@ export default function MobileSchedule() {
   return (
     <div className="flex max-h-[50%] w-full flex-wrap gap-4">
       {days.length ? (
-        <>
-          <div className="flex flex-wrap gap-4">
-            {weeks[0].map((day: Day, index: number) => (
-              <DayButton day={day} key={index} className="flex-1" />
-            ))}
-          </div>
-          <Divider />
-          <div className="flex flex-wrap gap-4">
-            {weeks[1].map((day: Day, index: number) => (
-              <DayButton day={day} key={index} className="flex-1" />
-            ))}
-          </div>
-        </>
+            weeks.map((week, index) => (
+                <>
+                    {index !== 0 && <Divider />}
+                    <div className='flex flex-wrap gap-4' key={index}>
+                    {week.map((day, index) => (
+                        <DayButton day={day} key={index} className="flex-1" />
+                    ))}
+                </div>
+                </>
+            ))
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
       )}
