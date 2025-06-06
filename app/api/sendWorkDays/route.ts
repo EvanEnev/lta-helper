@@ -9,6 +9,7 @@ import {NextRequest, NextResponse} from 'next/server'
 import auth from '@/lib/auth'
 import updatePoints from '@/src/utils/admin/updatePoints'
 import db from '@/lib/database'
+import {DateTime} from 'luxon'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
@@ -142,8 +143,12 @@ export async function POST(req: NextRequest) {
       calculatedWorkingTime = `${workingTimeParts[0]}-${workingTimeParts[1]}`
     }
 
-    let defaultSalary = ranksSalary[rank]?.default
+    let defaultSalary = ranksSalary[rank.toLowerCase()]?.default
     let overworkSalary = 0
+
+    if (data.value) {
+      defaultSalary = data.value
+    }
 
     if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
       overworkSalary += ranksSalary[rank].overWork * (data.gamesCount - 2)
@@ -192,7 +197,7 @@ export async function POST(req: NextRequest) {
                         '${data.fines || 0}',
                         '${data.comment}',
                         (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
-                        (SELECT id FROM lt_arena.workers WHERE telegram_id = ${user.id}),
+                        ${user.id},
                         '${workingStart}:00',
                         '${workingEnd}:00',
                         ${overworkStart ? `'${overworkStart}:00'` : 'NULL'},
@@ -214,7 +219,8 @@ export async function POST(req: NextRequest) {
     `)
   }
 
-  if (promises.length) {
+  console.debug(queries, user)
+  if (queries.length) {
     const queriesPromises = queries.map(query => db.query(query))
     await Promise.all([...promises, ...queriesPromises]).then(async () => {
       await Promise.all([
