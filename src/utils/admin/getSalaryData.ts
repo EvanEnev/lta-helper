@@ -10,6 +10,7 @@ type SalaryData = {
   comment: string
   bonuses: string
   fines: string
+  value?: number
 }
 
 export default function getSalaryData(data: SalaryData) {
@@ -62,7 +63,7 @@ export default function getSalaryData(data: SalaryData) {
   let overWorkSalary = isOverWork
     ? (ranksSalary[rank]?.overWork || 0) * overWorkTime
     : 0
-  console.log(gamesCount, ranksSalary[rank].overWork * (gamesCount - 2))
+
   if (rank === 'актёр' && gamesCount && gamesCount > 2) {
     overWorkSalary = (ranksSalary[rank]?.overWork || 0) * (gamesCount - 2)
   }
@@ -77,7 +78,7 @@ export default function getSalaryData(data: SalaryData) {
     calculatedWorkingTime,
     calculatedOverWorkTime,
     overWorkSalary,
-    salary,
+    salary: data.value || salary,
     bonuses,
   }
 }

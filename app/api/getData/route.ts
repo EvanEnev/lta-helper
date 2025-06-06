@@ -1,26 +1,27 @@
 import db from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
-import {auth} from '@/lib/auth'
+import {DateTime} from 'luxon'
+import createAdminSupabase from '@/lib/createAdminSupabase'
+import auth from '@/lib/auth'
 
 export async function GET() {
-  const session = await auth()
+  const supabase = await createAdminSupabase()
+
+  const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
   if (!user) {
+    return NextResponse.json({message: 'Пользователь не найден'}, {status: 500})
+  }
+
+  const telegramId = user.user_metadata.telegram_id
+
+  if (!telegramId) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
-  const telegramId = user.id
-
-  const workerQuery = `SELECT
-  name,
-  id
-  FROM lt_arena.workers
-  WHERE telegram_id=${telegramId}`
-
-  const workerResult = await db.query(workerQuery)
-  const worker = workerResult.rows[0]
+  const worker = await auth()
 
   const dataQuery = `SELECT
   w.name,
@@ -34,7 +35,6 @@ export async function GET() {
   WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 
   const dataResult = await db.query(dataQuery)
-
   if (!worker?.name)
     return NextResponse.json({message: 'Сотрудник не найден'}, {status: 404})
 
@@ -59,7 +59,7 @@ export async function GET() {
 
   let locationsData: {
     rows: {
-      date: Date
+      date: DateTime
       start_time: string
       end_time: string
       location_comment: string
@@ -72,9 +72,9 @@ export async function GET() {
   locationsData = await db.query(locationsQuery)
 
   const defaultDays = await getDefaultDays()
-  const workingDays = defaultDays.map((day: Date) => {
+  const workingDays = defaultDays.map(day => {
     const data = dataResult.rows.find(
-      obj => obj?.date.getTime() === day.getTime(),
+      obj => obj.date.toFormat('yyyy-dd-MM') === day.toFormat('yyyy-dd-MM'),
     )
 
     if (!data)
@@ -84,7 +84,9 @@ export async function GET() {
       }
 
     const locationData = locationsData.rows
-      .filter(obj => obj?.date.getTime() === day.getTime())
+      .filter(
+        obj => obj?.date.toFormat('yyyy-dd-MM') === day.toFormat('yyyy-dd-MM'),
+      )
       ?.map(data => {
         let startTime = data.start_time
         let endTime = data.end_time
@@ -113,18 +115,18 @@ export async function GET() {
             worker: data.worker,
             rank: data.rank,
           },
-          self: user.name === data.worker,
+          self: worker.name === data.worker,
           locationName: data.location,
         }
       })
 
     return {
-      date: day,
+      date: day.toISO(),
       value: data.value,
       comment: data.comment,
       locationData,
     }
   })
 
-  return NextResponse.json(workingDays)
+  return NextResponse.json({workingDays, worker})
 }

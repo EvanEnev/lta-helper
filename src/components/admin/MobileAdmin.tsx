@@ -1,23 +1,34 @@
-import {Accordion, AccordionItem, Button, Selection} from "@heroui/react"
+import {
+  Accordion,
+  AccordionItem,
+  Button,
+  CalendarDate,
+  DatePicker,
+  Selection,
+} from '@heroui/react'
 import DayButton from '../schedule/DayButton'
 import WorkData from './WorkData'
-import {useState} from 'react'
-import {WorkerSalary} from '@/src/utils/types'
+import {useCallback, useState} from 'react'
+import {LTWorker, WorkerSalary} from '@/src/utils/types'
 import {Plain} from 'solar-icon-set'
+import {DateTime} from 'luxon'
+import {today} from '@internationalized/date'
+import convertTZ from '@/lib/functions/convertTZ'
 
 type Options = {
   days: {
-    current: Date
-    previous: Date
-    today: Date
+    current: DateTime
+    previous: DateTime
+    today: DateTime
   }
   setDate: any
-  date?: Date
+  date?: DateTime
   salaryData: WorkerSalary[]
   setSalaryData: any
-  workers: string[]
+  workers: LTWorker[]
   sendData: any
   isLoading: boolean
+  canEdit: boolean
 }
 
 export default function MobileAdmin({
@@ -29,9 +40,52 @@ export default function MobileAdmin({
   workers,
   sendData,
   isLoading,
+  canEdit,
 }: Options) {
   const [key, setKey] = useState(0)
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set(['0']))
+
+  const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
+
+  const checkDateValid = useCallback(
+    (date: DateTime) => {
+      const now = convertTZ(new Date(), 'Europe/Moscow').set({
+        hour: 0,
+      })
+
+      let isInvalid = false
+
+      const diff = Math.floor(now.diff(date).as('days'))
+
+      if (!canEdit && diff >= 1) {
+        if (date > now) {
+          isInvalid = true
+        } else if (diff === 1 && date < now && now.hour > 3) {
+          isInvalid = true
+        } else if (diff >= 2) {
+          isInvalid = true
+        }
+      }
+
+      setIsDateInvalid(isInvalid)
+      return isInvalid
+    },
+    [canEdit],
+  )
+
+  const updateDate = (date: CalendarDate) => {
+    const datetime = DateTime.fromObject({
+      day: date.day,
+      month: date.month,
+      year: date.year,
+    })
+
+    const isInvalid = checkDateValid(datetime)
+
+    if (!isInvalid) {
+      setDate(datetime)
+    }
+  }
 
   const addSalaryData = () => {
     setSalaryData((prev: WorkerSalary[]) => [
@@ -56,20 +110,26 @@ export default function MobileAdmin({
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-start p-4 gap-4">
+    <main className="flex min-h-screen flex-col items-center justify-start gap-4 p-4">
       <div className="flex gap-4">
-        <DayButton
-          onclick={() => setDate(days.previous)}
-          day={{date: days.previous}}
-          color="warning"
-          isSelected={date?.getTime() === days.previous.getTime()}
-          disabled={days.today.getHours() > 3}
-        />
-        <DayButton
-          onclick={() => setDate(days.current)}
-          day={{date: days.current}}
-          color="success"
-          isSelected={date?.getTime() === days.current.getTime()}
+        <DatePicker
+          isInvalid={isDateInvalid}
+          errorMessage="Дата вне диапазона"
+          isDateUnavailable={date =>
+            date.compare(today('Europe/Moscow').subtract({days: 1})) === 0 &&
+            days.today.hour > 3 &&
+            !canEdit
+          }
+          selectorButtonPlacement="start"
+          firstDayOfWeek="mon"
+          className="h-16 w-full"
+          classNames={{inputWrapper: 'h-16'}}
+          // @ts-ignore
+          onChange={(date: CalendarDate) => updateDate(date)}
+          minValue={today('Europe/Moscow').subtract({days: 1})}
+          maxValue={today('Europe/Moscow')}
+          // @ts-ignore
+          defaultValue={today('Europe/Moscow')}
         />
       </div>
 
@@ -114,14 +174,15 @@ export default function MobileAdmin({
       <Button
         size="lg"
         color="default"
-        className="w-full h-16"
+        className="h-16 w-full"
         onPress={addSalaryData}>
         Добавить
       </Button>
       <Button
+        isDisabled={isDateInvalid}
         size="lg"
         color="primary"
-        className="w-full h-16"
+        className="h-16 w-full"
         onPress={sendData}
         endContent={<Plain size={24} />}
         isLoading={isLoading}>

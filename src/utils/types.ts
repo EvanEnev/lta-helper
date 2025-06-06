@@ -1,5 +1,7 @@
+import {DateTime} from 'luxon'
+
 export type Day = {
-  date?: Date
+  date?: DateTime
   value?: string
   comment?: string
   location?: string
@@ -19,19 +21,33 @@ export type LocationData = {
 }
 
 export type SelectedDay = {
-  date?: Date
+  date?: DateTime
   invalidComment?: boolean
 }
 
-export type WorkingDay = {
-  date: string
-  value: string
-  location?: string
+export interface Permission {
+  name: string
+  description: string
+  id: number
 }
 
-export interface Comment {
-  date: string
-  value: string
+export interface LTWorker {
+  name: string
+  id: number
+  number?: number
+  telegramId: number
+  isFormer?: boolean
+  location?: string
+  locationId?: number
+  rank: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  phoneNumber?: string
+  email?: string
+  photoUrl?: string
+  permissionLevel: number
+  permissions: Permission[]
 }
 
 export interface WorkerSalary {
@@ -44,4 +60,41 @@ export interface WorkerSalary {
   hasGames?: boolean
   isHardTime: boolean
   gamesCount: number
+  value?: number
+}
+
+export interface SalaryData {
+  date: string
+  start_time: string
+  end_time: string
+  overwork_start: string | null
+  overwork_end: string | null
+  overwork: number | null
+  value: number
+  bonuses: string | null
+  fines: string
+  comment: string | null
+  created_at: string
+  worker_name: string
+  worker_id: number
+  created_by: string
+  updated_by?: number
+  location: {
+    name: string
+    color: string
+  }
+}
+
+export interface SalaryUser {
+  id: number
+  name: string
+  rank: string | null
+  firstName: string | null
+  isFormer: boolean | null
+}
+
+export interface UserSalary {
+  user: SalaryUser
+  dates: (SalaryData | null)[]
+  [key: string]: string | SalaryData | SalaryUser | (SalaryData | null)[]
 }

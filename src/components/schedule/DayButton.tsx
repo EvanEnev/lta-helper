@@ -39,16 +39,14 @@ export default function DayButton(props: DayButtonProps) {
   }
 
   const weekday = useMemo(() => {
-    return day.date?.toLocaleDateString('ru-RU', {
-      weekday: 'short',
-    })
+    return day.date?.toFormat('EEE', {locale: 'ru-RU'})
   }, [day.date])
 
   const isSelected = props.isSelected
     ? props.isSelected
     : selectedDay.date === day.date
   return !day.date ? (
-    <Skeleton className="w-28 h-12 rounded-[14px]" />
+    <Skeleton className="h-12 w-28 rounded-[14px]" />
   ) : (
     <Badge
       variant="solid"
@@ -70,11 +68,7 @@ export default function DayButton(props: DayButtonProps) {
         variant={isSelected ? 'shadow' : 'solid'}
         onPress={handler}>
         <span className="h-fit w-fit">
-          {day.date.toLocaleDateString('ru-RU', {
-            day: 'numeric',
-            month: 'numeric',
-          })}
-          , {weekday}
+          {day.date.toFormat('dd.MM')}, {weekday}
         </span>
       </Button>
     </Badge>

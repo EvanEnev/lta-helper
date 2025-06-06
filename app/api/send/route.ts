@@ -1,17 +1,18 @@
-import {auth} from '@/lib/auth'
 import db from '@/lib/database'
 import google from '@/lib/google'
 import getChanges from '@/src/utils/send/getChanges'
 import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
-import getWeekDay from '@/src/utils/send/getWeekDay'
 import {Day} from '@/src/utils/types'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
+import createAdminSupabase from '@/lib/createAdminSupabase'
+import auth from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
+  const supabase = await createAdminSupabase()
   const body = await req.json()
   const selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
-  const session = await auth()
+  const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
   if (!user) {
@@ -22,14 +23,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
   }
 
-  const telegramId = parseInt(user.id)
-  const workerResult = await db.query(
-    `SELECT "name", "number" FROM lt_arena.workers WHERE telegram_id = $1`,
-    [telegramId],
-  )
-  const worker = workerResult.rows[0]
+  const telegramId: number = user.user_metadata.telegram_id
 
-  if (!worker) {
+  const worker = await auth()
+
+  if (!worker.name) {
     return NextResponse.json({}, {status: 404})
   }
 
@@ -40,7 +38,7 @@ export async function POST(req: NextRequest) {
   const row = rows.find(
     (r: GoogleSpreadsheetRow) =>
       r.get('Позывной')?.split('-')[0]?.trim()?.toLowerCase() ===
-      user.name.toLowerCase(),
+      worker.name.toLowerCase(),
   )
 
   if (!row) {
@@ -50,7 +48,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const {changes, commentsChanges, queries} = await getChanges({
+  const {changes, queries} = await getChanges({
     sheet,
     row,
     selectedDays,
@@ -73,10 +71,12 @@ export async function POST(req: NextRequest) {
   const workerName = worker.name.charAt(0).toUpperCase() + worker.name.slice(1)
 
   changes.forEach(change => {
-    const weekday = getWeekDay(change.date)
+    const date = change.date
+    const formattedDate = date.toFormat('dd.MM')
+    const weekday = date.toFormat('EEEE', {locale: 'ru-RU'})
 
     changesTexts.push(
-      `${change.date} ${change.newValue}${
+      `${formattedDate} ${change.newValue}${
         change.comment ? `, ${change.comment}` : ''
       }`,
     )
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
         change.newValue === '+/-' ? 'может с ограничем' : 'не может'
       locationsChangesTexts.push(
         `⚠️ ${change.location}, ${workerName} **${possibilityText}** ${
-          change.date
+          formattedDate
         } (${weekday})${change.comment ? `, ${change.comment}` : ''}`,
       )
     }
@@ -110,19 +110,6 @@ export async function POST(req: NextRequest) {
   const message_thread_id = isActor
     ? process.env.ACTORS_THREAD_ID
     : process.env.WORKERS_THREAD_ID
-
-  if (commentsChanges.length) {
-    const commentsUpdateEntries = commentsChanges
-      .map(comment => {
-        return `('${worker.name}', '${comment.date}', '${comment.value}')`
-      })
-      .join(',\n')
-
-    const commentsUpdateQuery = `INSERT INTO lt_arena.comments ("worker", "date", "value") VALUES ${commentsUpdateEntries}
-     ON CONFLICT (worker, date) DO UPDATE SET value = EXCLUDED.value`
-
-    await db.query(commentsUpdateQuery)
-  }
 
   const query = queries.join(';\n')
 

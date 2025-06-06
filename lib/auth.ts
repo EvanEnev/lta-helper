@@ -1,145 +1,91 @@
-import NextAuth from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
+'use server'
 
-import {
-  AuthDataValidator,
-  objectToAuthDataMap,
-  urlStrToAuthDataMap,
-} from '@telegram-auth/server'
+import createAdminSupabase from '@/lib/createAdminSupabase'
+import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
-import convertTZ from './functions/convertTZ'
+import {LTWorker} from '@/src/utils/types'
 
-const getUserData = async (id: number) => {
-  const date = convertTZ(new Date(), 'Europe/Moscow').toLocaleDateString(
-    'ru-RU',
-    {day: 'numeric', month: 'numeric'},
-  )
+export default async function auth(): Promise<LTWorker> {
+  const supabase = await createAdminSupabase()
+
+  const {data: session} = await supabase.auth.getUser()
+  const user = session?.user
+
+  if (!user)
+    return {
+      email: '',
+      firstName: '',
+      id: 0,
+      isFormer: false,
+      lastName: '',
+      location: '',
+      middleName: '',
+      name: '',
+      permissionLevel: 0,
+      permissions: [],
+      phoneNumber: '',
+      photoUrl: '',
+      rank: '',
+      telegramId: 0,
+      number: 0,
+    }
+
+  const telegramId = user?.user_metadata.telegram_id
+
+  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
 
   const query = `SELECT
-        w.name,
-        rank,
-        l.name as location,
-        ranks.permission_level,
-        first_name,
-        last_name,
-        middle_name,
-        phone_number,
-        email,
-        admins.location_id as today_location
-        FROM lt_arena.workers w
-        LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
-        LEFT JOIN lt_arena.locations l ON l.id = w.location_id
-        LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
-        WHERE telegram_id = ${id}`
+                   w.name,
+                   w.id,
+                   w.rank,
+                   w.number,
+                   l.name as location,
+                   l.id as location_id,
+                   ranks.permission_level,
+                   w.first_name,
+                   w.last_name,
+                   w.middle_name,
+                   w.phone_number,
+                   w.email,
+                   w.photo_url,
+                   admins.location_id as today_location
+                 FROM lt_arena.workers w
+                        LEFT JOIN lt_arena.ranks ranks ON ranks.name = w.rank
+                        LEFT JOIN lt_arena.locations l ON l.id = w.location_id
+                        LEFT JOIN lt_arena.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
+                 WHERE telegram_id = ${telegramId}`
+
+  const permissionsQuery = `SELECT
+        pm.name, description, pm.id
+    FROM lt_arena.permissions pm
+           LEFT JOIN lt_arena.workers w ON telegram_id=${telegramId}
+           LEFT JOIN lt_arena.default_permissions dp ON (SELECT weight FROM lt_arena.ranks WHERE id = dp.rank_id) <= (SELECT weight FROM lt_arena.ranks WHERE name = w.rank)
+           LEFT JOIN lt_arena.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires < NOW(), true)
+    WHERE
+      pm.id = dp.permission_id
+       OR pm.id = w_pm.permission_id`
 
   const result = await db.query(query)
-  const data = result.rows[0] || {}
+  
+  const permissionsResult = await db.query(permissionsQuery)
+  const permissions = permissionsResult.rows
+  const workerResult = result.rows[0] || {}
 
-  if (data?.today_location) {
-    data.permission_level = 4
+  const worker: LTWorker = workerResult
+
+  worker.permissions = permissions
+  worker.permissionLevel = workerResult.permission_level
+
+  if (workerResult?.today_location) {
+    worker.permissionLevel = 4
   }
 
-  return data
+  worker.firstName = workerResult.first_name
+  worker.lastName = workerResult.last_name
+  worker.middleName = workerResult.middle_name
+  worker.phoneNumber = workerResult.phone_number
+  worker.photoUrl = workerResult.photo_url
+  worker.locationId = workerResult.location_id
+
+  return worker
 }
-
-export const authOptions = {
-  providers: [
-    CredentialsProvider({
-      id: 'telegram-login',
-      name: 'Telegram Login',
-      authorize: async credentials => {
-        const validator = new AuthDataValidator({
-          botToken: `${process.env.BOT_TOKEN}`,
-          subtleCrypto: crypto.subtle,
-        })
-
-        // @ts-ignore
-        let credentialsData = credentials?.data
-
-        try {
-          // @ts-ignore
-          credentialsData = JSON.parse(credentials?.data)
-        } catch (e) {}
-
-        const data =
-          typeof credentialsData === 'string'
-            ? urlStrToAuthDataMap(credentialsData)
-            : // @ts-ignore
-              objectToAuthDataMap(credentialsData)
-
-        const user = await validator.validate(data)
-
-        if (user.id) {
-          const data = await getUserData(user.id)
-
-          let returned = {
-            id: user.id,
-            rank: '',
-            permission_level: 0,
-            name: [user?.first_name, user?.last_name || ''].join(' '),
-            image: user.photo_url,
-          }
-
-          if (data) {
-            returned = {...returned, ...data}
-          }
-
-          return returned
-        }
-
-        return null
-      },
-    }),
-  ],
-  callbacks: {
-    // @ts-ignore
-    async jwt({token, user}) {
-      if (user) {
-        token.id = user.id
-        token.name = user.name
-        token.first_name = user.first_name
-        token.last_name = user.last_name
-        token.middle_name = user.middle_name
-        token.phone_number = user.phone_number
-        token.email = user.email
-        token.rank = user.rank
-        token.permission_level = user.permission_level
-        token.image = user.image
-        token.location = user.location
-      }
-
-      return token
-    },
-    // @ts-ignore
-    async session({session, token}) {
-      if (token) {
-        const data = await getUserData(token.id)
-
-        session.user.id = token.id
-        session.user.name = data.name
-        session.user.rank = data.rank
-        session.user.first_name = data.first_name
-        session.user.last_name = data.last_name
-        session.user.middle_name = data.middle_name
-        session.user.phone_number = data.phone_number
-        session.user.email = data.email
-        session.user.permission_level = data.permission_level
-        session.user.image = token.image
-        session.user.location = data.location
-      }
-      return session
-    },
-    // @ts-ignore
-    authorized: async ({auth}) => {
-      return !!auth?.user
-    },
-    redirect: async () => {
-      return 'https://lt.bubenev.su'
-    },
-  },
-  pages: {
-    signIn: '/login',
-  },
-}
-
-export const {handlers, signIn, signOut, auth} = NextAuth(authOptions)

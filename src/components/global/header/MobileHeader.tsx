@@ -1,19 +1,21 @@
 import {Avatar, Button, Link} from '@heroui/react'
-import {Session} from 'next-auth'
 import {usePathname} from 'next/navigation'
 import {ArrowLeft} from 'solar-icon-set'
+import buttons from '@/src/utils/global/pathButtons'
+import {LTWorker} from '@/src/utils/types'
 
-const buttons = [
-  {name: 'Главная', href: '/'},
-  {name: 'График работы', href: '/schedule'},
-  {name: 'График персонала', href: '/admin', permission_level: 4},
-]
-
-export default function MobileHeader({session}: {session: Session | null}) {
+export default function MobileHeader({
+  worker,
+  scrolled,
+}: {
+  worker: LTWorker
+  scrolled: boolean
+}) {
   const path = usePathname()
 
   return (
-    <header className="flex justify-between h-fit p-2 items-center flex-wrap gap-4">
+    <header
+      className={`sticky top-0 left-0 z-1000 flex h-fit w-[100dvw] flex-wrap items-center justify-between gap-4 p-2 ${scrolled ? 'scrolled' : ''}`}>
       <Button
         as={Link}
         href="/"
@@ -25,12 +27,12 @@ export default function MobileHeader({session}: {session: Session | null}) {
         className={`${path === '/' ? 'hidden' : ''}`}>
         На главную
       </Button>
-      <span className="text-2xl font-bold flex-1 text-center">
+      <span className="flex-1 text-center text-2xl font-bold">
         {buttons.find(obj => obj.href === path)?.name}
       </span>
-      <div className="flex gap-2 items-center justify-center text-2xl flex-1">
-        <Avatar src={session?.user.image} />
-        {session?.user.name}
+      <div className="flex flex-1 items-center justify-center gap-2 text-2xl">
+        <Avatar src={worker.photoUrl} />
+        {worker.name}
       </div>
     </header>
   )

@@ -1,21 +1,9 @@
-import {useEffect, useState} from 'react'
+import {useMediaQuery} from 'react-responsive'
 
-const useIsMobile = (breakpoint = 800) => {
-  const [isMobile, setIsMobile] = useState(false)
+const useIsMobile = () => {
+  const isPC = useMediaQuery({query: '(width >= 40rem)'})
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= breakpoint)
-    }
-
-    handleResize()
-
-    window.addEventListener('resize', handleResize)
-
-    return () => window.removeEventListener('resize', handleResize)
-  }, [breakpoint])
-
-  return isMobile
+  return !isPC
 }
 
 export default useIsMobile

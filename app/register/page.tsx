@@ -1,23 +1,23 @@
 'use client'
 
-import {Button, Form, Input, InputProps} from '@heroui/react'
-import InputMask from 'react-input-mask'
+import {Button, Form, Input} from '@heroui/react'
+import MaskedInput from 'react-text-mask'
 import {FormEvent, useEffect, useState} from 'react'
-import {useSession} from 'next-auth/react'
 import {useRouter} from 'next/navigation'
 import {useSetAtom} from 'jotai'
 import {alertAtom} from '@/src/utils/global/atoms'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Register() {
   const router = useRouter()
-  const {data: session} = useSession()
+  const {worker} = useAuth()
   const setAlertData = useSetAtom(alertAtom)
 
-  const [email, setEmail] = useState<string>(session?.user.email || undefined)
+  const [email, setEmail] = useState<string>(worker?.email || '')
   const [emailErrors, setEmailErrors] = useState<string[]>([])
 
   const [phoneNumber, setPhoneNumber] = useState<string>(
-    session?.user.phone_number || undefined,
+    worker?.phoneNumber || '',
   )
   const [phoneNumberError, setPhoneNumberError] = useState<string>()
 
@@ -55,6 +55,7 @@ export default function Register() {
       method: 'POST',
       body: JSON.stringify({data: data}),
     })
+
     setLoading(false)
 
     const resultData = await result.json()
@@ -81,21 +82,21 @@ export default function Register() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 gap-4">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Регистрация</h1>
-      <div className="flex justify-center gap-4 w-full sm:w-1/2 max-h-[50%] flex-wrap">
+      <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4 sm:w-1/2">
         <Form className="w-full" onSubmit={handler}>
           <Input
             label="Позывной"
             size="lg"
-            defaultValue={session?.user.name || ''}
+            defaultValue={worker.name || ''}
             name="name"
             isRequired
             errorMessage="Поле обязательно"
           />
           <Input
             label="Фамилия"
-            defaultValue={session?.user.last_name || ''}
+            defaultValue={worker.lastName || ''}
             size="lg"
             isRequired
             name="last_name"
@@ -103,7 +104,7 @@ export default function Register() {
           />
           <Input
             label="Имя"
-            defaultValue={session?.user.first_name || ''}
+            defaultValue={worker.firstName || ''}
             size="lg"
             isRequired
             name="first_name"
@@ -111,19 +112,36 @@ export default function Register() {
           />
           <Input
             label="Отчество"
-            defaultValue={session?.user.middle_name || ''}
+            defaultValue={worker.middleName || ''}
             size="lg"
             name="middle_name"
             errorMessage="Поле обязательно"
           />
-          <InputMask
-            mask="+7 999 999-99-99"
-            maskChar="_"
-            value={phoneNumber}
-            onChange={e => setPhoneNumber(e.target.value)}>
-            {(inputProps: InputProps) => (
+          <MaskedInput
+            mask={[
+              '+',
+              '7',
+              ' ',
+              /[1-9]/,
+              /\d/,
+              /\d/,
+              ' ',
+              /\d/,
+              /\d/,
+              /\d/,
+              '-',
+              /\d/,
+              /\d/,
+              '-',
+              /\d/,
+              /\d/,
+            ]}
+            value={phoneNumber || ''}
+            onChange={e => setPhoneNumber(e.target.value)}
+            render={(ref: any, props) => (
               <Input
-                {...inputProps}
+                ref={ref}
+                {...props}
                 label="Номер телефона"
                 size="lg"
                 isRequired
@@ -135,7 +153,7 @@ export default function Register() {
                 errorMessage={() => <span>{phoneNumberError}</span>}
               />
             )}
-          </InputMask>
+          />
 
           <Input
             label="Google-почта"
@@ -153,7 +171,7 @@ export default function Register() {
             }
           />
           <Button
-            className="w-full h-16"
+            className="h-16 w-full"
             variant="shadow"
             color="primary"
             size="lg"

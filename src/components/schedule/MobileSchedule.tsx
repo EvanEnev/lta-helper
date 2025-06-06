@@ -5,27 +5,28 @@ import SendButton from './SendButton'
 import {Day} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {useAtomValue} from 'jotai'
-import {daysAtom, selectedDayAtom} from '@/src/utils/global/atoms'
+import {selectedDayAtom} from '@/src/utils/global/atoms'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function MobileSchedule() {
-  const days = useAtomValue(daysAtom)
+  const {workingDays: days} = useAuth()
   const selectedDay = useAtomValue(selectedDayAtom)
   const [initialDays, setInitialDays] = useState(days)
 
   const day: Day = useMemo(
     () =>
-      days?.find(d => d.date?.getTime() === selectedDay.date?.getTime()) || {
+      days?.find(
+        d =>
+          d.date?.toFormat('YYYY-MM-dd') ===
+          selectedDay.date?.toFormat('YYYY-MM-dd'),
+      ) || {
         date: undefined,
       },
     [days, selectedDay],
   )
 
   const getWeekday = (day: Day) => {
-    return (
-      day.date?.toLocaleDateString('ru-RU', {
-        weekday: 'long',
-      }) || ''
-    )
+    return day.date?.toFormat('EEE', {locale: 'ru-RU'}) || ''
   }
 
   const weeks = useMemo(() => {
@@ -52,7 +53,7 @@ export default function MobileSchedule() {
   }, [days, initialDays])
 
   return (
-    <div className="flex gap-4 w-full max-h-[50%] flex-wrap">
+    <div className="flex max-h-[50%] w-full flex-wrap gap-4">
       {days.length ? (
             weeks.map((week, index) => (
                 <>
@@ -72,7 +73,9 @@ export default function MobileSchedule() {
       <SendButton
         days={days.filter(day => {
           const initialDay = initialDays.find(
-            initDay => initDay.date?.getTime() === day.date?.getTime(),
+            initDay =>
+              initDay.date?.toFormat('YYYY-MM-dd') ===
+              day.date?.toFormat('YYYY-MM-dd'),
           )
           return (
             day.value !== initialDay?.value ||

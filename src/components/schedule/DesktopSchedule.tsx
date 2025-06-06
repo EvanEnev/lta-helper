@@ -12,32 +12,32 @@ import SendButton from './SendButton'
 import {Day} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {Pen2} from 'solar-icon-set'
-import {useAtom, useAtomValue} from 'jotai'
-import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
+import {useAtom} from 'jotai'
+import {selectedDatesAtom} from '@/src/utils/global/atoms'
+import {DateTime} from 'luxon'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function DesktopSchedule() {
-  const days = useAtomValue(daysAtom)
+  const {workingDays: days} = useAuth()
   const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
   const [initialDays, setInitialDays] = useState(days)
 
-  const changeDates = (date: Date | undefined, isSelected: boolean) => {
+  const changeDates = (date: DateTime | undefined, isSelected: boolean) => {
     if (!date) return
 
     if (isSelected) {
       setSelectedDates([...selectedDates, date])
     } else {
       setSelectedDates(
-        selectedDates.filter(cur => cur.getTime() !== date.getTime()),
+        selectedDates.filter(
+          cur => cur.toFormat('YYYY-MM-dd') !== date.toFormat('YYYY-MM-dd'),
+        ),
       )
     }
   }
 
   const getWeekday = (day: Day): string => {
-    return (
-      day.date?.toLocaleDateString('ru-RU', {
-        weekday: 'long',
-      }) || ''
-    )
+    return day.date?.toFormat('EEEE', {locale: 'ru-RU'}) || ''
   }
 
   const weeks = useMemo(() => {
@@ -64,39 +64,56 @@ export default function DesktopSchedule() {
   }, [days, initialDays])
 
   return (
-    <div className="flex w-full px-6 gap-4">
+    <div className="flex w-full gap-4 px-6">
       {days.length ? (
-        <div className="overflow-auto h-[80vh]">
-          <div className="w-full grid grid-cols-3 lg:grid-cols-4 auto-rows-min grid-flow-row gap-4">
-            {weeks.map((week, index) => (
-                <>
-                  {index !== 0 && <Divider className="col-span-3 lg:col-span-4" />}
-                  {week.map((day, index) => (
-                      <Card key={index} className="scrollbar-hide overflow-hidden">
-                        <CardHeader className="">
-                          <Checkbox
-                              className=""
-                              size="lg"
-                              onValueChange={isSelected =>
-                                  changeDates(day.date, isSelected)
-                              }>
-                    <span className="font-bold text-2xl">
-                      {day.date?.toLocaleDateString('ru-RU', {
-                        month: 'numeric',
-                        day: 'numeric',
-                      })}
+        <div className="h-[80vh] overflow-auto">
+          <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
+            {weeks[0].map((day: Day, index: number) => (
+              <Card key={index} className="scrollbar-hide overflow-hidden">
+                <CardHeader className="">
+                  <Checkbox
+                    className=""
+                    size="lg"
+                    onValueChange={isSelected =>
+                      changeDates(day.date, isSelected)
+                    }>
+                    <span className="text-2xl font-bold">
+                      {day.date?.toFormat('dd.MM')}
                       ,
                       <br />
                       {getWeekday(day)}
                     </span>
-                          </Checkbox>
-                        </CardHeader>
-                        <CardBody>
-                          <DayInfo day={day} />
-                        </CardBody>
-                      </Card>
-                  ))}
-                </>
+                  </Checkbox>
+                </CardHeader>
+                <CardBody>
+                  <DayInfo day={day} />
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+          <Divider className="my-4" />
+          <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
+            {weeks[1].map((day: Day, index: number) => (
+              <Card key={index} className="scrollbar-hide overflow-hidden">
+                <CardHeader className="w-full">
+                  <Checkbox
+                    className="w-full"
+                    size="lg"
+                    onValueChange={isSelected =>
+                      changeDates(day.date, isSelected)
+                    }>
+                    <span className="w-full text-2xl font-bold">
+                      {day.date?.toFormat('dd.MM')}
+                      ,
+                      <br />
+                      {getWeekday(day)}
+                    </span>
+                  </Checkbox>
+                </CardHeader>
+                <CardBody>
+                  <DayInfo day={day} />
+                </CardBody>
+              </Card>
             ))}
           </div>
         </div>
@@ -104,8 +121,8 @@ export default function DesktopSchedule() {
         <i className="opacity-50">Дат пока нет..</i>
       )}
       <div className="h-[70vh]">
-        <Card className="w-[22vw] h-full" isBlurred>
-          <CardHeader className="text-2xl flex gap-2">
+        <Card className="h-full w-[22vw]" isBlurred>
+          <CardHeader className="flex gap-2 text-2xl">
             <Pen2 size={24} svgProps={{width: 24, height: 24}} />
             Изменённые дни:
           </CardHeader>
@@ -118,17 +135,15 @@ export default function DesktopSchedule() {
               )
               .map((initialDay, index) => {
                 const day = days.find(
-                  day => initialDay.date?.getTime() === day.date?.getTime(),
+                  day =>
+                    initialDay.date?.toFormat('YYYY-MM-dd') ===
+                    day.date?.toFormat('YYYY-MM-dd'),
                 )
                 if (!day) return ''
 
                 return (
-                  <div key={index} className="text-xl flex gap-2">
-                    {day.date?.toLocaleDateString('ru-RU', {
-                      month: 'numeric',
-                      day: 'numeric',
-                    })}
-                    :
+                  <div key={index} className="flex gap-2 text-xl">
+                    {day.date?.toFormat('dd.MM')}:
                     {initialDay?.value !== day.value ? (
                       <div className="flex gap-1">
                         <Code className="min-h-7 min-w-6" color={'danger'}>
@@ -143,14 +158,14 @@ export default function DesktopSchedule() {
                       ''
                     )}
                     {initialDay?.comment !== day.comment ? (
-                      <div className="flex gap-1 w-full">
+                      <div className="flex w-full gap-1">
                         <Code className="min-h-7" color={'danger'}>
                           {initialDay?.comment}
                         </Code>
                         {'->'}
                         <Code
                           color="success"
-                          className="break-all whitespace-normal min-h-7">
+                          className="min-h-7 break-all whitespace-normal">
                           {day.comment}
                         </Code>
                       </div>
@@ -165,7 +180,9 @@ export default function DesktopSchedule() {
             <SendButton
               days={days.filter(day => {
                 const initialDay = initialDays.find(
-                  initDay => initDay.date?.getTime() === day.date?.getTime(),
+                  initDay =>
+                    initDay.date?.toFormat('YYYY-MM-dd') ===
+                    day.date?.toFormat('YYYY-MM-dd'),
                 )
                 return (
                   day.value !== initialDay?.value ||

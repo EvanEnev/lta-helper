@@ -1,9 +1,10 @@
 import getSalaryData from '@/src/utils/admin/getSalaryData'
 import locations from '@/src/utils/locations'
-import {WorkerSalary} from '@/src/utils/types'
+import {LTWorker, WorkerSalary} from '@/src/utils/types'
 import {
   Autocomplete,
   AutocompleteItem,
+  AutocompleteSection,
   Checkbox,
   Divider,
   Input,
@@ -11,6 +12,8 @@ import {
   Textarea,
 } from '@heroui/react'
 import {Key, useMemo} from 'react'
+import groupBy from '@/lib/functions/groupBy'
+import RankIcon from '@/src/components/global/RankIcon'
 
 type WorkDataProps = {
   data: WorkerSalary
@@ -40,6 +43,7 @@ export default function WorkData({
       | 'isHardTime'
       | 'gamesCount'
       | 'hasGames'
+      | 'value'
       | 'fines',
     value: Key | string | boolean | null,
   ) => {
@@ -63,6 +67,7 @@ export default function WorkData({
 
     return null
   }
+
   const salary = useMemo(
     () =>
       getSalaryData({
@@ -74,6 +79,8 @@ export default function WorkData({
         gamesCount: data.gamesCount,
         comment: data.comment,
         bonuses: data.bonuses,
+        value: data.value,
+        fines: data.fines,
       }),
     [
       data.worker,
@@ -84,8 +91,18 @@ export default function WorkData({
       data.bonuses,
       data.fines,
       worker?.rank,
+      data.value,
     ],
   )
+
+  const groupedWorkers: {[key: string]: LTWorker[]} = useMemo(() => {
+    const newWorkers = [...workers].map(w => ({
+      ...w,
+      rank: w.isFormer ? 'Бывший сотрудник' : w.rank?.trim(),
+    }))
+
+    return groupBy(newWorkers, 'rank')
+  }, [workers])
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -93,10 +110,30 @@ export default function WorkData({
         isRequired
         label="Сотрудник"
         selectedKey={data.worker}
+        scrollShadowProps={{
+          isEnabled: false,
+        }}
         onSelectionChange={value => updateData('worker', value)}>
-        {workers.map((worker: any) => (
-          <AutocompleteItem key={worker.name}>{worker.name}</AutocompleteItem>
-        ))}
+        {Object.entries(groupedWorkers).map(([key, value], index) => {
+          const title = (
+            <div className="bg-default-100 z-100 flex flex-1 items-center gap-1 rounded-xl px-2 select-none">
+              <RankIcon rank={key} className="h-6 w-fit" /> {key}
+            </div>
+          )
+
+          return (
+            <AutocompleteSection
+              // @ts-ignore
+              title={key === 'null' ? '' : title}
+              key={index}>
+              {value.map(worker => (
+                <AutocompleteItem key={worker.name}>
+                  {worker.name}
+                </AutocompleteItem>
+              ))}
+            </AutocompleteSection>
+          )
+        })}
       </Autocomplete>
       <Autocomplete
         isRequired
@@ -117,7 +154,7 @@ export default function WorkData({
         <Checkbox
           onValueChange={value => updateData('hasGames', value)}
           className="max-w-full">
-          Есть игры?
+          Есть игры
         </Checkbox>
       )}
       {worker?.rank === 'Актёр' ? (
@@ -132,7 +169,7 @@ export default function WorkData({
         <Checkbox
           onValueChange={value => updateData('isHardTime', value)}
           className="max-w-full">
-          Загруз?
+          Загруз
         </Checkbox>
       )}
       <Input
@@ -152,13 +189,19 @@ export default function WorkData({
       />
       <Divider />
       <div className="flex flex-col gap-2">
-        <div>
+        <div className="">
           <p>
-            Смена: {salary?.salary || 0}{' '}
-            {salary?.calculatedWorkingTime && (
-              <>({salary?.calculatedWorkingTime})</>
-            )}
+            Смена{' '}
+            {salary?.calculatedWorkingTime &&
+              `(${salary?.calculatedWorkingTime})`}
+            :
           </p>
+          <NumberInput
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.salary || 0}
+            onValueChange={value => updateData('value', value)}
+          />{' '}
         </div>
         <div>
           <p>

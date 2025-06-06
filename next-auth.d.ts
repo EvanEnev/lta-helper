@@ -8,15 +8,10 @@ declare module 'next-auth' {
     name: string
     location_id?: number
     photo?: string
+    permissions: string[]
   }
 
   interface Session {
-    user: DefaultSession['user'] & {
-      id: number
-      rank: string
-      permission_level: number
-      name: string
-      location_id?: number
-    }
+    user: DefaultSession['user'] & User
   }
 }
