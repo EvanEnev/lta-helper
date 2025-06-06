@@ -41,7 +41,7 @@ export default function DayInfo({day}: {day: Day}) {
       const newDays = days.map(curDay =>
         selectedDates.find(
           date =>
-            date.toFormat('YYYY-MM-dd') === curDay.date?.toFormat('YYYY-MM-dd'),
+            date.toFormat('yyyy-MM-dd') === curDay.date?.toFormat('yyyy-MM-dd'),
         )
           ? {...curDay, value}
           : curDay,
@@ -51,8 +51,8 @@ export default function DayInfo({day}: {day: Day}) {
     } else {
       const newDay: Day = {...day, value}
       const newDays = days.map(selectedDay =>
-        day.date?.toFormat('YYYY-MM-dd') ===
-        selectedDay.date?.toFormat('YYYY-MM-dd')
+        day.date?.toFormat('yyyy-MM-dd') ===
+        selectedDay.date?.toFormat('yyyy-MM-dd')
           ? newDay
           : selectedDay,
       )

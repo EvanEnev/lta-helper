@@ -4,7 +4,7 @@ import {useCallback, useContext, useEffect, useState} from 'react'
 import React from 'react'
 import Loading from '@/app/loading/page'
 import {usePathname, useRouter} from 'next/navigation'
-import {useAtom} from 'jotai'
+import {useAtom, useSetAtom} from 'jotai'
 import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
 import AuthContext from '@/src/components/global/contexts/AuthContext'
 import supabase from '@/lib/supabase'
@@ -29,7 +29,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
   const path = usePathname()
 
   const [telegram, setTelegram] = useAtom(telegramAtom)
-  const [days, setDays] = useAtom(daysAtom)
+  const setDays = useSetAtom(daysAtom)
 
   const getData = useCallback(async () => {
     const userRes = await fetch('/api/getData')

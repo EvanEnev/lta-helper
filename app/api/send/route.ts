@@ -7,11 +7,12 @@ import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 import createAdminSupabase from '@/lib/createAdminSupabase'
 import auth from '@/lib/auth'
+import {DateTime} from 'luxon'
 
 export async function POST(req: NextRequest) {
   const supabase = await createAdminSupabase()
   const body = await req.json()
-  const selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
+  let selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
   const {data: session} = await supabase.auth.getUser()
   const user = session?.user
 
@@ -22,6 +23,11 @@ export async function POST(req: NextRequest) {
   if (!selectedDays.length) {
     return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
   }
+
+  selectedDays = selectedDays.map(day => ({
+    ...day,
+    date: DateTime.fromISO(`${day.date}`),
+  }))
 
   const telegramId: number = user.user_metadata.telegram_id
 

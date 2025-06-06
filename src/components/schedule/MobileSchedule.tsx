@@ -4,14 +4,15 @@ import DayInfo from './DayInfo'
 import SendButton from './SendButton'
 import {Day} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
-import {useAtomValue} from 'jotai'
-import {selectedDayAtom} from '@/src/utils/global/atoms'
+import {useAtom, useAtomValue} from 'jotai'
+import {daysAtom, selectedDayAtom} from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function MobileSchedule() {
-  const {workingDays: days} = useAuth()
+  const {workingDays} = useAuth()
   const selectedDay = useAtomValue(selectedDayAtom)
-  const [initialDays, setInitialDays] = useState(days)
+  const [initialDays, setInitialDays] = useState(workingDays)
+  const [days, setDays] = useAtom(daysAtom)
 
   const day: Day = useMemo(
     () =>
@@ -32,20 +33,24 @@ export default function MobileSchedule() {
   const weeks = useMemo(() => {
     const weeks: Day[][] = [[], []]
 
-      let index = 0
+    let index = 0
 
-      days.forEach(day => {
-          if (!weeks[index]) weeks[index] = []
+    days.forEach(day => {
+      if (!weeks[index]) weeks[index] = []
 
-          weeks[index].push(day)
+      weeks[index].push(day)
 
-          if (getWeekday(day) === 'воскресенье') {
-              index++
-          }
-      })
+      if (getWeekday(day) === 'вс') {
+        index++
+      }
+    })
 
     return weeks
   }, [days])
+
+  useEffect(() => {
+    setDays(workingDays)
+  }, [workingDays, setDays])
 
   useEffect(() => {
     if (initialDays.find(obj => obj?.date)) return
@@ -55,16 +60,16 @@ export default function MobileSchedule() {
   return (
     <div className="flex max-h-[50%] w-full flex-wrap gap-4">
       {days.length ? (
-            weeks.map((week, index) => (
-                <>
-                    {index !== 0 && <Divider />}
-                    <div className='flex flex-wrap gap-4' key={index}>
-                    {week.map((day, index) => (
-                        <DayButton day={day} key={index} className="flex-1" />
-                    ))}
-                </div>
-                </>
-            ))
+        weeks.map((week, index) => (
+          <>
+            {index !== 0 && <Divider />}
+            <div className="flex flex-wrap gap-4" key={index}>
+              {week.map((day, index) => (
+                <DayButton day={day} key={index} className="flex-1" />
+              ))}
+            </div>
+          </>
+        ))
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
       )}

@@ -13,14 +13,15 @@ import {Day} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {Pen2} from 'solar-icon-set'
 import {useAtom} from 'jotai'
-import {selectedDatesAtom} from '@/src/utils/global/atoms'
+import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function DesktopSchedule() {
-  const {workingDays: days} = useAuth()
+  const {workingDays} = useAuth()
   const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
-  const [initialDays, setInitialDays] = useState(days)
+  const [initialDays, setInitialDays] = useState(workingDays)
+  const [days, setDays] = useAtom(daysAtom)
 
   const changeDates = (date: DateTime | undefined, isSelected: boolean) => {
     if (!date) return
@@ -59,6 +60,10 @@ export default function DesktopSchedule() {
   }, [days])
 
   useEffect(() => {
+    setDays(workingDays)
+  }, [workingDays, setDays])
+
+  useEffect(() => {
     if (initialDays.find(obj => obj?.date)) return
     setInitialDays(days)
   }, [days, initialDays])
@@ -68,52 +73,32 @@ export default function DesktopSchedule() {
       {days.length ? (
         <div className="h-[80vh] overflow-auto">
           <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
-            {weeks[0].map((day: Day, index: number) => (
-              <Card key={index} className="scrollbar-hide overflow-hidden">
-                <CardHeader className="">
-                  <Checkbox
-                    className=""
-                    size="lg"
-                    onValueChange={isSelected =>
-                      changeDates(day.date, isSelected)
-                    }>
-                    <span className="text-2xl font-bold">
-                      {day.date?.toFormat('dd.MM')}
-                      ,
-                      <br />
-                      {getWeekday(day)}
-                    </span>
-                  </Checkbox>
-                </CardHeader>
-                <CardBody>
-                  <DayInfo day={day} />
-                </CardBody>
-              </Card>
-            ))}
-          </div>
-          <Divider className="my-4" />
-          <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
-            {weeks[1].map((day: Day, index: number) => (
-              <Card key={index} className="scrollbar-hide overflow-hidden">
-                <CardHeader className="w-full">
-                  <Checkbox
-                    className="w-full"
-                    size="lg"
-                    onValueChange={isSelected =>
-                      changeDates(day.date, isSelected)
-                    }>
-                    <span className="w-full text-2xl font-bold">
-                      {day.date?.toFormat('dd.MM')}
-                      ,
-                      <br />
-                      {getWeekday(day)}
-                    </span>
-                  </Checkbox>
-                </CardHeader>
-                <CardBody>
-                  <DayInfo day={day} />
-                </CardBody>
-              </Card>
+            {weeks.map((week: Day[], index: number) => (
+              <>
+                {index !== 0 && <Divider className="col-span-full" />}
+                {week.map((day, index) => (
+                  <Card key={index} className="scrollbar-hide overflow-hidden">
+                    <CardHeader className="">
+                      <Checkbox
+                        className=""
+                        size="lg"
+                        onValueChange={isSelected =>
+                          changeDates(day.date, isSelected)
+                        }>
+                        <span className="text-2xl font-bold">
+                          {day.date?.toFormat('dd.MM')}
+                          ,
+                          <br />
+                          {getWeekday(day)}
+                        </span>
+                      </Checkbox>
+                    </CardHeader>
+                    <CardBody>
+                      <DayInfo day={day} />
+                    </CardBody>
+                  </Card>
+                ))}
+              </>
             ))}
           </div>
         </div>
