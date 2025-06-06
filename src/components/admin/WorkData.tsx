@@ -80,7 +80,6 @@ export default function WorkData({
         comment: data.comment,
         bonuses: data.bonuses,
         value: data.value,
-        fines: data.fines,
       }),
     [
       data.worker,

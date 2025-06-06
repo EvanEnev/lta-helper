@@ -142,14 +142,6 @@ export async function POST(req: NextRequest) {
       calculatedWorkingTime = `${workingTimeParts[0]}-${workingTimeParts[1]}`
     }
 
-    if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
-      overworkSalary += ranksSalary[rank].overWork * (data.gamesCount - 2)
-    }
-
-    if (isOverWork) {
-      overworkSalary += ranksSalary[rank].overWork * overWorkTime
-    }
-
     let defaultSalary = ranksSalary[rank]?.default
     let overworkSalary = 0
 
@@ -174,7 +166,7 @@ export async function POST(req: NextRequest) {
         }),
       )
     }
-    
+
     const workingStart = calculatedWorkingTime.split('-')[0]
     let workingEnd = calculatedWorkingTime.split('-')[1]
 
