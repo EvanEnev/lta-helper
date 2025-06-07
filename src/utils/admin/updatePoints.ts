@@ -3,6 +3,7 @@ import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import db from '@/lib/database'
 import google from '@/lib/google'
 import {google as rawGoogle} from 'googleapis'
+import {DateTime} from 'luxon'
 
 export default async function updatePoints({
   name,
@@ -15,7 +16,7 @@ export default async function updatePoints({
 }: {
   name: string
   rank: string
-  date: Date
+  date: DateTime
   comment: string
   hasGames: boolean
   location: string
@@ -79,11 +80,7 @@ export default async function updatePoints({
       parseInt(endDateParts[0]),
     )
 
-    const initialDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-    )
+    const initialDate = new Date(date.year, date.month, date.day)
 
     return (
       initialDate.valueOf() >= startDate.valueOf() &&
@@ -117,7 +114,7 @@ export default async function updatePoints({
   const maxPoints: number = data?.max || 0
 
   const oldValue = commentCell.stringValue || ''
-  const text = `${date.toLocaleDateString('ru-RU', {month: 'numeric', day: 'numeric'})} ${data.location}`
+  const text = `${date.toFormat('dd.MM')} ${data.location}`
 
   const newText = oldValue ? `${oldValue}, ${text}` : text
 

@@ -10,6 +10,7 @@ import auth from '@/lib/auth'
 import updatePoints from '@/src/utils/admin/updatePoints'
 import db from '@/lib/database'
 import {DateTime} from 'luxon'
+import convertTZ from '@/lib/functions/convertTZ'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
 
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
     (data: WorkerSalary) => data.worker && data.workingHours && data.location,
   )
 
-  const date = new Date(body.date)
+  let date: Date | DateTime = new Date(body.date)
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
@@ -92,6 +93,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
+  console.debug(body.date, date, convertTZ(date, 'Europe/Moscow'))
+
+  date = convertTZ(date, 'Europe/Moscow')
+
   const sheetData = await loadData(google)
   const {pointsSheet, goldPointsSheet, platinumPointsSheet} = sheetData.sheets
 
@@ -106,7 +111,7 @@ export async function POST(req: NextRequest) {
     const workerQuery = `SELECT rank FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'`
     const workerResult = await db.query(workerQuery)
 
-    const rank = workerResult.rows[0].rank
+    const rank = workerResult.rows[0].rank?.toLowerCase().trim()
 
     let workingTimeParts: string[] | number[] = data.workingHours.split('-')
     if (workingTimeParts.length < 2) continue
@@ -143,7 +148,7 @@ export async function POST(req: NextRequest) {
       calculatedWorkingTime = `${workingTimeParts[0]}-${workingTimeParts[1]}`
     }
 
-    let defaultSalary = ranksSalary[rank.toLowerCase()]?.default
+    let defaultSalary = ranksSalary[rank]?.default
     let overworkSalary = 0
 
     if (data.value) {
@@ -191,7 +196,7 @@ export async function POST(req: NextRequest) {
                   VALUES
                     (
                         (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
-                        '${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}',
+                        '${date.toFormat('yyyy-MM-dd')}',
                         ${defaultSalary},
                         '${data.bonuses || 0}',
                         '${data.fines || 0}',
