@@ -3,6 +3,8 @@ import {usePathname} from 'next/navigation'
 import {ArrowLeft} from 'solar-icon-set'
 import buttons from '@/src/utils/global/pathButtons'
 import {LTWorker} from '@/src/utils/types'
+import {useAuth} from '@/src/components/global/providers/authProvider'
+import {useEffect} from 'react'
 
 export default function MobileHeader({
   worker,
@@ -12,9 +14,11 @@ export default function MobileHeader({
   scrolled: boolean
 }) {
   const path = usePathname()
+  const {headerRef} = useAuth()
 
   return (
     <header
+      ref={headerRef}
       className={`sticky top-0 left-0 z-1000 flex h-fit w-[100dvw] flex-wrap items-center justify-between gap-4 p-2 ${scrolled ? 'scrolled' : ''}`}>
       <Button
         as={Link}

@@ -1,17 +1,14 @@
 'use client'
 
-import {Button, Form, Input} from '@heroui/react'
+import {addToast, Button, Form, Input} from '@heroui/react'
 import MaskedInput from 'react-text-mask'
 import {FormEvent, useEffect, useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {useSetAtom} from 'jotai'
-import {alertAtom} from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Register() {
   const router = useRouter()
   const {worker} = useAuth()
-  const setAlertData = useSetAtom(alertAtom)
 
   const [email, setEmail] = useState<string>(worker?.email || '')
   const [emailErrors, setEmailErrors] = useState<string[]>([])
@@ -58,22 +55,29 @@ export default function Register() {
 
     setLoading(false)
 
-    const resultData = await result.json()
+    let message = ''
 
-    if (resultData.message) {
-      if (!result.ok) {
-        setAlertData({
-          title: 'Ошибка',
-          message: resultData.message,
-          color: 'danger',
-        })
-      } else {
-        setAlertData({
-          title: 'Успешно',
-          message: resultData.message,
-          color: 'success',
-        })
+    try {
+      const resultData = await result.json()
+      if (resultData.message) {
+        message = resultData.message
       }
+    } catch {}
+
+    if (result.ok) {
+      addToast({
+        title: 'Успешно!',
+        description: message || 'Регистрация завершена',
+        timeout: 8000,
+        color: 'success',
+        shouldShowTimeoutProgress: true,
+      })
+    } else {
+      addToast({
+        title: 'Ошибка!',
+        description: message || 'Неизвестная ошибка',
+        color: 'danger',
+      })
     }
 
     if (result.ok) {

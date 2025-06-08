@@ -63,20 +63,24 @@ export default async function Salary() {
                                       LEFT JOIN lt_arena.locations l ON l.id = s.location_id
                                  ${queryAddon}`
 
-    salaryResult = await db.query(salaryQuery)
-
     const workersQuery = `
     SELECT
     id, name, first_name, rank, telegram_id, is_former
     FROM lt_arena.workers 
     ${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker.name.toLowerCase()}'` : ''}`
 
-    const workersResult = await db.query(workersQuery)
+    const results = await db.query(`${salaryQuery};\n${workersQuery}`)
+
+    // @ts-ignore
+    const workersResult = results[1]
+    // @ts-ignore
+    salaryResult = results[0]
+
     workersRows = workersResult.rows
   }
 
   const workers: Omit<LTWorker, 'permissions' | 'permissionLevel'>[] =
-    workersRows.map(row => {
+    workersRows.map((row: any) => {
       return {
         id: row.id,
         name: row.name,

@@ -5,7 +5,7 @@ import {usePathname} from 'next/navigation'
 import MobileHeader from './MobileHeader'
 import DesktopHeader from './DesktopHeader'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
 
 export default function Header() {
   const {worker} = useAuth()

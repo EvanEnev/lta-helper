@@ -8,7 +8,7 @@ export default function Schedule() {
   const isMobile = useIsMobile()
 
   return (
-    <main className="flex flex-col items-center justify-start p-4 gap-4">
+    <main className="flex flex-col items-center justify-start gap-4 p-4">
       {isMobile ? <MobileSchedule /> : <DesktopSchedule />}
     </main>
   )

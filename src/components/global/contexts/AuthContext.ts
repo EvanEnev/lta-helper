@@ -7,7 +7,9 @@ type Auth = {
   workingDays: Day[]
   login: (data: TelegramAuthData | string) => Promise<void>
   isLoading: boolean
+  headerRef: React.RefObject<HTMLElement | null>
 }
+
 const AuthContext = createContext<Auth>({
   worker: {
     name: '',
@@ -20,6 +22,7 @@ const AuthContext = createContext<Auth>({
   workingDays: [],
   login: async (data: TelegramAuthData | string): Promise<void> => {},
   isLoading: false,
+  headerRef: {current: null},
 })
 
 export default AuthContext

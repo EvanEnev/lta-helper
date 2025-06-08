@@ -6,9 +6,8 @@ import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {LTWorker, WorkerSalary} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
-import {useSetAtom} from 'jotai'
-import {alertAtom} from '@/src/utils/global/atoms'
 import {DateTime} from 'luxon'
+import {addToast} from '@heroui/react'
 
 export default function AdminPage({
   workers = [],
@@ -35,7 +34,6 @@ export default function AdminPage({
     convertTZ(new Date(), 'Europe/Moscow'),
   )
   const [isLoading, setLoading] = useState<boolean>(false)
-  const setAlertData = useSetAtom(alertAtom)
 
   const days = useMemo(() => {
     const currentDate = convertTZ(new Date(), 'Europe/Moscow')
@@ -51,12 +49,15 @@ export default function AdminPage({
   }, [])
 
   const sendData = async () => {
-    if (!salaryData.length)
-      return setAlertData({
-        title: 'Ошибка',
-        message: 'Нет данных для отправки',
-        color: 'danger',
+    const workers = salaryData.map(d => d.worker)
+
+    if (!workers.some(d => d)) {
+      return addToast({
+        title: 'Ошибка!',
+        description: 'Нет данных для отправки',
+        color: 'warning',
       })
+    }
 
     const data = {
       salaryData,
@@ -66,35 +67,37 @@ export default function AdminPage({
 
     setLoading(true)
 
-    fetch('/api/sendWorkDays', {
+    const response = await fetch('/api/sendWorkDays', {
       method: 'POST',
       body: JSON.stringify(data),
-    }).then(data => {
-      setLoading(false)
-      data.json().then(jsonData => {
-        if (data.status === 200) {
-          setAlertData({
-            title: 'Успешно',
-            message: jsonData.message || 'Данные отправлены',
-            color: 'success',
-          })
-        } else {
-          if (jsonData.message) {
-            setAlertData({
-              title: 'Ошибка',
-              message: jsonData.message,
-              color: 'danger',
-            })
-          } else {
-            setAlertData({
-              title: 'Ошибка',
-              message: 'Неизвестно, что произошло...',
-              color: 'danger',
-            })
-          }
-        }
-      })
     })
+
+    let message = ''
+
+    try {
+      const json = await response.json()
+      if (json.message) {
+        message = json.message
+      }
+    } catch {}
+
+    if (response.ok) {
+      addToast({
+        title: 'Успешно!',
+        description: message || 'Данные отправлены',
+        color: 'success',
+        timeout: 8000,
+        shouldShowTimeoutProgress: true,
+      })
+    } else {
+      addToast({
+        title: 'Ошибка!',
+        description: message || 'Неизвестная ошибка',
+        color: 'danger',
+      })
+    }
+
+    setLoading(false)
   }
 
   useEffect(() => {

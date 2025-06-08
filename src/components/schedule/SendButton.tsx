@@ -1,4 +1,4 @@
-import {Button} from '@heroui/react'
+import {addToast, Button} from '@heroui/react'
 import {useState} from 'react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
@@ -15,7 +15,6 @@ export default function SendButton({
   days: Day[]
 }) {
   const isMobile = useIsMobile()
-  const telegram = useAtomValue(telegramAtom)
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
   const {worker} = useAuth()
@@ -34,6 +33,11 @@ export default function SendButton({
     if (invalidDay) {
       setLoading(false)
       setSelectedDay({...invalidDay, invalidComment: true})
+      addToast({
+        title: 'Ошибка!',
+        description: 'Необходимо указать причину/комментарий',
+        color: 'warning',
+      })
       return
     }
 
@@ -47,9 +51,31 @@ export default function SendButton({
     })
 
     if (result.ok) {
-      setLoading(false)
-      telegram.close().catch(() => {})
+      addToast({
+        title: 'Успешно!',
+        color: 'success',
+        description: 'Данные отправлены',
+        timeout: 8000,
+        shouldShowTimeoutProgress: true,
+      })
+    } else {
+      let message = 'Неизвестная ошибка'
+
+      try {
+        const data = await result.json()
+        if (data?.message) {
+          message = data.message
+        }
+      } catch {}
+
+      addToast({
+        title: 'Ошибка!',
+        description: message,
+        color: 'danger',
+      })
     }
+
+    setLoading(false)
   }
 
   return (

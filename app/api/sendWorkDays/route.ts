@@ -151,6 +151,10 @@ export async function POST(req: NextRequest) {
     let defaultSalary = ranksSalary[rank]?.default
     let overworkSalary = 0
 
+    if (data.comment?.toLowerCase().includes('под игру')) {
+      defaultSalary = 1500
+    }
+
     if (data.value) {
       defaultSalary = data.value
     }

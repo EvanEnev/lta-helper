@@ -1,6 +1,6 @@
 'use client'
 
-import {useCallback, useContext, useEffect, useState} from 'react'
+import {useCallback, useContext, useEffect, useRef, useState} from 'react'
 import React from 'react'
 import Loading from '@/app/loading/page'
 import {usePathname, useRouter} from 'next/navigation'
@@ -26,6 +26,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
   })
   const [workingDays, setWorkingDays] = useState<Day[]>([])
   const [isLoading, setLoading] = useState<boolean>(true)
+  const headerRef = useRef<HTMLElement>(null)
   const path = usePathname()
 
   const [telegram, setTelegram] = useAtom(telegramAtom)
@@ -164,7 +165,8 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
   }, [path, router, setDays, worker, workingDays])
 
   return (
-    <AuthContext.Provider value={{worker, workingDays, login, isLoading}}>
+    <AuthContext.Provider
+      value={{worker, workingDays, login, isLoading, headerRef}}>
       {isLoading ? <Loading /> : children}
     </AuthContext.Provider>
   )
