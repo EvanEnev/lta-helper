@@ -36,7 +36,6 @@ export default memo(function Table({
   canViewFull: boolean
   canEdit: boolean
 }) {
-  const isMobile = useIsMobile()
   const socketRef = useRef<Socket | null>(null)
   const {worker} = useAuth()
   const [data, setData] = useState<UserSalary[]>(initialData)
@@ -54,13 +53,12 @@ export default memo(function Table({
       setData((prev: UserSalary[]) =>
         prev.map(row => {
           const cell = row[`day${date.toFormat('d')}`] as SalaryData
-
           const cellDate = DateTime.fromISO(cell.date)
 
           const isTarget =
             typeof cell === 'object' &&
             cell?.worker_id === data.worker_id &&
-            date.equals(cellDate)
+            date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
 
           if (!isTarget) return row
 
@@ -97,10 +95,12 @@ export default memo(function Table({
   const currentMonth = currentDate.getMonth()
   const daysInMonth = getDaysInMonth(currentYear, currentMonth)
 
+  const showUserColumn = data.length > 1
+
   const columns = useMemo(() => {
     const baseColumns = []
 
-    if (data.length > 1) {
+    if (showUserColumn) {
       baseColumns.push({
         header: 'Сотрудник',
         accessorKey: 'user',
@@ -131,7 +131,7 @@ export default memo(function Table({
     })
 
     return [...baseColumns, ...daysColumns]
-  }, [canEdit, canViewFull, data.length, daysInMonth, handleEdit])
+  }, [canEdit, canViewFull, showUserColumn, daysInMonth, handleEdit])
 
   const table = useReactTable({
     data,
