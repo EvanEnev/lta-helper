@@ -27,9 +27,8 @@ COPY --from=builder /app/package.json ./package.json
 
 COPY server.ts server.ts
 COPY dbListener.ts dbListener.ts
-COPY .env .env.production
 
 ENV NODE_ENV=production
-COPY .env.production .env.production
+COPY .env .env.production
 
 CMD ["pnpm", "start"]

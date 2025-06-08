@@ -4,10 +4,19 @@ import {Server} from 'socket.io'
 import {initListener} from './dbListener'
 import {DateTime} from 'luxon'
 
-const dev = process.env.NODE_ENV !== 'production'
+const dev = process.env.NODE_ENV === 'development'
+const test = process.env.NODE_ENV === 'test'
 
-const hostname = process.env.HOST || ''
-const port = parseInt(dev ? '80' : '5001')
+let hostname = 'lt.bubenev.su'
+let port = 5000
+
+if (dev) {
+  port = 80
+  hostname = '127.0.0.1'
+} else if (test) {
+  port = 5001
+  hostname = 'lt-test.bubenev.su'
+}
 
 const app = next({dev, hostname, port, turbopack: dev})
 const handler = app.getRequestHandler()
