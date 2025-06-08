@@ -15,6 +15,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   initialScale: 1,
   width: 'device-width',
+  userScalable: false,
+  maximumScale: 1,
 }
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
@@ -27,10 +29,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         />
       </head>
       <body
-        className={
-          inter.className +
-          ' gradient relative min-h-[100dvh] w-[100dvw] min-w-[100dvw] sm:w-fit'
-        }>
+        className={inter.className + ' gradient relative w-fit min-w-[100dvw]'}>
         <Providers>{children}</Providers>
       </body>
     </html>
