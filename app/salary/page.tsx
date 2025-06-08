@@ -31,10 +31,10 @@ export default async function Salary() {
   let salaryResult = {rows: []}
 
   if (canView) {
-    let queryAddon = `WHERE s.worker_id = (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${worker.name.toLowerCase()}')`
+    let queryAddon = `WHERE s.worker_id = ${worker.id}`
 
     if (canViewLocation) {
-      queryAddon = `WHERE s.location_id = (SELECT location_id FROM lt_arena.workers WHERE LOWER(name) = '${worker.name.toLowerCase()}')`
+      queryAddon += ` OR s.location_id = ${worker.locationId}`
     }
 
     if (canViewFull) {
