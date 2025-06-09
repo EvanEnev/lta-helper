@@ -82,6 +82,7 @@ export default async function Home() {
 
   let currentSalary = 0
 
+  // @ts-ignore
   results[0].rows.forEach(row => {
     currentSalary += row.value
     currentSalary += row.overwork || 0
@@ -91,6 +92,7 @@ export default async function Home() {
 
   let previousSalary = 0
 
+  // @ts-ignore
   results[1].rows.forEach(row => {
     previousSalary += row.value
     previousSalary += row.overwork || 0
