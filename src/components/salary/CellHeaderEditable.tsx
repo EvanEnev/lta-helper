@@ -125,18 +125,21 @@ export default function CellHeaderEditable({
         </Tooltip>
       </div>
       <TimeInput
+        aria-label="Начало смены"
         // @ts-ignore
         value={time.start}
         // @ts-ignore
         onChange={value => update(value, 'start_time')}
       />
       <TimeInput
+        aria-label="Конец смены"
         // @ts-ignore
         value={time.end}
         // @ts-ignore
         onChange={value => update(value, 'end_time')}
       />
       <Input
+        aria-label="Сумма за смену"
         className="text-foreground col-span-2"
         value={data.value.toString()}
         onValueChange={value => update(value, 'value')}
@@ -145,7 +148,7 @@ export default function CellHeaderEditable({
       <p className="col-span-2 text-xs">Переработка</p>
       {/*// @ts-ignore*/}
       <TimeInput
-        className=""
+        aria-label="Начало переработки"
         // @ts-ignore
         value={overWorkTime.start}
         // @ts-ignore
@@ -153,25 +156,28 @@ export default function CellHeaderEditable({
       />
       {/*// @ts-ignore*/}
       <TimeInput
-        className=""
+        aria-label="Конец переработки"
         // @ts-ignore
         value={overWorkTime.end}
         // @ts-ignore
         onChange={value => update(value, 'overwork_end')}
       />
       <Input
+        aria-label="Сумма за переработку"
         className="text-foreground col-span-2 w-fit justify-self-end text-end text-xs"
         value={data.overwork?.toString() || ''}
         onValueChange={value => update(value, 'overwork')}
         endContent={<Ruble />}></Input>
       <CellChip>Бонусы</CellChip>
       <Input
+        aria-label="Бонусы"
         className="col-2 w-fit justify-self-end text-end"
         onValueChange={value => update(value, 'bonuses')}
         value={data.bonuses || ''}
       />
       <CellChip>Штрафы</CellChip>
       <Input
+        aria-label="Штрафы"
         className="col-2 w-fit justify-self-end text-end"
         onValueChange={value => update(value, 'fines')}
         value={data.fines || ''}

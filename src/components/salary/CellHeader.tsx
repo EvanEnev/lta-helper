@@ -63,16 +63,19 @@ export default function CellHeader({data}: {data: SalaryData}) {
         </Tooltip>
       </div>
       <TimeInput
+        aria-label="Начало смены"
         // @ts-ignore
         value={time.start}
         isReadOnly
       />
       <TimeInput
+        aria-label="Конец смены"
         // @ts-ignore
         value={time.end}
         isReadOnly
       />
       <Input
+        aria-label="Сумма за смену"
         isReadOnly
         className="col-span-2"
         value={data.value.toString()}
@@ -81,29 +84,34 @@ export default function CellHeader({data}: {data: SalaryData}) {
       <p className="col-span-2 text-xs">Переработка</p>
       {/*// @ts-ignore*/}
       <TimeInput
+        aria-label="Начало переработки"
         isReadOnly
         // @ts-ignore
         value={overWorkTime.start}
       />
       {/*// @ts-ignore*/}
       <TimeInput
+        aria-label="Конец переработки"
         isReadOnly
         // @ts-ignore
         value={overWorkTime.end}
       />
       <Input
+        aria-label="Сумма за переработку"
         className="col-span-2 w-fit justify-self-end text-end text-xs"
         value={data.overwork?.toString() || ''}
         isReadOnly
         endContent={<Ruble />}></Input>
       <CellChip>Бонусы</CellChip>
       <Input
+        aria-label="Бонусы"
         className="col-2 w-fit justify-self-end text-end"
         isReadOnly
         value={data.bonuses || ''}
       />
       <CellChip>Штрафы</CellChip>
       <Input
+        aria-label="Штрафы"
         className="col-2 w-fit justify-self-end text-end"
         isReadOnly
         value={data.fines || ''}

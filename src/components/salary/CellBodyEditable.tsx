@@ -18,6 +18,7 @@ export default function CellBodyEditable({
 
   return (
     <Textarea
+      aria-label="Комментарий"
       classNames={{
         innerWrapper: 'min-h-[4.5rem] items-center justify-center',
         input: 'text-center h-fit',

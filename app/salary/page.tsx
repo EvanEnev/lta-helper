@@ -4,13 +4,10 @@ import convertTZ from '@/lib/functions/convertTZ'
 import sortByRank from '@/lib/functions/sortByRank'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {DateTime} from 'luxon'
-import createAdminSupabase from '@/lib/createAdminSupabase'
 import auth from '@/lib/auth'
 import SalaryPage from '@/src/components/salary/Salary'
 
 export default async function Salary() {
-  const supabase = await createAdminSupabase()
-
   let worker = await auth()
 
   const canView = checkPermissions(['view_salary'], worker)
@@ -18,20 +15,17 @@ export default async function Salary() {
   const canViewFull = checkPermissions(['view_full_salary'], worker)
   const canEdit = checkPermissions(['edit_salary'], worker)
 
-  const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month + 1, 0).getDate()
-  }
+  const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
-  const currentDate = new Date()
-  const currentYear = currentDate.getFullYear()
-  const currentMonth = currentDate.getMonth()
-  const daysInMonth = getDaysInMonth(currentYear, currentMonth)
+  const currentYear = currentDate.year
+  const currentMonth = currentDate.month - 1
+  const daysInMonth = currentDate.daysInMonth || 1
 
   let workersRows = []
   let salaryResult = {rows: []}
 
   if (canView) {
-    let queryAddon = `WHERE s.worker_id = ${worker.id}`
+    let queryAddon = `AND s.worker_id = ${worker.id}`
 
     if (canViewLocation) {
       queryAddon += ` OR s.location_id = ${worker.locationId}`
@@ -61,6 +55,7 @@ export default async function Salary() {
                                       LEFT JOIN lt_arena.workers w ON w.id = s.worker_id
                                       LEFT JOIN lt_arena.workers ws ON ws.id = s.created_by
                                       LEFT JOIN lt_arena.locations l ON l.id = s.location_id
+                         WHERE date BETWEEN '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}' AND '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'
                                  ${queryAddon}`
 
     const workersQuery = `
