@@ -1,8 +1,10 @@
 import UpcomingShifts from './UpcomingShifts'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import RankIcon from '@/src/components/global/RankIcon'
+import UpcomingSalary from '@/src/components/page/UpcomingSalary'
+import {ShortSalary} from '@/app/page'
 
-export default function DesktopPage() {
+export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
   const {worker} = useAuth()
 
   return (
@@ -12,7 +14,10 @@ export default function DesktopPage() {
           <RankIcon rank={worker?.rank || ''} className="w-[14rem]" />{' '}
           {worker?.rank || ''}
         </div>
-        <UpcomingShifts />
+        <div className="flex flex-col items-center gap-4">
+          <UpcomingShifts />
+          <UpcomingSalary data={salaryData} />
+        </div>
       </div>
     </main>
   )

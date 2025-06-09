@@ -32,7 +32,7 @@ export default function DesktopHeader({
             <Button
               key={index}
               as={Link}
-              href={path === button.href ? 'javascript:void(0)' : button.href}
+              href={path === button.href ? '#' : button.href}
               variant={path === button.href ? 'shadow' : 'ghost'}
               size="lg">
               {button.name}

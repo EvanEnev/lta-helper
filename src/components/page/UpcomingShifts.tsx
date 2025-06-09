@@ -3,30 +3,37 @@ import {CalendarMinimalistic, ClockCircle, MapPoint} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {useMemo, useCallback} from 'react'
 
 export default function UpcomingShifts({className = ''}: {className?: string}) {
   const {workingDays: days} = useAuth()
 
   const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
-  const getDatesDiff = (date?: DateTime) => {
-    if (!date) return -1
+  const getDatesDiff = useCallback(
+    (date?: DateTime) => {
+      if (!date) return -1
 
-    return -1 * parseInt(currentDate.diff(date).toFormat('dd'))
-  }
+      return -1 * parseInt(currentDate.diff(date).toFormat('dd'))
+    },
+    [currentDate],
+  )
+
+  const filteredDats = useMemo(() => {
+    return days.filter(
+      day =>
+        getDatesDiff(day.date) <= 5 &&
+        getDatesDiff(day.date) >= 0 &&
+        day.locationData?.length,
+    )
+  }, [days, getDatesDiff])
 
   return (
-    <Card isBlurred className={`w-full max-w-fit ${className}`}>
+    <Card className={`w-full max-w-fit ${className}`}>
       <CardHeader className="text-3xl">Ближайшие смены</CardHeader>
       <CardBody className="flex flex-row gap-4 overflow-auto">
-        {days
-          .filter(
-            day =>
-              getDatesDiff(day.date) <= 5 &&
-              getDatesDiff(day.date) >= 0 &&
-              day.locationData?.length,
-          )
-          .map((day, index) => {
+        {filteredDats.length ? (
+          filteredDats.map((day, index) => {
             const dayData = day.locationData?.find(data => data.self)
 
             return (
@@ -47,7 +54,10 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
                 </span>
               </div>
             )
-          })}
+          })
+        ) : (
+          <i>Тут пока пусто..</i>
+        )}
       </CardBody>
     </Card>
   )

@@ -5,8 +5,10 @@ import buttons from '@/src/utils/global/pathButtons'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import RankIcon from '@/src/components/global/RankIcon'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import {ShortSalary} from '@/app/page'
+import UpcomingSalary from '@/src/components/page/UpcomingSalary'
 
-export default function DesktopPage() {
+export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
   const {worker} = useAuth()
 
   return (
@@ -36,7 +38,10 @@ export default function DesktopPage() {
           )
         })}
       </div>
-      <UpcomingShifts />
+      <div className="flex flex-col items-center gap-4">
+        <UpcomingShifts />
+        <UpcomingSalary data={salaryData} />
+      </div>
     </main>
   )
 }
