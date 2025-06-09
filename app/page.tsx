@@ -86,8 +86,6 @@ export default async function Home() {
   results[0].rows.forEach(row => {
     currentSalary += row.value
     currentSalary += row.overwork || 0
-    currentSalary += evaluate(row.bonuses || '0')
-    currentSalary += evaluate(row.fines || '0')
   })
 
   let previousSalary = 0
@@ -96,9 +94,32 @@ export default async function Home() {
   results[1].rows.forEach(row => {
     previousSalary += row.value
     previousSalary += row.overwork || 0
-    previousSalary += evaluate(row.bonuses || '0')
-    previousSalary += evaluate(row.fines || '0')
   })
+
+  let bonusesQuery = `
+SELECT bonuses, fines
+FROM lt_arena.salary
+WHERE worker_id = ${worker.id}`
+
+  if (currentSalaryTakeDate.startsWith('20')) {
+    bonusesQuery += ` AND date BETWEEN '2025-${currentSalaryTakeDate.split('.')[1]}-01' AND '2025-${currentSalaryTakeDate.split('.')[1]}-${current[0].endOf('month').day}'`
+
+    const bonusesResult = await db.query(bonusesQuery)
+
+    bonusesResult.rows.forEach(row => {
+      currentSalary += evaluate(row.bonuses || '0')
+      currentSalary += evaluate(row.fines || '0')
+    })
+  } else {
+    bonusesQuery += ` AND date BETWEEN '2025-${previousSalaryTakeDate.split('.')[1]}-01' AND '2025-${previousSalaryTakeDate.split('.')[1]}-${previous[0].endOf('month').day}'`
+
+    const bonusesResult = await db.query(bonusesQuery)
+
+    bonusesResult.rows.forEach(row => {
+      previousSalary += evaluate(row.bonuses || '0')
+      previousSalary += evaluate(row.fines || '0')
+    })
+  }
 
   const salaryData: ShortSalary = {
     currentDates: `${current[0].toFormat('dd.MM')}-${current[1].toFormat('dd.MM')}`,
