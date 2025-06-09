@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react'
 import buttons from '@/src/utils/global/pathButtons'
 import {LTWorker} from '@/src/utils/types'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 export default function DesktopHeader({
   worker,
@@ -21,7 +22,10 @@ export default function DesktopHeader({
       className={`sticky top-0 left-0 z-1000 flex h-fit w-screen items-center justify-between p-4 ${scrolled ? 'scrolled' : ''}`}>
       <div className="flex items-center gap-4">
         {buttons.map((button, index) => {
-          if ((worker.permissionLevel || 0) < (button?.permission_level || 0))
+          if (
+            button.permission &&
+            !checkPermissions([button.permission], worker)
+          )
             return ''
 
           return (

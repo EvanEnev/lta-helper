@@ -1,9 +1,10 @@
-import getRankIcon from '@/src/utils/page/getRankIcon'
 import {Button} from '@heroui/react'
 import Link from 'next/link'
 import UpcomingShifts from './UpcomingShifts'
 import buttons from '@/src/utils/global/pathButtons'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import RankIcon from '@/src/components/global/RankIcon'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 export default function DesktopPage() {
   const {worker} = useAuth()
@@ -11,12 +12,15 @@ export default function DesktopPage() {
   return (
     <main className="flex flex-col items-center gap-4 p-4">
       <div className="flex h-fit flex-col items-center gap-4 text-3xl">
-        {getRankIcon(worker.rank)}
+        <RankIcon rank={worker.rank || ''} className="w-full" />
         {worker.rank}
       </div>
       <div className="flex flex-col items-center justify-center gap-4">
         {buttons.map((button, index) => {
-          if ((worker.permissionLevel || 0) < (button?.permission_level || 0))
+          if (
+            button.permission &&
+            !checkPermissions([button.permission], worker)
+          )
             return ''
 
           return (

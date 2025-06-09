@@ -125,6 +125,7 @@ export default function DesktopAdmin({
         <Card className="h-fit w-[22vw]">
           <CardBody className="gap-4">
             <DatePicker
+              aria-label="Дата"
               isInvalid={isDateInvalid}
               errorMessage="Дата вне диапазона"
               isDateUnavailable={date =>
@@ -135,12 +136,14 @@ export default function DesktopAdmin({
               }
               selectorButtonPlacement="start"
               firstDayOfWeek="mon"
-              className="h-16 w-full"
+              className="h-16 w-full p-0!"
               classNames={{inputWrapper: 'h-16'}}
               // @ts-ignore
               onChange={(date: CalendarDate) => updateDate(date)}
-              minValue={today('Europe/Moscow').subtract({days: 1})}
-              maxValue={today('Europe/Moscow')}
+              minValue={
+                canEdit ? null : today('Europe/Moscow').subtract({days: 1})
+              }
+              maxValue={canEdit ? null : today('Europe/Moscow')}
               // @ts-ignore
               defaultValue={today('Europe/Moscow')}
             />
