@@ -7,9 +7,11 @@ import RankIcon from '@/src/components/global/RankIcon'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {ShortSalary} from '@/app/page'
 import UpcomingSalary from '@/src/components/page/UpcomingSalary'
+import {usePathname} from 'next/navigation'
 
 export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
-  const {worker} = useAuth()
+  const {worker, setExiting} = useAuth()
+  const path = usePathname()
 
   return (
     <main className="flex flex-col items-center gap-4 p-4">
@@ -31,6 +33,11 @@ export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
               key={index}
               as={Link}
               href={button.href}
+              onPress={() => {
+                if (path !== button.href) {
+                  setExiting(true)
+                }
+              }}
               variant="ghost"
               size="lg">
               {button.name}

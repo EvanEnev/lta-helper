@@ -14,7 +14,7 @@ export default function MobileHeader({
   scrolled: boolean
 }) {
   const path = usePathname()
-  const {headerRef} = useAuth()
+  const {headerRef, setExiting} = useAuth()
 
   return (
     <header
@@ -28,6 +28,9 @@ export default function MobileHeader({
         startContent={
           <ArrowLeft size={24} svgProps={{width: 24, height: 24}} />
         }
+        onPress={() => {
+          setExiting(true)
+        }}
         className={`${path === '/' ? 'hidden' : ''}`}>
         На главную
       </Button>
