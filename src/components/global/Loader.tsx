@@ -60,9 +60,9 @@ export default function Loader({
   const isExitingState = isExiting || animationStage === 'exiting'
 
   return (
-    <div className="bg-content1 relative h-screen w-full overflow-hidden">
+    <>
       {/* Контент (всегда рендерится) */}
-      <div className="gradient min-h-full w-full">{children}</div>
+      {children}
 
       {/* Overlay загрузки */}
       <AnimatePresence>
@@ -134,6 +134,6 @@ export default function Loader({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   )
 }
