@@ -167,10 +167,21 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
 
   return (
     <Loader loading={isLoading} isExiting={isExiting}>
-      <AuthContext.Provider
-        value={{worker, workingDays, login, isLoading, headerRef, setExiting}}>
-        {children}
-      </AuthContext.Provider>
+      {isLoading ? (
+        ''
+      ) : (
+        <AuthContext.Provider
+          value={{
+            worker,
+            workingDays,
+            login,
+            isLoading,
+            headerRef,
+            setExiting,
+          }}>
+          {children}
+        </AuthContext.Provider>
+      )}
     </Loader>
   )
 }
