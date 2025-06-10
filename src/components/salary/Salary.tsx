@@ -4,6 +4,8 @@ import {UserSalary} from '@/src/utils/types'
 import {Tab, Tabs} from '@heroui/react'
 import Table from '@/src/components/salary/Table'
 import Summarized from '@/src/components/salary/Summarized'
+import {useEffect} from 'react'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Salary({
   data,
@@ -14,6 +16,12 @@ export default function Salary({
   canViewFull: boolean
   canEdit: boolean
 }) {
+  const {setExiting} = useAuth()
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
+
   if (!canViewFull) {
     return <Table data={data} canEdit={canEdit} canViewFull={canViewFull} />
   }

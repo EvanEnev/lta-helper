@@ -8,12 +8,13 @@ import {
 } from '@heroui/react'
 import DayButton from '../schedule/DayButton'
 import WorkData from './WorkData'
-import {useCallback, useState} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {LTWorker, WorkerSalary} from '@/src/utils/types'
 import {Plain} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import convertTZ from '@/lib/functions/convertTZ'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 type Options = {
   days: {
@@ -42,6 +43,7 @@ export default function MobileAdmin({
   isLoading,
   canEdit,
 }: Options) {
+  const {setExiting} = useAuth()
   const [key, setKey] = useState(0)
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set(['0']))
 
@@ -108,6 +110,10 @@ export default function MobileAdmin({
   const removeSalaryData = (index: number) => {
     setSalaryData((prev: WorkerSalary[]) => prev.filter((_, i) => i !== index))
   }
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start gap-4 p-4">

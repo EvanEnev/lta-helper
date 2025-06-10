@@ -9,7 +9,7 @@ import {daysAtom, selectedDayAtom} from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function MobileSchedule() {
-  const {workingDays} = useAuth()
+  const {workingDays, setExiting} = useAuth()
   const selectedDay = useAtomValue(selectedDayAtom)
   const [initialDays, setInitialDays] = useState(workingDays)
   const [days, setDays] = useAtom(daysAtom)
@@ -56,6 +56,10 @@ export default function MobileSchedule() {
     if (initialDays.find(obj => obj?.date)) return
     setInitialDays(days)
   }, [days, initialDays])
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
 
   return (
     <div className="flex max-h-[50%] w-full flex-wrap gap-4">
