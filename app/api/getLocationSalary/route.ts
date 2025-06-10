@@ -7,7 +7,7 @@ import {WorkerSalary} from '@/src/utils/types'
 export async function POST(req: NextRequest) {
   const body = await req.json()
 
-  const date = DateTime.fromISO(body.date)
+  const date = DateTime.fromISO(body.date).setZone('Europe/Moscow')
 
   const user = await auth()
   if (!user.id)
