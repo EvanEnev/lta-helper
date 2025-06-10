@@ -8,6 +8,7 @@ import {Provider} from 'jotai'
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
     <AuthProvider>
+      {/*<TransitionProvider>*/}
       <HeroUIProvider locale="ru-RU" className="min-h-[100dvh] min-w-[100dvw]">
         <Header />
         <Provider>
@@ -15,6 +16,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
           {children}
         </Provider>
       </HeroUIProvider>
+      {/*</TransitionProvider>*/}
     </AuthProvider>
   )
 }

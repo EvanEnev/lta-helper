@@ -8,7 +8,7 @@ export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
   const {worker} = useAuth()
 
   return (
-    <main className="h-screen w-screen">
+    <main className="h-full w-full">
       <div className="flex justify-between gap-4 p-4">
         <div className="flex h-fit items-center gap-4 text-3xl">
           <RankIcon rank={worker?.rank || ''} className="w-[14rem]" />{' '}

@@ -2,7 +2,6 @@
 
 import {useCallback, useContext, useEffect, useRef, useState} from 'react'
 import React from 'react'
-import Loading from '@/app/loading/page'
 import {usePathname, useRouter} from 'next/navigation'
 import {useAtom, useSetAtom} from 'jotai'
 import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
@@ -11,11 +10,13 @@ import supabase from '@/lib/supabase'
 import {DateTime} from 'luxon'
 import {Day, LTWorker} from '@/src/utils/types'
 import {TelegramAuthData} from '@telegram-auth/react'
+import Loader from '@/src/components/global/Loader'
 
 const requiredFields = ['email', 'phoneNumber', 'firstName', 'lastName']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
+  const [isExiting, setExiting] = useState(false)
   const [worker, setWorker] = useState<LTWorker>({
     name: '',
     id: 0,
@@ -165,10 +166,12 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
   }, [path, router, setDays, worker, workingDays])
 
   return (
-    <AuthContext.Provider
-      value={{worker, workingDays, login, isLoading, headerRef}}>
-      {isLoading ? <Loading /> : children}
-    </AuthContext.Provider>
+    <Loader loading={isLoading} isExiting={isExiting}>
+      <AuthContext.Provider
+        value={{worker, workingDays, login, isLoading, headerRef, setExiting}}>
+        {children}
+      </AuthContext.Provider>
+    </Loader>
   )
 }
 

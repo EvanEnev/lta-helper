@@ -13,7 +13,7 @@ export default function DesktopHeader({
   worker: LTWorker
   scrolled: boolean
 }) {
-  const {headerRef} = useAuth()
+  const {headerRef, setExiting} = useAuth()
   const path = usePathname()
 
   return (
@@ -33,6 +33,11 @@ export default function DesktopHeader({
               key={index}
               as={Link}
               href={path === button.href ? '#' : button.href}
+              onPress={() => {
+                if (path !== button.href) {
+                  setExiting(true)
+                }
+              }}
               variant={path === button.href ? 'shadow' : 'ghost'}
               size="lg">
               {button.name}

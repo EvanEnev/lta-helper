@@ -8,6 +8,7 @@ type Auth = {
   login: (data: TelegramAuthData | string) => Promise<void>
   isLoading: boolean
   headerRef: React.RefObject<HTMLElement | null>
+  setExiting: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const AuthContext = createContext<Auth>({
@@ -23,6 +24,7 @@ const AuthContext = createContext<Auth>({
   login: async (data: TelegramAuthData | string): Promise<void> => {},
   isLoading: false,
   headerRef: {current: null},
+  setExiting: () => false,
 })
 
 export default AuthContext
