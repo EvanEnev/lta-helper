@@ -27,7 +27,7 @@ export default function DayInfo({
   changeDates,
 }: {
   day: Day
-  changeDates: (date: DateTime | undefined, isSelected: boolean) => void
+  changeDates?: (date: DateTime | undefined, isSelected: boolean) => void
 }) {
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
   const selectedDates = useAtomValue(selectedDatesAtom)
@@ -70,7 +70,8 @@ export default function DayInfo({
           : selectedDay,
       )
 
-      changeDates(day.date, false)
+      if (changeDates) changeDates(day.date, false)
+
       setDays(newDays)
     }
   }
@@ -107,7 +108,7 @@ export default function DayInfo({
           : selectedDay,
       )
 
-      changeDates(day.date, false)
+      if (changeDates) changeDates(day.date, false)
       setDays(newDays)
     }
   }
