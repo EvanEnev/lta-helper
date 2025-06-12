@@ -8,7 +8,7 @@ import {useAuth} from '@/src/components/global/providers/authProvider'
 import {useEffect, useState} from 'react'
 
 export default function Header() {
-  const {worker, headerRef} = useAuth()
+  const {worker, headerRef, setToastOffset} = useAuth()
   const isMobile = useIsMobile()
   const path = usePathname()
 
@@ -22,6 +22,7 @@ export default function Header() {
           '--header-height',
           `${height}px`,
         )
+        setToastOffset(height)
       }
     }
 

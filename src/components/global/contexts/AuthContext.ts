@@ -9,6 +9,8 @@ type Auth = {
   isLoading: boolean
   headerRef: React.RefObject<HTMLElement | null>
   setExiting: React.Dispatch<React.SetStateAction<boolean>>
+  toastOffset: number
+  setToastOffset: React.Dispatch<React.SetStateAction<number>>
 }
 
 const AuthContext = createContext<Auth>({
@@ -25,6 +27,8 @@ const AuthContext = createContext<Auth>({
   isLoading: false,
   headerRef: {current: null},
   setExiting: () => false,
+  toastOffset: 0,
+  setToastOffset: () => 0,
 })
 
 export default AuthContext

@@ -17,6 +17,7 @@ const requiredFields = ['email', 'phoneNumber', 'firstName', 'lastName']
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
   const [isExiting, setExiting] = useState(false)
+  const [toastOffset, setToastOffset] = useState(0)
   const [worker, setWorker] = useState<LTWorker>({
     name: '',
     id: 0,
@@ -178,6 +179,8 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
             isLoading,
             headerRef,
             setExiting,
+            toastOffset,
+            setToastOffset,
           }}>
           {children}
         </AuthContext.Provider>
