@@ -3,7 +3,6 @@ import {useAuth} from '@/src/components/global/providers/authProvider'
 import RankIcon from '@/src/components/global/RankIcon'
 import UpcomingSalary from '@/src/components/page/UpcomingSalary'
 import {ShortSalary} from '@/app/page'
-import CButton from '@/src/components/global/CButton'
 
 export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
   const {worker} = useAuth()
