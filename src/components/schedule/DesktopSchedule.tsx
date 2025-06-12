@@ -31,7 +31,7 @@ export default function DesktopSchedule() {
     } else {
       setSelectedDates(
         selectedDates.filter(
-          cur => cur.toFormat('YYYY-MM-dd') !== date.toFormat('YYYY-MM-dd'),
+          cur => cur.toFormat('yyyy-MM-dd') === date.toFormat('yyyy-MM-dd'),
         ),
       )
     }
@@ -69,115 +69,120 @@ export default function DesktopSchedule() {
   }, [days, initialDays])
 
   return (
-    <div className="flex w-full gap-4 px-6">
+    <div className="flex w-full max-w-full gap-4 px-6">
       {days.length ? (
-        <div className="h-[80vh] overflow-auto">
-          <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
-            {weeks.map((week: Day[], index: number) => (
-              <>
-                {index !== 0 && <Divider className="col-span-full" />}
-                {week.map((day, index) => (
-                  <Card key={index} className="scrollbar-hide overflow-hidden">
-                    <CardHeader className="">
-                      <Checkbox
-                        className=""
-                        size="lg"
-                        onValueChange={isSelected =>
-                          changeDates(day.date, isSelected)
-                        }>
-                        <span className="text-2xl font-bold">
-                          {day.date?.toFormat('dd.MM')}
-                          ,
-                          <br />
-                          {getWeekday(day)}
-                        </span>
-                      </Checkbox>
-                    </CardHeader>
-                    <CardBody>
-                      <DayInfo day={day} />
-                    </CardBody>
-                  </Card>
-                ))}
-              </>
-            ))}
-          </div>
+        <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
+          {weeks.map((week: Day[], index: number) => (
+            <>
+              {index !== 0 && <Divider className="col-span-full" />}
+              {week.map((day, index) => (
+                <Card key={index} className="scrollbar-hide overflow-hidden">
+                  <CardHeader className="">
+                    <Checkbox
+                      className=""
+                      size="lg"
+                      isSelected={
+                        !!selectedDates.find(
+                          date =>
+                            date.toFormat('yyyy-MM-dd') ===
+                            day.date?.toFormat('yyyy-MM-dd'),
+                        )
+                      }
+                      onValueChange={isSelected =>
+                        changeDates(day.date, isSelected)
+                      }>
+                      <span className="text-2xl font-bold">
+                        {day.date?.toFormat('dd.MM')}
+                        ,
+                        <br />
+                        {getWeekday(day)}
+                      </span>
+                    </Checkbox>
+                  </CardHeader>
+                  <CardBody>
+                    <DayInfo day={day} changeDates={changeDates} />
+                  </CardBody>
+                </Card>
+              ))}
+            </>
+          ))}
         </div>
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
       )}
-      <div className="h-[70vh]">
-        <Card className="h-full w-[22vw]" isBlurred>
-          <CardHeader className="flex gap-2 text-2xl">
-            <Pen2 size={24} svgProps={{width: 24, height: 24}} />
-            Изменённые дни:
-          </CardHeader>
-          <CardBody className="gap-4">
-            {initialDays
-              .filter(
-                (initDay, index) =>
-                  initDay.value !== days[index]?.value ||
-                  initDay.comment !== days[index]?.comment,
+      <Card
+        className="glass sticky h-fit min-h-64 min-w-[20%]"
+        style={{top: document.querySelector('header')?.offsetHeight}}>
+        <CardHeader className="flex gap-2 text-2xl">
+          <Pen2 size={24} svgProps={{width: 24, height: 24}} />
+          Изменённые дни:
+        </CardHeader>
+        <CardBody className="gap-4">
+          {initialDays
+            .filter(
+              (initDay, index) =>
+                initDay.value !== days[index]?.value ||
+                initDay.comment !== days[index]?.comment,
+            )
+            .map((initialDay, index) => {
+              const day = days.find(
+                day =>
+                  initialDay.date?.toFormat('YYYY-MM-dd') ===
+                  day.date?.toFormat('YYYY-MM-dd'),
               )
-              .map((initialDay, index) => {
-                const day = days.find(
-                  day =>
-                    initialDay.date?.toFormat('YYYY-MM-dd') ===
-                    day.date?.toFormat('YYYY-MM-dd'),
-                )
-                if (!day) return ''
+              if (!day) return ''
 
-                return (
-                  <div key={index} className="flex gap-2 text-xl">
-                    {day.date?.toFormat('dd.MM')}:
-                    {initialDay?.value !== day.value ? (
-                      <div className="flex gap-1">
-                        <Code className="min-h-7 min-w-6" color={'danger'}>
-                          {initialDay?.value}
-                        </Code>
-                        {'->'}
-                        <Code className="min-h-7 min-w-6" color="success">
-                          {day.value}
-                        </Code>
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                    {initialDay?.comment !== day.comment ? (
-                      <div className="flex w-full gap-1">
-                        <Code className="min-h-7" color={'danger'}>
-                          {initialDay?.comment}
-                        </Code>
-                        {'->'}
-                        <Code
-                          color="success"
-                          className="min-h-7 break-all whitespace-normal">
-                          {day.comment}
-                        </Code>
-                      </div>
-                    ) : (
-                      ''
-                    )}
-                  </div>
-                )
-              })}
-          </CardBody>
-          <CardFooter>
-            <SendButton
-              days={days.filter(day => {
-                const initialDay = initialDays.find(
-                  initDay =>
-                    initDay.date?.toFormat('YYYY-MM-dd') ===
-                    day.date?.toFormat('YYYY-MM-dd'),
-                )
-                return (
-                  day.value !== initialDay?.value ||
-                  day.comment !== initialDay?.comment
-                )
-              })}
-            />
-          </CardFooter>
-        </Card>
-      </div>
+              return (
+                <div key={index} className="flex gap-2 text-xl">
+                  {day.date?.toFormat('dd.MM')}:
+                  {initialDay?.value !== day.value ? (
+                    <div className="flex gap-1">
+                      <Code className="min-h-7 min-w-6" color={'danger'}>
+                        {initialDay?.value}
+                      </Code>
+                      {'->'}
+                      <Code className="min-h-7 min-w-6" color="success">
+                        {day.value}
+                      </Code>
+                    </div>
+                  ) : (
+                    ''
+                  )}
+                  {initialDay?.comment !== day.comment ? (
+                    <div className="flex w-full gap-1">
+                      <Code className="min-h-7" color={'danger'}>
+                        {initialDay?.comment}
+                      </Code>
+                      {'->'}
+                      <Code
+                        color="success"
+                        className="min-h-7 break-all whitespace-normal">
+                        {day.comment}
+                      </Code>
+                    </div>
+                  ) : (
+                    ''
+                  )}
+                </div>
+              )
+            })}
+        </CardBody>
+        <CardFooter>
+          <SendButton
+            days={days.filter(day => {
+              const initialDay = initialDays.find(
+                initDay =>
+                  initDay.date?.toFormat('YYYY-MM-dd') ===
+                  day.date?.toFormat('YYYY-MM-dd'),
+              )
+              return (
+                day.value !== initialDay?.value ||
+                day.comment !== initialDay?.comment
+              )
+            })}
+          />
+        </CardFooter>
+      </Card>
     </div>
   )
 }

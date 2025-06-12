@@ -20,8 +20,15 @@ import {
   selectedDayAtom,
 } from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {DateTime} from 'luxon'
 
-export default function DayInfo({day}: {day: Day}) {
+export default function DayInfo({
+  day,
+  changeDates,
+}: {
+  day: Day
+  changeDates: (date: DateTime | undefined, isSelected: boolean) => void
+}) {
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
   const selectedDates = useAtomValue(selectedDatesAtom)
   const [days, setDays] = useAtom(daysAtom)
@@ -37,7 +44,13 @@ export default function DayInfo({day}: {day: Day}) {
     if (value !== '-') setSelectedDay({...selectedDay, invalidComment: false})
     if (value === day?.value) return
 
-    if (selectedDates.length > 1) {
+    if (
+      selectedDates.length > 1 &&
+      selectedDates.find(
+        date =>
+          date.toFormat('yyyy-MM-dd') === day.date?.toFormat('yyyy-MM-dd'),
+      )
+    ) {
       const newDays = days.map(curDay =>
         selectedDates.find(
           date =>
@@ -57,6 +70,7 @@ export default function DayInfo({day}: {day: Day}) {
           : selectedDay,
       )
 
+      changeDates(day.date, false)
       setDays(newDays)
     }
   }
@@ -67,7 +81,13 @@ export default function DayInfo({day}: {day: Day}) {
     setSelectedDay({...selectedDay, invalidComment: false})
     const text = typeof event === 'string' ? event : event?.target?.value
 
-    if (selectedDates.length > 1) {
+    if (
+      selectedDates.length > 1 &&
+      selectedDates.find(
+        date =>
+          date.toFormat('yyyy-MM-dd') === day.date?.toFormat('yyyy-MM-dd'),
+      )
+    ) {
       const newDays = days.map(curDay =>
         selectedDates.find(
           date =>
@@ -87,6 +107,7 @@ export default function DayInfo({day}: {day: Day}) {
           : selectedDay,
       )
 
+      changeDates(day.date, false)
       setDays(newDays)
     }
   }

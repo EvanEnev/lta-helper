@@ -29,8 +29,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           strategy="beforeInteractive"
         />
       </head>
-      <body
-        className={inter.className + ' gradient relative w-fit min-w-[100dvw]'}>
+      <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>
     </html>

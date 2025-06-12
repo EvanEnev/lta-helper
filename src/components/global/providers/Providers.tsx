@@ -8,11 +8,15 @@ import {Provider} from 'jotai'
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
     <AuthProvider>
-      <HeroUIProvider locale="ru-RU" className="min-h-[100dvh] min-w-[100dvw]">
+      <HeroUIProvider
+        locale="ru-RU"
+        className="gradient relative min-h-[100dvh] w-full min-w-fit">
         <Header />
         <Provider>
-          <ToastProvider />
-          {children}
+          <div style={{paddingTop: 'var(--header-height, 0px)'}}>
+            <ToastProvider />
+            {children}
+          </div>
         </Provider>
       </HeroUIProvider>
     </AuthProvider>

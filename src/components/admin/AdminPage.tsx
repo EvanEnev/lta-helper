@@ -107,7 +107,9 @@ export default function AdminPage({
     }).then(async res => {
       const data: {data: WorkerSalary[]} = await res.json()
 
-      setSalaryData(data.data)
+      if (data.data.length) {
+        setSalaryData(data.data)
+      }
     })
   }, [date])
 

@@ -5,14 +5,39 @@ import {usePathname} from 'next/navigation'
 import MobileHeader from './MobileHeader'
 import DesktopHeader from './DesktopHeader'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import {useEffect, useRef, useState} from 'react'
+import {useEffect, useState} from 'react'
 
 export default function Header() {
-  const {worker} = useAuth()
+  const {worker, headerRef} = useAuth()
   const isMobile = useIsMobile()
   const path = usePathname()
 
   const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight
+        document.documentElement.style.setProperty(
+          '--header-height',
+          `${height}px`,
+        )
+      }
+    }
+
+    updateHeaderHeight()
+    window.addEventListener('resize', updateHeaderHeight)
+
+    const observer = new ResizeObserver(updateHeaderHeight)
+    if (headerRef.current) {
+      observer.observe(headerRef.current)
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateHeaderHeight)
+      observer.disconnect()
+    }
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
