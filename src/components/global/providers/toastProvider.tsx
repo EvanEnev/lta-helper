@@ -12,7 +12,7 @@ export default function CToastProvider() {
     <ToastProvider
       regionProps={{classNames: {}}}
       placement={isMobile ? 'top-center' : 'bottom-right'}
-      toastOffset={toastOffset}
+      toastOffset={isMobile ? toastOffset : 0}
     />
   )
 }
