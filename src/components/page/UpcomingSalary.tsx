@@ -10,7 +10,17 @@ import {
 import Link from 'next/link'
 import {Ruble} from 'solar-icon-set'
 
+function BonusesAndFines({bonuses, fines, salary}: {bonuses: number, fines: number, salary: number}) {
+  return <>
+    <p className="text-foreground-500">Бонусы: {bonuses}</p>
+    <p className="text-foreground-500">Штрафы: {fines}</p>
+    <p className="text-foreground-500">ЗП: {salary - (bonuses + fines)}</p>
+  </>
+}
+
 export default function UpcomingSalary({data}: {data: ShortSalary}) {
+  const isCurrentWithBonuses = data.currentSalaryTakeDate.startsWith('20')
+
   return (
     <Card className="w-full">
       <CardBody>
@@ -28,6 +38,7 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
           <div className="flex items-center gap-1">
             {data.previousSalary} <Ruble iconStyle="Bold" />
           </div>
+          {!isCurrentWithBonuses && <BonusesAndFines bonuses={data.bonuses} fines={data.fines} salary={data.previousSalary} />}
         </div>
         <Divider />
         <div className="flex flex-col">
@@ -41,6 +52,7 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
           <div className="flex items-center gap-1">
             {data.currentSalary} <Ruble iconStyle="Bold" />
           </div>
+          {isCurrentWithBonuses && <BonusesAndFines bonuses={data.bonuses} fines={data.fines} salary={data.currentSalary} />}
         </div>
       </CardBody>
       <CardFooter>

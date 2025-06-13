@@ -11,6 +11,8 @@ export interface ShortSalary {
   previousDates: string
   previousSalary: number
   previousSalaryTakeDate: string
+  bonuses: number
+  fines: number
 }
 
 export default async function Home() {
@@ -96,28 +98,41 @@ export default async function Home() {
     previousSalary += row.overwork || 0
   })
 
+  let bonuses = 0
+  let fines = 0
+
   let bonusesQuery = `
 SELECT bonuses, fines
 FROM lt_arena.salary
 WHERE worker_id = ${worker.id}`
 
   if (currentSalaryTakeDate.startsWith('20')) {
-    bonusesQuery += ` AND date BETWEEN '2025-${currentSalaryTakeDate.split('.')[1]}-01' AND '2025-${currentSalaryTakeDate.split('.')[1]}-${current[0].endOf('month').day}'`
+    const month = current[0].minus({month: 1})
+
+    bonusesQuery += ` AND date BETWEEN '${month.startOf('month').toFormat('yyyy-MM-dd')}' AND '${month.endOf('month').toFormat('yyyy-MM-dd')}'`
 
     const bonusesResult = await db.query(bonusesQuery)
 
     bonusesResult.rows.forEach(row => {
       currentSalary += evaluate(row.bonuses || '0')
       currentSalary += evaluate(row.fines || '0')
+
+      fines += evaluate(row.fines || '0')
+      bonuses += evaluate(row.bonuses || '0')
     })
   } else {
-    bonusesQuery += ` AND date BETWEEN '2025-${previousSalaryTakeDate.split('.')[1]}-01' AND '2025-${previousSalaryTakeDate.split('.')[1]}-${previous[0].endOf('month').day}'`
+    const month = previous[0]
+
+    bonusesQuery += ` AND date BETWEEN '${month.startOf('month').toFormat('yyyy-MM-dd')}' AND '${month.endOf('month').toFormat('yyyy-MM-dd')}'`
 
     const bonusesResult = await db.query(bonusesQuery)
 
     bonusesResult.rows.forEach(row => {
       previousSalary += evaluate(row.bonuses || '0')
       previousSalary += evaluate(row.fines || '0')
+
+      fines += evaluate(row.fines || '0')
+      bonuses += evaluate(row.bonuses || '0')
     })
   }
 
@@ -128,6 +143,7 @@ WHERE worker_id = ${worker.id}`
     previousSalary,
     currentSalaryTakeDate,
     previousSalaryTakeDate,
+    bonuses, fines
   }
 
   return <MainPage salaryData={salaryData} />
