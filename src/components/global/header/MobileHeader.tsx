@@ -4,7 +4,6 @@ import {ArrowLeft} from 'solar-icon-set'
 import buttons from '@/src/utils/global/pathButtons'
 import {LTWorker} from '@/src/utils/types'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import {useEffect} from 'react'
 
 export default function MobileHeader({
   worker,
@@ -21,21 +20,21 @@ export default function MobileHeader({
       ref={headerRef}
       className={`fixed top-0 left-0 z-1000 flex w-full p-2`}>
       <div
-        className={`flex h-full w-full flex-wrap items-center justify-between px-2 py-4 ${scrolled ? 'scrolled' : ''}`}>
+        className={`flex h-full w-full flex-wrap items-center justify-between gap-1 px-2 py-4 ${scrolled ? 'scrolled' : ''}`}>
         <Button
           as={Link}
           href="/"
           variant="ghost"
           size="lg"
+          isIconOnly
           startContent={
             <ArrowLeft size={24} svgProps={{width: 24, height: 24}} />
           }
           onPress={() => {
             setExiting(true)
           }}
-          className={`${path === '/' ? 'hidden' : ''}`}>
-          На главную
-        </Button>
+          className={`${path === '/' ? 'hidden' : ''} flex-1`}
+        />
         <span className="flex-1 text-center text-2xl font-bold">
           {buttons.find(obj => obj.href === path)?.name}
         </span>

@@ -1,6 +1,5 @@
 import {Button, Avatar, Link} from '@heroui/react'
 import {usePathname} from 'next/navigation'
-import {useEffect, useState} from 'react'
 import buttons from '@/src/utils/global/pathButtons'
 import {LTWorker} from '@/src/utils/types'
 import {useAuth} from '@/src/components/global/providers/authProvider'

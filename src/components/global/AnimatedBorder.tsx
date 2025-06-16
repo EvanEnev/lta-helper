@@ -4,12 +4,18 @@ import {motion} from 'framer-motion'
 
 export default function AnimatedBorder({
   children,
+  isDisabled = false,
+  className = '',
 }: {
   children: React.ReactNode | React.ReactNode[]
+  isDisabled?: boolean
+  className?: string
 }) {
+  if (isDisabled) return children
+
   return (
     <motion.div
-      className="rounded-2xl border-2"
+      className={`rounded-2xl border-2 ${className}`}
       style={{borderColor: '#ff6b6b'}}
       animate={{
         borderColor: [

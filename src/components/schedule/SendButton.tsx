@@ -3,8 +3,8 @@ import {useState} from 'react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
 import {Day} from '@/src/utils/types'
-import {selectedDayAtom, telegramAtom} from '@/src/utils/global/atoms'
-import {useAtom, useAtomValue} from 'jotai'
+import {selectedDayAtom} from '@/src/utils/global/atoms'
+import {useAtom} from 'jotai'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function SendButton({

@@ -3,7 +3,8 @@ import {Divider, Input, TimeInput, Tooltip} from '@heroui/react'
 import {useMemo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
-import {MapPoint, Ruble} from 'solar-icon-set'
+import {Ruble} from 'solar-icon-set'
+import Location from '@/src/components/global/Location'
 
 export default function CellHeader({data}: {data: SalaryData}) {
   const time = useMemo(() => {
@@ -52,14 +53,13 @@ export default function CellHeader({data}: {data: SalaryData}) {
   return (
     <>
       <div className={`col-span-2 flex items-center justify-center gap-1`}>
-        <MapPoint iconStyle="Bold" />
         <Tooltip
           content={
             <p className="text-xs">
               {data.created_by} {date.toFormat('dd.MM yyyy')}
             </p>
           }>
-          <p>{data.location.name}</p>
+          <Location locationName={data.location.name} />
         </Tooltip>
       </div>
       <TimeInput

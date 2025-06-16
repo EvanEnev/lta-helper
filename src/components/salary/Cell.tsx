@@ -39,7 +39,7 @@ export default memo(function Cell({
 
   return (
     <Card
-      className={`${canViewFull ? 'w-[11rem]' : 'min-h-[15rem] w-[12rem]'} ${isDark(cellData.location.color) ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100' : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'}`}>
+      className={`${canViewFull ? 'w-[11rem]' : 'min-h-[15rem] w-[12rem]'} h-full ${isDark(cellData.location.color) ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100' : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'}`}>
       <CardHeader
         className={`grid-rows-auto grid grid-flow-row grid-cols-2 ${canEdit ? 'gap-1' : 'gap-2'} pb-0`}
         style={{backgroundColor: cellData.location.color}}>

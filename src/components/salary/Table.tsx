@@ -18,7 +18,6 @@ import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import capitalize from '@/lib/functions/capitalize'
 import {Divider} from '@heroui/react'
-import {useIsMobile} from '@heroui/use-is-mobile'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -198,12 +197,12 @@ export default memo(function Table({
             <tr className="h-4"></tr>
             {table.getRowModel().rows.map((row, rowIndex) => (
               <Fragment key={row.id}>
-                <tr className={`${canEdit ? 'h-[5rem]' : 'h-[10rem]'}`}>
+                <tr className={`${canEdit ? 'h-[3rem]' : 'h-[10rem]'}`}>
                   {row.getVisibleCells().map((cell, index) => (
                     <Fragment key={cell.id}>
                       <td
                         id={cell.id}
-                        className={`mx-auto ${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} w-[5rem] min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
+                        className={`mx-auto ${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-fit w-[5rem] min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
                         style={{
                           ...(cell.column.columnDef.meta?.frozen && {
                             left: `${getFixedColumnLeftPosition(

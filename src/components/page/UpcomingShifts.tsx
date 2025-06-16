@@ -1,9 +1,10 @@
 import {Card, CardBody, CardHeader} from '@heroui/react'
-import {CalendarMinimalistic, ClockCircle, MapPoint} from 'solar-icon-set'
+import {CalendarMinimalistic, ClockCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {useMemo, useCallback} from 'react'
+import Location from '@/src/components/global/Location'
 
 export default function UpcomingShifts({className = ''}: {className?: string}) {
   const {workingDays: days} = useAuth()
@@ -39,14 +40,11 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
             return (
               <div
                 key={index}
-                className="flex flex-col gap-4 rounded-xl border-1 p-4">
+                className="text-foreground glass flex flex-col gap-4 rounded-xl border-1 p-4">
+                <Location locationName={dayData?.locationName || ''} />
                 <span className="flex items-center gap-1">
-                  <CalendarMinimalistic />
+                  <CalendarMinimalistic iconStyle="Bold" />
                   {day.date?.toFormat('dd.MM EEE', {locale: 'ru-RU'})}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPoint />
-                  {dayData?.locationName}
                 </span>
                 <span className="flex items-center gap-1">
                   <ClockCircle />

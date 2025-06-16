@@ -102,9 +102,9 @@ export default async function Home() {
   let fines = 0
 
   let bonusesQuery = `
-SELECT bonuses, fines
-FROM lt_arena.salary
-WHERE worker_id = ${worker.id}`
+    SELECT TRIM(REPLACE(bonuses, ',', '.')) as bonuses, TRIM(REPLACE(fines, ',', '.')) as fines
+    FROM lt_arena.salary
+    WHERE worker_id = ${worker.id}`
 
   if (currentSalaryTakeDate.startsWith('20')) {
     const month = current[0].minus({month: 1})
@@ -143,7 +143,8 @@ WHERE worker_id = ${worker.id}`
     previousSalary,
     currentSalaryTakeDate,
     previousSalaryTakeDate,
-    bonuses, fines
+    bonuses,
+    fines,
   }
 
   return <MainPage salaryData={salaryData} />

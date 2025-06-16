@@ -5,13 +5,14 @@ import {
   Button,
   Card,
   CardBody,
+  Divider,
   Input,
 } from '@heroui/react'
-import {useMemo} from 'react'
+import {Fragment, useMemo} from 'react'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommentTemplates from './CommentTemplates'
-import {MinusCircle, QuestionCircle} from 'solar-icon-set'
+import {ChatLine, ChatRound, MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/lib/functions/groupBy'
 import {useAtom, useAtomValue} from 'jotai'
 import {
@@ -21,6 +22,9 @@ import {
 } from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {DateTime} from 'luxon'
+import RankIcon from '@/src/components/global/RankIcon'
+import sortByRank from '@/lib/functions/sortByRank'
+import Location from '@/src/components/global/Location'
 
 export default function DayInfo({
   day,
@@ -186,32 +190,61 @@ export default function DayInfo({
         selected={day?.comment || ''}
       />
       {locationData && (
-        <Accordion variant="splitted">
+        <Accordion
+          variant="splitted"
+          itemClasses={{
+            content: 'gap-2 flex flex-col cursor-default',
+            trigger: 'cursor-pointer',
+          }}>
           {Object.keys(groupedData).map((key, index) => {
             const data = groupedData[key]
             if (!data) return <></>
 
+            const sortedData = sortByRank(
+              data.map((d: any) => ({
+                name: d.data.worker,
+                rank: d.data.rank,
+                role: d.data.role,
+                time: d.data.time,
+              })),
+            )
+
             const selfData = data.find((obj: any) => obj.self)
 
-            const title = selfData?.data
-              ? `${selfData.data.worker} ${selfData.locationName} ${selfData.data.time}`
-              : ''
+            const title = selfData?.data ? (
+              <div className="flex items-center gap-2">
+                <Location
+                  locationName={selfData.locationName}
+                  className="w-fit"
+                />
+                <SlashDivider />
+                {selfData.data.time}
+              </div>
+            ) : (
+              ''
+            )
+
             return (
               <AccordionItem key={index} className="py-1" title={title}>
-                {data.map((data: any, index: number) => {
+                {sortedData.map((data: any, index: number) => {
                   return (
-                    <>
-                      <div className="flex flex-1 flex-wrap gap-2" key={index}>
-                        <span>{data.data?.rank}</span>
-                        <SlashDivider />
-                        <span>{data.data?.worker}</span>
-                        <SlashDivider />
-                        <span>{data.data?.time}</span>
+                    <Fragment key={index}>
+                      <div>
+                        <div className="flex flex-1 flex-wrap gap-2">
+                          <RankIcon rank={data?.rank || ''} className="h-8" />
+                          <SlashDivider />
+                          <span>{data?.name}</span>
+                          <SlashDivider />
+                          <span>{data?.time}</span>
+                        </div>
+                        {data?.role && (
+                          <span className="pl-2">
+                            <b>Роль:</b> {data?.role}
+                          </span>
+                        )}
                       </div>
-                      {data.data?.role && (
-                        <span className="pl-2">{data.data?.role}</span>
-                      )}
-                    </>
+                      {index !== sortedData.length - 1 && <Divider />}
+                    </Fragment>
                   )
                 })}
               </AccordionItem>

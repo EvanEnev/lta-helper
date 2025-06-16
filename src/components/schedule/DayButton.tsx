@@ -4,6 +4,8 @@ import {Badge, Button, Skeleton} from '@heroui/react'
 import {useMemo} from 'react'
 import {useAtom} from 'jotai'
 import {selectedDayAtom} from '@/src/utils/global/atoms'
+import {DateTime} from 'luxon'
+import AnimatedBorder from '@/src/components/global/AnimatedBorder'
 
 type DayButtonProps = {
   day: Day
@@ -42,6 +44,8 @@ export default function DayButton(props: DayButtonProps) {
     return day.date?.toFormat('EEE', {locale: 'ru-RU'})
   }, [day.date])
 
+  const today = DateTime.now()
+
   const isSelected = props.isSelected
     ? props.isSelected
     : selectedDay.date === day.date
@@ -58,19 +62,24 @@ export default function DayButton(props: DayButtonProps) {
         base: props.className || '',
         badge: 'justify-center items-center',
       }}>
-      <Button
-        isDisabled={props.disabled}
-        size="lg"
-        className={`w-28 ${props.className || ''} text-lg ${
-          isSelected ? '' : 'opacity-60'
-        }`}
-        color={props.color || color}
-        variant={isSelected ? 'shadow' : 'solid'}
-        onPress={handler}>
-        <span className="h-fit w-fit">
-          {day.date.toFormat('dd.MM')}, {weekday}
-        </span>
-      </Button>
+      <AnimatedBorder
+        isDisabled={
+          today.toFormat('yyyy-MM-dd') !== day.date?.toFormat('yyyy-MM-dd')
+        }>
+        <Button
+          isDisabled={props.disabled}
+          size="lg"
+          className={`w-28 ${props.className || ''} text-lg ${
+            isSelected ? '' : 'opacity-60'
+          }`}
+          color={props.color || color}
+          variant={isSelected ? 'shadow' : 'solid'}
+          onPress={handler}>
+          <span className="h-fit w-fit">
+            {day.date.toFormat('dd.MM')}, {weekday}
+          </span>
+        </Button>
+      </AnimatedBorder>
     </Badge>
   )
 }

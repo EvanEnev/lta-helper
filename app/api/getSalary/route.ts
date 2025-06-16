@@ -1,17 +1,6 @@
-import {evaluate} from 'mathjs'
-import google, {GoogleDocument} from '@/lib/google'
-import updateCells from '@/src/utils/admin/updateCell'
-import ranksSalary from '@/src/utils/ranksSalary'
-import {WorkerSalary} from '@/src/utils/types'
-import {
-  GoogleSpreadsheetRow,
-  GoogleSpreadsheetWorksheet,
-} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
-import updatePoints from '@/src/utils/admin/updatePoints'
 import createAdminSupabase from '@/lib/createAdminSupabase'
 import db from '@/lib/database'
-import auth from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   const supabase = await createAdminSupabase()

@@ -1,4 +1,3 @@
-import {UserSalary} from '@/src/utils/types'
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import {
   Checkbox,

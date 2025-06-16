@@ -16,6 +16,7 @@ import {useAtom} from 'jotai'
 import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import AnimatedBorder from '@/src/components/global/AnimatedBorder'
 
 export default function DesktopSchedule() {
   const {workingDays} = useAuth()
@@ -68,6 +69,8 @@ export default function DesktopSchedule() {
     setInitialDays(days)
   }, [days, initialDays])
 
+  const today = DateTime.now()
+
   return (
     <div className="flex w-full max-w-full gap-4 px-6">
       {days.length ? (
@@ -76,33 +79,38 @@ export default function DesktopSchedule() {
             <>
               {index !== 0 && <Divider className="col-span-full" />}
               {week.map((day, index) => (
-                <Card key={index} className="scrollbar-hide overflow-hidden">
-                  <CardHeader className="">
-                    <Checkbox
-                      className=""
-                      size="lg"
-                      isSelected={
-                        !!selectedDates.find(
-                          date =>
-                            date.toFormat('yyyy-MM-dd') ===
-                            day.date?.toFormat('yyyy-MM-dd'),
-                        )
-                      }
-                      onValueChange={isSelected =>
-                        changeDates(day.date, isSelected)
-                      }>
-                      <span className="text-2xl font-bold">
-                        {day.date?.toFormat('dd.MM')}
-                        ,
-                        <br />
-                        {getWeekday(day)}
-                      </span>
-                    </Checkbox>
-                  </CardHeader>
-                  <CardBody>
-                    <DayInfo day={day} changeDates={changeDates} />
-                  </CardBody>
-                </Card>
+                <AnimatedBorder
+                  key={index}
+                  isDisabled={
+                    today.toFormat('yyyy-MM-dd') !==
+                    day.date?.toFormat('yyyy-MM-dd')
+                  }>
+                  <Card className={`scrollbar-hide h-full overflow-hidden`}>
+                    <CardHeader className="w-full">
+                      <Checkbox
+                        className="w-full"
+                        size="lg"
+                        isSelected={
+                          !!selectedDates.find(
+                            date =>
+                              date.toFormat('yyyy-MM-dd') ===
+                              day.date?.toFormat('yyyy-MM-dd'),
+                          )
+                        }
+                        onValueChange={isSelected =>
+                          changeDates(day.date, isSelected)
+                        }>
+                        <span className="text-2xl font-bold">
+                          {day.date?.toFormat('dd.MM')},{' '}
+                          {day.date?.toFormat('EEE', {locale: 'ru-RU'})}
+                        </span>
+                      </Checkbox>
+                    </CardHeader>
+                    <CardBody>
+                      <DayInfo day={day} changeDates={changeDates} />
+                    </CardBody>
+                  </Card>
+                </AnimatedBorder>
               ))}
             </>
           ))}

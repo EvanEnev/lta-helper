@@ -10,9 +10,9 @@ import {
 } from '@heroui/react'
 import WorkData from './WorkData'
 import {AddCircle, MinusCircle, Plain} from 'solar-icon-set'
-import {DateTime, Interval} from 'luxon'
+import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useState} from 'react'
 import convertTZ from '@/lib/functions/convertTZ'
 
 type Options = {
