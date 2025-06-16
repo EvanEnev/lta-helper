@@ -65,7 +65,8 @@ export default function DayButton(props: DayButtonProps) {
       <AnimatedBorder
         isDisabled={
           today.toFormat('yyyy-MM-dd') !== day.date?.toFormat('yyyy-MM-dd')
-        }>
+        }
+        className={props.className || ''}>
         <Button
           isDisabled={props.disabled}
           size="lg"
