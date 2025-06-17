@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
   value,
   bonuses,
   fines,
+  overwork,
   w.name,
   w.rank,
   w.first_name

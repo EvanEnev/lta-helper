@@ -10,6 +10,8 @@ import groupBy from '@/lib/functions/groupBy'
 import {evaluate} from 'mathjs'
 import {flexRender, getCoreRowModel, useReactTable} from '@tanstack/react-table'
 import CellChip from '@/src/components/salary/CellChip'
+import sortByRank from '@/lib/functions/sortByRank'
+import RankIcon from '@/src/components/global/RankIcon'
 
 export default function Summarized() {
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
@@ -20,16 +22,29 @@ export default function Summarized() {
     return <CellChip className="text-medium! h-fit p-2">{data}</CellChip>
   }, [])
 
+  const renderName = useCallback((data: any) => {
+    return (
+      <CellChip className="text-medium! h-fit p-2">
+        <RankIcon rank={data.rank} /> {data.name}
+      </CellChip>
+    )
+  }, [])
+
   const columns = useMemo(() => {
     return [
       {
         header: 'Сотрудник',
         accessorKey: 'user',
-        cell: ({getValue}: {getValue: () => any}) => render(getValue()),
+        cell: ({getValue}: {getValue: () => any}) => renderName(getValue()),
       },
       {
         header: 'ЗП',
         accessorKey: 'salary',
+        cell: ({getValue}: {getValue: () => any}) => render(getValue()),
+      },
+      {
+        header: 'Переработка',
+        accessorKey: 'overwork',
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
@@ -70,31 +85,54 @@ export default function Summarized() {
           const grouped: object = groupBy(data.data, 'name')
           Object.entries(grouped).forEach(([key, value]) => {
             const newUser = {
-              user: '',
+              user: {name: '', rank: ''},
               salary: 0,
               bonuses: 0,
               fines: 0,
               together: 0,
+              overwork: 0,
+              name: '',
+              rank: '',
             }
 
-            newUser.user = `${key} - ${value[0].first_name}`
+            newUser.name = key
+            newUser.rank = value[0].rank
+            newUser.user = {
+              name: `${key} - ${value[0].first_name}`,
+              rank: value[0].rank,
+            }
             value.forEach((value: any) => {
               newUser.salary += value.value
+              newUser.overwork += value.overwork || 0
               if (bonuses) {
+                if (
+                  value.bonuses.endsWith('+') ||
+                  value.bonuses.endsWith('-')
+                ) {
+                  value.bonuses = value.bonuses.slice(0, -1)
+                }
+
+                if (value.bonuses.startsWith('=')) {
+                  value.bonuses = value.bonuses.slice(1)
+                }
+
                 newUser.bonuses += evaluate(value.bonuses || '0')
                 newUser.fines += evaluate(value.fines || '0')
               }
             })
 
-            newUser.together = newUser.salary + newUser.bonuses + newUser.fines
+            newUser.together =
+              newUser.salary +
+              newUser.bonuses +
+              newUser.fines +
+              newUser.overwork
 
             newData.push(newUser)
           })
 
-          const sortedData = newData.sort((a: any, b: any) =>
-            a.user.localeCompare(b.user),
-          )
+          const sortedData = sortByRank(newData)
 
+          // @ts-ignore
           setData(sortedData)
         }
       }
@@ -107,9 +145,45 @@ export default function Summarized() {
     getCoreRowModel: getCoreRowModel(),
   })
 
+  const allData = useMemo(() => {
+    let allSalary = 0
+    let bonuses = 0
+    let summary = 0
+
+    data.forEach((value: any) => {
+      allSalary += value.salary + value.overwork
+      bonuses += value.bonuses + value.fines
+      summary += value.salary + value.overwork + value.bonuses + value.fines
+    })
+
+    return {salary: allSalary, bonuses, summary}
+  }, [data])
+
   return (
     <div className="flex w-full gap-4">
       <div className="bg-content1 rounded-large relative w-full flex-1 pt-4">
+        <div className="flex w-full items-center gap-2 p-2">
+          <div className="glass flex flex-col items-center gap-1 p-4">
+            <span>ЗП + Переработка: </span>
+            <div className="glass w-full p-2">
+              {allData.salary.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </div>
+          </div>
+
+          <div className="glass flex flex-col items-center gap-1 p-4">
+            <span>Бонусы + Штрафы: </span>
+            <div className="glass w-full p-2">
+              {allData.bonuses.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </div>
+          </div>
+
+          <div className="glass flex flex-col items-center gap-1 p-4">
+            <span>Общее: </span>
+            <div className="glass w-full p-2">
+              {allData.summary.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </div>
+          </div>
+        </div>
         <table className="h-auto w-full table-fixed">
           <thead
             className="[&>tr]:first:shadow-small sticky z-1000 w-full"
@@ -192,7 +266,7 @@ export default function Summarized() {
       </div>
 
       <div
-        className="sticky z-1000 flex flex-col gap-2"
+        className="sticky z-1000 flex h-fit flex-col gap-2"
         style={{
           top: `${document.querySelector('header')?.offsetHeight}px`,
         }}>
