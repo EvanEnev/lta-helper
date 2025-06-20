@@ -12,7 +12,7 @@ import db from '@/lib/database'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 
-const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный']
+const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный', 'советник']
 
 export interface SheetData {
   sheets: {
