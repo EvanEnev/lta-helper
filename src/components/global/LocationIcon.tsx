@@ -8,6 +8,7 @@ import Teleport from '@/public/icons/locations/Teleport'
 import VR from '@/public/icons/locations/VR'
 import VB from '@/public/icons/locations/VB'
 import Cyberport from '@/public/icons/locations/Cyberport'
+import Enclave from '@/public/icons/locations/Enclave'
 
 export default function LocationIcon({
   locationName,
@@ -41,6 +42,7 @@ export default function LocationIcon({
       Icon = WildWest
       break
     case 'анклав':
+      Icon = Enclave
       break
     case 'киберпорт':
       Icon = Cyberport
