@@ -121,7 +121,7 @@ export default async function Home() {
       bonuses += evaluate(row.bonuses || '0')
     })
   } else {
-    const month = previous[0]
+    const month = previous[0].minus({month: 1})
 
     bonusesQuery += ` AND date BETWEEN '${month.startOf('month').toFormat('yyyy-MM-dd')}' AND '${month.endOf('month').toFormat('yyyy-MM-dd')}'`
 
