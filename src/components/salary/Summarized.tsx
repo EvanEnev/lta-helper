@@ -48,6 +48,11 @@ export default function Summarized() {
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
+        header: 'ЗП + Переработка',
+        accessorKey: 'together',
+        cell: ({getValue}: {getValue: () => any}) => render(getValue()),
+      },
+      {
         header: 'Бонусы',
         accessorKey: 'bonuses',
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
@@ -58,8 +63,8 @@ export default function Summarized() {
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
-        header: 'Суммарно',
-        accessorKey: 'together',
+        header: 'Бонусы + Штрафы',
+        accessorKey: 'bonusesfines',
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
     ]
@@ -91,6 +96,7 @@ export default function Summarized() {
               fines: 0,
               together: 0,
               overwork: 0,
+              bonusesfines: 0,
               name: '',
               rank: '',
             }
@@ -121,11 +127,9 @@ export default function Summarized() {
               }
             })
 
-            newUser.together =
-              newUser.salary +
-              newUser.bonuses +
-              newUser.fines +
-              newUser.overwork
+            newUser.together = newUser.salary + newUser.overwork
+
+            newUser.bonusesfines = newUser.bonuses + newUser.fines
 
             newData.push(newUser)
           })
