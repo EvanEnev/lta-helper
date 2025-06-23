@@ -21,7 +21,7 @@ import {addToast, Divider, Spinner} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import TableRow from './TableRow'
 import LocationSelect from '@/src/components/salary/LocationSelect'
-import {useIsMobile} from '@heroui/use-is-mobile'
+import useIsMobile from '@/src/hooks/useIsMobile'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
