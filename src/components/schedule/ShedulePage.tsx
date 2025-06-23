@@ -1,3 +1,5 @@
+'use client'
+
 import useIsMobile from '@/src/hooks/useIsMobile'
 import MobileSchedule from '@/src/components/schedule/MobileSchedule'
 import DesktopSchedule from '@/src/components/schedule/DesktopSchedule'
