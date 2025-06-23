@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import SchedulePage from '@/src/components/schedule/ShedulePage'
 import getLocations from '@/lib/functions/getLocations'
 
