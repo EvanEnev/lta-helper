@@ -21,7 +21,7 @@ export default function CellBodyEditable({
       aria-label="Комментарий"
       classNames={{
         innerWrapper: 'min-h-[4.5rem] items-center justify-center',
-        input: 'text-center h-fit',
+        input: 'text-center h-full',
       }}
       style={{height: 'fit-content'}}
       className="col-span-2"

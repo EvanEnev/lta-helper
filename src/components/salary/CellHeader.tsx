@@ -4,7 +4,7 @@ import {useMemo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
 import {Ruble} from 'solar-icon-set'
-import Location from '@/src/components/global/Location'
+import LocationIcon from '@/src/components/global/LocationIcon'
 
 export default function CellHeader({data}: {data: SalaryData}) {
   const time = useMemo(() => {
@@ -59,7 +59,10 @@ export default function CellHeader({data}: {data: SalaryData}) {
               {data.created_by} {date.toFormat('dd.MM yyyy')}
             </p>
           }>
-          <Location locationName={data.location.name} />
+          <div className="flex items-center gap-2">
+            <LocationIcon locationName={data.location.name} />
+            <p>{data.location.name}</p>
+          </div>
         </Tooltip>
       </div>
       <TimeInput

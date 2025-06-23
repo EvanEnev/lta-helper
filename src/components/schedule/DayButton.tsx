@@ -1,5 +1,4 @@
-import locations from '@/src/utils/locations'
-import {Day} from '@/src/utils/types'
+import {Day, LTLocation} from '@/src/utils/types'
 import {Badge, Button, Skeleton} from '@heroui/react'
 import {useMemo} from 'react'
 import {useAtom} from 'jotai'
@@ -9,6 +8,7 @@ import AnimatedBorder from '@/src/components/global/AnimatedBorder'
 
 type DayButtonProps = {
   day: Day
+  locations: LTLocation[]
   color?: 'default' | 'success' | 'danger' | 'warning'
   onclick?: any
   isSelected?: boolean
@@ -18,13 +18,14 @@ type DayButtonProps = {
 
 export default function DayButton(props: DayButtonProps) {
   const day = props.day
+  const locations = props.locations
 
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
 
   let color: 'default' | 'success' | 'danger' | 'warning' = 'default'
   if (
     day.value === '+' ||
-    locations.find(l => l.toLowerCase() === day.value?.toLowerCase())
+    locations.find(l => l.name.toLowerCase() === day.value?.toLowerCase())
   )
     color = 'success'
   if (day.value === '-') color = 'danger'

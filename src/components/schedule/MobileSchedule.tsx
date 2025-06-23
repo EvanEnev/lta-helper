@@ -2,13 +2,17 @@ import {Divider} from '@heroui/react'
 import DayButton from './DayButton'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
-import {Day} from '@/src/utils/types'
+import {Day, LTLocation} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {useAtom, useAtomValue} from 'jotai'
 import {daysAtom, selectedDayAtom} from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
-export default function MobileSchedule() {
+interface MobileScheduleProps {
+  locations: LTLocation[]
+}
+
+export default function MobileSchedule({locations}: MobileScheduleProps) {
   const {workingDays, setExiting} = useAuth()
   const selectedDay = useAtomValue(selectedDayAtom)
   const [initialDays, setInitialDays] = useState(workingDays)
@@ -69,7 +73,12 @@ export default function MobileSchedule() {
             {index !== 0 && <Divider />}
             <div className="flex flex-wrap gap-4" key={index}>
               {week.map((day, index) => (
-                <DayButton day={day} key={index} className="flex-1" />
+                <DayButton
+                  locations={locations}
+                  day={day}
+                  key={index}
+                  className="flex-1"
+                />
               ))}
             </div>
           </>

@@ -78,6 +78,7 @@ export default async function auth(): Promise<LTWorker> {
 
   if (workerResult?.today_location) {
     worker.permissionLevel = 4
+    worker.locationId = workerResult?.today_location
   }
 
   worker.firstName = workerResult.first_name

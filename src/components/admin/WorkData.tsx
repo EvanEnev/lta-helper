@@ -1,6 +1,5 @@
 import getSalaryData from '@/src/utils/admin/getSalaryData'
-import locations from '@/src/utils/locations'
-import {LTWorker, WorkerSalary} from '@/src/utils/types'
+import {LTLocation, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {
   Autocomplete,
   AutocompleteItem,
@@ -20,6 +19,7 @@ type WorkDataProps = {
   setData: any
   workers: any[]
   index: number
+  locations: LTLocation[]
 }
 
 export default function WorkData({
@@ -27,6 +27,7 @@ export default function WorkData({
   setData,
   workers,
   index,
+  locations,
 }: WorkDataProps) {
   const worker = workers.find(
     (worker: {name: string}) =>
@@ -139,8 +140,10 @@ export default function WorkData({
         label="Локация"
         selectedKey={data.location}
         onSelectionChange={value => updateData('location', value)}>
-        {locations.map((location: string) => (
-          <AutocompleteItem key={location}>{location}</AutocompleteItem>
+        {locations.map(location => (
+          <AutocompleteItem key={location.name}>
+            {location.name}
+          </AutocompleteItem>
         ))}
       </Autocomplete>
       <Input

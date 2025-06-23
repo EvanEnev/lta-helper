@@ -50,10 +50,10 @@ export default memo(function Cell({
         )}
       </CardHeader>
       <CardBody
-        className={`grid h-fit grid-cols-2 grid-rows-1 ${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} text-center`}
+        className={`${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} h-full text-center`}
         style={{backgroundColor: cellData.location.color}}>
-        <Divider className="bg-default-100 col-span-2 w-full" />
-        <p className="col-span-2 text-xs">
+        <Divider className="bg-default-100 w-full" />
+        <p className="w-full text-xs">
           {<ChatRoundLine iconStyle="Bold" className="mr-1 align-middle" />}
           Комментарий
         </p>

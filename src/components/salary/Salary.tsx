@@ -11,10 +11,12 @@ export default function Salary({
   data,
   canViewFull,
   canEdit,
+  dates,
 }: {
   data: UserSalary[]
   canViewFull: boolean
   canEdit: boolean
+  dates: string[]
 }) {
   const {setExiting} = useAuth()
 
@@ -23,13 +25,25 @@ export default function Salary({
   }, [setExiting])
 
   if (!canViewFull) {
-    return <Table data={data} canEdit={canEdit} canViewFull={canViewFull} />
+    return (
+      <Table
+        dates={dates}
+        data={data}
+        canEdit={canEdit}
+        canViewFull={canViewFull}
+      />
+    )
   }
 
   return (
     <Tabs color="primary" size="lg" className="ml-4">
       <Tab title="График" className="data-[slot=panel]:p-0">
-        <Table data={data} canEdit={canEdit} canViewFull={canViewFull} />
+        <Table
+          dates={dates}
+          data={data}
+          canEdit={canEdit}
+          canViewFull={canViewFull}
+        />
       </Tab>
       <Tab title="Сводная">
         <Summarized />

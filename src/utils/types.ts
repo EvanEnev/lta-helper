@@ -79,10 +79,7 @@ export interface SalaryData {
   worker_id: number
   created_by: string
   updated_by?: number
-  location: {
-    name: string
-    color: string
-  }
+  location: LTLocation
 }
 
 export interface SalaryUser {
@@ -97,4 +94,10 @@ export interface UserSalary {
   user: SalaryUser
   dates: (SalaryData | null)[]
   [key: string]: string | SalaryData | SalaryUser | (SalaryData | null)[]
+}
+
+export interface LTLocation {
+  name: string
+  color: string
+  id: number
 }

@@ -9,14 +9,9 @@ import VR from '@/public/icons/locations/VR'
 import VB from '@/public/icons/locations/VB'
 import Cyberport from '@/public/icons/locations/Cyberport'
 import Enclave from '@/public/icons/locations/Enclave'
+import PirateStation from '@/public/icons/locations/PirateStation'
 
-export default function LocationIcon({
-  locationName,
-  className = '',
-}: {
-  locationName: string
-  className?: string
-}) {
+export default function LocationIcon({locationName}: {locationName: string}) {
   let Icon
 
   switch (locationName.toLowerCase().trim()) {
@@ -48,6 +43,7 @@ export default function LocationIcon({
       Icon = Cyberport
       break
     case 'пиратская станция':
+      Icon = PirateStation
       break
     case 'джунгли':
       Icon = Jungle

@@ -1,4 +1,4 @@
-import {LTWorker, WorkerSalary} from '@/src/utils/types'
+import {LTLocation, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {
   Button,
   CalendarDate,
@@ -15,14 +15,14 @@ import {today} from '@internationalized/date'
 import {useCallback, useState} from 'react'
 import convertTZ from '@/lib/functions/convertTZ'
 
-type Options = {
+interface DesktopAdminProps {
   days: {
     current: DateTime
     previous: DateTime
     today: DateTime
   }
   setDate: any
-  date: DateTime
+  locations: LTLocation[]
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: LTWorker[]
@@ -34,14 +34,14 @@ type Options = {
 export default function DesktopAdmin({
   days,
   setDate,
-  date,
+  locations,
   salaryData,
   setSalaryData,
   workers,
   sendData,
   isLoading,
   canEdit,
-}: Options) {
+}: DesktopAdminProps) {
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
 
   const checkDateValid = useCallback(
@@ -111,6 +111,7 @@ export default function DesktopAdmin({
               </CardHeader>
               <CardBody>
                 <WorkData
+                  locations={locations}
                   data={data}
                   setData={setSalaryData}
                   workers={workers}

@@ -6,7 +6,7 @@ import {Day} from '../types'
 import {CellBGColorStyle, Change} from './types'
 import getCellValue from './getCellValue'
 import getComments from './getComments'
-import locations from '../locations'
+import getLocations from '@/lib/functions/getLocations'
 
 interface Options {
   sheet: GoogleSpreadsheetWorksheet
@@ -38,12 +38,13 @@ export default async function getChanges({
   await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
   const comments = await getComments(workerName)
+  const locations = await getLocations()
 
-  headerValues.slice(10).forEach((headerValue: string) => {
+  for (const headerValue of headerValues.slice(10)) {
     const date = headerValue.split(' ')[1]
     const day = selectedDays.find(day => day.date?.toFormat('dd.MM') === date)
 
-    if (!(day?.value && day.date)) return
+    if (!(day?.value && day.date)) continue
 
     const colNumber = headerValues.indexOf(headerValue)
 
@@ -52,7 +53,7 @@ export default async function getChanges({
     const currentBGColor = cell.effectiveFormat
       ?.backgroundColorStyle as CellBGColorStyle
 
-    const cellValue = getCellValue(currentValue, currentBGColor)
+    const cellValue = await getCellValue(currentValue, currentBGColor)
     const comment = comments.find(comment => comment.date === date)
     const commentValue = comment?.value || ''
     const dayComment = day.comment || ''
@@ -65,14 +66,17 @@ export default async function getChanges({
     }
 
     const providedLocation = locations.find(
-      l => l.toLowerCase() === day.value?.toLowerCase(),
+      l => l.name.toLowerCase() === day.value?.toLowerCase(),
     )
-    const hasLocation = locations.includes(cellValue.effectiveValue || '')
+
+    const hasLocation = locations.find(
+      l => l.name?.toLowerCase() === cellValue.effectiveValue?.toLowerCase(),
+    )
 
     const shouldSkip = hasLocation && ['+', '+/-'].includes(day.value)
 
     if (providedLocation) {
-      cell.stringValue = providedLocation
+      cell.stringValue = providedLocation.name
     } else if (valuesMap[day.value] && !shouldSkip) {
       cell.stringValue = valuesMap[day.value]
     }
@@ -108,7 +112,7 @@ export default async function getChanges({
           AND lt_arena.schedule.date = EXCLUDED.date`
 
     queries.push(query)
-  })
+  }
 
   return {changes, queries}
 }
