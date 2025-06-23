@@ -8,21 +8,21 @@ import {
 } from '@heroui/react'
 import WorkData from './WorkData'
 import {useCallback, useEffect, useState} from 'react'
-import {LTWorker, WorkerSalary} from '@/src/utils/types'
+import {LTLocation, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {Plain} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import convertTZ from '@/lib/functions/convertTZ'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
-type Options = {
+interface MobileAdminProps {
   days: {
     current: DateTime
     previous: DateTime
     today: DateTime
   }
   setDate: any
-  date?: DateTime
+  locations: LTLocation[]
   salaryData: WorkerSalary[]
   setSalaryData: any
   workers: LTWorker[]
@@ -34,14 +34,14 @@ type Options = {
 export default function MobileAdmin({
   days,
   setDate,
-  date,
+  locations,
   salaryData,
   setSalaryData,
   workers,
   sendData,
   isLoading,
   canEdit,
-}: Options) {
+}: MobileAdminProps) {
   const {setExiting} = useAuth()
   const [key, setKey] = useState(0)
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set(['0']))
@@ -166,6 +166,7 @@ export default function MobileAdmin({
                 </Button>
               }>
               <WorkData
+                locations={locations}
                 data={data}
                 setData={setSalaryData}
                 workers={workers}
