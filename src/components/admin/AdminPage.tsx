@@ -120,6 +120,7 @@ export default function AdminPage({
   return isMobile ? (
     <MobileAdmin
       {...{
+        locations,
         sendData,
         workers,
         days,
