@@ -1,34 +1,35 @@
-# Stage 1: Build stage
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-ENV NPM_RC="public-hoist-pattern[]=*@heroui/*"
+# Копируем конфигурационные файлы
+COPY package*.json ./
+COPY postcss.config.js ./
+COPY next.config.mjs ./
 
-RUN npm install -g pnpm
+# Устанавливаем все зависимости (включая dev)
+RUN npm install --force
 
-COPY package.json pnpm-lock.yaml .npmrc ./
-RUN pnpm fetch --prod
-RUN pnpm install --frozen-lockfile
-
+# Копируем исходники
 COPY . .
-RUN pnpm build
 
-# Stage 2: Production stage
+# Собираем приложение
+RUN npm run build
+
 FROM node:18-alpine AS runner
-
 WORKDIR /app
 
-RUN npm install -g pnpm
-
-COPY --from=builder /app/public ./public
+# Копируем только необходимые файлы
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/public ./public
 
-COPY server.ts server.ts
-COPY dbListener.ts dbListener.ts
+# Устанавливаем только production зависимости
+RUN npm install --force
+
+COPY server.ts ./
+COPY dbListener.ts ./
 
 ENV NODE_ENV=production
 COPY .env .env.production
 
-CMD ["pnpm", "start"]
+CMD ["npm", "start"]
