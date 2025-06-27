@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
       defaultSalary = 1500
     }
 
-    if (data.value) {
+    if (data.value !== undefined) {
       defaultSalary = data.value
     }
 
