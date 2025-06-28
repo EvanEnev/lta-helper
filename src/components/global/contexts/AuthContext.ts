@@ -19,7 +19,6 @@ const AuthContext = createContext<Auth>({
     id: 0,
     telegramId: 0,
     rank: '',
-    permissionLevel: 0,
     permissions: [],
   },
   workingDays: [],
