@@ -14,6 +14,7 @@ import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import {useCallback, useState} from 'react'
 import convertTZ from '@/lib/functions/convertTZ'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface DesktopAdminProps {
   days: {
@@ -44,6 +45,7 @@ export default function DesktopAdmin({
   canEdit,
   ranks,
 }: DesktopAdminProps) {
+  const {worker} = useAuth()
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
 
   const checkDateValid = useCallback(
@@ -138,6 +140,7 @@ export default function DesktopAdmin({
                   data={data}
                   setData={setSalaryData}
                   workers={workers}
+                  worker={worker}
                   index={index}
                 />
               </CardBody>

@@ -5,7 +5,6 @@ import {
   CalendarDate,
   DatePicker,
   Selection,
-  semanticColors,
 } from '@heroui/react'
 import WorkData from './WorkData'
 import {useCallback, useEffect, useState} from 'react'
@@ -45,7 +44,7 @@ export default function MobileAdmin({
   canEdit,
   ranks,
 }: MobileAdminProps) {
-  const {setExiting} = useAuth()
+  const {setExiting, worker} = useAuth()
   const [key, setKey] = useState(0)
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set(['0']))
 
@@ -188,6 +187,7 @@ export default function MobileAdmin({
                 data={data}
                 setData={setSalaryData}
                 workers={workers}
+                worker={worker}
                 index={index}
               />
             </AccordionItem>

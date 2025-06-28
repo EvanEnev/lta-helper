@@ -1,4 +1,4 @@
-import getSalaryData from '@/src/utils/admin/getSalaryData'
+import getSalaryData from '@/lib/functions/getSalaryData'
 import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {
   Autocomplete,
@@ -13,6 +13,7 @@ import {
 import {Key, useCallback, useMemo} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 import RankIcon from '@/src/components/global/RankIcon'
+import {evaluate} from 'mathjs'
 
 type WorkDataProps = {
   data: WorkerSalary
@@ -21,6 +22,7 @@ type WorkDataProps = {
   index: number
   locations: LTLocation[]
   ranks: LTRank[]
+  worker: LTWorker
 }
 
 export default function WorkData({
@@ -30,6 +32,7 @@ export default function WorkData({
   index,
   locations,
   ranks,
+  worker: user,
 }: WorkDataProps) {
   const worker = workers.find(
     (worker: {name: string}) =>
@@ -76,10 +79,12 @@ export default function WorkData({
   }
 
   const salary = useMemo(() => {
-    const salaryData = getSalaryData({
-      ranks,
-      worker: data.worker,
-      rank: worker?.rank || 'актёр',
+    const rank = ranks.find(d => d.name === worker?.rank)
+    if (!rank) return null
+
+    return getSalaryData({
+      worker: user,
+      rank,
       workingHours: data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
@@ -89,13 +94,9 @@ export default function WorkData({
       value: data.value,
       overwork: data.overwork,
     })
-
-    updateData('overwork', salaryData?.overWorkSalary || undefined)
-
-    return salaryData
   }, [
     ranks,
-    data.worker,
+    user,
     data.workingHours,
     data.fines,
     data.isHardTime,
@@ -206,37 +207,42 @@ export default function WorkData({
         <div>
           <p>
             Смена{' '}
-            {salary?.calculatedWorkingTime &&
-              `(${salary?.calculatedWorkingTime})`}
+            {salary?.start_time &&
+              salary.end_time &&
+              `(${salary.start_time}-${salary.end_time})`}
             :
           </p>
           <NumberInput
             aria-label="Смена"
             minValue={0}
             className="h-full w-full"
-            value={salary?.salary || 0}
+            value={salary?.value || 0}
             onValueChange={value => updateData('value', value)}
           />
         </div>
         <div>
           <p>
             Переработка{' '}
-            {salary?.calculatedOverWorkTime &&
-              `(${salary?.calculatedOverWorkTime})`}
+            {salary?.overwork_start &&
+              salary.overwork_end &&
+              `(${salary.overwork_start}-${salary.overwork_end})`}
             :
           </p>
           <NumberInput
             aria-label="Переработка"
             minValue={0}
             className="h-full w-full"
-            value={salary?.overWorkSalary || 0}
+            value={salary?.overwork || 0}
             onValueChange={value => {
               updateData('overwork', value)
             }}
           />
         </div>
         <div>
-          <p>Бонусы/штрафы: {salary?.bonuses || 0}</p>
+          <p>
+            Бонусы/штрафы:{' '}
+            {evaluate(`${salary?.bonuses || 0} + ${salary?.fines || 0}`)}
+          </p>
         </div>
       </div>
     </div>

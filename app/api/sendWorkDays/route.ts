@@ -12,6 +12,7 @@ import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import getRanks from '@/lib/functions/getRanks'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import getSalaryData from '@/lib/functions/getSalaryData'
 
 export interface SheetData {
   sheets: {
@@ -126,64 +127,21 @@ export async function POST(req: NextRequest) {
     const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
 
-    let workingTimeParts: string[] | number[] = data.workingHours.split('-')
-    if (workingTimeParts.length < 2) continue
+    const salary = getSalaryData({
+      rank: rankData,
+      bonuses: data.bonuses,
+      fines: data.fines,
+      comment: data.comment,
+      gamesCount: data.gamesCount,
+      value: data.value,
+      overwork: data.overwork,
+      isHardTime: data.isHardTime,
+      worker: user,
+      workingHours: data.workingHours,
+    })
 
-    workingTimeParts = workingTimeParts.map(v => parseInt(v))
-
-    if (workingTimeParts[1] < 12) {
-      workingTimeParts[1] += 24
-    }
-
-    const workingTime = workingTimeParts[1] - workingTimeParts[0]
-
-    const overWorkTime = workingTime - (data.isHardTime ? 8 : 9)
-    const isOverWork = overWorkTime > 0 && rank !== 'актёр'
-
-    let calculatedWorkingTime = ''
-    let calculatedOverWorkTime = ''
-
-    if (data.isHardTime && isOverWork) {
-      calculatedWorkingTime = `${workingTimeParts[0]}-${
-        workingTimeParts[0] + 8
-      }`
-      calculatedOverWorkTime = `${workingTimeParts[0] + 8}-${
-        workingTimeParts[0] + 8 + overWorkTime
-      }`
-    } else if (isOverWork) {
-      calculatedWorkingTime = `${workingTimeParts[0]}-${
-        workingTimeParts[0] + 9
-      }`
-      calculatedOverWorkTime = `${workingTimeParts[0] + 9}-${
-        workingTimeParts[0] + 9 + overWorkTime
-      }`
-    } else {
-      calculatedWorkingTime = `${workingTimeParts[0]}-${workingTimeParts[1]}`
-    }
-
-    let defaultSalary = rankData?.salary || 0
-    let overworkSalary = 0
-
-    if (data.comment?.toLowerCase().includes('под игру')) {
-      defaultSalary = 1500
-    }
-
-    if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
-      overworkSalary += (rankData?.overwork || 0) * (data.gamesCount - 2)
-    }
-
-    if (isOverWork) {
-      overworkSalary += (rankData?.overwork || 0) * overWorkTime
-    }
-
-    console.debug(data)
-    if (data.value !== undefined) {
-      defaultSalary = data.value
-    }
-
-    if (data.overwork !== undefined) {
-      overworkSalary = data.overwork
-    }
+    console.debug(salary)
+    if (!salary) continue
 
     if (!data.comment?.toLowerCase().includes('под игру')) {
       promises.push(
@@ -199,37 +157,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const workingStart = calculatedWorkingTime.split('-')[0]
-    let workingEnd = calculatedWorkingTime.split('-')[1]
-
-    if (parseInt(workingEnd) > 25) {
-      workingEnd = `${parseInt(workingEnd) - 24}`
-    }
-
-    const overworkStart = calculatedOverWorkTime.split('-')[0]
-    let overworkEnd = calculatedOverWorkTime.split('-')[1]
-
-    if (parseInt(overworkEnd) > 25) {
-      overworkEnd = `${parseInt(overworkEnd) - 24}`
-    }
-
     queries.push(`INSERT INTO lt_arena.salary
                   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork)
                   VALUES
                     (
                         (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
                         '${date.toFormat('yyyy-MM-dd')}',
-                        ${defaultSalary},
-                        '${data.bonuses || 0}',
-                        '${data.fines || 0}',
+                        ${salary.value},
+                        '${salary.bonuses}',
+                        '${salary.fines}',
                         '${data.comment}',
                         (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
-                        ${user.id},
-                        '${workingStart}:00',
-                        '${workingEnd}:00',
-                        ${overworkStart ? `'${overworkStart}:00'` : 'NULL'},
-                        ${overworkEnd ? `'${overworkEnd}:00'` : 'NULL'},
-                        ${overworkSalary || 'NULL'}
+                        ${salary.created_by},
+                        '${salary.start_time}',
+                        '${salary.end_time}',
+                        ${salary.overwork_start ? `'${salary.overwork_start}'` : 'NULL'},
+                        ${salary.overwork_end ? `'${salary.overwork_end}'` : 'NULL'},
+                        ${salary.overwork || 'NULL'}
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET
