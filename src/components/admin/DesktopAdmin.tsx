@@ -91,9 +91,7 @@ export default function DesktopAdmin({
       <div className="grid h-full w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 overflow-auto lg:grid-cols-4">
         {salaryData.map((data, index) => {
           return (
-            <Card
-              key={index}
-              className={`${data.deleted ? 'bg-danger/50' : ''}`}>
+            <Card key={index} className={data.deleted ? 'bg-danger/50' : ''}>
               <CardHeader className={`gap-4`}>
                 {index + 1}.
                 <Button

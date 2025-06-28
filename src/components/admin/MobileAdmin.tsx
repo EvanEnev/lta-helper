@@ -5,11 +5,12 @@ import {
   CalendarDate,
   DatePicker,
   Selection,
+  semanticColors,
 } from '@heroui/react'
 import WorkData from './WorkData'
 import {useCallback, useEffect, useState} from 'react'
 import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
-import {Plain} from 'solar-icon-set'
+import {MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import convertTZ from '@/lib/functions/convertTZ'
@@ -109,7 +110,17 @@ export default function MobileAdmin({
   }
 
   const removeSalaryData = (index: number) => {
-    setSalaryData((prev: WorkerSalary[]) => prev.filter((_, i) => i !== index))
+    const data = salaryData[index]
+
+    setSalaryData((prev: WorkerSalary[]) =>
+      data.deleted
+        ? prev.map((data, dataIndex) =>
+            dataIndex === index ? {...data, deleted: false} : data,
+          )
+        : prev.map((data, dataIndex) =>
+            dataIndex === index ? {...data, deleted: true} : data,
+          ),
+    )
   }
 
   useEffect(() => {
@@ -157,14 +168,18 @@ export default function MobileAdmin({
             <AccordionItem
               title={title}
               key={index}
-              className="pb-2"
+              className={`pb-2 ${data.deleted ? 'bg-danger/50' : ''}`}
               startContent={
                 <Button
                   isIconOnly
                   color="danger"
                   variant="ghost"
                   onPress={() => removeSalaryData(index)}>
-                  X
+                  {data.deleted ? (
+                    <RestartCircle size={24} />
+                  ) : (
+                    <MinusCircle size={24} />
+                  )}
                 </Button>
               }>
               <WorkData
