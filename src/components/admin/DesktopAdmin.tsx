@@ -1,4 +1,4 @@
-import {LTLocation, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {
   Button,
   CalendarDate,
@@ -9,7 +9,7 @@ import {
   semanticColors,
 } from '@heroui/react'
 import WorkData from './WorkData'
-import {AddCircle, MinusCircle, Plain} from 'solar-icon-set'
+import {AddCircle, MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import {useCallback, useState} from 'react'
@@ -29,6 +29,7 @@ interface DesktopAdminProps {
   sendData: any
   isLoading: boolean
   canEdit: boolean
+  ranks: LTRank[]
 }
 
 export default function DesktopAdmin({
@@ -41,6 +42,7 @@ export default function DesktopAdmin({
   sendData,
   isLoading,
   canEdit,
+  ranks,
 }: DesktopAdminProps) {
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
 
@@ -89,28 +91,51 @@ export default function DesktopAdmin({
       <div className="grid h-full w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 overflow-auto lg:grid-cols-4">
         {salaryData.map((data, index) => {
           return (
-            <Card key={index} className="">
-              <CardHeader className="gap-4">
+            <Card
+              key={index}
+              className={`${data.deleted ? 'bg-danger/50' : ''}`}>
+              <CardHeader className={`gap-4`}>
                 {index + 1}.
                 <Button
                   variant="faded"
                   size="lg"
                   onPress={() =>
-                    setSalaryData(salaryData.filter((_, i) => i !== index))
+                    setSalaryData((prev: WorkerSalary[]) =>
+                      data.deleted
+                        ? prev.map((data, dataIndex) =>
+                            dataIndex === index
+                              ? {...data, deleted: false}
+                              : data,
+                          )
+                        : prev.map((data, dataIndex) =>
+                            dataIndex === index
+                              ? {...data, deleted: true}
+                              : data,
+                          ),
+                    )
                   }
                   startContent={
-                    <MinusCircle
-                      //@ts-ignore
-                      color={semanticColors.dark.danger.DEFAULT}
-                      size={24}
-                    />
+                    data.deleted ? (
+                      <RestartCircle
+                        //@ts-ignore
+                        color={semanticColors.dark.success.DEFAULT}
+                        size={24}
+                      />
+                    ) : (
+                      <MinusCircle
+                        //@ts-ignore
+                        color={semanticColors.dark.danger.DEFAULT}
+                        size={24}
+                      />
+                    )
                   }
                   className="w-full">
-                  Удалить
+                  {data.deleted ? 'Вернуть' : 'Удалить'}
                 </Button>
               </CardHeader>
               <CardBody>
                 <WorkData
+                  ranks={ranks}
                   locations={locations}
                   data={data}
                   setData={setSalaryData}

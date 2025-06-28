@@ -21,7 +21,6 @@ export default async function auth(): Promise<LTWorker> {
       location: '',
       middleName: '',
       name: '',
-      permissionLevel: 0,
       permissions: [],
       phoneNumber: '',
       photoUrl: '',
@@ -39,6 +38,7 @@ export default async function auth(): Promise<LTWorker> {
                    w.id,
                    w.rank,
                    w.number,
+                   w.telegram_id,
                    l.name as location,
                    l.id as location_id,
                    ranks.permission_level,
@@ -71,22 +71,24 @@ export default async function auth(): Promise<LTWorker> {
   const permissions = permissionsResult.rows
   const workerResult = result.rows[0] || {}
 
-  const worker: LTWorker = workerResult
-
-  worker.permissions = permissions
-  worker.permissionLevel = workerResult.permission_level
-
-  if (workerResult?.today_location) {
-    worker.permissionLevel = 4
-    worker.locationId = workerResult?.today_location
+  const worker: LTWorker = {
+    name: workerResult.name,
+    id: workerResult.id,
+    telegramId: workerResult.telegram_id,
+    rank: workerResult.rank,
+    firstName: workerResult.first_name,
+    lastName: workerResult.last_name,
+    middleName: workerResult.middle_name,
+    phoneNumber: workerResult.phone_number,
+    photoUrl: workerResult.photo_url,
+    locationId: workerResult.location_id,
+    permissions,
+    email: workerResult.email,
   }
 
-  worker.firstName = workerResult.first_name
-  worker.lastName = workerResult.last_name
-  worker.middleName = workerResult.middle_name
-  worker.phoneNumber = workerResult.phone_number
-  worker.photoUrl = workerResult.photo_url
-  worker.locationId = workerResult.location_id
+  if (workerResult?.today_location) {
+    worker.locationId = workerResult?.today_location
+  }
 
   return worker
 }

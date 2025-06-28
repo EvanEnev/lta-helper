@@ -4,7 +4,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
 import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import {LTLocation, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {DateTime} from 'luxon'
 import {addToast} from '@heroui/react'
@@ -13,10 +13,12 @@ interface AdminPageProps {
   workers: LTWorker[]
   canEdit: boolean
   locations: LTLocation[]
+  ranks: LTRank[]
 }
 
 export default function AdminPage({
   workers = [],
+  ranks,
   canEdit,
   locations,
 }: AdminPageProps) {
@@ -31,7 +33,6 @@ export default function AdminPage({
       comment: '',
       isHardTime: false,
       gamesCount: 1,
-      value: 0,
     },
   ])
   const [date, setDate] = useState<DateTime>(
@@ -120,6 +121,7 @@ export default function AdminPage({
   return isMobile ? (
     <MobileAdmin
       {...{
+        ranks,
         locations,
         sendData,
         workers,
@@ -135,6 +137,7 @@ export default function AdminPage({
   ) : (
     <DesktopAdmin
       {...{
+        ranks,
         sendData,
         locations,
         workers,

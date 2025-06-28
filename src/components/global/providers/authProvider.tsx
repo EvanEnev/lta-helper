@@ -12,7 +12,7 @@ import {Day, LTWorker} from '@/src/utils/types'
 import {TelegramAuthData} from '@telegram-auth/react'
 import Loader from '@/src/components/global/Loader'
 
-const requiredFields = ['email', 'phoneNumber', 'firstName', 'lastName']
+const requiredFields = ['name', 'email', 'phoneNumber', 'firstName', 'lastName']
 
 export default function AuthProvider({children}: {children: React.ReactNode}) {
   const router = useRouter()
@@ -21,7 +21,6 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
   const [worker, setWorker] = useState<LTWorker>({
     name: '',
     id: 0,
-    permissionLevel: 0,
     permissions: [],
     telegramId: 0,
     rank: '',
@@ -157,7 +156,7 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
       setDays(workingDays)
     }
 
-    if (worker.name) {
+    if (worker.telegramId) {
       if (requiredFields.some(key => !(worker as any)[key])) {
         return router.push('/register')
       } else if (path === '/login') {

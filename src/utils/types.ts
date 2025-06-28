@@ -46,7 +46,6 @@ export interface LTWorker {
   phoneNumber?: string
   email?: string
   photoUrl?: string
-  permissionLevel: number
   permissions: Permission[]
 }
 
@@ -61,6 +60,8 @@ export interface WorkerSalary {
   isHardTime: boolean
   gamesCount: number
   value?: number
+  overwork?: number
+  deleted?: number
 }
 
 export interface SalaryData {
@@ -100,4 +101,13 @@ export interface LTLocation {
   name: string
   color: string
   id: number
+}
+
+export interface LTRank {
+  name: string
+  salary: number
+  overwork: number
+  maxPoints: number
+  maxShiftPoints: number
+  weight: number
 }

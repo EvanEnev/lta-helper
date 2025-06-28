@@ -12,7 +12,7 @@ import {Fragment, useMemo} from 'react'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommentTemplates from './CommentTemplates'
-import {ChatLine, ChatRound, MinusCircle, QuestionCircle} from 'solar-icon-set'
+import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/lib/functions/groupBy'
 import {useAtom, useAtomValue} from 'jotai'
 import {
@@ -25,6 +25,7 @@ import {DateTime} from 'luxon'
 import RankIcon from '@/src/components/global/RankIcon'
 import sortByRank from '@/lib/functions/sortByRank'
 import Location from '@/src/components/global/Location'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 export default function DayInfo({
   day,
@@ -43,6 +44,8 @@ export default function DayInfo({
   }, [day])
 
   const currentDate: any = useMemo(() => new Date(), [])
+
+  const isAdmin = checkPermissions(['set_location_schedule'], worker)
 
   const possibilityHandler = (value: string) => {
     if (value !== '-') setSelectedDay({...selectedDay, invalidComment: false})
@@ -145,7 +148,7 @@ export default function DayInfo({
       )}
 
       <PossibilityButton
-        isAdmin={worker.permissionLevel === 4}
+        isAdmin={isAdmin}
         location={worker.location}
         value={day?.value}
         isDisabled={isDisabled}

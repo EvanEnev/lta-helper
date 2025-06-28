@@ -1,5 +1,5 @@
 import {evaluate} from 'mathjs'
-import ranksSalary from '../ranksSalary'
+import {LTRank} from '@/src/utils/types'
 
 type SalaryData = {
   worker: string
@@ -11,14 +11,19 @@ type SalaryData = {
   bonuses: string
   fines: string
   value?: number
+  overwork?: number
+  ranks: LTRank[]
 }
 
 export default function getSalaryData(data: SalaryData) {
-  const rank: string = data.rank.toLowerCase().trim()
+  const rank = data.rank.trim()
+  const ranks = data.ranks
+  const rankData = ranks.find(r => r.name === rank)
   const gamesCount = data.gamesCount || 1
 
   let workingTimeParts: string[] | number[] = data.workingHours.split('-')
-  if (workingTimeParts.length < 2) return
+  if (workingTimeParts.length < 2 || workingTimeParts.some(v => v.length === 1))
+    return
 
   workingTimeParts = workingTimeParts.map(v => parseInt(v))
 
@@ -26,7 +31,7 @@ export default function getSalaryData(data: SalaryData) {
     workingTimeParts[1] += 24
   }
 
-  let salary = ranksSalary[rank].default || 0
+  let salary = rankData?.salary || 0
 
   if (data.comment?.toLowerCase().includes('под игру')) {
     salary = 1500
@@ -60,12 +65,10 @@ export default function getSalaryData(data: SalaryData) {
     }`
   }
 
-  let overWorkSalary = isOverWork
-    ? (ranksSalary[rank]?.overWork || 0) * overWorkTime
-    : 0
+  let overWorkSalary = isOverWork ? (rankData?.overwork || 0) * overWorkTime : 0
 
   if (rank === 'актёр' && gamesCount && gamesCount > 2) {
-    overWorkSalary = (ranksSalary[rank]?.overWork || 0) * (gamesCount - 2)
+    overWorkSalary = (rankData?.overwork || 0) * (gamesCount - 2)
   }
 
   let bonuses = 0
@@ -77,7 +80,7 @@ export default function getSalaryData(data: SalaryData) {
   return {
     calculatedWorkingTime,
     calculatedOverWorkTime,
-    overWorkSalary,
+    overWorkSalary: data.overwork || overWorkSalary,
     salary: data.value || salary,
     bonuses,
   }

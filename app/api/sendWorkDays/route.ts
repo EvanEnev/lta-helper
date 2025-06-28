@@ -1,5 +1,4 @@
 import google, {GoogleDocument} from '@/lib/google'
-import ranksSalary from '@/src/utils/ranksSalary'
 import {WorkerSalary} from '@/src/utils/types'
 import {
   GoogleSpreadsheetRow,
@@ -11,6 +10,7 @@ import updatePoints from '@/src/utils/admin/updatePoints'
 import db from '@/lib/database'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
+import getRanks from '@/lib/functions/getRanks'
 
 const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный', 'советник']
 
@@ -104,14 +104,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
   }
 
+  const ranks = await getRanks()
+
   const promises: Promise<boolean>[] = []
   const queries = []
 
   for (const data of salaryData) {
+    if (data.deleted) {
+      queries.push(
+        `DELETE FROM lt_arena.salary
+       WHERE worker_id = (SELECT id from lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
+         AND location_id = (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
+         AND date = '${date.toFormat('yyyy-MM-dd')}'`,
+      )
+
+      continue
+    }
     const workerQuery = `SELECT rank FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'`
     const workerResult = await db.query(workerQuery)
 
-    const rank = workerResult.rows[0].rank?.toLowerCase().trim()
+    const rank: string = workerResult.rows[0].rank?.toLowerCase().trim()
+    const rankData = ranks.find(r => r.name === rank)
 
     let workingTimeParts: string[] | number[] = data.workingHours.split('-')
     if (workingTimeParts.length < 2) continue
@@ -148,23 +161,28 @@ export async function POST(req: NextRequest) {
       calculatedWorkingTime = `${workingTimeParts[0]}-${workingTimeParts[1]}`
     }
 
-    let defaultSalary = ranksSalary[rank]?.default
+    let defaultSalary = rankData?.salary || 0
     let overworkSalary = 0
 
     if (data.comment?.toLowerCase().includes('под игру')) {
       defaultSalary = 1500
     }
 
+    if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
+      overworkSalary += (rankData?.overwork || 0) * (data.gamesCount - 2)
+    }
+
+    if (isOverWork) {
+      overworkSalary += (rankData?.overwork || 0) * overWorkTime
+    }
+
+    console.debug(data)
     if (data.value !== undefined) {
       defaultSalary = data.value
     }
 
-    if (rank === 'актёр' && data.gamesCount && data.gamesCount > 2) {
-      overworkSalary += ranksSalary[rank].overWork * (data.gamesCount - 2)
-    }
-
-    if (isOverWork) {
-      overworkSalary += ranksSalary[rank].overWork * overWorkTime
+    if (data.overwork !== undefined) {
+      overworkSalary = data.overwork
     }
 
     if (!data.comment?.toLowerCase().includes('под игру')) {

@@ -1,5 +1,5 @@
 import getSalaryData from '@/src/utils/admin/getSalaryData'
-import {LTLocation, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {
   Autocomplete,
   AutocompleteItem,
@@ -10,16 +10,17 @@ import {
   NumberInput,
   Textarea,
 } from '@heroui/react'
-import {Key, useMemo} from 'react'
+import {Key, useCallback, useMemo} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 import RankIcon from '@/src/components/global/RankIcon'
 
 type WorkDataProps = {
   data: WorkerSalary
   setData: any
-  workers: any[]
+  workers: LTWorker[]
   index: number
   locations: LTLocation[]
+  ranks: LTRank[]
 }
 
 export default function WorkData({
@@ -28,38 +29,43 @@ export default function WorkData({
   workers,
   index,
   locations,
+  ranks,
 }: WorkDataProps) {
   const worker = workers.find(
     (worker: {name: string}) =>
       worker.name?.toLowerCase() === data.worker?.toLowerCase(),
   )
 
-  const updateData = (
-    key:
-      | 'worker'
-      | 'location'
-      | 'workingHours'
-      | 'bonuses'
-      | 'comment'
-      | 'isHardTime'
-      | 'gamesCount'
-      | 'hasGames'
-      | 'value'
-      | 'fines',
-    value: Key | string | boolean | null,
-  ) => {
-    const currentData = {...data}
+  const updateData = useCallback(
+    (
+      key:
+        | 'worker'
+        | 'location'
+        | 'workingHours'
+        | 'bonuses'
+        | 'comment'
+        | 'isHardTime'
+        | 'gamesCount'
+        | 'hasGames'
+        | 'value'
+        | 'overwork'
+        | 'fines',
+      value: Key | string | boolean | null | undefined,
+    ) => {
+      const currentData = {...data}
 
-    // @ts-ignore
-    currentData[key] = value
+      // @ts-ignore
+      currentData[key] = value
 
-    setData((prev: WorkerSalary[]) => {
-      const newData = [...prev]
-      newData[index] = currentData
+      setData((prev: WorkerSalary[]) => {
+        const newData = [...prev]
+        newData[index] = currentData
 
-      return newData
-    })
-  }
+        return newData
+      })
+    },
+    [data, index, setData],
+  )
 
   const validate = (value: number) => {
     if (value <= 0) {
@@ -69,31 +75,37 @@ export default function WorkData({
     return null
   }
 
-  const salary = useMemo(
-    () =>
-      getSalaryData({
-        worker: data.worker,
-        rank: (worker?.rank as string) || 'актёр',
-        workingHours: data.workingHours,
-        fines: data.fines,
-        isHardTime: data.isHardTime,
-        gamesCount: data.gamesCount,
-        comment: data.comment,
-        bonuses: data.bonuses,
-        value: data.value,
-      }),
-    [
-      data.worker,
-      data.workingHours,
-      data.isHardTime,
-      data.gamesCount,
-      data.comment,
-      data.bonuses,
-      data.fines,
-      worker?.rank,
-      data.value,
-    ],
-  )
+  const salary = useMemo(() => {
+    const salaryData = getSalaryData({
+      ranks,
+      worker: data.worker,
+      rank: worker?.rank || 'актёр',
+      workingHours: data.workingHours,
+      fines: data.fines,
+      isHardTime: data.isHardTime,
+      gamesCount: data.gamesCount,
+      comment: data.comment,
+      bonuses: data.bonuses,
+      value: data.value,
+      overwork: data.overwork,
+    })
+
+    updateData('overwork', salaryData?.overWorkSalary || undefined)
+
+    return salaryData
+  }, [
+    ranks,
+    data.worker,
+    data.workingHours,
+    data.fines,
+    data.isHardTime,
+    data.gamesCount,
+    data.comment,
+    data.bonuses,
+    data.value,
+    data.overwork,
+    worker?.rank,
+  ])
 
   const groupedWorkers: {[key: string]: LTWorker[]} = useMemo(() => {
     const newWorkers = [...workers].map(w => ({
@@ -191,7 +203,7 @@ export default function WorkData({
       />
       <Divider />
       <div className="flex flex-col gap-2">
-        <div className="">
+        <div>
           <p>
             Смена{' '}
             {salary?.calculatedWorkingTime &&
@@ -199,19 +211,29 @@ export default function WorkData({
             :
           </p>
           <NumberInput
+            aria-label="Смена"
             minValue={0}
             className="h-full w-full"
             value={salary?.salary || 0}
             onValueChange={value => updateData('value', value)}
-          />{' '}
+          />
         </div>
         <div>
           <p>
-            Переработка: {salary?.overWorkSalary || 0}{' '}
-            {salary?.calculatedOverWorkTime && (
-              <>({salary?.calculatedOverWorkTime})</>
-            )}
+            Переработка{' '}
+            {salary?.calculatedOverWorkTime &&
+              `(${salary?.calculatedOverWorkTime})`}
+            :
           </p>
+          <NumberInput
+            aria-label="Переработка"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.overWorkSalary || 0}
+            onValueChange={value => {
+              updateData('overwork', value)
+            }}
+          />
         </div>
         <div>
           <p>Бонусы/штрафы: {salary?.bonuses || 0}</p>

@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     email_confirm: true,
   })
 
-  const {data: newUserAuthtorized, error: newUserAuthtorizedError} =
+  const {data: newUserAuthorized, error: newUserAuthtorizedError} =
     await supabase.auth.signInWithPassword({
       email: `${user.id}@telegram.lta`,
       password: generatePassword(user.id, process.env.BOT_TOKEN!),
@@ -97,8 +97,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(
     {
-      access_token: newUserAuthtorized.session?.access_token,
-      refresh_token: newUserAuthtorized.session?.refresh_token,
+      access_token: newUserAuthorized.session?.access_token,
+      refresh_token: newUserAuthorized.session?.refresh_token,
     },
     {status: 200},
   )

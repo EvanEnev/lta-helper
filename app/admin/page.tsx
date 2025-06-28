@@ -5,6 +5,7 @@ import {LTWorker} from '@/src/utils/types'
 import auth from '@/lib/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getLocations from '@/lib/functions/getLocations'
+import getRanks from '@/lib/functions/getRanks'
 
 export default async function Admin() {
   const worker = await auth()
@@ -29,6 +30,14 @@ export default async function Admin() {
   const workers = sortByRank(workersRows) as LTWorker[]
 
   const locations = await getLocations()
+  const ranks = await getRanks()
 
-  return <AdminPage workers={workers} canEdit={canEdit} locations={locations} />
+  return (
+    <AdminPage
+      workers={workers}
+      canEdit={canEdit}
+      locations={locations}
+      ranks={ranks}
+    />
+  )
 }
