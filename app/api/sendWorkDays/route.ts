@@ -11,8 +11,7 @@ import db from '@/lib/database'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import getRanks from '@/lib/functions/getRanks'
-
-const ADMIN_RANKS = ['платиновый', 'золотой', 'серебряный', 'советник']
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 export interface SheetData {
   sheets: {
@@ -100,7 +99,7 @@ export async function POST(req: NextRequest) {
   const sheetData = await loadData(google)
   const {pointsSheet, goldPointsSheet, platinumPointsSheet} = sheetData.sheets
 
-  if (!ADMIN_RANKS.includes(user.rank.toLowerCase())) {
+  if (!checkPermissions(['set_salary'], user)) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
   }
 
@@ -120,10 +119,11 @@ export async function POST(req: NextRequest) {
 
       continue
     }
+
     const workerQuery = `SELECT rank FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'`
     const workerResult = await db.query(workerQuery)
 
-    const rank: string = workerResult.rows[0].rank?.toLowerCase().trim()
+    const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
 
     let workingTimeParts: string[] | number[] = data.workingHours.split('-')
