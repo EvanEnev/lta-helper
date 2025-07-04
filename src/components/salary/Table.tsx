@@ -17,11 +17,12 @@ import {Socket} from 'socket.io-client'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import capitalize from '@/lib/functions/capitalize'
-import {addToast, Divider, Spinner} from '@heroui/react'
+import {Divider, Spinner} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import TableRow from './TableRow'
 import LocationSelect from '@/src/components/salary/LocationSelect'
 import useIsMobile from '@/src/hooks/useIsMobile'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -54,6 +55,33 @@ export default memo(function Table({
   )
   const [loading, setLoading] = useState<boolean>(false)
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    const localLocationId = localStorage.getItem('salaryLocationId')
+    const localDate = localStorage.getItem('salaryDate')
+
+    if (localLocationId) {
+      setLocationId(parseInt(localLocationId))
+    }
+
+    if (localDate) {
+      setDate(localDate)
+    }
+
+    ;(async () => {
+      const data = await fetchHandler({
+        url: '/api/getSalaryData',
+        body: {
+          locationId: localLocationId || locationId,
+          date: localDate || date,
+        },
+      })
+
+      if (data) {
+        setData(data.data)
+      }
+    })()
+  }, [])
 
   useEffect(() => {
     const socket = io()
@@ -166,24 +194,15 @@ export default memo(function Table({
     async (date: string) => {
       setLoading(true)
       setDate(date)
+      localStorage.setItem('salaryDate', date)
 
-      const response = await fetch('/api/getSalaryData', {
-        method: 'POST',
-        body: JSON.stringify({locationId, date}),
+      const data = await fetchHandler({
+        url: '/api/getSalaryData',
+        body: {locationId, date},
       })
 
-      const json = await response.json()
-
-      if (response.ok) {
-        if (json.data) {
-          setData(json.data)
-        }
-      } else {
-        addToast({
-          color: 'danger',
-          title: 'Ошибка!',
-          description: json.message || 'Неизвестная ошибка',
-        })
+      if (data) {
+        setData(data.data)
       }
 
       setLoading(false)
@@ -195,24 +214,15 @@ export default memo(function Table({
     async (locationId: number) => {
       setLoading(true)
       setLocationId(locationId)
+      localStorage.setItem('salaryLocationId', `${locationId}`)
 
-      const response = await fetch('/api/getSalaryData', {
-        method: 'POST',
-        body: JSON.stringify({locationId, date}),
+      const data = await fetchHandler({
+        url: '/api/getSalaryData',
+        body: {locationId, date},
       })
 
-      const json = await response.json()
-
-      if (response.ok) {
-        if (json.data) {
-          setData(json.data)
-        }
-      } else {
-        addToast({
-          color: 'danger',
-          title: 'Ошибка!',
-          description: json.message || 'Неизвестная ошибка',
-        })
+      if (data) {
+        setData(data.data)
       }
 
       setLoading(false)
@@ -227,7 +237,7 @@ export default memo(function Table({
         <p>
           {capitalize(DateTime.now().toFormat('LLLL yyyy', {locale: 'ru-RU'}))}
         </p>
-        <MonthSelect dates={dates} callback={onMonthUpdate} />
+        <MonthSelect dates={dates} date={date} callback={onMonthUpdate} />
         {canViewFull && (
           <LocationSelect callback={onLocationUpdate} locationId={locationId} />
         )}

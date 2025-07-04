@@ -8,6 +8,7 @@ import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {DateTime} from 'luxon'
 import {addToast} from '@heroui/react'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface AdminPageProps {
   workers: LTWorker[]
@@ -22,6 +23,7 @@ export default function AdminPage({
   canEdit,
   locations,
 }: AdminPageProps) {
+  const {worker} = useAuth()
   const isMobile = useIsMobile()
   const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
     {
@@ -100,6 +102,21 @@ export default function AdminPage({
         description: message || 'Неизвестная ошибка',
         color: 'danger',
       })
+    }
+
+    if (!worker.locationId) {
+      setSalaryData([
+        {
+          worker: '',
+          workingHours: '',
+          location: '',
+          bonuses: '',
+          fines: '',
+          comment: '',
+          isHardTime: false,
+          gamesCount: 1,
+        },
+      ])
     }
 
     setLoading(false)

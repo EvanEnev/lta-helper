@@ -27,9 +27,11 @@ export async function POST(req: NextRequest) {
   overwork,
   w.name,
   w.rank,
-  w.first_name
+  w.first_name,
+  l.name as location_name
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.workers w ON w.id = s.worker_id
+  LEFT JOIN lt_arena.locations l ON l.id = s.location_id
   WHERE s.date BETWEEN '${startString}' AND '${endString}'`
 
   const result = await db.query(query)

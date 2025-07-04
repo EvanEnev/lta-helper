@@ -96,14 +96,14 @@ export default function getSalaryData({
   let workingStart = calculatedWorkingTime.split('-')[0]
   let workingEnd = calculatedWorkingTime.split('-')[1]
 
-  if (parseInt(workingEnd) > 25) {
+  if (parseInt(workingEnd) > 24) {
     workingEnd = `${parseInt(workingEnd) - 24}`
   }
 
   let overworkStart = calculatedOverWorkTime.split('-')[0]
   let overworkEnd = calculatedOverWorkTime.split('-')[1]
 
-  if (parseInt(overworkEnd) > 25) {
+  if (parseInt(overworkEnd) > 24) {
     overworkEnd = `${parseInt(overworkEnd) - 24}`
   }
 
@@ -113,9 +113,9 @@ export default function getSalaryData({
   if (overworkStart) overworkStart += ':00'
   if (overworkEnd) overworkEnd += ':00'
 
-  bonuses = bonuses.replace(/[+\-*/%^]+$/, '')
-  fines = fines.replace(/[+\-*/%^]+$/, '')
-  comment = comment.trim()
+  bonuses = bonuses?.replace(/[+\-*/%^]+$/, '')
+  fines = fines?.replace(/[+\-*/%^]+$/, '')
+  comment = comment?.trim()
 
   return {
     value: salary,

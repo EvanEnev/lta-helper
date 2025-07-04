@@ -60,7 +60,7 @@ export default async function auth(): Promise<LTWorker> {
     FROM lt_arena.permissions pm
            LEFT JOIN lt_arena.workers w ON telegram_id=${telegramId}
            LEFT JOIN lt_arena.default_permissions dp ON (SELECT weight FROM lt_arena.ranks WHERE id = dp.rank_id) <= (SELECT weight FROM lt_arena.ranks WHERE name = w.rank)
-           LEFT JOIN lt_arena.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires < NOW(), true)
+           LEFT JOIN lt_arena.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires > NOW(), true)
     WHERE
       pm.id = dp.permission_id
        OR pm.id = w_pm.permission_id`

@@ -11,8 +11,6 @@ export default function LocationSelect({
   locationId: number
 }) {
   const [locations, setLocations] = useState<LTLocation[]>([])
-  const [selectedLocation, setSelectedLocation] = useState<number>(locationId)
-
   async function getLocations() {
     const response = await fetch('/api/getLocations')
 
@@ -41,7 +39,6 @@ export default function LocationSelect({
 
   const onChange = useCallback(
     (locationId: any) => {
-      setSelectedLocation(locationId)
       callback(locationId)
     },
     [callback],
@@ -54,7 +51,7 @@ export default function LocationSelect({
       label="Локация"
       labelPlacement="outside"
       onSelectionChange={onChange}
-      selectedKey={selectedLocation.toString()}
+      selectedKey={locationId.toString()}
       aria-label="Выбор локации">
       {locations.map(location => (
         <AutocompleteItem

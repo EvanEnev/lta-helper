@@ -1,8 +1,7 @@
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import {
-  Autocomplete,
-  AutocompleteItem,
   Checkbox,
+  Code,
   DateRangePicker,
   DateValue,
   Divider,
@@ -14,15 +13,23 @@ import groupBy from '@/lib/functions/groupBy'
 import {evaluate} from 'mathjs'
 import {flexRender, getCoreRowModel, useReactTable} from '@tanstack/react-table'
 import CellChip from '@/src/components/salary/CellChip'
-import sortByRank from '@/lib/functions/sortByRank'
 import RankIcon from '@/src/components/global/RankIcon'
-import {LTRank} from '@/src/utils/types'
+import {LTLocation, LTRank} from '@/src/utils/types'
+import salarySort from '@/lib/functions/salarySort'
 
-export default function Summarized({ranks}: {ranks: LTRank[]}) {
+export default function Summarized({
+  ranks,
+  locations,
+}: {
+  ranks: LTRank[]
+  locations: LTLocation[]
+}) {
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
   const [bonuses, setBonuses] = useState<boolean>(false)
   const [initialData, setInitialData] = useState([])
   const [data, setData] = useState(initialData)
+  const [selectedRow, setSelectedRow] = useState<string>()
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>()
 
   const render = useCallback((data: any) => {
     return <CellChip className="text-medium! h-fit p-2">{data}</CellChip>
@@ -36,7 +43,16 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
     )
   }, [])
 
-  const columns = useMemo(() => {
+  useEffect(() => {
+    const localHiddenColumns = localStorage.getItem('hiddenColumns')
+
+    if (localHiddenColumns) {
+      const array = localHiddenColumns.split(',')
+      setHiddenColumns(array)
+    }
+  }, [])
+
+  const initialColumns = useMemo(() => {
     return [
       {
         header: 'Сотрудник',
@@ -76,6 +92,10 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
     ]
   }, [])
 
+  const columns = useMemo(() => {
+    return initialColumns.filter(c => !hiddenColumns?.includes(c.accessorKey))
+  }, [hiddenColumns, initialColumns])
+
   useEffect(() => {
     const startString = dateRange?.start.toString()
     const endString = dateRange?.end.toString()
@@ -105,10 +125,12 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
               bonusesfines: 0,
               name: '',
               rank: '',
+              locationName: '',
             }
 
             newUser.name = key
             newUser.rank = value[0].rank
+            newUser.locationName = value[0].location_name
             newUser.user = {
               name: `${key} - ${value[0].first_name}`,
               rank: value[0].rank,
@@ -140,7 +162,7 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
             newData.push(newUser)
           })
 
-          const sortedData = sortByRank(newData)
+          const sortedData = salarySort(newData)
 
           // @ts-ignore
           setData(sortedData)
@@ -174,28 +196,6 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
   return (
     <div className="flex w-full gap-4">
       <div className="bg-content1 rounded-large relative w-full flex-1 pt-4">
-        <div className="flex w-full items-center gap-2 p-2">
-          <div className="glass flex flex-col items-center gap-1 p-4">
-            <span>ЗП + Переработка: </span>
-            <div className="glass w-full p-2">
-              {allData.salary.toLocaleString('fr-FR').replace(/,/g, ' ')}
-            </div>
-          </div>
-
-          <div className="glass flex flex-col items-center gap-1 p-4">
-            <span>Бонусы + Штрафы: </span>
-            <div className="glass w-full p-2">
-              {allData.bonuses.toLocaleString('fr-FR').replace(/,/g, ' ')}
-            </div>
-          </div>
-
-          <div className="glass flex flex-col items-center gap-1 p-4">
-            <span>Общее: </span>
-            <div className="glass w-full p-2">
-              {allData.summary.toLocaleString('fr-FR').replace(/,/g, ' ')}
-            </div>
-          </div>
-        </div>
         <table className="h-auto w-full table-fixed">
           <thead
             className="[&>tr]:first:shadow-small sticky z-1000 w-full"
@@ -205,7 +205,7 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id} className="rounded-2xl">
                 {headerGroup.headers.map((header, index) => (
-                  <>
+                  <Fragment key={header.id}>
                     <th
                       key={header.id}
                       className={`bg-default-100 test-start h-[2rem] w-full min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider uppercase first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}>
@@ -222,7 +222,7 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
                         />
                       </th>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tr>
             ))}
@@ -231,7 +231,9 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
             <tr className="h-4"></tr>
             {table.getRowModel().rows.map((row, rowIndex) => (
               <Fragment key={row.id}>
-                <tr className="">
+                <tr
+                  onClick={() => setSelectedRow(row.id)}
+                  className={`${selectedRow === row.id ? 'bg-default-300' : ''} transition-background`}>
                   {row.getVisibleCells().map((cell, index) => (
                     <Fragment key={cell.id}>
                       <td
@@ -278,44 +280,119 @@ export default function Summarized({ranks}: {ranks: LTRank[]}) {
       </div>
 
       <div
-        className="glass sticky top-0 z-1000 flex h-fit w-[20%] flex-col gap-2 p-2"
+        className="sticky z-1000 flex h-fit w-[20%] flex-col gap-2"
         style={{
           top: `${document.querySelector('header')?.offsetHeight}px`,
         }}>
-        <DateRangePicker
-          className="max-w-fit"
-          onChange={val => setDateRange(val)}
-        />
-        <Checkbox checked={bonuses} onValueChange={setBonuses}>
-          Бонусы
-        </Checkbox>
-        <Divider />
-        <Select
-          label="Ранг"
-          className="w-full"
-          variant="bordered"
-          labelPlacement="outside"
-          selectionMode="multiple"
-          onSelectionChange={keys => {
-            // @ts-ignore
-            if (!keys.size) {
-              return setData(initialData)
-            }
-            // @ts-ignore
-            const filtered = initialData.filter(d => keys.has(d.rank))
-            setData(filtered)
-          }}>
-          {ranks
-            .sort((r1, r2) => r2.weight - r1.weight)
-            .map(rank => (
+        <div className="glass flex flex-col gap-2 p-2">
+          <DateRangePicker
+            className="w-full"
+            variant="bordered"
+            onChange={val => setDateRange(val)}
+          />
+          <Checkbox checked={bonuses} onValueChange={setBonuses}>
+            Бонусы
+          </Checkbox>
+          <Divider />
+          <Select
+            label="Ранг"
+            className="w-full"
+            variant="bordered"
+            selectionMode="multiple"
+            onSelectionChange={keys => {
+              // @ts-ignore
+              if (!keys.size) {
+                return setData(initialData)
+              }
+              // @ts-ignore
+              const filtered = initialData.filter(d => keys.has(d.rank))
+              setData(filtered)
+            }}>
+            {ranks
+              .sort((r1, r2) => r2.weight - r1.weight)
+              .map(rank => (
+                <SelectItem
+                  key={rank.name}
+                  classNames={{title: 'flex items-center gap-2'}}
+                  className="flex">
+                  {rank.name}
+                </SelectItem>
+              ))}
+          </Select>
+          <Select
+            label="Локация"
+            className="w-full"
+            variant="bordered"
+            selectionMode="multiple"
+            onSelectionChange={keys => {
+              // @ts-ignore
+              if (!keys.size) {
+                return setData(initialData)
+              }
+
+              const filtered = initialData.filter(d =>
+                // @ts-ignore
+                keys.has(d.locationName),
+              )
+
+              setData(filtered)
+            }}>
+            {locations
+              .sort((l1, l2) => l1.name.localeCompare(l2.name))
+              .map(location => (
+                <SelectItem
+                  key={location.name}
+                  classNames={{title: 'flex items-center gap-2'}}
+                  className="flex">
+                  {location.name}
+                </SelectItem>
+              ))}
+          </Select>
+        </div>
+        <div className="glass flex flex-col gap-2 p-2">
+          <Select
+            label="Скрыть колонки"
+            className="w-full"
+            variant="bordered"
+            selectionMode="multiple"
+            selectedKeys={hiddenColumns}
+            onSelectionChange={keys => {
+              // @ts-ignore
+              const array = Array.from(keys) as string[]
+              setHiddenColumns(array)
+              localStorage.setItem('hiddenColumns', array.toString())
+            }}>
+            {initialColumns.map(col => (
               <SelectItem
-                key={rank.name}
+                key={col.accessorKey}
                 classNames={{title: 'flex items-center gap-2'}}
-                className="flex">
-                {rank.name}
+                className="flex uppercase">
+                {col.header}
               </SelectItem>
             ))}
-        </Select>
+          </Select>
+        </div>
+        <div className="glass flex w-full flex-col items-center gap-2 p-2">
+          <div className="glass flex w-full items-center gap-2 p-4">
+            <span>ЗП + Переработка: </span>
+            <Code color="success">
+              {allData.salary.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </Code>
+          </div>
+          <div className="glass flex w-full items-center gap-2 p-2">
+            <span>Бонусы + Штрафы: </span>
+            <Code color="success">
+              {allData.bonuses.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </Code>
+          </div>
+
+          <div className="glass flex w-full items-center gap-2 p-2">
+            <span>Общее: </span>
+            <Code color="success">
+              {allData.summary.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </Code>
+          </div>
+        </div>
       </div>
     </div>
   )

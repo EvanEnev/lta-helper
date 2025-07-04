@@ -1,24 +1,21 @@
 import {DateTime} from 'luxon'
 import {Autocomplete, AutocompleteItem} from '@heroui/react'
-import {useCallback, useMemo, useState} from 'react'
+import {useCallback} from 'react'
 import capitalize from '@/lib/functions/capitalize'
 
 export default function MonthSelect({
   dates,
   callback,
+  date,
 }: {
   dates: string[]
   callback: any
+  date: string
 }) {
-  const currentDate = useMemo(() => DateTime.now().set({day: 1}), [])
-  const [selectedDate, setSelectedDate] = useState(
-    currentDate.toFormat('yyyy-MM-dd'),
-  )
   const datetimes = dates.map(date => DateTime.fromISO(date))
 
   const onChange = useCallback(
     (date: any) => {
-      setSelectedDate(date)
       callback(date)
     },
     [callback],
@@ -31,7 +28,7 @@ export default function MonthSelect({
       label="Месяц"
       labelPlacement="outside"
       onSelectionChange={onChange}
-      selectedKey={selectedDate}
+      selectedKey={date}
       aria-label="Выбор месяца">
       {datetimes.map(date => (
         <AutocompleteItem key={date.toFormat('yyyy-MM-dd')}>
