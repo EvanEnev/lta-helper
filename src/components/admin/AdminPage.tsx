@@ -96,27 +96,27 @@ export default function AdminPage({
         timeout: 8000,
         shouldShowTimeoutProgress: true,
       })
+
+      if (!worker.locationId) {
+        setSalaryData([
+          {
+            worker: '',
+            workingHours: '',
+            location: '',
+            bonuses: '',
+            fines: '',
+            comment: '',
+            isHardTime: false,
+            gamesCount: 1,
+          },
+        ])
+      }
     } else {
       addToast({
         title: 'Ошибка!',
         description: message || 'Неизвестная ошибка',
         color: 'danger',
       })
-    }
-
-    if (!worker.locationId) {
-      setSalaryData([
-        {
-          worker: '',
-          workingHours: '',
-          location: '',
-          bonuses: '',
-          fines: '',
-          comment: '',
-          isHardTime: false,
-          gamesCount: 1,
-        },
-      ])
     }
 
     setLoading(false)
