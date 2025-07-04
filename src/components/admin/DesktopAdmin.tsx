@@ -148,63 +148,65 @@ export default function DesktopAdmin({
           )
         })}
       </div>
-      <div className="h-[70vh]">
-        <Card className="h-fit w-[22vw]">
-          <CardBody className="gap-4">
-            <DatePicker
-              aria-label="Дата"
-              isInvalid={isDateInvalid}
-              errorMessage="Дата вне диапазона"
-              isDateUnavailable={date =>
-                date.compare(today('Europe/Moscow').subtract({days: 1})) ===
-                  0 &&
-                days.today.hour > 3 &&
-                !canEdit
-              }
-              selectorButtonPlacement="start"
-              firstDayOfWeek="mon"
-              className="h-16 w-full p-0!"
-              classNames={{inputWrapper: 'h-16'}}
-              // @ts-ignore
-              onChange={(date: CalendarDate) => updateDate(date)}
-              minValue={
-                canEdit ? null : today('Europe/Moscow').subtract({days: 1})
-              }
-              maxValue={canEdit ? null : today('Europe/Moscow')}
-              // @ts-ignore
-              defaultValue={today('Europe/Moscow')}
-            />
-            <Button
-              className="h-min p-2"
-              onPress={() =>
-                setSalaryData((prev: WorkerSalary[]) => [
-                  ...prev,
-                  {
-                    worker: '',
-                    workingHours: prev[prev.length - 1]?.workingHours || '',
-                    location: prev[prev.length - 1]?.location || '',
-                    bonuses: '',
-                    comment: '',
-                    isHardTime: false,
-                    gamesCount: 1,
-                  },
-                ])
-              }>
-              <AddCircle size={48} />
-            </Button>
-            <Button
-              isDisabled={isDateInvalid}
-              size="lg"
-              color="primary"
-              className="h-16 w-full"
-              onPress={sendData}
-              startContent={<Plain size={24} />}
-              isLoading={isLoading}>
-              Отправить
-            </Button>
-          </CardBody>
-        </Card>
-      </div>
+      <Card
+        className="glass sticky z-1000 h-fit w-[22vw]"
+        style={{
+          top: `${document.querySelector('header')?.offsetHeight}px`,
+        }}>
+        <CardBody className="gap-4">
+          <DatePicker
+            variant="bordered"
+            aria-label="Дата"
+            isInvalid={isDateInvalid}
+            errorMessage="Дата вне диапазона"
+            isDateUnavailable={date =>
+              date.compare(today('Europe/Moscow').subtract({days: 1})) === 0 &&
+              days.today.hour > 3 &&
+              !canEdit
+            }
+            selectorButtonPlacement="start"
+            firstDayOfWeek="mon"
+            className="h-16 w-full p-0!"
+            classNames={{inputWrapper: 'h-16'}}
+            // @ts-ignore
+            onChange={(date: CalendarDate) => updateDate(date)}
+            minValue={
+              canEdit ? null : today('Europe/Moscow').subtract({days: 1})
+            }
+            maxValue={canEdit ? null : today('Europe/Moscow')}
+            // @ts-ignore
+            defaultValue={today('Europe/Moscow')}
+          />
+          <Button
+            className="h-min p-2"
+            onPress={() =>
+              setSalaryData((prev: WorkerSalary[]) => [
+                ...prev,
+                {
+                  worker: '',
+                  workingHours: prev[prev.length - 1]?.workingHours || '',
+                  location: prev[prev.length - 1]?.location || '',
+                  bonuses: '',
+                  comment: '',
+                  isHardTime: false,
+                  gamesCount: 1,
+                },
+              ])
+            }>
+            <AddCircle size={48} />
+          </Button>
+          <Button
+            isDisabled={isDateInvalid}
+            size="lg"
+            color="primary"
+            className="h-16 w-full"
+            onPress={sendData}
+            startContent={<Plain size={24} />}
+            isLoading={isLoading}>
+            Отправить
+          </Button>
+        </CardBody>
+      </Card>
     </main>
   )
 }
