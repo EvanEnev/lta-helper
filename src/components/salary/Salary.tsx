@@ -1,6 +1,6 @@
 'use client'
 
-import {UserSalary} from '@/src/utils/types'
+import {LTRank, UserSalary} from '@/src/utils/types'
 import {Tab, Tabs} from '@heroui/react'
 import Table from '@/src/components/salary/Table'
 import Summarized from '@/src/components/salary/Summarized'
@@ -12,11 +12,13 @@ export default function Salary({
   canViewFull,
   canEdit,
   dates,
+  ranks,
 }: {
   data: UserSalary[]
   canViewFull: boolean
   canEdit: boolean
   dates: string[]
+  ranks: LTRank[]
 }) {
   const {setExiting} = useAuth()
 
@@ -46,7 +48,7 @@ export default function Salary({
         />
       </Tab>
       <Tab title="Сводная">
-        <Summarized />
+        <Summarized ranks={ranks} />
       </Tab>
     </Tabs>
   )

@@ -5,6 +5,7 @@ import SalaryPage from '@/src/components/salary/Salary'
 import getLocationSalaryData from '@/app/salary/getLocationSalaryData'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
+import getRanks from '@/lib/functions/getRanks'
 
 export default async function Salary() {
   const worker = await auth()
@@ -31,6 +32,7 @@ export default async function Salary() {
   )
 
   const dates = rawDates.map((d: DateTime) => d.toISO()!)
+  const ranks = await getRanks()
 
   return (
     <main className="h-fit">
@@ -39,6 +41,7 @@ export default async function Salary() {
         data={data}
         canEdit={canEdit}
         canViewFull={canViewFull}
+        ranks={ranks}
       />
     </main>
   )

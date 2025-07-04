@@ -1,10 +1,14 @@
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import {
+  Autocomplete,
+  AutocompleteItem,
   Checkbox,
   DateRangePicker,
   DateValue,
   Divider,
   RangeValue,
+  Select,
+  SelectItem,
 } from '@heroui/react'
 import groupBy from '@/lib/functions/groupBy'
 import {evaluate} from 'mathjs'
@@ -12,11 +16,13 @@ import {flexRender, getCoreRowModel, useReactTable} from '@tanstack/react-table'
 import CellChip from '@/src/components/salary/CellChip'
 import sortByRank from '@/lib/functions/sortByRank'
 import RankIcon from '@/src/components/global/RankIcon'
+import {LTRank} from '@/src/utils/types'
 
-export default function Summarized() {
+export default function Summarized({ranks}: {ranks: LTRank[]}) {
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
   const [bonuses, setBonuses] = useState<boolean>(false)
-  const [data, setData] = useState([])
+  const [initialData, setInitialData] = useState([])
+  const [data, setData] = useState(initialData)
 
   const render = useCallback((data: any) => {
     return <CellChip className="text-medium! h-fit p-2">{data}</CellChip>
@@ -24,7 +30,7 @@ export default function Summarized() {
 
   const renderName = useCallback((data: any) => {
     return (
-      <CellChip className="text-medium! h-fit p-2">
+      <CellChip className="text-medium! h-fit p-2 break-all">
         <RankIcon rank={data.rank} /> {data.name}
       </CellChip>
     )
@@ -48,7 +54,7 @@ export default function Summarized() {
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
-        header: 'ЗП + Переработка',
+        header: 'Итог',
         accessorKey: 'together',
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
@@ -138,6 +144,8 @@ export default function Summarized() {
 
           // @ts-ignore
           setData(sortedData)
+          // @ts-ignore
+          setInitialData(sortedData)
         }
       }
     })
@@ -270,7 +278,7 @@ export default function Summarized() {
       </div>
 
       <div
-        className="sticky z-1000 flex h-fit flex-col gap-2"
+        className="glass sticky top-0 z-1000 flex h-fit w-[20%] flex-col gap-2 p-2"
         style={{
           top: `${document.querySelector('header')?.offsetHeight}px`,
         }}>
@@ -281,6 +289,33 @@ export default function Summarized() {
         <Checkbox checked={bonuses} onValueChange={setBonuses}>
           Бонусы
         </Checkbox>
+        <Divider />
+        <Select
+          label="Ранг"
+          className="w-full"
+          variant="bordered"
+          labelPlacement="outside"
+          selectionMode="multiple"
+          onSelectionChange={keys => {
+            // @ts-ignore
+            if (!keys.size) {
+              return setData(initialData)
+            }
+            // @ts-ignore
+            const filtered = initialData.filter(d => keys.has(d.rank))
+            setData(filtered)
+          }}>
+          {ranks
+            .sort((r1, r2) => r2.weight - r1.weight)
+            .map(rank => (
+              <SelectItem
+                key={rank.name}
+                classNames={{title: 'flex items-center gap-2'}}
+                className="flex">
+                {rank.name}
+              </SelectItem>
+            ))}
+        </Select>
       </div>
     </div>
   )
