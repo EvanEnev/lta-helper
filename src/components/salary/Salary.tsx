@@ -38,7 +38,7 @@ export default function Salary({
   }
 
   return (
-    <Tabs color="primary" size="lg" className="ml-4">
+    <Tabs color="primary" size="lg" className="sticky left-0 ml-4">
       <Tab title="График" className="data-[slot=panel]:p-0">
         <Table
           dates={dates}
