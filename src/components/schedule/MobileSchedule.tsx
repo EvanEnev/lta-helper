@@ -71,13 +71,13 @@ export default function MobileSchedule({locations}: MobileScheduleProps) {
         weeks.map((week, index) => (
           <>
             {index !== 0 && <Divider />}
-            <div className="flex flex-wrap gap-4" key={index}>
+            <div className="flex w-full flex-wrap gap-4" key={index}>
               {week.map((day, index) => (
                 <DayButton
                   locations={locations}
                   day={day}
                   key={index}
-                  className="flex-1"
+                  className="w-full flex-1"
                 />
               ))}
             </div>
