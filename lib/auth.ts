@@ -82,6 +82,7 @@ export default async function auth(): Promise<LTWorker> {
     phoneNumber: workerResult.phone_number,
     photoUrl: workerResult.photo_url,
     locationId: workerResult.location_id,
+    location: workerResult.location,
     permissions,
     email: workerResult.email,
   }
