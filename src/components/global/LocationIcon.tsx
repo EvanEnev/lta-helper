@@ -11,10 +11,14 @@ import Cyberport from '@/public/icons/locations/Cyberport'
 import Enclave from '@/public/icons/locations/Enclave'
 import PirateStation from '@/public/icons/locations/PirateStation'
 
-export default function LocationIcon({locationName}: {locationName: string}) {
+export default function LocationIcon({
+  locationName = '',
+}: {
+  locationName: string
+}) {
   let Icon
 
-  switch (locationName.toLowerCase().trim()) {
+  switch (locationName?.toLowerCase().trim()) {
     case 'военный бункер':
       Icon = VB
       break

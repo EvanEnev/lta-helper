@@ -149,7 +149,7 @@ export default function DayInfo({
 
       <PossibilityButton
         isAdmin={isAdmin}
-        location={worker.location}
+        location={worker.location || ''}
         value={day?.value}
         isDisabled={isDisabled}
         handler={value => possibilityHandler(value)}
