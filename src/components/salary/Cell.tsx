@@ -6,6 +6,7 @@ import {memo, useCallback, useEffect, useState} from 'react'
 import {ChatRoundLine} from 'solar-icon-set'
 import isDark from '@/lib/functions/isDark'
 import EditDrawer from '@/src/components/salary/EditDrawer'
+import {useTheme} from 'next-themes'
 
 export default memo(function Cell({
   data,
@@ -21,6 +22,7 @@ export default memo(function Cell({
   handleDelete: any
 }) {
   const [cellData, setCellData] = useState<SalaryData | undefined>(data)
+  const {theme} = useTheme()
 
   useEffect(() => {
     setCellData(data)
@@ -48,11 +50,20 @@ export default memo(function Cell({
 
   if (!cellData) return null
 
+  const textColorClass =
+    theme === 'dark'
+      ? isDark(cellData.location.color)
+        ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
+        : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
+      : isDark(cellData.location.color)
+        ? 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
+        : 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
+
   return (
     <>
       <Card
         style={{backgroundColor: cellData.location.color}}
-        className={`${canViewFull ? 'w-[11rem]' : 'min-h-[15rem] w-[12rem]'} max-h-full ${isDark(cellData.location.color) ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100' : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'}`}>
+        className={`${canViewFull ? 'w-[11rem]' : 'min-h-[15rem] w-[12rem]'} max-h-full ${textColorClass}`}>
         <CardHeader
           className={`grid-rows-auto grid grid-flow-row grid-cols-2 ${canEdit ? 'gap-1' : 'gap-2'} pb-0`}>
           <CellHeader data={cellData} />

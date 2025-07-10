@@ -168,7 +168,7 @@ export default function EditDrawer({
       <Drawer
         placement={isMobile ? 'bottom' : 'right'}
         isOpen={isOpen}
-        classNames={{wrapper: 'z-10000'}}
+        classNames={{wrapper: 'z-10000', backdrop: 'z-10000'}}
         className="min-h-[80%]"
         onOpenChange={onOpenChange}>
         <DrawerContent>

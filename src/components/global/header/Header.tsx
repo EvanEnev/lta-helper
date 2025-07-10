@@ -42,7 +42,11 @@ export default function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
+      const isScrolled = window.scrollY > 10
+      setScrolled(prev => {
+        if (prev !== isScrolled) return isScrolled
+        return prev
+      })
     }
 
     window.addEventListener('scroll', handleScroll)

@@ -1,9 +1,11 @@
-import {Avatar, Button, Link} from '@heroui/react'
+import {Avatar, Button, Link, Switch} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import {ArrowLeft} from 'solar-icon-set'
 import buttons from '@/src/utils/global/pathButtons'
 import {LTWorker} from '@/src/utils/types'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {useTheme} from 'next-themes'
+import {MoonIcon, SunIcon} from '@heroui/shared-icons'
 
 export default function MobileHeader({
   worker,
@@ -14,6 +16,7 @@ export default function MobileHeader({
 }) {
   const path = usePathname()
   const {headerRef, setExiting} = useAuth()
+  const {theme, setTheme} = useTheme()
 
   return (
     <header
@@ -39,6 +42,22 @@ export default function MobileHeader({
           {buttons.find(obj => obj.href === path)?.name}
         </span>
         <div className="flex flex-1 items-center justify-center gap-2 text-2xl">
+          <Switch
+            color="default"
+            size="lg"
+            isSelected={theme === 'light'}
+            onValueChange={value =>
+              value ? setTheme('light') : setTheme('dark')
+            }
+            thumbIcon={({isSelected, className}) =>
+              isSelected ? (
+                <SunIcon className={className} />
+              ) : (
+                <MoonIcon className={className} />
+              )
+            }>
+            Тема
+          </Switch>
           <Avatar src={worker.photoUrl} />
           {worker.name}
         </div>
