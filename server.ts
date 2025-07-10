@@ -35,6 +35,18 @@ app.prepare().then(async () => {
       console.log(data)
       const date = DateTime.fromISO(data.date)
 
+      if (data.delete) {
+        const query = `DELETE FROM lt_arena.salary
+                WHERE
+                    date = '${date.toFormat('yyyy-MM-dd')}'
+                    AND worker_id = ${data.worker_id}
+                    AND location_id = (SELECT id FROM lt_arena.locations WHERE name = '${data.location.name}')
+                `
+
+        console.log(query)
+        return await client.query(query)
+      }
+
       const overworkStart =
         data.overwork_start === null ? 'NULL' : `'${data.overwork_start}'`
 
@@ -43,6 +55,7 @@ app.prepare().then(async () => {
 
       const query = `UPDATE lt_arena.salary
                 SET
+                    date = '${data.newDate}',
                     value = ${data.value},
                     bonuses = '${data.bonuses}',
                     fines = '${data.fines}',

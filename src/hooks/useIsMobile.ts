@@ -2,10 +2,8 @@
 
 import {useMediaQuery} from 'react-responsive'
 
-const useIsMobile = () => {
+export default function useIsMobile() {
   const isPC = useMediaQuery({query: '(width >= 40rem)'})
 
   return !isPC
 }
-
-export default useIsMobile

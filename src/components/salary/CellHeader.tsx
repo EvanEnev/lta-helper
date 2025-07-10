@@ -77,12 +77,9 @@ export default function CellHeader({data}: {data: SalaryData}) {
         value={time.end}
         isReadOnly
       />
-      <Input
-        aria-label="Сумма за смену"
-        isReadOnly
-        className="col-span-2"
-        value={data.value.toString()}
-        endContent={<Ruble />}></Input>
+      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
+        {data.value.toString()} <Ruble />
+      </CellChip>
       <Divider className="col-span-2 w-full" />
       <p className="col-span-2 text-xs">Переработка</p>
       {/*// @ts-ignore*/}
@@ -99,12 +96,9 @@ export default function CellHeader({data}: {data: SalaryData}) {
         // @ts-ignore
         value={overWorkTime.end}
       />
-      <Input
-        aria-label="Сумма за переработку"
-        className="col-span-2 w-fit justify-self-end text-end text-xs"
-        value={data.overwork?.toString() || ''}
-        isReadOnly
-        endContent={<Ruble />}></Input>
+      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
+        {data.overwork?.toString() || ''} <Ruble />
+      </CellChip>
       <CellChip>Бонусы</CellChip>
       <Input
         aria-label="Бонусы"

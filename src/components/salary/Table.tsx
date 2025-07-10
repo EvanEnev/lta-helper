@@ -56,6 +56,8 @@ export default memo(function Table({
   const [loading, setLoading] = useState<boolean>(false)
   const isMobile = useIsMobile()
 
+  const today = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
+
   useEffect(() => {
     const localLocationId = localStorage.getItem('salaryLocationId')
     const localDate = localStorage.getItem('salaryDate')
@@ -121,8 +123,51 @@ export default memo(function Table({
 
   const handleEdit = useCallback(
     (data: SalaryData) => {
+      // @ts-ignore
+      if (data.newDate) {
+        const date = DateTime.fromISO(data.date)
+        // @ts-ignore
+        const newDate = DateTime.fromFormat(data.newDate, 'yyyy-MM-dd')
+
+        setData((prev: UserSalary[]) =>
+          prev.map(row => {
+            const cell = row[`day${date.toFormat('d')}`] as SalaryData
+            const cellDate = DateTime.fromISO(cell.date)
+
+            const isTarget =
+              typeof cell === 'object' &&
+              cell?.worker_id === data.worker_id &&
+              date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
+
+            if (!isTarget) return row
+
+            return {
+              ...row,
+              // @ts-ignore
+              [`day${newDate.toFormat('d')}`]: {
+                ...data,
+                // @ts-ignore
+                date: data.newDate,
+              },
+              [`day${date.toFormat('d')}`]: '',
+            }
+          }),
+        )
+      }
+
       socketRef.current?.emit('update:user_salary', {
         ...data,
+        updated_by: worker.id,
+      })
+    },
+    [worker],
+  )
+
+  const handleDelete = useCallback(
+    (data: SalaryData) => {
+      socketRef.current?.emit('update:user_salary', {
+        ...data,
+        delete: true,
         updated_by: worker.id,
       })
     },
@@ -150,12 +195,13 @@ export default memo(function Table({
             data={getValue()}
             canEdit={canEdit}
             handleEdit={handleEdit}
+            handleDelete={handleDelete}
             canViewFull={canViewFull}
           />
         ),
       }
     })
-  }, [canEdit, canViewFull, date, daysInMonth, handleEdit])
+  }, [canEdit, canViewFull, date, daysInMonth, handleDelete, handleEdit])
 
   const columns = useMemo(() => {
     const baseColumns = []
@@ -256,34 +302,41 @@ export default memo(function Table({
             }}>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id} className="rounded-2xl">
-                {headerGroup.headers.map((header, index) => (
-                  <Fragment key={header.id}>
-                    <th
-                      key={header.id}
-                      className={`bg-default-100 test-start h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}
-                      style={{
-                        width: `${header.getSize()}px`,
-                        minWidth: `${header.getSize()}px`,
-                        ...(header.column.columnDef.meta?.frozen && {
-                          left: `${getFixedColumnLeftPosition(
-                            header.column.columnDef.meta?.fixedPosition,
-                          )}px`,
-                        }),
-                      }}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </th>
-                    <th className="bg-default-100 w-px py-2">
-                      <Divider
-                        className="mx-auto h-[2rem]"
-                        orientation="vertical"
-                        hidden={index === headerGroup.headers.length - 1}
-                      />
-                    </th>
-                  </Fragment>
-                ))}
+                {headerGroup.headers.map((header, index) => {
+                  return (
+                    <Fragment key={header.id}>
+                      <th
+                        key={header.id}
+                        className={`h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''} ${
+                          header.column.columnDef.header ===
+                          today.toFormat('EEE, dd.MM', {locale: 'ru-RU'})
+                            ? 'bg-success-600 text-foreground-100'
+                            : 'bg-default-100'
+                        }`}
+                        style={{
+                          width: `${header.getSize()}px`,
+                          minWidth: `${header.getSize()}px`,
+                          ...(header.column.columnDef.meta?.frozen && {
+                            left: `${getFixedColumnLeftPosition(
+                              header.column.columnDef.meta?.fixedPosition,
+                            )}px`,
+                          }),
+                        }}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </th>
+                      <th className="bg-default-100 w-px py-2">
+                        <Divider
+                          className="mx-auto h-[2rem]"
+                          orientation="vertical"
+                          hidden={index === headerGroup.headers.length - 1}
+                        />
+                      </th>
+                    </Fragment>
+                  )
+                })}
               </tr>
             ))}
           </thead>

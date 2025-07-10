@@ -15,13 +15,12 @@ export default function TableRow({
   getFixedColumnLeftPosition,
   rowIndex,
   dataLength,
-  canEdit,
 }: TableRowProps) {
   const rowRef = useRef<HTMLTableRowElement | null>(null)
 
   return (
     <Fragment>
-      <tr className={`${canEdit ? 'h-[3rem]' : 'h-[10rem]'}`} ref={rowRef}>
+      <tr className={`h-fit`} ref={rowRef}>
         {row.getVisibleCells().map((cell, index) => (
           <Fragment key={cell.id}>
             <td

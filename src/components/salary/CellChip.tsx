@@ -9,7 +9,7 @@ export default function CellChip({
 }) {
   return (
     <div
-      className={`bg-default-100 rounded-medium text-foreground relative inline-flex h-10 min-h-10 w-full items-center px-3 text-start text-xs ${className}`}>
+      className={`${className} bg-default-100 rounded-medium text-foreground relative inline-flex h-10 min-h-10 w-full items-center px-3 text-start`}>
       {children}
     </div>
   )

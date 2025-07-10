@@ -1,17 +1,28 @@
 import {SalaryData} from '@/src/utils/types'
-import {Divider, Input, TimeInput, Tooltip} from '@heroui/react'
+import {
+  DatePicker,
+  DateValue,
+  Divider,
+  Input,
+  TimeInput,
+  Tooltip,
+} from '@heroui/react'
 import {useCallback, useMemo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
 import {Ruble} from 'solar-icon-set'
 import LocationIcon from '@/src/components/global/LocationIcon'
+import DeleteButton from '@/src/components/salary/DeleteButton'
+import {parseDate} from '@internationalized/date'
 
 export default function CellHeaderEditable({
   data,
   handleEdit,
+  handleDelete,
 }: {
   data: SalaryData
   handleEdit: (data: SalaryData) => void
+  handleDelete: any
 }) {
   const time = useMemo(() => {
     const startTime = data.start_time.slice(0, -3)
@@ -56,6 +67,8 @@ export default function CellHeaderEditable({
     [data.created_at],
   )
 
+  const salaryDate = useMemo(() => DateTime.fromISO(data.date), [data.date])
+
   const update = useCallback(
     (
       value:
@@ -63,8 +76,12 @@ export default function CellHeaderEditable({
         | {
             hour: number
             minute: number
-          },
+          }
+        | DateValue
+        | null,
       type:
+        | 'delete'
+        | 'newDate'
         | 'start_time'
         | 'end_time'
         | 'value'
@@ -75,6 +92,10 @@ export default function CellHeaderEditable({
         | 'overwork',
     ) => {
       const newData: SalaryData = {...data}
+
+      if (type === 'delete') {
+        return handleDelete(newData)
+      }
 
       if (
         ['start_time', 'end_time', 'overwork_start', 'overwork_end'].includes(
@@ -97,12 +118,25 @@ export default function CellHeaderEditable({
         }
       }
 
+      if (type === 'newDate') {
+        const newValue = value as DateValue | null
+        if (!(newValue?.day && newValue?.year && newValue?.month)) {
+          return
+        }
+
+        const newDate = DateTime.now()
+          .setZone('Europe/Moscow')
+          .set({day: newValue.day, month: newValue.month, year: newValue.year})
+
+        value = newDate.toFormat('yyyy-MM-dd')
+      }
+
       // @ts-ignore
       newData[type] = value
 
       handleEdit(newData)
     },
-    [data, handleEdit],
+    [data, handleDelete, handleEdit],
   )
 
   return (
@@ -120,6 +154,15 @@ export default function CellHeaderEditable({
           </div>
         </Tooltip>
       </div>
+      <DatePicker
+        className="col-span-2"
+        onChange={value => update(value, 'newDate')}
+        value={parseDate(salaryDate.toFormat('yyyy-MM-dd'))}
+      />
+      <DeleteButton
+        callback={() => update('', 'delete')}
+        className="col-span-2 w-full"
+      />
       <TimeInput
         aria-label="Начало смены"
         // @ts-ignore
