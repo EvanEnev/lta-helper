@@ -96,6 +96,10 @@ export default function getSalaryData({
   let workingStart = calculatedWorkingTime.split('-')[0]
   let workingEnd = calculatedWorkingTime.split('-')[1]
 
+  if (parseInt(workingStart) > 24) {
+    workingStart = `${parseInt(workingStart) - 24}`
+  }
+
   if (parseInt(workingEnd) > 24) {
     workingEnd = `${parseInt(workingEnd) - 24}`
   }
@@ -105,6 +109,10 @@ export default function getSalaryData({
 
   if (parseInt(overworkEnd) > 24) {
     overworkEnd = `${parseInt(overworkEnd) - 24}`
+  }
+
+  if (parseInt(overworkStart) > 24) {
+    overworkStart = `${parseInt(overworkStart) - 24}`
   }
 
   if (workingStart) workingStart += ':00'
