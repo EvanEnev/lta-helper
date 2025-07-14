@@ -59,15 +59,20 @@ export async function POST(req: NextRequest) {
 
   await db.query(updateQuery)
 
+  const email =
+    process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+      ? `${user.id}@telegram.lta-test`
+      : `${user.id}@telegram.lta`
+
   const {data: existingWorker, error: existingWorkerError} =
     await supabase.auth.signInWithPassword({
-      email: `${user.id}@telegram.lta`,
+      email,
       password: generatePassword(user.id, process.env.BOT_TOKEN!),
     })
 
   if (existingWorker.user) {
     await supabase.auth.signInWithPassword({
-      email: `${user.id}@telegram.lta`,
+      email,
       password: generatePassword(user.id, process.env.BOT_TOKEN!),
     })
 
@@ -81,7 +86,7 @@ export async function POST(req: NextRequest) {
   }
 
   await supabase.auth.admin.createUser({
-    email: `${user.id}@telegram.lta`,
+    email,
     password: generatePassword(user.id, process.env.BOT_TOKEN!),
     user_metadata: {
       telegram_id: user.id,
@@ -91,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   const {data: newUserAuthorized, error: newUserAuthtorizedError} =
     await supabase.auth.signInWithPassword({
-      email: `${user.id}@telegram.lta`,
+      email,
       password: generatePassword(user.id, process.env.BOT_TOKEN!),
     })
 

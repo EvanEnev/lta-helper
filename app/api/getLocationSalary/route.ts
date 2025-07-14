@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
-  WHERE ${locationId ? `(s.location_id = ${locationId} OR s.location_id = 12 OR s.location_id = 13)` : ''} AND s.date = '${date.toFormat('yyyy-MM-dd')}'`
+  WHERE ${locationId ? `(s.location_id = ${locationId} OR s.location_id = 12 OR s.location_id = 13) AND ` : ''} s.date = '${date.toFormat('yyyy-MM-dd')}'`
 
   const result = await db.query(query)
   const rows = result.rows

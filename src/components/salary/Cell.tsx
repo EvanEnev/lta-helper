@@ -8,19 +8,21 @@ import isDark from '@/lib/functions/isDark'
 import EditDrawer from '@/src/components/salary/EditDrawer'
 import {useTheme} from 'next-themes'
 
+interface CellProps {
+  data?: SalaryData
+  canEdit: boolean
+  canViewFull: boolean
+  handleEdit: (data: SalaryData) => void
+  handleDelete: any
+}
+
 export default memo(function Cell({
   data,
   canEdit,
   canViewFull,
   handleEdit,
   handleDelete,
-}: {
-  data?: SalaryData
-  canEdit: boolean
-  canViewFull: boolean
-  handleEdit: (data: SalaryData) => void
-  handleDelete: any
-}) {
+}: CellProps) {
   const [cellData, setCellData] = useState<SalaryData | undefined>(data)
   const {theme} = useTheme()
 

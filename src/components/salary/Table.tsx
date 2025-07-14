@@ -1,4 +1,4 @@
-import {SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
+import {LTLocation, SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
 import {flexRender, getCoreRowModel, useReactTable} from '@tanstack/react-table'
 import {
   useCallback,
@@ -123,9 +123,10 @@ export default memo(function Table({
 
   const handleEdit = useCallback(
     (data: SalaryData) => {
+      const date = DateTime.fromISO(data.date)
+
       // @ts-ignore
       if (data.newDate) {
-        const date = DateTime.fromISO(data.date)
         // @ts-ignore
         const newDate = DateTime.fromFormat(data.newDate, 'yyyy-MM-dd')
 
@@ -150,6 +151,33 @@ export default memo(function Table({
                 date: data.newDate,
               },
               [`day${date.toFormat('d')}`]: '',
+            }
+          }),
+        )
+      }
+
+      // @ts-ignore
+      if (data.newLocation) {
+        setData((prev: UserSalary[]) =>
+          prev.map(row => {
+            const cell = row[`day${date.toFormat('d')}`] as SalaryData
+            const cellDate = DateTime.fromISO(cell.date)
+
+            const isTarget =
+              typeof cell === 'object' &&
+              cell?.worker_id === data.worker_id &&
+              date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
+
+            if (!isTarget) return row
+
+            return {
+              ...row,
+              // @ts-ignore
+              [`day${date.toFormat('d')}`]: {
+                ...data,
+                // @ts-ignore
+                location: data.newLocation,
+              },
             }
           }),
         )
@@ -257,14 +285,14 @@ export default memo(function Table({
   )
 
   const onLocationUpdate = useCallback(
-    async (locationId: number) => {
+    async (location: LTLocation) => {
       setLoading(true)
       setLocationId(locationId)
-      localStorage.setItem('salaryLocationId', `${locationId}`)
+      localStorage.setItem('salaryLocationId', `${location.id}`)
 
       const data = await fetchHandler({
         url: '/api/getSalaryData',
-        body: {locationId, date},
+        body: {locationId: location.id, date},
       })
 
       if (data) {

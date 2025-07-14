@@ -3,13 +3,22 @@ import {useCallback, useEffect, useState} from 'react'
 import {LTLocation} from '@/src/utils/types'
 import LocationIcon from '@/src/components/global/LocationIcon'
 
+interface LocationSelectProps {
+  callback: any
+  locationId: number
+  labelPlacement?:
+    | 'outside'
+    | 'outside-left'
+    | 'outside-top'
+    | 'inside'
+    | undefined
+}
+
 export default function LocationSelect({
   callback,
   locationId,
-}: {
-  callback: any
-  locationId: number
-}) {
+  labelPlacement = 'outside',
+}: LocationSelectProps) {
   const [locations, setLocations] = useState<LTLocation[]>([])
   async function getLocations() {
     const response = await fetch('/api/getLocations')
@@ -39,9 +48,9 @@ export default function LocationSelect({
 
   const onChange = useCallback(
     (locationId: any) => {
-      callback(locationId)
+      callback(locations.find(location => location.id == locationId) || null)
     },
-    [callback],
+    [callback, locations],
   )
 
   return (
@@ -49,7 +58,7 @@ export default function LocationSelect({
       required
       clearButtonProps={{hidden: true}}
       label="Локация"
-      labelPlacement="outside"
+      labelPlacement={labelPlacement}
       onSelectionChange={onChange}
       selectedKey={locationId.toString()}
       aria-label="Выбор локации">

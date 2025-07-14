@@ -30,6 +30,7 @@ import {useCallback, useMemo} from 'react'
 import {parseDate} from '@internationalized/date'
 import DeleteButton from '@/src/components/salary/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
+import LocationSelect from '@/src/components/salary/LocationSelect'
 
 interface EditDrawerProps {
   data: SalaryData
@@ -97,6 +98,7 @@ export default function EditDrawer({
         | null,
       type:
         | 'delete'
+        | 'newLocation'
         | 'newDate'
         | 'start_time'
         | 'end_time'
@@ -291,6 +293,15 @@ export default function EditDrawer({
                   callback={() => update('', 'delete')}
                   className="col-span-2 h-full w-full"
                 />
+                <div className="col-span-2">
+                  <LocationSelect
+                    labelPlacement="inside"
+                    callback={(location: any) =>
+                      update(location, 'newLocation')
+                    }
+                    locationId={data.location.id}
+                  />
+                </div>
               </DrawerBody>
               <DrawerFooter>
                 <Button

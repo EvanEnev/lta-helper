@@ -55,7 +55,8 @@ app.prepare().then(async () => {
 
       const query = `UPDATE lt_arena.salary
                 SET
-                    date = '${data.newDate}',
+                  ${data.newDate ? `date = '${data.newDate}',` : ''}
+                    ${data.newLocation ? `location_id = (SELECT id FROM lt_arena.locations WHERE id = ${data.newLocation.id}),` : ''}
                     value = ${data.value},
                     bonuses = '${data.bonuses}',
                     fines = '${data.fines}',
@@ -69,7 +70,7 @@ app.prepare().then(async () => {
                 WHERE
                     date = '${date.toFormat('yyyy-MM-dd')}'
                     AND worker_id = ${data.worker_id}
-                    AND location_id = (SELECT id FROM lt_arena.locations WHERE name = '${data.location.name}')
+                    AND location_id = (SELECT id FROM lt_arena.locations WHERE id = '${data.location.id}')
                 `
       console.log(query)
       await client.query(query)
