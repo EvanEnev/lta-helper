@@ -3,7 +3,7 @@ import next from 'next'
 import {Server} from 'socket.io'
 import {initListener} from './dbListener'
 import {DateTime} from 'luxon'
-import logger from './Logger'
+// import logger from './Logger'
 
 const dev = process.env.NODE_ENV === 'development'
 const test = process.env.NODE_ENV === 'test'
@@ -47,7 +47,8 @@ app.prepare().then(async () => {
                 `
 
         loggerData.query = query
-        logger.info('Update user salary', {data: loggerData})
+        // logger.info('Update user salary', {data: loggerData})
+        console.log(loggerData)
         return await client.query(query)
       }
 
@@ -78,14 +79,17 @@ app.prepare().then(async () => {
                 `
 
       loggerData.query = query
-      logger.info('Update user salary', {data: loggerData})
+      // logger.info('Update user salary', {data: loggerData})
+      console.log(loggerData)
+
       await client.query(query)
     })
   })
 
   httpServer
     .once('error', err => {
-      logger.error('Server error', {data: err})
+      // logger.error('Server error', {data: err})
+      console.error(err)
       process.exit(1)
     })
     .listen(port, () => {
