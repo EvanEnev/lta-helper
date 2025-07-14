@@ -1,6 +1,6 @@
 import db from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
-import logger from '@/lib/Logger'
+import logger from '@/Logger'
 
 const KEY = process.env.KEY
 

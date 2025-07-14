@@ -13,7 +13,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import getRanks from '@/lib/functions/getRanks'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getSalaryData from '@/lib/functions/getSalaryData'
-import logger from '@/lib/Logger'
+import logger from '@/Logger'
 
 export interface SheetData {
   sheets: {

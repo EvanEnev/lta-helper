@@ -3,7 +3,7 @@ import next from 'next'
 import {Server} from 'socket.io'
 import {initListener} from './dbListener'
 import {DateTime} from 'luxon'
-import logger from '@/lib/Logger'
+import logger from './Logger'
 
 const dev = process.env.NODE_ENV === 'development'
 const test = process.env.NODE_ENV === 'test'
