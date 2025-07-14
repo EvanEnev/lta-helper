@@ -35,7 +35,9 @@
     "react-text-mask": "^5.5.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "solar-icon-set": "^1.0.0"
+    "solar-icon-set": "^1.0.0",
+    "winston": "^3.17.0",
+    "winston-transport": "^4.9.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.10",

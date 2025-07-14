@@ -16,7 +16,6 @@ export async function initListener(io: SocketIOServer) {
 
   client.on('notification', msg => {
     const payload = JSON.parse(msg.payload || '{}')
-    console.log(payload)
     io.emit('salary:update', payload)
   })
 

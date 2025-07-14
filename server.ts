@@ -3,6 +3,7 @@ import next from 'next'
 import {Server} from 'socket.io'
 import {initListener} from './dbListener'
 import {DateTime} from 'luxon'
+import logger from '@/lib/Logger'
 
 const dev = process.env.NODE_ENV === 'development'
 const test = process.env.NODE_ENV === 'test'
@@ -32,7 +33,9 @@ app.prepare().then(async () => {
     console.log(`> Socket ${socket.id}`)
 
     socket.on('update:user_salary', async (data: any) => {
-      console.log(data)
+      const loggerData: any = {}
+
+      loggerData.data = data
       const date = DateTime.fromISO(data.date)
 
       if (data.delete) {
@@ -43,7 +46,8 @@ app.prepare().then(async () => {
                     AND location_id = (SELECT id FROM lt_arena.locations WHERE name = '${data.location.name}')
                 `
 
-        console.log(query)
+        loggerData.query = query
+        logger.info('Update user salary', {data: loggerData})
         return await client.query(query)
       }
 
@@ -72,14 +76,16 @@ app.prepare().then(async () => {
                     AND worker_id = ${data.worker_id}
                     AND location_id = (SELECT id FROM lt_arena.locations WHERE id = '${data.location.id}')
                 `
-      console.log(query)
+
+      loggerData.query = query
+      logger.info('Update user salary', {data: loggerData})
       await client.query(query)
     })
   })
 
   httpServer
     .once('error', err => {
-      console.error(err)
+      logger.error('Server error', {data: err})
       process.exit(1)
     })
     .listen(port, () => {

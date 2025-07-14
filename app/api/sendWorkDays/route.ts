@@ -13,6 +13,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import getRanks from '@/lib/functions/getRanks'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getSalaryData from '@/lib/functions/getSalaryData'
+import logger from '@/lib/Logger'
 
 export interface SheetData {
   sheets: {
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
-  console.debug(body.date, date, convertTZ(date, 'Europe/Moscow'))
+  const loggerData: any = {}
 
   date = convertTZ(date, 'Europe/Moscow')
 
@@ -140,7 +141,8 @@ export async function POST(req: NextRequest) {
       workingHours: data.workingHours,
     })
 
-    console.debug(salary)
+    loggerData.salary = salary
+
     if (!salary) continue
 
     if (!data.comment?.toLowerCase().includes('под игру')) {
@@ -190,7 +192,11 @@ export async function POST(req: NextRequest) {
     `)
   }
 
-  console.debug(queries, user)
+  loggerData.queries = queries
+  loggerData.user = user
+
+  logger.info('sendWorkDays', {data: loggerData})
+
   if (queries.length) {
     const queriesPromises = queries.map(query => db.query(query))
     await Promise.all([...promises, ...queriesPromises]).then(async () => {
