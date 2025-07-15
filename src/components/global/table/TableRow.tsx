@@ -7,7 +7,6 @@ interface TableRowProps {
   getFixedColumnLeftPosition(fixedIndex?: number): number
   rowIndex: number
   dataLength: number
-  canEdit: boolean
 }
 
 export default function TableRow({
