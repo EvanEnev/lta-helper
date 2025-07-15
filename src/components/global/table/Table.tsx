@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Column,
   flexRender,
   getCoreRowModel,
   Header,
