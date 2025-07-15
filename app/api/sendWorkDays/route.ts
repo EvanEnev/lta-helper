@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
                     (
                         (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
                         '${date.toFormat('yyyy-MM-dd')}',
-                        ${salary.value},
+                        ${salary.value || 0},
                         '${salary.bonuses}',
                         '${salary.fines}',
                         '${data.comment}',
@@ -199,13 +199,18 @@ export async function POST(req: NextRequest) {
 
   if (queries.length) {
     const queriesPromises = queries.map(query => db.query(query))
-    await Promise.all([...promises, ...queriesPromises]).then(async () => {
-      await Promise.all([
-        pointsSheet.saveUpdatedCells(),
-        goldPointsSheet.saveUpdatedCells(),
-        platinumPointsSheet.saveUpdatedCells(),
-      ])
-    })
+    try {
+      await Promise.all([...promises, ...queriesPromises]).then(async () => {
+        await Promise.all([
+          pointsSheet.saveUpdatedCells(),
+          goldPointsSheet.saveUpdatedCells(),
+          platinumPointsSheet.saveUpdatedCells(),
+        ])
+      })
+    } catch (e: any) {
+      logger.error('sendWorkDays', {data: loggerData, error: e})
+      return NextResponse.json({message: e.message || ''}, {status: 500})
+    }
   }
 
   return NextResponse.json({}, {status: 200})
