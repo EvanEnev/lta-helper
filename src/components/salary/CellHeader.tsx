@@ -3,7 +3,7 @@ import {Divider, Input, TimeInput, Tooltip} from '@heroui/react'
 import {useMemo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
-import {Ruble} from 'solar-icon-set'
+import {BillCheck, BillCross, Ruble} from 'solar-icon-set'
 import LocationIcon from '@/src/components/global/LocationIcon'
 
 export default function CellHeader({data}: {data: SalaryData}) {
@@ -97,19 +97,26 @@ export default function CellHeader({data}: {data: SalaryData}) {
         value={overWorkTime.end}
       />
       <CellChip className="text-foreground text-small col-span-2 flex justify-between">
-        {data.overwork?.toString() || ''} <Ruble />
+        {data.overwork?.toString() || ''} <Ruble className="ml-auto" />
       </CellChip>
-      <CellChip>Бонусы</CellChip>
+      <Divider className="col-span-2" />
+      <div className="col-span-full flex items-center gap-1">
+        <BillCheck iconStyle="Bold" size={22} />
+        <p>Бонусы</p>
+      </div>
       <Input
         aria-label="Бонусы"
-        className="col-2 w-fit justify-self-end text-end"
+        className="col-span-full w-full justify-self-end text-end"
         isReadOnly
         value={data.bonuses || ''}
       />
-      <CellChip>Штрафы</CellChip>
+      <div className="col-span-full flex items-center gap-1">
+        <BillCross iconStyle="Bold" size={22} />
+        <p>Штрафы</p>
+      </div>
       <Input
         aria-label="Штрафы"
-        className="col-2 w-fit justify-self-end text-end"
+        className="col-span-full w-full justify-self-end text-end"
         isReadOnly
         value={data.fines || ''}
       />

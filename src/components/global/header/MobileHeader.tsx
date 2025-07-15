@@ -15,7 +15,7 @@ export default function MobileHeader({
   scrolled: boolean
 }) {
   const path = usePathname()
-  const {headerRef, setExiting} = useAuth()
+  const {headerRef, setExiting, customHeaderComponents} = useAuth()
   const {theme, setTheme} = useTheme()
 
   return (
@@ -41,6 +41,7 @@ export default function MobileHeader({
         <span className="flex-1 text-center text-2xl font-bold">
           {buttons.find(obj => obj.href === path)?.name}
         </span>
+        {customHeaderComponents}
         <div className="flex flex-1 items-center justify-center gap-2 text-2xl">
           <Switch
             color="default"

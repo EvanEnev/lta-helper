@@ -1,6 +1,13 @@
 'use client'
 
-import {useCallback, useContext, useEffect, useRef, useState} from 'react'
+import {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import React from 'react'
 import {usePathname, useRouter} from 'next/navigation'
 import {useAtom, useSetAtom} from 'jotai'
@@ -14,10 +21,13 @@ import Loader from '@/src/components/global/Loader'
 
 const requiredFields = ['name', 'email', 'phoneNumber', 'firstName', 'lastName']
 
-export default function AuthProvider({children}: {children: React.ReactNode}) {
+export default function AuthProvider({children}: {children: ReactNode}) {
   const router = useRouter()
   const [isExiting, setExiting] = useState(false)
   const [toastOffset, setToastOffset] = useState(0)
+  const [customHeaderComponents, setCustomHeaderComponents] = useState<
+    ReactNode[]
+  >([])
   const [worker, setWorker] = useState<LTWorker>({
     name: '',
     id: 0,
@@ -180,6 +190,8 @@ export default function AuthProvider({children}: {children: React.ReactNode}) {
             setExiting,
             toastOffset,
             setToastOffset,
+            customHeaderComponents,
+            setCustomHeaderComponents,
           }}>
           {children}
         </AuthContext.Provider>

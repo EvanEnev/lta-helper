@@ -193,6 +193,35 @@ export default function Summarized({
     return {salary: allSalary, bonuses, summary}
   }, [data])
 
+  const ranksToHide = useMemo(
+    () => [
+      'Платиновый',
+      'Золотой',
+      'Серебряный',
+      'Бронзовый',
+      'Железный',
+      'Каменный',
+    ],
+    [],
+  )
+
+  const filteredRanks = useMemo(() => {
+    const newRanks = ranks.filter(r => !ranksToHide.includes(r.name))
+
+    newRanks.push({
+      name: 'Инструктор',
+      weight: 7,
+      salary: 0,
+      overwork: 0,
+      maxShiftPoints: 0,
+      maxPoints: 0,
+    })
+
+    return newRanks.sort(
+      (r1, r2) => r2.weight - r1.weight || r1.name.localeCompare(r2.name),
+    )
+  }, [ranks, ranksToHide])
+
   return (
     <div className="flex w-full gap-4">
       <div className="bg-content1 rounded-large relative w-full flex-1 pt-4">
@@ -301,16 +330,31 @@ export default function Summarized({
             selectionMode="multiple"
             onSelectionChange={keys => {
               // @ts-ignore
-              if (!keys.size) {
+              if (!keys.size || keys.has('all')) {
                 return setData(initialData)
               }
+
               // @ts-ignore
-              const filtered = initialData.filter(d => keys.has(d.rank))
+              let filtered = initialData.filter(d => keys.has(d.rank))
+              // @ts-ignore
+              if (keys.has('Инструктор')) {
+                filtered = [
+                  // @ts-ignore
+                  ...initialData.filter(d => ranksToHide.includes(d.rank)),
+                  ...filtered,
+                ]
+              }
+
               setData(filtered)
             }}>
-            {ranks
-              .sort((r1, r2) => r2.weight - r1.weight)
-              .map(rank => (
+            <SelectItem
+              key="all"
+              classNames={{title: 'flex items-center gap-2'}}
+              className="flex">
+              Все
+            </SelectItem>
+            <>
+              {filteredRanks.map(rank => (
                 <SelectItem
                   key={rank.name}
                   classNames={{title: 'flex items-center gap-2'}}
@@ -318,6 +362,7 @@ export default function Summarized({
                   {rank.name}
                 </SelectItem>
               ))}
+            </>
           </Select>
           <Select
             label="Локация"
