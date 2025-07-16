@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
                         ${salary.overwork_start ? (!data.type ? `'${salary.overwork_start}'` : 'NULL') : 'NULL'},
                         ${salary.overwork_end ? (!data.type ? `'${salary.overwork_end}'` : 'NULL') : 'NULL'},
                         ${salary.overwork || 'NULL'},
-                        '${data.type ? data.type : 'NULL'}'
+                        ${data.type ? `'${data.type}'` : 'NULL'}
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET

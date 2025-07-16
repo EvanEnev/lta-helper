@@ -123,16 +123,18 @@ export default function AdminPage({
   }
 
   useEffect(() => {
-    fetch('/api/getLocationSalary', {
-      method: 'POST',
-      body: JSON.stringify({date: date?.toISO()}),
-    }).then(async res => {
-      const data: {data: WorkerSalary[]} = await res.json()
+    if (worker.locationId) {
+      fetch('/api/getLocationSalary', {
+        method: 'POST',
+        body: JSON.stringify({date: date?.toISO()}),
+      }).then(async res => {
+        const data: {data: WorkerSalary[]} = await res.json()
 
-      if (data.data.length) {
-        setSalaryData(data.data)
-      }
-    })
+        if (data.data.length) {
+          setSalaryData(data.data)
+        }
+      })
+    }
   }, [date])
 
   return isMobile ? (
