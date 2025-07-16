@@ -9,6 +9,7 @@ import {
 import {Fragment, useCallback} from 'react'
 import {Divider} from '@heroui/react'
 import TableRow from '@/src/components/global/table/TableRow'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface TableProps {
   data: any
@@ -21,6 +22,8 @@ export default function Table({
   columns,
   headerClassNameAction = () => '',
 }: TableProps) {
+  const {headerRef} = useAuth()
+
   const table = useReactTable({
     data,
     columns,
@@ -46,7 +49,7 @@ export default function Table({
         <thead
           className="[&>tr]:first:shadow-small sticky z-1000"
           style={{
-            top: `${document.querySelector('header')?.offsetHeight}px`,
+            top: `${headerRef.current?.offsetHeight || 0}px`,
           }}>
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id} className="rounded-2xl">
@@ -55,7 +58,7 @@ export default function Table({
                   <Fragment key={header.id}>
                     <th
                       key={header.id}
-                      className={`h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''} ${headerClassNameAction(header)}`}
+                      className={`bg-default-100 h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''} ${headerClassNameAction(header)}`}
                       style={{
                         width: `${header.getSize()}px`,
                         minWidth: `${header.getSize()}px`,

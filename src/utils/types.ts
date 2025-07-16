@@ -111,3 +111,16 @@ export interface LTRank {
   maxShiftPoints: number
   weight: number
 }
+
+export interface WorkerTimetable {
+  worker: Omit<LTWorker, 'permissions'>
+  data: TimetableData[]
+}
+
+export interface TimetableData {
+  date: string
+  startTime: string
+  endTime: string
+  comment: string | null
+  location: LTLocation
+}

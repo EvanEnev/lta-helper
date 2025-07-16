@@ -19,7 +19,7 @@ export default function TableRow({
 
   return (
     <Fragment>
-      <tr className={`h-fit`} ref={rowRef}>
+      <tr className="h-fit" ref={rowRef}>
         {row.getVisibleCells().map((cell, index) => (
           <Fragment key={cell.id}>
             <td
