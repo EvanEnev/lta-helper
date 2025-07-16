@@ -55,7 +55,8 @@ export default async function getLocationSalaryData({
                                     ws.name AS created_by,
                                     l.name  AS location_name,
                                     l.color AS location_color,
-                                    l.id AS location_id
+                                    l.id AS location_id,
+                                    s.type
                              FROM lt_arena.salary s
                                       LEFT JOIN lt_arena.workers w ON w.id = s.worker_id
                                       LEFT JOIN lt_arena.workers ws ON ws.id = s.created_by
@@ -96,7 +97,7 @@ export default async function getLocationSalaryData({
   const salaryData: SalaryData[] = salaryResult.rows?.map((row: any) => {
     const date: DateTime = row.date.set({second: 0, minute: 0, hour: 0})
     const createdAt: DateTime = convertTZ(row.created_at, 'Europe/Moscow')
-
+    console.debug(row)
     return {
       date: date.toFormat('yyyy-MM-dd'),
       value: row.value,
@@ -117,6 +118,7 @@ export default async function getLocationSalaryData({
         color: row.location_color,
         id: row.location_id,
       },
+      type: row.type,
     }
   })
 

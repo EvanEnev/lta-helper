@@ -47,8 +47,10 @@ export default function Salary({
 
   useEffect(() => {
     setExiting(false)
-    setCustomHeaderComponents([switchComponent])
-  }, [setExiting, setCustomHeaderComponents, switchComponent])
+    if (canViewFull) {
+      setCustomHeaderComponents([switchComponent])
+    }
+  }, [setExiting, setCustomHeaderComponents, switchComponent, canViewFull])
 
   if (!canViewFull) {
     return (

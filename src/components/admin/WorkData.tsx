@@ -8,6 +8,8 @@ import {
   Divider,
   Input,
   NumberInput,
+  Select,
+  SelectItem,
   Textarea,
 } from '@heroui/react'
 import {Key, useCallback, useMemo} from 'react'
@@ -24,6 +26,15 @@ type WorkDataProps = {
   ranks: LTRank[]
   worker: LTWorker
 }
+
+const types = [
+  'Отзывы',
+  'Бонус за продажи',
+  'Бонусный оборот',
+  'Премия',
+  'Отпуск',
+  'Больничный',
+]
 
 export default function WorkData({
   data,
@@ -52,7 +63,8 @@ export default function WorkData({
         | 'hasGames'
         | 'value'
         | 'overwork'
-        | 'fines',
+        | 'fines'
+        | 'type',
       value: Key | string | boolean | null | undefined,
     ) => {
       const currentData = {...data}
@@ -92,7 +104,7 @@ export default function WorkData({
       comment: data.comment,
       bonuses: data.bonuses,
       value: data.value,
-      overwork: data.overwork,
+      overwork: data.location === 'Другое' ? 0 : data.overwork,
     })
   }, [
     ranks,
@@ -104,6 +116,7 @@ export default function WorkData({
     data.comment,
     data.bonuses,
     data.value,
+    data.location,
     data.overwork,
     worker?.rank,
   ])
@@ -159,10 +172,21 @@ export default function WorkData({
           </AutocompleteItem>
         ))}
       </Autocomplete>
+      {data.location === 'Другое' && (
+        <Select
+          label="Тип"
+          selectedKeys={[data.type || '']}
+          onSelectionChange={value => updateData('type', [...value][0])}>
+          {types.map(type => (
+            <SelectItem key={type}>{type}</SelectItem>
+          ))}
+        </Select>
+      )}
       <Input
         isRequired
         label="Время работы"
         value={data.workingHours}
+        className={data.type ? 'hidden' : ''}
         onValueChange={value => updateData('workingHours', value)}
       />
       {worker?.rank === 'Каменный' && (
@@ -220,7 +244,7 @@ export default function WorkData({
             onValueChange={value => updateData('value', value)}
           />
         </div>
-        <div>
+        <div className={data.type ? 'hidden' : ''}>
           <p>
             Переработка{' '}
             {salary?.overwork_start &&

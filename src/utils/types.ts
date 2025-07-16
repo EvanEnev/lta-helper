@@ -62,6 +62,7 @@ export interface WorkerSalary {
   value?: number
   overwork?: number
   deleted?: number
+  type?: string
 }
 
 export interface SalaryData {
@@ -81,6 +82,7 @@ export interface SalaryData {
   created_by: string
   updated_by?: number
   location: LTLocation
+  type?: string
 }
 
 export interface SalaryUser {

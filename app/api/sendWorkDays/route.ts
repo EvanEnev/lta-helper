@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
       comment: data.comment,
       gamesCount: data.gamesCount,
       value: data.value,
-      overwork: data.overwork,
+      overwork: data.location === 'Другое' ? 0 : data.overwork,
       isHardTime: data.isHardTime,
       worker: user,
       workingHours: data.workingHours,
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
     }
 
     queries.push(`INSERT INTO lt_arena.salary
-                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork)
+                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type)
                   VALUES
                     (
                         (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
@@ -171,11 +171,12 @@ export async function POST(req: NextRequest) {
                         '${data.comment}',
                         (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
                         ${salary.created_by},
-                        '${salary.start_time}',
-                        '${salary.end_time}',
-                        ${salary.overwork_start ? `'${salary.overwork_start}'` : 'NULL'},
-                        ${salary.overwork_end ? `'${salary.overwork_end}'` : 'NULL'},
-                        ${salary.overwork || 'NULL'}
+                        '${salary.start_time || '00'}',
+                        '${salary.end_time || '00'}',
+                        ${salary.overwork_start ? (!data.type ? `'${salary.overwork_start}'` : 'NULL') : 'NULL'},
+                        ${salary.overwork_end ? (!data.type ? `'${salary.overwork_end}'` : 'NULL') : 'NULL'},
+                        ${salary.overwork || 'NULL'},
+                        '${data.type ? data.type : 'NULL'}'
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET

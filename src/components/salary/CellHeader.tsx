@@ -65,14 +65,22 @@ export default function CellHeader({data}: {data: SalaryData}) {
           </div>
         </Tooltip>
       </div>
+      {data.type && (
+        <CellChip className="glass text-foreground text-small col-span-2 mb-2 items-center justify-center">
+          {data.type}
+        </CellChip>
+      )}
+      <p className="col-span-2 text-xs">Смена</p>
       <TimeInput
         aria-label="Начало смены"
+        className={data.type ? 'hidden' : ''}
         // @ts-ignore
         value={time.start}
         isReadOnly
       />
       <TimeInput
         aria-label="Конец смены"
+        className={data.type ? 'hidden' : ''}
         // @ts-ignore
         value={time.end}
         isReadOnly
@@ -81,10 +89,13 @@ export default function CellHeader({data}: {data: SalaryData}) {
         {data.value.toString()} <Ruble />
       </CellChip>
       <Divider className="col-span-2 w-full" />
-      <p className="col-span-2 text-xs">Переработка</p>
+      <p className={`col-span-2 text-xs ${data.type ? 'hidden' : ''}`}>
+        Переработка
+      </p>
       {/*// @ts-ignore*/}
       <TimeInput
         aria-label="Начало переработки"
+        className={data.type ? 'hidden' : ''}
         isReadOnly
         // @ts-ignore
         value={overWorkTime.start}
@@ -92,14 +103,16 @@ export default function CellHeader({data}: {data: SalaryData}) {
       {/*// @ts-ignore*/}
       <TimeInput
         aria-label="Конец переработки"
+        className={data.type ? 'hidden' : ''}
         isReadOnly
         // @ts-ignore
         value={overWorkTime.end}
       />
-      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
+      <CellChip
+        className={`${data.type ? 'hidden!' : ''} text-foreground text-small col-span-2 flex justify-between`}>
         {data.overwork?.toString() || ''} <Ruble className="ml-auto" />
       </CellChip>
-      <Divider className="col-span-2" />
+      <Divider className={`col-span-2 ${data.type ? 'hidden' : ''}`} />
       <div className="col-span-full flex items-center gap-1">
         <BillCheck iconStyle="Bold" size={22} />
         <p>Бонусы</p>
@@ -110,13 +123,14 @@ export default function CellHeader({data}: {data: SalaryData}) {
         isReadOnly
         value={data.bonuses || ''}
       />
-      <div className="col-span-full flex items-center gap-1">
+      <div
+        className={`col-span-full flex items-center gap-1 ${data.type ? 'hidden' : ''}`}>
         <BillCross iconStyle="Bold" size={22} />
         <p>Штрафы</p>
       </div>
       <Input
         aria-label="Штрафы"
-        className="col-span-full w-full justify-self-end text-end"
+        className={`col-span-full w-full justify-self-end text-end ${data.type ? 'hidden' : ''}`}
         isReadOnly
         value={data.fines || ''}
       />
