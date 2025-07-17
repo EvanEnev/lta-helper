@@ -61,7 +61,7 @@ export default async function updatePoints({
 
   const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
 
-  const datesFormat = 'dd.MM.yyyy'
+  const datesFormat = 'dd.MM.yy'
 
   const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
     const splitValue = headerValue?.split('-')
