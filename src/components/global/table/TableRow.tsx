@@ -15,16 +15,17 @@ export default function TableRow({
   rowIndex,
   dataLength,
 }: TableRowProps) {
-  const rowRef = useRef<HTMLTableRowElement | null>(null)
+  const rowRef = useRef<HTMLTableDataCellElement | null>(null)
 
   return (
     <Fragment>
-      <tr className="h-fit" ref={rowRef}>
+      <tr className="h-fit">
         {row.getVisibleCells().map((cell, index) => (
           <Fragment key={cell.id}>
             <td
+              ref={rowRef}
               id={cell.id}
-              className={`${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-full w-[5rem] min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
+              className={`${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-full min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
               style={{
                 ...(cell.column.columnDef.meta?.frozen && {
                   left: `${getFixedColumnLeftPosition(
