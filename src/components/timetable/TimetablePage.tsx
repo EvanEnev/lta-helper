@@ -1,18 +1,45 @@
 'use client'
 
-import {LTWorker, TimetableData, WorkerTimetable} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTWorker,
+  PossibilityData,
+  WorkerTimetable,
+} from '@/src/utils/types'
 import Table from '@/src/components/global/table/Table'
-import {useMemo} from 'react'
+import {useCallback, useMemo} from 'react'
 import Cell from './Cell'
 import {DateTime, Interval} from 'luxon'
+import PossibilityButton from '@/src/components/timetable/PossibilityButton'
+import {Header} from '@tanstack/react-table'
 
 interface TimetablePageProps {
   data: WorkerTimetable[]
   dates: [string, string]
+  locations: LTLocation[]
 }
 
-export default function TimetablePage({data, dates}: TimetablePageProps) {
-  const daysColumnds = useMemo(() => {
+export default function TimetablePage({
+  data,
+  dates,
+  locations,
+}: TimetablePageProps) {
+  const update = useCallback((type: 'value' | 'location', value: any) => {
+    console.debug(type, value)
+  }, [])
+
+  const today = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
+
+  const headerClassNameAction = useCallback(
+    (header: Header<any, any>) =>
+      header.column.columnDef.header ===
+      today.toFormat('EEE, dd.MM', {locale: 'ru-RU'})
+        ? 'bg-success-600 text-foreground-100'
+        : 'bg-default-100',
+    [today],
+  )
+
+  const daysColumns = useMemo(() => {
     const interval = Interval.fromISO(`${dates[0]}/${dates[1]}`)
     const newDates = [
       ...interval.splitBy({days: 1}).map(d => d.start?.toFormat('yyyy-MM-dd')),
@@ -22,15 +49,17 @@ export default function TimetablePage({data, dates}: TimetablePageProps) {
     return newDates.map(date => {
       if (!date) return {}
       return {
-        header: DateTime.fromISO(date).toFormat('dd.MM'),
+        header: DateTime.fromISO(date).toFormat('EEE, dd.MM', {
+          locale: 'ru-RU',
+        }),
         accessorFn: (row: WorkerTimetable) =>
-          row.data?.find(d => d.date === date),
-        cell: ({getValue}: {getValue: () => TimetableData}) => (
-          <p>{getValue() ? JSON.stringify(getValue()) : ''}</p>
+          row.possibility_data?.find(d => d.date === date),
+        cell: ({getValue}: {getValue: () => PossibilityData}) => (
+          <PossibilityButton data={getValue()} locations={locations} />
         ),
       }
     })
-  }, [dates])
+  }, [dates, locations])
 
   const columns = useMemo(() => {
     return [
@@ -42,13 +71,16 @@ export default function TimetablePage({data, dates}: TimetablePageProps) {
           <Cell data={getValue()} />
         ),
       },
-      ...daysColumnds,
+      ...daysColumns,
     ]
-  }, [daysColumnds])
+  }, [daysColumns])
 
   return (
     <div>
-      <Table data={data} columns={columns}></Table>
+      <Table
+        data={data}
+        columns={columns}
+        headerClassNameAction={headerClassNameAction}></Table>
     </div>
   )
 }

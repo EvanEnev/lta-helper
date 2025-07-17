@@ -112,9 +112,19 @@ export interface LTRank {
   weight: number
 }
 
+type Values = '+' | '-' | '+/-'
+
+export interface PossibilityData {
+  date: string
+  comment: string | null
+  value: Values
+  location: LTLocation | null
+}
+
 export interface WorkerTimetable {
   worker: Omit<LTWorker, 'permissions'>
   data: TimetableData[]
+  possibility_data: PossibilityData[]
 }
 
 export interface TimetableData {
