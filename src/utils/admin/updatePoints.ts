@@ -3,7 +3,7 @@ import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import db from '@/lib/database'
 import google from '@/lib/google'
 import {google as rawGoogle} from 'googleapis'
-import {DateTime} from 'luxon'
+import {DateTime, Interval} from 'luxon'
 
 export default async function updatePoints({
   name,
@@ -61,31 +61,18 @@ export default async function updatePoints({
 
   const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
 
+  const datesFormat = 'dd.MM.yyyy'
+
   const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
     const splitValue = headerValue?.split('-')
     if (!splitValue.length || splitValue.length < 2) return false
 
-    const startDateParts = splitValue[0].split('.')
-    const endDateParts = splitValue[1].split('.')
+    const startDate = DateTime.fromFormat(splitValue[0], datesFormat)
+    const endDate = DateTime.fromFormat(splitValue[1], datesFormat)
 
-    const startDate = new Date(
-      new Date().getFullYear(),
-      parseInt(startDateParts[1]) - 1,
-      parseInt(startDateParts[0]),
-    )
+    const interval = Interval.fromDateTimes(startDate, endDate)
 
-    const endDate = new Date(
-      new Date().getFullYear(),
-      parseInt(endDateParts[1]) - 1,
-      parseInt(endDateParts[0]),
-    )
-
-    const initialDate = new Date(date.year, date.month, date.day)
-
-    return (
-      initialDate.valueOf() >= startDate.valueOf() &&
-      initialDate.valueOf() <= endDate.valueOf()
-    )
+    return interval.contains(date)
   })
 
   if (dateIndex === -1) return false

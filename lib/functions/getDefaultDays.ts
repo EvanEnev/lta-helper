@@ -10,5 +10,8 @@ export default async function getDefaultDays() {
     datesResult.rows[0]
   const interval = Interval.fromDateTimes(start_date, end_date)
 
-  return interval.splitBy({day: 1}).map(date => date.start!)
+  const days = interval.splitBy({day: 1}).map(date => date.start!)
+
+  days.push(interval.end!)
+  return days
 }
