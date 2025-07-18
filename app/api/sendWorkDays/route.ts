@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       fines: data.fines,
       comment: data.comment,
       gamesCount: data.gamesCount,
-      value: data.value,
+      value: data.location === 'Другое' ? data.value || 0 : data.value,
       overwork: data.location === 'Другое' ? 0 : data.overwork,
       isHardTime: data.isHardTime,
       worker: user,

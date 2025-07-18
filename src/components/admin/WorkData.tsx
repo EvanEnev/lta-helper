@@ -104,7 +104,7 @@ export default function WorkData({
       gamesCount: data.gamesCount,
       comment: data.comment,
       bonuses: data.bonuses,
-      value: data.value,
+      value: data.location === 'Другое' ? data.value || 0 : data.value,
       overwork: data.location === 'Другое' ? 0 : data.overwork,
     })
   }, [
