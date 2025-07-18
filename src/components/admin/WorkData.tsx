@@ -98,7 +98,7 @@ export default function WorkData({
     return getSalaryData({
       worker: user,
       rank,
-      workingHours: data.workingHours,
+      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
       gamesCount: data.gamesCount,
@@ -131,6 +131,7 @@ export default function WorkData({
     return groupBy(newWorkers, 'rank')
   }, [workers])
 
+  console.debug(salary)
   return (
     <div className="flex w-full flex-col gap-4">
       <Autocomplete
