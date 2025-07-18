@@ -23,7 +23,6 @@ export default function Table({
   headerClassNameAction = () => '',
 }: TableProps) {
   const {headerRef} = useAuth()
-
   const table = useReactTable({
     data,
     columns,

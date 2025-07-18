@@ -9,9 +9,11 @@ import {DateTime} from 'luxon'
 export default async function getLocationSalaryData({
   locationId = 2,
   date,
+  allLocations = false,
 }: {
   locationId?: number
   date: string
+  allLocations?: boolean
 }) {
   const worker = await auth()
 
@@ -29,13 +31,17 @@ export default async function getLocationSalaryData({
   let salaryResult = {rows: []}
 
   if (canView) {
-    let queryAddon = `AND s.worker_id = ${worker.id}`
+    let queryAddon = ''
 
-    if (canViewLocation) {
+    if (!allLocations) {
+      queryAddon = `AND s.worker_id = ${worker.id}`
+    }
+
+    if (canViewLocation && !allLocations) {
       queryAddon += ` OR s.location_id = ${worker.locationId}`
     }
 
-    if (canViewFull) {
+    if (canViewFull && !allLocations) {
       queryAddon = `AND s.location_id = ${locationId}`
     }
 

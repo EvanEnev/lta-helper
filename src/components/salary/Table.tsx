@@ -9,7 +9,7 @@ import {Socket} from 'socket.io-client'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import capitalize from '@/lib/functions/capitalize'
-import {Spinner} from '@heroui/react'
+import {Checkbox, Input, Spinner} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import LocationSelect from '@/src/components/salary/LocationSelect'
 import useIsMobile from '@/src/hooks/useIsMobile'
@@ -40,6 +40,8 @@ export default memo(function Table({
   const [date, setDate] = useState<string>(
     DateTime.fromISO(dates[dates.length - 1]).toFormat('yyyy-MM-dd'),
   )
+  const [filter, setFilter] = useState<string>('')
+  const [allLocations, setAllLocations] = useState<boolean>(false)
   const [locationId, setLocationId] = useState<number>(
     data
       .find((d: UserSalary) => d.dates.length)
@@ -199,7 +201,7 @@ export default memo(function Table({
     [date],
   )
 
-  const showUserColumn = data.length > 1
+  const showUserColumn = data.length > 1 || filter
 
   const daysColumns = useMemo(() => {
     return Array.from({length: daysInMonth}, (_, i) => {
@@ -280,6 +282,44 @@ export default memo(function Table({
     [date],
   )
 
+  useEffect(() => {
+    const name = filter.toLowerCase().trim()
+    if (!name) return setData(initialData)
+
+    console.debug(name, data[0]?.user)
+    const filtered = initialData.filter(d =>
+      d.user.name.trim().toLowerCase().startsWith(name),
+    )
+
+    setData(filtered)
+  }, [filter])
+
+  useEffect(() => {
+    ;(async () => {
+      setLoading(true)
+
+      console.debug(allLocations)
+      const data = await fetchHandler({
+        url: '/api/getSalaryData',
+        body: {locationId: locationId, date, allLocations},
+      })
+
+      console.debug(data.data)
+      if (data && filter) {
+        const name = filter.toLowerCase().trim()
+
+        const filtered = data.data.filter((d: any) =>
+          d.user.name.trim().toLowerCase().startsWith(name),
+        )
+        setData(filtered)
+      } else if (data) {
+        setData(data.data)
+      }
+
+      setLoading(false)
+    })()
+  }, [allLocations])
+
   const headerClassNameAction = useCallback(
     (header: Header<any, any>) =>
       header.column.columnDef.header ===
@@ -299,6 +339,14 @@ export default memo(function Table({
         <MonthSelect dates={dates} date={date} callback={onMonthUpdate} />
         {canViewFull && (
           <LocationSelect callback={onLocationUpdate} locationId={locationId} />
+        )}
+        <Checkbox onValueChange={value => setAllLocations(value)}>
+          Все площадки
+        </Checkbox>
+        {canViewFull && (
+          <Input
+            label="Позывной"
+            onValueChange={value => setFilter(value)}></Input>
         )}
         {loading && (
           <>
