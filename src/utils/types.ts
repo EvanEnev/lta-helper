@@ -113,3 +113,30 @@ export interface LTRank {
   maxShiftPoints: number
   weight: number
 }
+
+export interface LTPoint {
+  id: number
+  name: string
+  description: string
+  value: number
+}
+
+export interface LTPointData {
+  id: number
+  value: number
+  date: string
+  createdBy: string
+  createdAt: string
+  isAboveLimit: boolean
+  comment: string | null
+}
+
+export interface WorkerPoint {
+  worker: LTWorker
+  points: {
+    pointInfo: LTPoint
+    isRequired: boolean
+    maxValue: number
+    data: LTPointData[]
+  }[]
+}
