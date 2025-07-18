@@ -64,7 +64,8 @@ export default function WorkData({
         | 'value'
         | 'overwork'
         | 'fines'
-        | 'type',
+        | 'type'
+        | 'withoutDate',
       value: Key | string | boolean | null | undefined,
     ) => {
       const currentData = {...data}
@@ -189,6 +190,11 @@ export default function WorkData({
         className={data.type ? 'hidden' : ''}
         onValueChange={value => updateData('workingHours', value)}
       />
+      {data.type && (
+        <Checkbox onValueChange={value => updateData('withoutDate', value)}>
+          Без даты
+        </Checkbox>
+      )}
       {worker?.rank === 'Каменный' && (
         <Checkbox
           onValueChange={value => updateData('hasGames', value)}

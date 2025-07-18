@@ -63,6 +63,7 @@ export interface WorkerSalary {
   overwork?: number
   deleted?: number
   type?: string
+  withoutDate?: boolean
 }
 
 export interface SalaryData {

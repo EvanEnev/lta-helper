@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
   const user = await auth()
 
   const salaryData: WorkerSalary[] = body.salaryData?.filter(
-    (data: WorkerSalary) => data.worker && data.workingHours && data.location,
+    (data: WorkerSalary) => data.worker && data.location,
   )
 
   let date: Date | DateTime = new Date(body.date)
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
       overwork: data.location === 'Другое' ? 0 : data.overwork,
       isHardTime: data.isHardTime,
       worker: user,
-      workingHours: data.workingHours,
+      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
     })
 
     loggerData.salary = salary
@@ -157,6 +157,26 @@ export async function POST(req: NextRequest) {
           date,
         }),
       )
+    }
+
+    if (data.withoutDate) {
+      const query = `SELECT date FROM lt_arena.salary WHERE
+                                   worker_id = (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
+                                   AND date BETWEEN '${date.startOf('month').toFormat('yyyy-MM-dd')}'
+                                     AND '${date.endOf('month').toFormat('yyyy-MM-dd')}'`
+      const result = await db.query(query)
+
+      const dates = result.rows.map(row => row.date)
+      date = date.set({day: date.endOf('month').day})
+
+      while (
+        dates.find(
+          // @ts-ignore
+          d => d.toFormat('yyyy-MM-dd') === date.toFormat('yyyy-MM-dd'),
+        )
+      ) {
+        date = date.minus({days: 1})
+      }
     }
 
     queries.push(`INSERT INTO lt_arena.salary
