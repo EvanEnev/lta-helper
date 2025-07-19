@@ -49,7 +49,7 @@ export default function LocationSelect({
 
         if (!checkPermissions(['view_full_salary'], worker)) {
           sortedLocations = sortedLocations.filter(d =>
-            [locationId, 12].includes(d.id),
+            [worker.locationId, 12].includes(d.id),
           )
         }
 
