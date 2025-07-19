@@ -15,6 +15,41 @@
     color: #e0e0e0;
 }
 
+
+.scrolled {
+    backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.5)!important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.3);
+    transform: scale(0.99);
+
+    @variant light {
+        background: rgba(255, 255, 255, 0.01)!important;
+    }
+}
+
+header > div {
+    will-change: transform;
+    transition:
+            transform 0.1s ease-in-out;
+}
+
+header > div::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    border-radius: 1rem;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scale(1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: -1;
+    pointer-events: none;
+}
+
 html {
     scrollbar-width: thin;
 }
@@ -54,39 +89,6 @@ html {
 
 
 
-.scrolled {
-    backdrop-filter: blur(20px);
-    background: rgba(0, 0, 0, 0.5)!important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
-    box-shadow: 0 0 24px rgba(0, 0, 0, 0.3);
-    transform: scale(0.99);
-
-    @variant light {
-        background: rgba(255, 255, 255, 0.01)!important;
-    }
-}
-
-header > div {
-    will-change: transform;
-    transition:
-    transform 0.1s ease-in-out;
-}
-
-header > div::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(20px);
-    border-radius: 1rem;
-    box-shadow: 0 0 24px rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    transform: scale(1);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: -1;
-    pointer-events: none;
-}
 
 @keyframes ripple {
     0% {

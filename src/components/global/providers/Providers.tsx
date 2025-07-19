@@ -13,10 +13,10 @@ export default function Providers({children}: {children: React.ReactNode}) {
         locale="ru-RU"
         className="gradient relative min-h-[100dvh] w-full min-w-fit">
         <NextThemesProvider attribute="class" defaultTheme="light">
-          <div>
+          <div className="sm:flex sm:gap-2">
             <Header />
             <Provider>
-              <div style={{paddingTop: 'var(--header-height, 0px)'}}>
+              <div className="w-full">
                 <ToastProvider />
                 {children}
               </div>

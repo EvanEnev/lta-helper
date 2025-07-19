@@ -7,10 +7,21 @@ export default function MonthSelect({
   dates,
   callback,
   date,
+  showLabel = true,
+  className = '',
+  labelPlacement = 'outside',
 }: {
   dates: string[]
   callback: any
   date: string
+  showLabel?: boolean
+  className?: string
+  labelPlacement?:
+    | 'outside'
+    | 'outside-left'
+    | 'outside-top'
+    | 'inside'
+    | undefined
 }) {
   const datetimes = dates.map(date => DateTime.fromISO(date))
 
@@ -24,9 +35,10 @@ export default function MonthSelect({
   return (
     <Autocomplete
       required
+      className={className}
       clearButtonProps={{hidden: true}}
-      label="Месяц"
-      labelPlacement="outside"
+      label={showLabel ? 'Месяц' : ''}
+      labelPlacement={labelPlacement}
       onSelectionChange={onChange}
       selectedKey={date}
       aria-label="Выбор месяца">

@@ -11,9 +11,12 @@ type Auth = {
   setExiting: React.Dispatch<React.SetStateAction<boolean>>
   toastOffset: number
   setToastOffset: React.Dispatch<React.SetStateAction<number>>
-  customHeaderComponents: React.ReactNode[]
-  setCustomHeaderComponents: React.Dispatch<
-    React.SetStateAction<React.ReactNode[]>
+  pageSettings: {
+    label: string
+    components: React.ReactNode[]
+  }[]
+  setPageSettings: React.Dispatch<
+    React.SetStateAction<{label: string; components: React.ReactNode[]}[]>
   >
 }
 
@@ -32,8 +35,8 @@ const AuthContext = createContext<Auth>({
   setExiting: () => false,
   toastOffset: 0,
   setToastOffset: () => 0,
-  customHeaderComponents: [],
-  setCustomHeaderComponents: () => [],
+  pageSettings: [],
+  setPageSettings: () => [],
 })
 
 export default AuthContext

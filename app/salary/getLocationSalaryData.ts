@@ -2,19 +2,22 @@ import auth from '@/lib/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
-import {LTWorker, SalaryData, UserSalary} from '@/src/utils/types'
+import {LTWorker, SalaryData, UserSalary, Filter} from '@/src/utils/types'
 import sortByRank from '@/lib/functions/sortByRank'
 import {DateTime} from 'luxon'
 
+interface GetLocationSalaryDataProps {
+  locationId?: number
+  date: string
+  allLocations?: boolean
+  filters?: Filter[]
+}
 export default async function getLocationSalaryData({
   locationId = 2,
   date,
   allLocations = false,
-}: {
-  locationId?: number
-  date: string
-  allLocations?: boolean
-}) {
+  filters = [],
+}: GetLocationSalaryDataProps) {
   const worker = await auth()
 
   const canView = checkPermissions(['view_salary'], worker)
@@ -38,11 +41,21 @@ export default async function getLocationSalaryData({
     }
 
     if (canViewLocation && !allLocations) {
-      queryAddon += ` OR s.location_id = ${worker.locationId}`
+      queryAddon = `AND s.worker_id = ${worker.id} OR s.location_id = ${worker.locationId}`
     }
 
     if (canViewFull && !allLocations) {
       queryAddon = `AND s.location_id = ${locationId}`
+    }
+
+    if (filters?.length) {
+      filters.forEach(filter => {
+        if (typeof filter.value === 'number') {
+          queryAddon += ` AND ${filter.key} = ${filter.value}`
+        } else {
+          queryAddon += ` AND ${filter.key} ILIKE '${filter.value}%'`
+        }
+      })
     }
 
     const salaryQuery = `SELECT date,
@@ -70,11 +83,19 @@ export default async function getLocationSalaryData({
                          WHERE date BETWEEN '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}' AND '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'
                                  ${queryAddon}`
 
+    let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker.name.toLowerCase()}'` : ''}`
+
+    const nameFilter = filters.find(filter => filter.key === 'w.name')
+
+    if (nameFilter) {
+      workersQueryAddon = ` WHERE name ILIKE '${nameFilter.value}%'`
+    }
+
     const workersQuery = `
     SELECT
     id, name, first_name, rank, telegram_id, is_former
     FROM lt_arena.workers 
-    ${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker.name.toLowerCase()}'` : ''}`
+    ${workersQueryAddon}`
 
     const results = await db.query(`${salaryQuery};\n${workersQuery}`)
 
@@ -103,7 +124,6 @@ export default async function getLocationSalaryData({
   const salaryData: SalaryData[] = salaryResult.rows?.map((row: any) => {
     const date: DateTime = row.date.set({second: 0, minute: 0, hour: 0})
     const createdAt: DateTime = convertTZ(row.created_at, 'Europe/Moscow')
-    console.debug(row)
     return {
       date: date.toFormat('yyyy-MM-dd'),
       value: row.value,

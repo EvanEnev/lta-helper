@@ -8,7 +8,7 @@ import {useAuth} from '@/src/components/global/providers/authProvider'
 import {useEffect, useState} from 'react'
 
 export default function Header() {
-  const {worker, headerRef, setToastOffset} = useAuth()
+  const {headerRef, setToastOffset} = useAuth()
   const isMobile = useIsMobile()
   const path = usePathname()
 
@@ -60,9 +60,5 @@ export default function Header() {
   if (path === '/login') return ''
   if (path === '/register') return ''
 
-  return isMobile ? (
-    <MobileHeader worker={worker} scrolled={scrolled} />
-  ) : (
-    <DesktopHeader worker={worker} scrolled={scrolled} />
-  )
+  return isMobile ? <MobileHeader scrolled={scrolled} /> : <DesktopHeader />
 }

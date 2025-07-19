@@ -1,4 +1,10 @@
-import {LTLocation, SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
+import {
+  Filter,
+  LTLocation,
+  SalaryData,
+  SalaryUser,
+  UserSalary,
+} from '@/src/utils/types'
 import {Header} from '@tanstack/react-table'
 import {useCallback, useEffect, useMemo, useRef, useState, memo} from 'react'
 import Cell from './Cell'
@@ -8,13 +14,13 @@ import {io} from 'socket.io-client'
 import {Socket} from 'socket.io-client'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import capitalize from '@/lib/functions/capitalize'
-import {Checkbox, Input, Spinner} from '@heroui/react'
+import {Input, Spinner} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import LocationSelect from '@/src/components/salary/LocationSelect'
-import useIsMobile from '@/src/hooks/useIsMobile'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import CTable from '@/src/components/global/table/Table'
+import useIsMobile from '@/src/hooks/useIsMobile'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -35,13 +41,15 @@ export default memo(function Table({
   dates: string[]
 }) {
   const socketRef = useRef<Socket | null>(null)
-  const {worker} = useAuth()
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const {worker, headerRef} = useAuth()
   const [data, setData] = useState<UserSalary[]>(initialData)
   const [date, setDate] = useState<string>(
     DateTime.fromISO(dates[dates.length - 1]).toFormat('yyyy-MM-dd'),
   )
-  const [filter, setFilter] = useState<string>('')
-  const [allLocations, setAllLocations] = useState<boolean>(false)
+  const [rawFilters, setRawFilters] = useState<Filter[]>([])
+  const [filters, setFilters] = useState<Filter[]>([])
+  const [nameFilter, setNameFilter] = useState<string>('')
   const [locationId, setLocationId] = useState<number>(
     data
       .find((d: UserSalary) => d.dates.length)
@@ -51,6 +59,47 @@ export default memo(function Table({
   const isMobile = useIsMobile()
 
   const today = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
+
+  const updateData = useCallback(
+    async (
+      key: 'date' | 'location' | null,
+      value: string | LTLocation | null,
+    ) => {
+      setLoading(true)
+
+      let newLocationId = locationId
+      let newDate = date
+
+      if (key === 'date') {
+        newDate = value as string
+        localStorage.setItem('salaryDate', newDate)
+        setDate(newDate)
+      } else if (key === 'location') {
+        newLocationId = (value as LTLocation).id
+        setLocationId(newLocationId)
+        if (newLocationId !== 0) {
+          localStorage.setItem('salaryLocationId', newLocationId.toString())
+        }
+      }
+
+      const data = await fetchHandler({
+        url: '/api/getSalaryData',
+        body: {
+          locationId: newLocationId || 1,
+          date: newDate,
+          allLocations: newLocationId === 0,
+          filters,
+        },
+      })
+
+      if (data.data) {
+        setData(data.data)
+      }
+
+      setLoading(false)
+    },
+    [date, filters, locationId],
+  )
 
   useEffect(() => {
     const localLocationId = localStorage.getItem('salaryLocationId')
@@ -79,6 +128,21 @@ export default memo(function Table({
     })()
   }, [])
 
+  const checkTarget = useCallback(
+    (row: UserSalary, date: DateTime, data: any) => {
+      const cell = row[`day${date.toFormat('d')}`] as SalaryData
+      const cellDate = DateTime.fromISO(cell.date)
+
+      const isTarget =
+        typeof cell === 'object' &&
+        cell?.worker_id === data.worker_id &&
+        date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
+
+      if (!isTarget) return row
+    },
+    [],
+  )
+
   useEffect(() => {
     const socket = io()
 
@@ -91,15 +155,7 @@ export default memo(function Table({
 
       setData((prev: UserSalary[]) =>
         prev.map(row => {
-          const cell = row[`day${date.toFormat('d')}`] as SalaryData
-          const cellDate = DateTime.fromISO(cell.date)
-
-          const isTarget =
-            typeof cell === 'object' &&
-            cell?.worker_id === data.worker_id &&
-            date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
-
-          if (!isTarget) return row
+          if (!checkTarget(row, date, data)) return row
 
           return {
             ...row,
@@ -113,7 +169,7 @@ export default memo(function Table({
       socket.off('salary:update')
       socket.disconnect()
     }
-  }, [worker.id])
+  }, [checkTarget, worker.id])
 
   const handleEdit = useCallback(
     (data: SalaryData) => {
@@ -126,15 +182,7 @@ export default memo(function Table({
 
         setData((prev: UserSalary[]) =>
           prev.map(row => {
-            const cell = row[`day${date.toFormat('d')}`] as SalaryData
-            const cellDate = DateTime.fromISO(cell.date)
-
-            const isTarget =
-              typeof cell === 'object' &&
-              cell?.worker_id === data.worker_id &&
-              date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
-
-            if (!isTarget) return row
+            if (!checkTarget(row, date, data)) return row
 
             return {
               ...row,
@@ -154,15 +202,7 @@ export default memo(function Table({
       if (data.newLocation) {
         setData((prev: UserSalary[]) =>
           prev.map(row => {
-            const cell = row[`day${date.toFormat('d')}`] as SalaryData
-            const cellDate = DateTime.fromISO(cell.date)
-
-            const isTarget =
-              typeof cell === 'object' &&
-              cell?.worker_id === data.worker_id &&
-              date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
-
-            if (!isTarget) return row
+            if (!checkTarget(row, date, data)) return row
 
             return {
               ...row,
@@ -182,7 +222,7 @@ export default memo(function Table({
         updated_by: worker.id,
       })
     },
-    [worker],
+    [checkTarget, worker.id],
   )
 
   const handleDelete = useCallback(
@@ -196,12 +236,33 @@ export default memo(function Table({
     [worker],
   )
 
+  const canViewLocation = useMemo(
+    () =>
+      checkPermissions(['view_location_salary', 'view_full_salary'], worker),
+    [worker],
+  )
+
+  const updateFilters = useCallback((key: string, value: string | number) => {
+    if (key === 'w.name') setNameFilter(value as string)
+
+    setRawFilters(prev => [...prev.filter(d => d.key !== key), {key, value}])
+  }, [])
+
+  useEffect(() => {
+    const delayInputTimeoutId = setTimeout(async () => {
+      setFilters(rawFilters)
+      await updateData(null, null)
+    }, 1000)
+
+    return () => clearTimeout(delayInputTimeoutId)
+  }, [rawFilters, updateData])
+
   const daysInMonth = useMemo(
     () => DateTime.fromFormat(date, 'yyyy-MM-dd').daysInMonth!,
     [date],
   )
 
-  const showUserColumn = data.length > 1 || filter
+  const showUserColumn = data.length > 1 || !!filters.length
 
   const daysColumns = useMemo(() => {
     return Array.from({length: daysInMonth}, (_, i) => {
@@ -242,84 +303,6 @@ export default memo(function Table({
     return [...baseColumns, ...daysColumns]
   }, [showUserColumn, daysColumns])
 
-  const onMonthUpdate = useCallback(
-    async (date: string) => {
-      setLoading(true)
-      setDate(date)
-      localStorage.setItem('salaryDate', date)
-
-      const data = await fetchHandler({
-        url: '/api/getSalaryData',
-        body: {locationId, date},
-      })
-
-      if (data) {
-        setData(data.data)
-      }
-
-      setLoading(false)
-    },
-    [locationId],
-  )
-
-  const onLocationUpdate = useCallback(
-    async (location: LTLocation) => {
-      setLoading(true)
-      setLocationId(locationId)
-      localStorage.setItem('salaryLocationId', `${location.id}`)
-
-      const data = await fetchHandler({
-        url: '/api/getSalaryData',
-        body: {locationId: location.id, date},
-      })
-
-      if (data) {
-        setData(data.data)
-      }
-
-      setLoading(false)
-    },
-    [date],
-  )
-
-  useEffect(() => {
-    const name = filter.toLowerCase().trim()
-    if (!name) return setData(initialData)
-
-    console.debug(name, data[0]?.user)
-    const filtered = initialData.filter(d =>
-      d.user.name.trim().toLowerCase().startsWith(name),
-    )
-
-    setData(filtered)
-  }, [filter])
-
-  useEffect(() => {
-    ;(async () => {
-      setLoading(true)
-
-      console.debug(allLocations)
-      const data = await fetchHandler({
-        url: '/api/getSalaryData',
-        body: {locationId: locationId, date, allLocations},
-      })
-
-      console.debug(data.data)
-      if (data && filter) {
-        const name = filter.toLowerCase().trim()
-
-        const filtered = data.data.filter((d: any) =>
-          d.user.name.trim().toLowerCase().startsWith(name),
-        )
-        setData(filtered)
-      } else if (data) {
-        setData(data.data)
-      }
-
-      setLoading(false)
-    })()
-  }, [allLocations])
-
   const headerClassNameAction = useCallback(
     (header: Header<any, any>) =>
       header.column.columnDef.header ===
@@ -332,29 +315,49 @@ export default memo(function Table({
   return (
     <div className="h-full w-full px-2">
       <div
-        className={`sticky left-0 mb-4 flex ${isMobile ? 'w-[100dvw]' : 'w-fit'} flex-wrap items-center gap-2 p-4 text-xl font-bold`}>
-        <p>
-          {capitalize(DateTime.now().toFormat('LLLL yyyy', {locale: 'ru-RU'}))}
-        </p>
-        <MonthSelect dates={dates} date={date} callback={onMonthUpdate} />
-        {canViewFull && (
-          <LocationSelect callback={onLocationUpdate} locationId={locationId} />
-        )}
-        <Checkbox onValueChange={value => setAllLocations(value)}>
-          Все площадки
-        </Checkbox>
-        {canViewFull && (
-          <Input
-            label="Позывной"
-            onValueChange={value => setFilter(value)}></Input>
+        ref={wrapperRef}
+        style={{
+          left: `${isMobile ? 0 : headerRef.current?.offsetWidth || 0}px`,
+          top: `${isMobile ? `${headerRef.current?.offsetHeight || 0}px` : 0}`,
+        }}
+        className={`scrolled sticky top-2 left-0 z-1000 mb-4 flex w-[100dvw] flex-wrap items-center gap-2 p-4 text-xl font-bold`}>
+        <MonthSelect
+          labelPlacement="inside"
+          className="w-fit"
+          dates={dates}
+          date={date}
+          callback={(date: string) => updateData('date', date)}
+        />
+        {canViewLocation && (
+          <>
+            <LocationSelect
+              labelPlacement="inside"
+              includeAll={true}
+              className="w-fit"
+              callback={(location: LTLocation) =>
+                updateData('location', location)
+              }
+              locationId={locationId}
+            />
+            <Input
+              className="w-fit"
+              label="Позывной"
+              value={nameFilter}
+              onValueChange={value => updateFilters('w.name', value)}
+            />
+          </>
         )}
         {loading && (
           <>
-            <Spinner /> Загрузка
+            <Spinner color="default" /> Загрузка
           </>
         )}
       </div>
       <CTable
+        headerOffset={
+          (wrapperRef.current?.offsetHeight || 0) +
+          (isMobile ? headerRef.current?.offsetHeight || 0 : 0)
+        }
         data={data}
         columns={columns}
         headerClassNameAction={headerClassNameAction}

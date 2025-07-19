@@ -131,7 +131,6 @@ export default function WorkData({
     return groupBy(newWorkers, 'rank')
   }, [workers])
 
-  console.debug(salary)
   return (
     <div className="flex w-full flex-col gap-4">
       <Autocomplete

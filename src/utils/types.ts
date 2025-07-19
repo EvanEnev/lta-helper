@@ -141,3 +141,8 @@ export interface WorkerPoint {
     data: LTPointData[]
   }[]
 }
+
+export interface Filter {
+  key: string
+  value: string | number
+}

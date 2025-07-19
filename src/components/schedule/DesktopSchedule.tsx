@@ -118,9 +118,7 @@ export default function DesktopSchedule() {
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
       )}
-      <Card
-        className="glass sticky h-fit min-h-64 min-w-[20%]"
-        style={{top: document.querySelector('header')?.offsetHeight}}>
+      <Card className="glass sticky top-2 h-fit min-h-64 min-w-[20%]">
         <CardHeader className="flex gap-2 text-2xl">
           <Pen2 size={24} svgProps={{width: 24, height: 24}} />
           Изменённые дни:

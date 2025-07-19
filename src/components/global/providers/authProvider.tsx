@@ -25,8 +25,11 @@ export default function AuthProvider({children}: {children: ReactNode}) {
   const router = useRouter()
   const [isExiting, setExiting] = useState(false)
   const [toastOffset, setToastOffset] = useState(0)
-  const [customHeaderComponents, setCustomHeaderComponents] = useState<
-    ReactNode[]
+  const [pageSettings, setPageSettings] = useState<
+    {
+      label: string
+      components: ReactNode[]
+    }[]
   >([])
   const [worker, setWorker] = useState<LTWorker>({
     name: '',
@@ -190,8 +193,8 @@ export default function AuthProvider({children}: {children: ReactNode}) {
             setExiting,
             toastOffset,
             setToastOffset,
-            customHeaderComponents,
-            setCustomHeaderComponents,
+            pageSettings,
+            setPageSettings,
           }}>
           {children}
         </AuthContext.Provider>

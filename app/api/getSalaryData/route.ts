@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     locationId,
     date,
     allLocations: body.allLocations || false,
+    filters: body.filters || [],
   })
 
   return NextResponse.json({data})

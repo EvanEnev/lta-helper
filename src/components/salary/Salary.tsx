@@ -22,22 +22,20 @@ export default function Salary({
   ranks: LTRank[]
   locations: LTLocation[]
 }) {
-  const {setExiting, setCustomHeaderComponents} = useAuth()
+  const {setExiting, setPageSettings} = useAuth()
   const [selectedTab, setSelectedTab] = useState<any>('table')
 
   const switchComponent = useMemo(
     () => (
-      <div key="tabSwitch" className="glass flex gap-2 p-2">
+      <div key="tabSwitch" className="flex gap-2">
         <Button
           onPress={() => setSelectedTab('table')}
-          color={selectedTab === 'table' ? 'primary' : 'default'}
-          variant={selectedTab === 'table' ? 'solid' : 'ghost'}>
+          color={selectedTab === 'table' ? 'primary' : 'default'}>
           График
         </Button>
         <Button
           onPress={() => setSelectedTab('summary')}
-          color={selectedTab === 'summary' ? 'primary' : 'default'}
-          variant={selectedTab === 'summary' ? 'solid' : 'ghost'}>
+          color={selectedTab === 'summary' ? 'primary' : 'default'}>
           Сводная
         </Button>
       </div>
@@ -48,9 +46,9 @@ export default function Salary({
   useEffect(() => {
     setExiting(false)
     if (canViewFull) {
-      setCustomHeaderComponents([switchComponent])
+      setPageSettings([{label: 'Страница', components: [switchComponent]}])
     }
-  }, [setExiting, setCustomHeaderComponents, switchComponent, canViewFull])
+  }, [setExiting, setPageSettings, switchComponent, canViewFull])
 
   if (!canViewFull) {
     return (

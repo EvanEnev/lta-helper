@@ -10,18 +10,22 @@ import {Fragment, useCallback} from 'react'
 import {Divider} from '@heroui/react'
 import TableRow from '@/src/components/global/table/TableRow'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import useIsMobile from '@/src/hooks/useIsMobile'
 
 interface TableProps {
   data: any
   columns: any[]
   headerClassNameAction?: (header: Header<any, any>) => string
+  headerOffset?: number
 }
 
 export default function Table({
   data,
   columns,
   headerClassNameAction = () => '',
+  headerOffset = 0,
 }: TableProps) {
+  const isMobile = useIsMobile()
   const {headerRef} = useAuth()
   const table = useReactTable({
     data,
@@ -37,9 +41,9 @@ export default function Table({
         leftOffset += columns[i].getSize()
       }
 
-      return leftOffset
+      return leftOffset + (isMobile ? 0 : headerRef.current?.offsetWidth || 0)
     },
-    [table],
+    [table, isMobile, headerRef],
   )
 
   return (
@@ -48,7 +52,7 @@ export default function Table({
         <thead
           className="[&>tr]:first:shadow-small sticky z-1000"
           style={{
-            top: `${headerRef.current?.offsetHeight || 0}px`,
+            top: `${headerOffset || 0}px`,
           }}>
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id} className="rounded-2xl">

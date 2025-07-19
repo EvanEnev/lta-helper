@@ -1,30 +1,22 @@
-import {Button, Avatar, Link, Switch} from '@heroui/react'
+import {Button, Link} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import buttons from '@/src/utils/global/pathButtons'
-import {LTWorker} from '@/src/utils/types'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {MoonIcon, SunIcon} from '@heroui/shared-icons'
-import {useTheme} from 'next-themes'
+import User from '@/src/components/global/header/User'
 
-export default function DesktopHeader({
-  worker,
-  scrolled,
-}: {
-  worker: LTWorker
-  scrolled: boolean
-}) {
-  const {headerRef, setExiting, customHeaderComponents} = useAuth()
+export default function DesktopHeader() {
+  const {headerRef, setExiting, worker} = useAuth()
   const path = usePathname()
-  const {theme, setTheme} = useTheme()
 
   return (
     <header
       ref={headerRef}
-      className={`fixed top-0 left-0 z-1000 flex w-full p-2`}>
+      className={`sticky top-0 left-0 z-10000 flex h-[100dvh] w-fit flex-col p-2`}>
       <div
-        className={`header-inner flex h-full w-full items-center justify-between px-2 py-4 ${scrolled ? 'scrolled' : ''}`}>
-        <div className="flex items-center gap-4">
+        className={`header-inner items-between glass flex h-full w-full justify-between px-2 py-4`}>
+        <div className="items-between flex flex-col justify-start gap-4">
+          <User />
           <>
             {buttons.map((button, index) => {
               if (
@@ -44,33 +36,18 @@ export default function DesktopHeader({
                     }
                   }}
                   variant={path === button.href ? 'shadow' : 'ghost'}
-                  size="lg">
-                  {button.name}
+                  className="h-16 w-full flex-col p-2 text-xs"
+                  size="lg"
+                  title={button.name}
+                  aria-label={button.name}
+                  aria-placeholder={button.name}>
+                  <button.icon size={24} />
+                  {/*{button.name}*/}
                 </Button>
               )
             })}
           </>
-          {customHeaderComponents}
-        </div>
-        <div className="flex h-fit items-center gap-4 p-2 text-3xl">
-          <Switch
-            color="default"
-            size="lg"
-            isSelected={theme === 'light'}
-            onValueChange={value =>
-              value ? setTheme('light') : setTheme('dark')
-            }
-            thumbIcon={({isSelected, className}) =>
-              isSelected ? (
-                <SunIcon className={className} />
-              ) : (
-                <MoonIcon className={className} />
-              )
-            }>
-            Светлая тема
-          </Switch>
-          <Avatar src={worker.photoUrl} size="lg" />
-          {worker.name}
+          {/*<Settings />*/}
         </div>
       </div>
     </header>

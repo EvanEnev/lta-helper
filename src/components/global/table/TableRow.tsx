@@ -1,4 +1,4 @@
-import {Fragment, useRef} from 'react'
+import {Fragment, useEffect, useRef, useState} from 'react'
 import {flexRender, Row} from '@tanstack/react-table'
 import {Divider} from '@heroui/react'
 
@@ -15,41 +15,49 @@ export default function TableRow({
   rowIndex,
   dataLength,
 }: TableRowProps) {
-  const rowRef = useRef<HTMLTableDataCellElement | null>(null)
+  const rowRef = useRef<HTMLTableRowElement | null>(null)
+  const cellRef = useRef<HTMLTableCellElement>(null)
+  const [maxHeight, setMaxHeight] = useState(0)
+
+  useEffect(() => {
+    setMaxHeight(prev => Math.max(prev, cellRef.current?.offsetHeight || 0))
+  }, [cellRef])
 
   return (
     <Fragment>
-      <tr className="h-fit">
-        {row.getVisibleCells().map((cell, index) => (
-          <Fragment key={cell.id}>
-            <td
-              ref={rowRef}
-              id={cell.id}
-              className={`${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-full min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
-              style={{
-                ...(cell.column.columnDef.meta?.frozen && {
-                  left: `${getFixedColumnLeftPosition(
-                    cell.column.columnDef.meta?.fixedPosition,
-                  )}px`,
-                }),
-              }}>
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </td>
-            <td className="h-full py-2">
-              <Divider
-                className="mx-auto min-h-[5rem]"
-                orientation="vertical"
-                hidden={
-                  (dataLength > 1 && index === 0) ||
-                  index === row.getVisibleCells().length - 1
-                }
+      <tr ref={rowRef} className="max-h-fit min-h-6">
+        {row.getVisibleCells().map((cell, index) => {
+          return (
+            <Fragment key={cell.id}>
+              <td
+                id={cell.id}
+                ref={cellRef}
+                className={`${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-full min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
                 style={{
-                  height: `${rowRef.current?.offsetHeight || 0}px`,
-                }}
-              />
-            </td>
-          </Fragment>
-        ))}
+                  ...(cell.column.columnDef.meta?.frozen && {
+                    left: `${getFixedColumnLeftPosition(
+                      cell.column.columnDef.meta?.fixedPosition,
+                    )}px`,
+                  }),
+                }}>
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </td>
+              <td className="h-full py-2">
+                <Divider
+                  className="mx-auto min-h-[5rem]"
+                  orientation="vertical"
+                  hidden={
+                    (dataLength > 1 && index === 0) ||
+                    index === row.getVisibleCells().length - 1
+                  }
+                  style={{
+                    height: `${maxHeight}px`,
+                  }}
+                />
+              </td>
+            </Fragment>
+          )
+        })}
       </tr>
       <tr>
         {[

@@ -2,6 +2,8 @@ import {addToast, Autocomplete, AutocompleteItem} from '@heroui/react'
 import {useCallback, useEffect, useState} from 'react'
 import {LTLocation} from '@/src/utils/types'
 import LocationIcon from '@/src/components/global/LocationIcon'
+import {useAuth} from '@/src/components/global/providers/authProvider'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 interface LocationSelectProps {
   callback: any
@@ -12,14 +14,21 @@ interface LocationSelectProps {
     | 'outside-top'
     | 'inside'
     | undefined
+  showLabel?: boolean
+  className?: string
+  includeAll?: boolean
 }
 
 export default function LocationSelect({
   callback,
   locationId,
   labelPlacement = 'outside',
+  showLabel = true,
+  className = '',
+  includeAll = false,
 }: LocationSelectProps) {
   const [locations, setLocations] = useState<LTLocation[]>([])
+  const {worker} = useAuth()
   async function getLocations() {
     const response = await fetch('/api/getLocations')
 
@@ -27,9 +36,22 @@ export default function LocationSelect({
 
     if (response.ok) {
       if (json.data) {
-        const sortedLocations: LTLocation[] = json.data.sort(
+        let sortedLocations: LTLocation[] = json.data.sort(
           (a: LTLocation, b: LTLocation) => a.name.localeCompare(b.name),
         )
+
+        if (includeAll) {
+          sortedLocations = [
+            {name: 'Все', id: 0, color: ''},
+            ...sortedLocations,
+          ]
+        }
+
+        if (!checkPermissions(['view_full_salary'], worker)) {
+          sortedLocations = sortedLocations.filter(d =>
+            [locationId, 12].includes(d.id),
+          )
+        }
 
         setLocations(sortedLocations)
       }
@@ -56,8 +78,9 @@ export default function LocationSelect({
   return (
     <Autocomplete
       required
+      className={className}
       clearButtonProps={{hidden: true}}
-      label="Локация"
+      label={showLabel ? 'Локация' : ''}
       labelPlacement={labelPlacement}
       onSelectionChange={onChange}
       selectedKey={locationId.toString()}

@@ -148,11 +148,7 @@ export default function DesktopAdmin({
           )
         })}
       </div>
-      <Card
-        className="glass sticky z-1000 h-fit w-[22vw]"
-        style={{
-          top: `${document.querySelector('header')?.offsetHeight}px`,
-        }}>
+      <Card className="glass sticky top-2 z-1000 h-fit w-[22vw]">
         <CardBody className="gap-4">
           <DatePicker
             variant="bordered"
