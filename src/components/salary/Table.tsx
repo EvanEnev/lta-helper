@@ -42,7 +42,7 @@ export default memo(function Table({
 }) {
   const socketRef = useRef<Socket | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const {worker, headerRef} = useAuth()
+  const {worker, headerRef, pageSettings} = useAuth()
   const [data, setData] = useState<UserSalary[]>(initialData)
   const [date, setDate] = useState<string>(
     DateTime.fromISO(dates[dates.length - 1]).toFormat('yyyy-MM-dd'),
@@ -352,6 +352,7 @@ export default memo(function Table({
             <Spinner color="default" /> Загрузка
           </>
         )}
+        {pageSettings.map(component => component.components.map(c => c))}
       </div>
       <CTable
         headerOffset={

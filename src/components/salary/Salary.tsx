@@ -29,11 +29,13 @@ export default function Salary({
     () => (
       <div key="tabSwitch" className="flex gap-2">
         <Button
+          className="flex-1"
           onPress={() => setSelectedTab('table')}
           color={selectedTab === 'table' ? 'primary' : 'default'}>
           График
         </Button>
         <Button
+          className="flex-1"
           onPress={() => setSelectedTab('summary')}
           color={selectedTab === 'summary' ? 'primary' : 'default'}>
           Сводная

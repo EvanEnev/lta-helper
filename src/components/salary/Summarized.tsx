@@ -16,6 +16,7 @@ import CellChip from '@/src/components/salary/CellChip'
 import RankIcon from '@/src/components/global/RankIcon'
 import {LTLocation, LTRank} from '@/src/utils/types'
 import salarySort from '@/lib/functions/salarySort'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Summarized({
   ranks,
@@ -24,6 +25,7 @@ export default function Summarized({
   ranks: LTRank[]
   locations: LTLocation[]
 }) {
+  const {pageSettings} = useAuth()
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
   const [bonuses, setBonuses] = useState<boolean>(false)
   const [initialData, setInitialData] = useState([])
@@ -314,6 +316,7 @@ export default function Summarized({
           top: `${document.querySelector('header')?.offsetHeight}px`,
         }}>
         <div className="glass flex flex-col gap-2 p-2">
+          {pageSettings.map(component => component.components)}
           <DateRangePicker
             className="w-full"
             variant="bordered"
