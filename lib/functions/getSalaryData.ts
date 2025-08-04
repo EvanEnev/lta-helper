@@ -126,7 +126,7 @@ export default function getSalaryData({
   comment = comment?.trim()
 
   if (!fines.startsWith('-')) {
-    fines = '-' + fines
+    fines = '-' + (fines || '0')
   }
 
   return {
