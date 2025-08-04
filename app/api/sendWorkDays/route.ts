@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
   }
 
-  const loggerData: any = {}
+  const loggerData: any = {salary: []}
 
   date = convertTZ(date, 'Europe/Moscow')
 
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
       workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
     })
 
-    loggerData.salary = salary
+    loggerData.salary.push(salary)
 
     if (!salary) continue
 

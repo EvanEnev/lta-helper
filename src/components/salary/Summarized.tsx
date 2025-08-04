@@ -17,6 +17,7 @@ import RankIcon from '@/src/components/global/RankIcon'
 import {LTLocation, LTRank} from '@/src/utils/types'
 import salarySort from '@/lib/functions/salarySort'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import useIsMobile from '@/src/hooks/useIsMobile'
 
 export default function Summarized({
   ranks,
@@ -25,13 +26,22 @@ export default function Summarized({
   ranks: LTRank[]
   locations: LTLocation[]
 }) {
-  const {pageSettings} = useAuth()
+  const isMobile = useIsMobile()
+  const {pageSettings, headerRef} = useAuth()
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
   const [bonuses, setBonuses] = useState<boolean>(false)
   const [initialData, setInitialData] = useState([])
   const [data, setData] = useState(initialData)
   const [selectedRow, setSelectedRow] = useState<string>()
   const [hiddenColumns, setHiddenColumns] = useState<string[]>()
+  const [selectedRanks, setSelectedRanks] = useState<string[]>([
+    'all',
+    ...ranks.map(r => r.name),
+  ])
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([
+    'all',
+    ...locations.map(l => l.name),
+  ])
 
   const render = useCallback((data: any) => {
     return <CellChip className="text-medium! h-fit p-2">{data}</CellChip>
@@ -185,44 +195,39 @@ export default function Summarized({
     let allSalary = 0
     let bonuses = 0
     let summary = 0
+    let fines = 0
 
     data.forEach((value: any) => {
       allSalary += value.salary + value.overwork
-      bonuses += value.bonuses + value.fines
+      bonuses += value.bonuses
+      fines += value.fines
       summary += value.salary + value.overwork + value.bonuses + value.fines
     })
 
-    return {salary: allSalary, bonuses, summary}
+    return {salary: allSalary, bonuses, summary, fines}
   }, [data])
 
-  const ranksToHide = useMemo(
-    () => [
-      'Платиновый',
-      'Золотой',
-      'Серебряный',
-      'Бронзовый',
-      'Железный',
-      'Каменный',
-    ],
-    [],
-  )
+  const ranksToHide = useMemo(() => ['Деревянный'], [])
 
   const filteredRanks = useMemo(() => {
     const newRanks = ranks.filter(r => !ranksToHide.includes(r.name))
-
-    newRanks.push({
-      name: 'Инструктор',
-      weight: 7,
-      salary: 0,
-      overwork: 0,
-      maxShiftPoints: 0,
-      maxPoints: 0,
-    })
 
     return newRanks.sort(
       (r1, r2) => r2.weight - r1.weight || r1.name.localeCompare(r2.name),
     )
   }, [ranks, ranksToHide])
+
+  useEffect(() => {
+    setData(
+      initialData.filter(
+        d =>
+          // @ts-ignore
+          selectedRanks.includes(d.rank) &&
+          // @ts-ignore
+          selectedLocations.includes(d.locationName),
+      ),
+    )
+  }, [initialData, selectedLocations, selectedRanks])
 
   return (
     <div className="flex w-full gap-4">
@@ -231,7 +236,7 @@ export default function Summarized({
           <thead
             className="[&>tr]:first:shadow-small sticky z-1000 w-full"
             style={{
-              top: `${document.querySelector('header')?.offsetHeight}px`,
+              top: `${isMobile ? `${headerRef.current?.offsetHeight || 0}px` : 0}`,
             }}>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id} className="rounded-2xl">
@@ -313,7 +318,7 @@ export default function Summarized({
       <div
         className="sticky z-1000 flex h-fit w-[20%] flex-col gap-2"
         style={{
-          top: `${document.querySelector('header')?.offsetHeight}px`,
+          top: `${isMobile ? `${headerRef.current?.offsetHeight || 0}px` : 0}`,
         }}>
         <div className="glass flex flex-col gap-2 p-2">
           {pageSettings.map(component => component.components)}
@@ -330,25 +335,34 @@ export default function Summarized({
             label="Ранг"
             className="w-full"
             variant="bordered"
+            selectedKeys={selectedRanks}
             selectionMode="multiple"
             onSelectionChange={keys => {
-              // @ts-ignore
-              if (!keys.size || keys.has('all')) {
-                return setData(initialData)
+              let newKeys = Array.from(keys)
+
+              const removeAll =
+                !newKeys.includes('all') && selectedRanks.includes('all')
+
+              if (
+                newKeys.length === filteredRanks.length &&
+                !newKeys.includes('all') &&
+                !removeAll
+              ) {
+                newKeys.push('all')
+              }
+
+              if (newKeys.includes('all')) {
+                if (!selectedRanks.includes('all')) {
+                  newKeys = ['all', ...filteredRanks.map(r => r.name)]
+                }
+              }
+
+              if (removeAll) {
+                newKeys = []
               }
 
               // @ts-ignore
-              let filtered = initialData.filter(d => keys.has(d.rank))
-              // @ts-ignore
-              if (keys.has('Инструктор')) {
-                filtered = [
-                  // @ts-ignore
-                  ...initialData.filter(d => ranksToHide.includes(d.rank)),
-                  ...filtered,
-                ]
-              }
-
-              setData(filtered)
+              setSelectedRanks(newKeys)
             }}>
             <SelectItem
               key="all"
@@ -371,30 +385,53 @@ export default function Summarized({
             label="Локация"
             className="w-full"
             variant="bordered"
+            selectedKeys={selectedLocations}
             selectionMode="multiple"
             onSelectionChange={keys => {
-              // @ts-ignore
-              if (!keys.size) {
-                return setData(initialData)
+              let newKeys = Array.from(keys)
+
+              const removeAll =
+                !newKeys.includes('all') && selectedLocations.includes('all')
+
+              if (
+                newKeys.length === locations.length &&
+                !newKeys.includes('all') &&
+                !removeAll
+              ) {
+                newKeys.push('all')
               }
 
-              const filtered = initialData.filter(d =>
-                // @ts-ignore
-                keys.has(d.locationName),
-              )
+              if (newKeys.includes('all')) {
+                if (!selectedLocations.includes('all')) {
+                  newKeys = ['all', ...locations.map(r => r.name)]
+                }
+              }
 
-              setData(filtered)
+              if (removeAll) {
+                newKeys = []
+              }
+
+              // @ts-ignore
+              setSelectedLocations(newKeys)
             }}>
-            {locations
-              .sort((l1, l2) => l1.name.localeCompare(l2.name))
-              .map(location => (
-                <SelectItem
-                  key={location.name}
-                  classNames={{title: 'flex items-center gap-2'}}
-                  className="flex">
-                  {location.name}
-                </SelectItem>
-              ))}
+            <SelectItem
+              key="all"
+              classNames={{title: 'flex items-center gap-2'}}
+              className="flex">
+              Все
+            </SelectItem>
+            <>
+              {locations
+                .sort((l1, l2) => l1.name.localeCompare(l2.name))
+                .map(location => (
+                  <SelectItem
+                    key={location.name}
+                    classNames={{title: 'flex items-center gap-2'}}
+                    className="flex">
+                    {location.name}
+                  </SelectItem>
+                ))}
+            </>
           </Select>
         </div>
         <div className="glass flex flex-col gap-2 p-2">
@@ -428,12 +465,17 @@ export default function Summarized({
             </Code>
           </div>
           <div className="glass flex w-full items-center gap-2 p-2">
-            <span>Бонусы + Штрафы: </span>
+            <span>Бонусы: </span>
             <Code color="success">
               {allData.bonuses.toLocaleString('fr-FR').replace(/,/g, ' ')}
             </Code>
           </div>
-
+          <div className="glass flex w-full items-center gap-2 p-2">
+            <span>Штрафы: </span>
+            <Code color="success">
+              {allData.fines.toLocaleString('fr-FR').replace(/,/g, ' ')}
+            </Code>
+          </div>
           <div className="glass flex w-full items-center gap-2 p-2">
             <span>Общее: </span>
             <Code color="success">

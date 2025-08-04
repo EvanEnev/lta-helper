@@ -121,9 +121,13 @@ export default function getSalaryData({
   if (overworkStart) overworkStart += ':00'
   if (overworkEnd) overworkEnd += ':00'
 
-  bonuses = bonuses?.replace(/[+\-*/%^]+$/, '')
-  fines = fines?.replace(/[+\-*/%^]+$/, '')
+  bonuses = bonuses?.replace(/[+\-*/%^]+$/, '').replaceAll('-', '+')
+  fines = fines?.replace(/[+\-*/%^]+$/, '').replaceAll('+', '-')
   comment = comment?.trim()
+
+  if (!fines.startsWith('-')) {
+    fines = '-' + fines
+  }
 
   return {
     value: salary,

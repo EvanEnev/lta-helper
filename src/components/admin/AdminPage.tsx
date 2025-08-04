@@ -132,6 +132,19 @@ export default function AdminPage({
 
         if (data.data.length) {
           setSalaryData(data.data)
+        } else {
+          setSalaryData([
+            {
+              worker: '',
+              workingHours: '',
+              location: '',
+              bonuses: '',
+              fines: '',
+              comment: '',
+              isHardTime: false,
+              gamesCount: 1,
+            },
+          ])
         }
       })
     }
