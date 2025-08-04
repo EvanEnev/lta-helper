@@ -125,7 +125,7 @@ export default function getSalaryData({
   fines = fines?.replace(/[+\-*/%^]+$/, '').replaceAll('+', '-')
   comment = comment?.trim()
 
-  if (!fines.startsWith('-')) {
+  if (!fines?.startsWith('-')) {
     fines = '-' + (fines || '0')
   }
 
