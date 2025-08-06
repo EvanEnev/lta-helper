@@ -27,8 +27,7 @@ COPY --from=builder /app/public ./public
 RUN npm install --force
 
 COPY server.ts ./
-COPY dbListener.ts ./
-
+COPY lib ./
 ENV NODE_ENV=production
 COPY .env .env.production
 

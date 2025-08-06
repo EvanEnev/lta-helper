@@ -1,4 +1,5 @@
 import {DateTime} from 'luxon'
+import {Client} from 'pg'
 
 export type Day = {
   date?: DateTime
@@ -145,4 +146,9 @@ export interface WorkerPoint {
 export interface Filter {
   key: string
   value: string | number
+}
+
+export interface SocketUpdateProps {
+  data: any
+  client: Client
 }

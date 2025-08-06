@@ -4,6 +4,8 @@ import {Server as SocketIOServer} from 'socket.io'
 let client: Client
 
 export async function initListener(io: SocketIOServer) {
+  const listeners = ['salary_updates', 'points_updates']
+
   client = new Client({
     user: process.env.DATABASE_USER,
     password: process.env.DATABASE_PASSWORD,
@@ -12,14 +14,16 @@ export async function initListener(io: SocketIOServer) {
   })
 
   await client.connect()
-  await client.query('LISTEN salary_updates')
+  for (const listener of listeners) {
+    await client.query(`LISTEN ${listener}`)
+    console.log(`[Postgres] LISTEN ${listener} started`)
+  }
 
   client.on('notification', msg => {
     const payload = JSON.parse(msg.payload || '{}')
-    io.emit('salary:update', payload)
+    io.emit(msg.channel, payload)
   })
 
-  console.log('[Postgres] LISTEN salary_updates started')
   return client
 }
 
