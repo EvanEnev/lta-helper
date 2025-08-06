@@ -4,9 +4,7 @@ import {Divider} from '@heroui/react'
 
 interface TableRowProps {
   row: Row<any>
-
   getFixedColumnLeftPosition(fixedIndex?: number): number
-
   rowIndex: number
   dataLength: number
 }
@@ -19,7 +17,7 @@ export default function TableRow({
 }: TableRowProps) {
   return (
     <Fragment>
-      <tr className="max-h-fit min-h-6">
+      <tr className="max-h-fit min-h-6" key={row.id}>
         {row.getVisibleCells().map((cell, index) => {
           return (
             <Fragment key={cell.id}>

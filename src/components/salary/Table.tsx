@@ -5,7 +5,7 @@ import {
   SalaryUser,
   UserSalary,
 } from '@/src/utils/types'
-import {Header} from '@tanstack/react-table'
+import {Header, Row} from '@tanstack/react-table'
 import {useCallback, useEffect, useMemo, useRef, useState, memo} from 'react'
 import Cell from './Cell'
 import {RowData} from '@tanstack/react-table'
@@ -40,6 +40,7 @@ export default memo(function Table({
   canEdit: boolean
   dates: string[]
 }) {
+  const [columnFilters, setColumnFiltersAction] = useState([])
   const socketRef = useRef<Socket | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const {worker, headerRef, pageSettings} = useAuth()
@@ -297,6 +298,14 @@ export default memo(function Table({
           <WorkerCell data={getValue()} />
         ),
         meta: {frozen: true, fixedPosition: 0},
+        filterFn: (row: Row<any>, columnId: string, filterValue: string) => {
+          console.debug(filterValue)
+          if (!filterValue) return true
+
+          return (row.getValue(columnId) as SalaryUser).name
+            .toLowerCase()
+            .startsWith(filterValue?.toLowerCase())
+        },
       })
     }
 
@@ -311,6 +320,15 @@ export default memo(function Table({
         : 'bg-default-100',
     [today],
   )
+
+  useEffect(() => {
+    // @ts-ignore
+    setColumnFiltersAction(prev => {
+      // @ts-ignore
+      const other = prev.filter(f => f.id !== 'user')
+      return nameFilter ? [...other, {id: 'user', value: nameFilter}] : other
+    })
+  }, [nameFilter])
 
   return (
     <div className="h-full w-full px-2">
@@ -343,7 +361,7 @@ export default memo(function Table({
               className="w-fit"
               label="Позывной"
               value={nameFilter}
-              onValueChange={value => updateFilters('w.name', value)}
+              onValueChange={value => setNameFilter(value)}
             />
           </>
         )}
@@ -355,6 +373,8 @@ export default memo(function Table({
         {pageSettings.map(component => component.components.map(c => c))}
       </div>
       <CTable
+        columnFilters={columnFilters}
+        setColumnFiltersAction={setColumnFiltersAction}
         headerOffset={
           (wrapperRef.current?.offsetHeight || 0) +
           (isMobile ? headerRef.current?.offsetHeight || 0 : 0)

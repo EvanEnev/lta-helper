@@ -3,10 +3,11 @@
 import {
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   Header,
   useReactTable,
 } from '@tanstack/react-table'
-import {Fragment, useCallback} from 'react'
+import {Dispatch, Fragment, SetStateAction, useCallback} from 'react'
 import {Divider} from '@heroui/react'
 import TableRow from '@/src/components/global/table/TableRow'
 import {useAuth} from '@/src/components/global/providers/authProvider'
@@ -18,6 +19,8 @@ interface TableProps {
   headerClassNameAction?: (header: Header<any, any>) => string
   headerOffset?: number
   ignoreHeader?: boolean
+  columnFilters?: any[]
+  setColumnFiltersAction?: Dispatch<SetStateAction<never[]>>
 }
 
 export default function Table({
@@ -26,13 +29,22 @@ export default function Table({
   headerClassNameAction = () => '',
   headerOffset = 0,
   ignoreHeader = false,
+  columnFilters = [],
+  setColumnFiltersAction = () => [],
 }: TableProps) {
   const isMobile = useIsMobile()
   const {headerRef} = useAuth()
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnFilters,
+    },
+    // @ts-ignore
+    onColumnFiltersChange: setColumnFiltersAction,
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
   const getFixedColumnLeftPosition = useCallback(
@@ -50,6 +62,7 @@ export default function Table({
     },
     [table, isMobile, ignoreHeader, headerRef],
   )
+  console.log(table.getState().columnFilters)
 
   return (
     <div className="bg-content1 rounded-large relative w-full pt-4">
