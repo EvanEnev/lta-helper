@@ -17,6 +17,7 @@ interface TableProps {
   columns: any[]
   headerClassNameAction?: (header: Header<any, any>) => string
   headerOffset?: number
+  ignoreHeader?: boolean
 }
 
 export default function Table({
@@ -24,6 +25,7 @@ export default function Table({
   columns,
   headerClassNameAction = () => '',
   headerOffset = 0,
+  ignoreHeader = false,
 }: TableProps) {
   const isMobile = useIsMobile()
   const {headerRef} = useAuth()
@@ -41,18 +43,21 @@ export default function Table({
         leftOffset += columns[i].getSize()
       }
 
-      return leftOffset + (isMobile ? 0 : headerRef.current?.offsetWidth || 0)
+      return (
+        leftOffset +
+        (isMobile || ignoreHeader ? 0 : headerRef.current?.offsetWidth || 0)
+      )
     },
-    [table, isMobile, headerRef],
+    [table, isMobile, ignoreHeader, headerRef],
   )
 
   return (
     <div className="bg-content1 rounded-large relative w-full pt-4">
-      <table className="h-auto w-full max-w-full">
+      <table className="h-full w-full max-w-full">
         <thead
           className="[&>tr]:first:shadow-small sticky z-1000"
           style={{
-            top: `${headerOffset || 0}px`,
+            top: `${headerOffset || 2}px`,
           }}>
           {table.getHeaderGroups().map(headerGroup => (
             <tr key={headerGroup.id} className="rounded-2xl">

@@ -4,7 +4,9 @@ import {Divider} from '@heroui/react'
 
 interface TableRowProps {
   row: Row<any>
+
   getFixedColumnLeftPosition(fixedIndex?: number): number
+
   rowIndex: number
   dataLength: number
 }
@@ -15,23 +17,14 @@ export default function TableRow({
   rowIndex,
   dataLength,
 }: TableRowProps) {
-  const rowRef = useRef<HTMLTableRowElement | null>(null)
-  const cellRef = useRef<HTMLTableCellElement>(null)
-  const [maxHeight, setMaxHeight] = useState(0)
-
-  useEffect(() => {
-    setMaxHeight(prev => Math.max(prev, cellRef.current?.offsetHeight || 0))
-  }, [cellRef])
-
   return (
     <Fragment>
-      <tr ref={rowRef} className="max-h-fit min-h-6">
+      <tr className="max-h-fit min-h-6">
         {row.getVisibleCells().map((cell, index) => {
           return (
             <Fragment key={cell.id}>
               <td
                 id={cell.id}
-                ref={cellRef}
                 className={`${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-full min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
                 style={{
                   ...(cell.column.columnDef.meta?.frozen && {
@@ -44,15 +37,12 @@ export default function TableRow({
               </td>
               <td className="h-full py-2">
                 <Divider
-                  className="mx-auto min-h-[5rem]"
+                  className="mx-auto h-full min-h-[5rem]"
                   orientation="vertical"
                   hidden={
                     (dataLength > 1 && index === 0) ||
                     index === row.getVisibleCells().length - 1
                   }
-                  style={{
-                    height: `${maxHeight}px`,
-                  }}
                 />
               </td>
             </Fragment>
