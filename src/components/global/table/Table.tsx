@@ -1,14 +1,13 @@
 'use client'
 
 import {
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   Header,
   useReactTable,
 } from '@tanstack/react-table'
-import {Dispatch, Fragment, SetStateAction, useCallback} from 'react'
-import {Divider} from '@heroui/react'
+import {Dispatch, SetStateAction, useCallback} from 'react'
+import TableHeader from '@/src/components/global/table/TableHeader'
 import TableRow from '@/src/components/global/table/TableRow'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import useIsMobile from '@/src/hooks/useIsMobile'
@@ -62,7 +61,6 @@ export default function Table({
     },
     [table, isMobile, ignoreHeader, headerRef],
   )
-  console.log(table.getState().columnFilters)
 
   return (
     <div className="bg-content1 rounded-large relative w-full pt-4">
@@ -73,38 +71,12 @@ export default function Table({
             top: `${headerOffset || 2}px`,
           }}>
           {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id} className="rounded-2xl">
-              {headerGroup.headers.map((header, index) => {
-                return (
-                  <Fragment key={header.id}>
-                    <th
-                      key={header.id}
-                      className={`bg-default-100 h-[2rem] w-[5rem] min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''} ${headerClassNameAction(header)}`}
-                      style={{
-                        width: `${header.getSize()}px`,
-                        minWidth: `${header.getSize()}px`,
-                        ...(header.column.columnDef.meta?.frozen && {
-                          left: `${getFixedColumnLeftPosition(
-                            header.column.columnDef.meta?.fixedPosition,
-                          )}px`,
-                        }),
-                      }}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </th>
-                    <th className="bg-default-100 w-px py-2">
-                      <Divider
-                        className="mx-auto h-[2rem]"
-                        orientation="vertical"
-                        hidden={index === headerGroup.headers.length - 1}
-                      />
-                    </th>
-                  </Fragment>
-                )
-              })}
-            </tr>
+            <TableHeader
+              key={headerGroup.id}
+              headerGroup={headerGroup}
+              getFixedColumnLeftPosition={getFixedColumnLeftPosition}
+              getHeaderClassNames={headerClassNameAction}
+            />
           ))}
         </thead>
         <tbody className="after:block">
@@ -115,7 +87,7 @@ export default function Table({
               row={row}
               rowIndex={rowIndex}
               getFixedColumnLeftPosition={getFixedColumnLeftPosition}
-              dataLength={data.length}
+              dataLength={table.getRowModel().rows.length}
             />
           ))}
         </tbody>

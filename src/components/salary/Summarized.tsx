@@ -1,5 +1,6 @@
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import {
+  Button,
   Checkbox,
   Code,
   DateRangePicker,
@@ -18,6 +19,7 @@ import {LTLocation, LTRank} from '@/src/utils/types'
 import salarySort from '@/lib/functions/salarySort'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import useIsMobile from '@/src/hooks/useIsMobile'
+import Excel from '@/public/icons/Excel'
 
 export default function Summarized({
   ranks,
@@ -228,6 +230,30 @@ export default function Summarized({
       ),
     )
   }, [initialData, selectedLocations, selectedRanks])
+
+  const download = useCallback(
+    async (type: string) => {
+      const response = await fetch('/api/excel', {
+        method: 'POST',
+        body: JSON.stringify({
+          start_date: dateRange?.start.toString(),
+          end_date: dateRange?.end.toString(),
+          type,
+        }),
+      })
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'Сводная.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    },
+    [dateRange?.end, dateRange?.start],
+  )
 
   return (
     <div className="flex w-full gap-4">
@@ -482,6 +508,18 @@ export default function Summarized({
               {allData.summary.toLocaleString('fr-FR').replace(/,/g, ' ')}
             </Code>
           </div>
+          <Button
+            className="w-full"
+            startContent={<Excel width={40} height={40} />}
+            onPress={() => download('day')}>
+            Скачать по дням
+          </Button>
+          <Button
+            className="w-full"
+            startContent={<Excel width={40} height={40} />}
+            onPress={() => download('month')}>
+            Скачать по месяцам
+          </Button>
         </div>
       </div>
     </div>

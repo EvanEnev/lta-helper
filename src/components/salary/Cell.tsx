@@ -62,32 +62,29 @@ export default memo(function Cell({
         : 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
 
   return (
-    <>
-      <Card
-        style={{backgroundColor: cellData.location.color}}
-        className={`${canViewFull ? 'w-[11rem]' : 'min-h-[15rem] w-[12rem]'} max-h-full ${textColorClass}`}>
-        <CardHeader
-          className={`grid-rows-auto grid grid-flow-row grid-cols-2 ${canEdit ? 'gap-1' : 'gap-2'} pb-0`}>
-          <CellHeader data={cellData} />
-        </CardHeader>
-        <CardBody
-          className={`${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} h-fit max-h-fit text-center`}>
-          <Divider className="bg-default-100 w-full" />
-          <p className="w-full text-xs">
-            {<ChatRoundLine iconStyle="Bold" className="mr-1 align-middle" />}
-            Комментарий
-          </p>
-
-          <CellBody data={cellData} />
-          {canEdit && (
-            <EditDrawer
-              data={cellData}
-              handleEdit={handleCellEdit}
-              handleDelete={handleCellDelete}
-            />
-          )}
-        </CardBody>
-      </Card>
-    </>
+    <Card
+      style={{backgroundColor: cellData.location.color}}
+      className={`${canViewFull ? 'min-w-[11rem]' : 'min-h-[15rem] min-w-[12rem]'} max-h-full ${textColorClass}`}>
+      <CardHeader
+        className={`grid-rows-auto grid grid-flow-row grid-cols-2 ${canEdit ? 'gap-1' : 'gap-2'} pb-0`}>
+        <CellHeader data={cellData} />
+      </CardHeader>
+      <CardBody
+        className={`${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} h-fit max-h-fit text-center`}>
+        <Divider className="bg-default-100 w-full" />
+        <p className="w-full text-xs">
+          {<ChatRoundLine iconStyle="Bold" className="mr-1 align-middle" />}
+          Комментарий
+        </p>
+        <CellBody data={cellData} />
+        {canEdit && (
+          <EditDrawer
+            data={cellData}
+            handleEdit={handleCellEdit}
+            handleDelete={handleCellDelete}
+          />
+        )}
+      </CardBody>
+    </Card>
   )
 })

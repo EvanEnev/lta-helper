@@ -1,10 +1,4 @@
-import {
-  Filter,
-  LTLocation,
-  SalaryData,
-  SalaryUser,
-  UserSalary,
-} from '@/src/utils/types'
+import {LTLocation, SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
 import {Header, Row} from '@tanstack/react-table'
 import {useCallback, useEffect, useMemo, useRef, useState, memo} from 'react'
 import Cell from './Cell'
@@ -48,8 +42,6 @@ export default memo(function Table({
   const [date, setDate] = useState<string>(
     DateTime.fromISO(dates[dates.length - 1]).toFormat('yyyy-MM-dd'),
   )
-  const [rawFilters, setRawFilters] = useState<Filter[]>([])
-  const [filters, setFilters] = useState<Filter[]>([])
   const [nameFilter, setNameFilter] = useState<string>('')
   const [locationId, setLocationId] = useState<number>(
     data
@@ -89,7 +81,6 @@ export default memo(function Table({
           locationId: newLocationId || 1,
           date: newDate,
           allLocations: newLocationId === 0,
-          filters,
         },
       })
 
@@ -99,7 +90,7 @@ export default memo(function Table({
 
       setLoading(false)
     },
-    [date, filters, locationId],
+    [date, locationId],
   )
 
   useEffect(() => {
@@ -243,27 +234,12 @@ export default memo(function Table({
     [worker],
   )
 
-  const updateFilters = useCallback((key: string, value: string | number) => {
-    if (key === 'w.name') setNameFilter(value as string)
-
-    setRawFilters(prev => [...prev.filter(d => d.key !== key), {key, value}])
-  }, [])
-
-  useEffect(() => {
-    const delayInputTimeoutId = setTimeout(async () => {
-      setFilters(rawFilters)
-      await updateData(null, null)
-    }, 1000)
-
-    return () => clearTimeout(delayInputTimeoutId)
-  }, [rawFilters, updateData])
-
   const daysInMonth = useMemo(
     () => DateTime.fromFormat(date, 'yyyy-MM-dd').daysInMonth!,
     [date],
   )
 
-  const showUserColumn = data.length > 1 || !!filters.length
+  const showUserColumn = data.length > 1 || columnFilters.length
 
   const daysColumns = useMemo(() => {
     return Array.from({length: daysInMonth}, (_, i) => {
@@ -299,7 +275,6 @@ export default memo(function Table({
         ),
         meta: {frozen: true, fixedPosition: 0},
         filterFn: (row: Row<any>, columnId: string, filterValue: string) => {
-          console.debug(filterValue)
           if (!filterValue) return true
 
           return (row.getValue(columnId) as SalaryUser).name

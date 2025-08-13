@@ -10,7 +10,6 @@ import getLocations from '@/lib/functions/getLocations'
 
 export default async function Salary() {
   const worker = await auth()
-
   const canViewFull = checkPermissions(['view_full_salary'], worker)
   const canEdit = checkPermissions(['edit_salary'], worker)
 

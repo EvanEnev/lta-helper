@@ -6,7 +6,8 @@ export default async function getLocations(): Promise<LTLocation[]> {
   name,
   color,
   id
-  FROM lt_arena.locations`
+  FROM lt_arena.locations
+  order by name`
 
   const result = await db.query(query)
   return result.rows

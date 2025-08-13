@@ -1,5 +1,5 @@
 import {Fragment} from 'react'
-import {flexRender, Row} from '@tanstack/react-table'
+import {Cell, flexRender, Row} from '@tanstack/react-table'
 import {Divider} from '@heroui/react'
 
 interface TableRowProps {
@@ -15,6 +15,21 @@ export default function TableRow({
   rowIndex,
   dataLength,
 }: TableRowProps) {
+  const getRoundClassNames = (cell: Cell<any, any>) => {
+    let className = ''
+
+    if (cell.column.columnDef.meta?.frozen) {
+      if (dataLength === 1) {
+        className = 'rounded-2xl'
+      } else if (rowIndex === 0) {
+        className = 'rounded-t-2xl'
+      } else if (rowIndex === dataLength - 1) {
+        className = 'rounded-b-2xl'
+      }
+    }
+
+    return className
+  }
   return (
     <Fragment>
       <tr className="max-h-fit min-h-6" key={row.id}>
@@ -23,7 +38,7 @@ export default function TableRow({
             <Fragment key={cell.id}>
               <td
                 id={cell.id}
-                className={`${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} h-full min-w-[5rem] p-2 text-center text-sm sm:w-[10rem] sm:min-w-[10rem] ${index === 1 ? 'rounded-br-2xl' : ''} ${!cell.column.columnDef.meta?.frozen ? '' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
+                className={`${getRoundClassNames(cell)} h-full min-w-[5rem] p-2 text-center text-sm sm:min-w-[10rem] ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}
                 style={{
                   ...(cell.column.columnDef.meta?.frozen && {
                     left: `${getFixedColumnLeftPosition(
