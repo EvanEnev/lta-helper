@@ -226,7 +226,7 @@ export default function Summarized({
           // @ts-ignore
           selectedRanks.includes(d.rank) &&
           // @ts-ignore
-          selectedLocations.includes(d.locationName),
+          [...selectedLocations, 'Другое'].includes(d.locationName),
       ),
     )
   }, [initialData, selectedLocations, selectedRanks])
