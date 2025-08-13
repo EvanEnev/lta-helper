@@ -1,5 +1,5 @@
 import {DefaultEventsMap, Server} from 'socket.io'
-import {initListener} from '@/lib/socket/dbListener'
+import {initListener} from './dbListener'
 import updateSalary from './functions/updateSalary'
 
 export default async function socket(
