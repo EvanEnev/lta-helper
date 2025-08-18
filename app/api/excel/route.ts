@@ -2,13 +2,14 @@ import {NextRequest} from 'next/server'
 import {DateTime, Interval} from 'luxon'
 import generateTableByDays from '@/app/api/excel/generateTableByDays'
 import generateTableByMonths from '@/app/api/excel/generateTableByMonths'
+import generateTableByWorkers from '@/app/api/excel/generateTableByWorkers'
 
 export async function POST(req: NextRequest) {
   const body: {
     start_date: string
     end_date: string
     bonuses: boolean
-    type: 'day' | 'month'
+    type: 'day' | 'month' | 'workers'
   } = await req.json()
 
   const startDate = DateTime.fromISO(body.start_date)
@@ -26,6 +27,8 @@ export async function POST(req: NextRequest) {
         DateTime.now().endOf('year'),
       ),
     })
+  } else if (body.type === 'workers') {
+    buffer = await generateTableByWorkers({interval})
   }
 
   return new Response(buffer, {

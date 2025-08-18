@@ -520,6 +520,12 @@ export default function Summarized({
             onPress={() => download('month')}>
             Скачать по месяцам
           </Button>
+          <Button
+            className="w-full"
+            startContent={<Excel width={40} height={40} />}
+            onPress={() => download('workers')}>
+            Скачать по сотрудникам
+          </Button>
         </div>
       </div>
     </div>
