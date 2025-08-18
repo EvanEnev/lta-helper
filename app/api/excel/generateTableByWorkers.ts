@@ -122,8 +122,6 @@ export default async function generateTableByWorkers({
             ?.data?.filter(d => d.location === location.name)
             ?.filter(d => {
               if (type.name === 'Инструктор') {
-                console.debug(d, allTypesRegex, d.comment?.match(allTypesRegex))
-
                 if (d.rank === 'Актёр') return false
 
                 return !d.comment?.match(allTypesRegex)
