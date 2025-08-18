@@ -158,5 +158,13 @@ export default async function generateTableByDays({
     )
   })
 
+  worksheet.columns.forEach(column => {
+    column.eachCell!(cell => {
+      if (!Number.isNaN(Number(cell.value))) {
+        cell.numFmt = '0'
+      }
+    })
+  })
+
   return await workbook.xlsx.writeBuffer()
 }
