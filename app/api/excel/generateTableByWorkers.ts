@@ -9,6 +9,7 @@ interface GenerateTableByDaysProps {
 
 const types = [
   {name: 'Инструктор', keys: []},
+  {name: 'Актёр', keys: []},
   {name: 'Техник', keys: ['тех']},
   {name: 'Клининг', keys: ['клининг', 'уборка']},
   {name: 'Художник', keys: ['художник', 'рисование']},
@@ -21,11 +22,11 @@ export default async function generateTableByWorkers({
 }: GenerateTableByDaysProps) {
   const query = `with
     locationData as (select
-          l.name, s.date, s.type, s.comment
+          l.name, s.date, s.type, s.comment, w.rank
         from lt_arena.locations l
         left join lt_arena.salary s on l.id = s.location_id
+        left join lt_arena.workers w on w.id = s.worker_id
         where s.date between '${interval.start?.toFormat('yyyy-MM-dd')}' and '${interval.end?.toFormat('yyyy-MM-dd')}'
-        group by l.name, s.date, s.type, s.comment
         order by l.name
   )
         select
@@ -36,7 +37,8 @@ export default async function generateTableByWorkers({
               json_build_object(
                 'location', ld.name,
                 'comment', ld.comment,
-                'type', ld.type
+                'type', ld.type,
+                'rank', ld.rank
               ) order by ld.name
             )
           ) as data
@@ -49,6 +51,7 @@ export default async function generateTableByWorkers({
   const data: {
     date: string
     data: {
+      rank: string
       comment: string | null
       location: string
       value: number
@@ -88,7 +91,7 @@ export default async function generateTableByWorkers({
 
   const allTypesRegex = new RegExp(
     `${types
-      .filter(t => t.name !== 'Инструктор')
+      .filter(t => t.name !== 'Инструктор' && t.name !== 'Актёр')
       .map(t => `(${t.keys.join('|')})`)
       .join('|')}`,
     'giu',
@@ -119,7 +122,14 @@ export default async function generateTableByWorkers({
             ?.data?.filter(d => d.location === location.name)
             ?.filter(d => {
               if (type.name === 'Инструктор') {
+                console.debug(d, allTypesRegex, d.comment?.match(allTypesRegex))
+
+                if (d.rank === 'Актёр') return false
+
                 return !d.comment?.match(allTypesRegex)
+              } else if (type.name === 'Актёр') {
+                if (d.comment?.match(allTypesRegex)) return false
+                return d.rank === 'Актёр'
               } else {
                 return d.comment?.match(
                   new RegExp(`(${type.keys.join('|')})`, 'gui'),
