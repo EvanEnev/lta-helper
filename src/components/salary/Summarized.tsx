@@ -20,6 +20,7 @@ import salarySort from '@/lib/functions/salarySort'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import Excel from '@/public/icons/Excel'
+import {Interval} from 'luxon'
 
 export default function Summarized({
   ranks,
@@ -226,7 +227,7 @@ export default function Summarized({
           // @ts-ignore
           selectedRanks.includes(d.rank) &&
           // @ts-ignore
-          [...selectedLocations, 'Другое'].includes(d.locationName),
+          selectedLocations.includes(d.locationName),
       ),
     )
   }, [initialData, selectedLocations, selectedRanks])
@@ -246,7 +247,20 @@ export default function Summarized({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'Сводная.xlsx'
+
+      const interval = Interval.fromISO(
+        `${dateRange?.start.toString()}/${dateRange?.end.toString()}`,
+      )
+
+      let name = 'Сводная'
+      if (type === 'day') {
+        name += ` по дням (${interval.toFormat('dd.MM.yyyy')})`
+      } else if (type === 'month') {
+        name += ' по месяцам'
+      } else if (type === 'workers') {
+        name += ` по сотрудникам (${interval.toFormat('dd.MM.yyyy')})`
+      }
+      a.download = `${name}.xlsx`
       document.body.appendChild(a)
       a.click()
       a.remove()
