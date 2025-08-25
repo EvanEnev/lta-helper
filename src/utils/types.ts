@@ -1,4 +1,4 @@
-import {DateTime} from 'luxon'
+import {DateTime, Interval} from 'luxon'
 import {Client} from 'pg'
 
 export type Day = {
@@ -33,21 +33,22 @@ export interface Permission {
 }
 
 export interface LTWorker {
-  name: string
   id: number
-  number?: number
+  name: string
+  number?: number | null
   telegramId: number
-  isFormer?: boolean
-  location?: string
-  locationId?: number
-  rank: string
-  firstName?: string
-  middleName?: string
-  lastName?: string
-  phoneNumber?: string
-  email?: string
-  photoUrl?: string
+  isFormer?: boolean | null
+  location?: LTLocation['name'] | null
+  locationId?: LTLocation['id'] | null
+  rank: LTRank['name']
+  firstName?: string | null
+  middleName?: string | null
+  lastName?: string | null
+  phoneNumber?: string | null
+  email?: string | null
+  photoUrl?: string | null
   permissions: Permission[]
+  todayLocation?: LTLocation['id'] | null
 }
 
 export interface WorkerSalary {
@@ -151,4 +152,38 @@ export interface Filter {
 export interface SocketUpdateProps {
   data: any
   client: Client
+}
+
+export interface LTPayroll {
+  id: number
+  dates: string
+  takeBy: string
+  createdAt: string
+  createdBy: LTWorker
+  bonuses: boolean | null
+  workersCount: string
+}
+
+export interface LTWorkerPayroll {
+  id: number
+  worker: LTWorker
+  payroll: LTPayroll
+  value: number
+  location: LTLocation
+  to_take_by: LTWorker | null
+  taken_by: LTWorker | null
+  taken: number | null
+  taken_at: DateTime | null
+}
+
+export interface LTWorkerPayrollData {
+  id: number
+  worker_id: LTWorker['id']
+  payroll_id: LTPayroll['id']
+  value: number
+  location_id: LTLocation['id']
+  to_take_by: LTWorker['id'] | null
+  taken_by: LTWorker['id'] | null
+  taken: number | null
+  taken_at: DateTime | null
 }
