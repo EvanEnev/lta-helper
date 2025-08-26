@@ -1,10 +1,10 @@
 import {
-  Button,
-  CalendarDate,
-  DateRangePicker,
-  useDisclosure,
+    Button,
+    CalendarDate,
+    DateRangePicker, Input, NumberInput,
+    useDisclosure,
 } from '@heroui/react'
-import {AddCircle} from 'solar-icon-set'
+import {AddCircle, Ruble} from 'solar-icon-set'
 import {
   Modal,
   ModalContent,
@@ -13,10 +13,18 @@ import {
   ModalHeader,
 } from '@heroui/modal'
 import {DateTime} from 'luxon'
-import {useMemo} from 'react'
+import {Fragment, useMemo} from 'react'
 import {parseDate} from '@internationalized/date'
+import {LTLocation} from "@/src/utils/types";
+import Location from "@/src/components/global/Location";
 
-export default function PayrollCreateCard() {
+interface PayrollsCreateCardProps {
+    locations: LTLocation[]
+}
+
+const blacklistedLocations = ['другое', 'выезд', 'отдел продаж']
+
+export default function PayrollCreateCard({locations}: PayrollsCreateCardProps) {
   const {isOpen, onOpen, onOpenChange} = useDisclosure()
 
   const currentDate = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
@@ -69,6 +77,10 @@ export default function PayrollCreateCard() {
     )
   }
 
+  const filteredLocations = useMemo(() =>
+      locations.filter(l => !blacklistedLocations.includes(l.name.toLowerCase())
+      ), [locations])
+
   return (
     <>
       <Button
@@ -78,7 +90,7 @@ export default function PayrollCreateCard() {
         <AddCircle size={50} />
         Создать
       </Button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} className="overflow-auto">
         <ModalContent>
           {onClose => (
             <>
@@ -87,17 +99,25 @@ export default function PayrollCreateCard() {
               </ModalHeader>
               <ModalBody>
                 <DateRangePicker
-                  defaultValue={initialState}
+                  defaultValue={{start: initialState.start!, end: initialState.end!}}
                   label="Диапазон дат"
                   labelPlacement="outside"
                 />
+                  <div className='grid grid-cols-2 gap-2 auto-rows-auto grid-flow-row max-h-[50%]'>
+                      {filteredLocations.map((location) => {
+                          return <Fragment key={location.id}>
+                              <Location locationName={location.name} />
+                              <NumberInput endContent={<Ruble />} defaultValue={0} minValue={0} />
+                          </Fragment>
+                      })}
+                  </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
-                  Close
+                    Закрыть
                 </Button>
                 <Button color="primary" onPress={onClose}>
-                  Action
+                  Продолжить
                 </Button>
               </ModalFooter>
             </>

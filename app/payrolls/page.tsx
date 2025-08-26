@@ -1,6 +1,7 @@
 import {LTPayroll} from '@/src/utils/types'
 import db from '@/lib/database'
 import PayrollsPage from '@/src/components/payrolls/PayrollsPage'
+import getLocations from "@/lib/functions/getLocations";
 
 export default async function Payrolls() {
   const query = `select
@@ -24,7 +25,7 @@ export default async function Payrolls() {
     takeBy: d.takeBy.toISO(),
   }))
 
-  console.debug(data)
+  const locations = await getLocations()
 
-  return <PayrollsPage data={data} />
+  return <PayrollsPage data={data} locations={locations} />
 }
