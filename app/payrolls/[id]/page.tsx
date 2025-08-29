@@ -4,5 +4,4 @@ interface PayrollDetailsProps {
 
 export default async function PayrollDetails({params}: PayrollDetailsProps) {
   const {id} = await params
-  console.debug(id)
 }

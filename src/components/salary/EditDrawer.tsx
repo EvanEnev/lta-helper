@@ -30,7 +30,7 @@ import {useCallback, useMemo} from 'react'
 import {parseDate} from '@internationalized/date'
 import DeleteButton from '@/src/components/salary/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import LocationSelect from '@/src/components/salary/LocationSelect'
+import LocationSelect from '@/src/components/global/LocationSelect'
 
 interface EditDrawerProps {
   data: SalaryData

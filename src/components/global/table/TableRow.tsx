@@ -53,8 +53,8 @@ export default function TableRow({
                   className="mx-auto h-full min-h-[5rem]"
                   orientation="vertical"
                   hidden={
-                    (dataLength > 1 && index === 0) ||
-                    index === row.getVisibleCells().length - 1
+                    (dataLength > 1 && cell.column.columnDef.meta?.frozen) ||
+                    index === row.getAllCells().length - 1
                   }
                 />
               </td>
@@ -79,7 +79,7 @@ export default function TableRow({
                 )}px`,
               }),
             }}>
-            <Divider className="mx-auto" hidden={rowIndex === dataLength - 1} />
+            <Divider className="mx-auto" hidden={index % 2 !== 0} />
           </td>
         ))}
       </tr>

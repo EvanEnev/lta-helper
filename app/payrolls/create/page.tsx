@@ -1,39 +1,70 @@
-import db from "@/lib/database";
-import salarySort from "@/lib/functions/salarySort";
-import {evaluate} from "mathjs";
+import db from '@/lib/database'
+import salarySort from '@/lib/functions/salarySort'
+import {evaluate} from 'mathjs'
+import PayrollCreatePage from '@/src/components/payrolls/create/PayrollCreatePage'
+import getLocations from '@/lib/functions/getLocations'
 
 interface PayrollsCreateProps {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  searchParams: Promise<{[key: string]: string | string[] | undefined}>
 }
 
-export default async function PayrollsCreate({searchParams}: PayrollsCreateProps) {
-    const params = await searchParams
-    const dates = JSON.parse(params?.dates as string)
-    const moneyOnLocations = JSON.parse(params?.moneyOnLocations as string)
-    const bonuses = JSON.parse(params?.bonuses as string)
+export default async function PayrollsCreate({
+  searchParams,
+}: PayrollsCreateProps) {
+  const params = await searchParams
+  const dates = JSON.parse(params?.dates as string)
+  const moneyOnLocations = JSON.parse(params?.moneyOnLocations as string)
+  const bonuses = JSON.parse(params?.bonuses as string)
 
-    console.debug({dates, moneyOnLocations, bonuses})
-
-
-    const query = `select
+  const query = `select
     w.name,
+    w.id,
     w.rank,
-    sum(value) + sum(overwork) as value,
+    w.is_former,
+    sum(value) + sum(coalesce(overwork, 0)) as value
+    ${
+      bonuses
+        ? `,
     string_agg(bonuses, '+') as bonuses,
-    string_agg(fines, '+') as fines
+    string_agg(fines, '+') as fines`
+        : ''
+    }
     from lt_arena.salary
     left join lt_arena.workers w on w.id = worker_id
     where date between '${dates.start}' and '${dates.end}'
-    group by w.name, w.rank`
+    group by w.name, w.rank, w.is_former, w.id`
 
-    const result = await db.query(query)
+  const result = await db.query(query)
 
-    let data = salarySort(result.rows)
+  let data = salarySort(result.rows)
 
-    if (bonuses) {
+  if (bonuses) {
+    data = data.map(row => {
+      const newData = {...row}
+
+      // @ts-ignore
+      newData.value = evaluate(
         // @ts-ignore
-        data = data.map(row => ({...row, bonuses: evaluate(row.bonuses || ''), fines: evaluate(row.fines || '')}))
-    }
+        `${row.value || 0} + ${row.bonuses || 0} + ${row.fines || 0}`,
+      )
 
-    console.debug(data)
+      // @ts-ignore
+      delete newData.bonuses
+      // @ts-ignore
+      delete newData.fines
+
+      return newData
+    })
+  }
+
+  const locations = await getLocations()
+
+  return (
+    <PayrollCreatePage
+      // @ts-ignore
+      data={data}
+      moneyOnLocations={moneyOnLocations}
+      locations={locations}
+    />
+  )
 }

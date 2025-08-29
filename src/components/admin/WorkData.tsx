@@ -243,7 +243,6 @@ export default function WorkData({
             :
           </p>
           <NumberInput
-            onScroll={undefined}
             aria-label="Смена"
             minValue={0}
             className="h-full w-full"
