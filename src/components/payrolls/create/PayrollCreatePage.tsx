@@ -1,7 +1,7 @@
 'use client'
 
 import {LTLocation, LTRank, LTWorker} from '@/src/utils/types'
-import {Fragment, useMemo, useState} from 'react'
+import {Fragment, useCallback, useMemo, useState} from 'react'
 import Location from '@/src/components/global/Location'
 import {Button, Code, Divider, Link} from '@heroui/react'
 import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
@@ -40,16 +40,9 @@ export default function PayrollCreatePage({
     }[]
   >(moneyOnLocations)
 
-  const [data, setData] = useState<
-    {
-      name: LTWorker['name']
-      rank: LTRank['name']
-      value: number | null
-      bonuses?: number
-      fines?: number
-      location: LTLocation['id'] | null
-    }[]
-  >(initialData.map(d => ({...d, location: null})))
+  const data = useMemo(() => {
+    return initialData
+  }, [])
 
   const [payrollData, setPayrollData] = useState<
     {
@@ -57,21 +50,35 @@ export default function PayrollCreatePage({
       location: LTLocation['id']
       value: number
     }[]
-  >([])
+  >(data.map(d => ({workerId: d.id, location: -1, value: d.value || 0})))
+
+  const handleUpdateLocation = useCallback(
+    (workerId: number, location: LTLocation) => {
+      console.debug(workerId, location)
+
+      // setPayrollData(prev =>
+      //   prev.map(d =>
+      //     d.workerId === workerId ? {...d, location: location.id} : d,
+      //   ),
+      // )
+    },
+    [],
+  )
 
   const columns = useMemo(() => {
+    console.debug('cols rerendered')
     return [
-      {
-        header: 'Сотрудник',
-        accessorFn: (row: PayrollCreatePageProps['data'][0]) => {
-          return {name: row.name, rank: row.rank, workerId: row.id}
-        },
-        cell: ({
-          getValue,
-        }: {
-          getValue: () => {name: string; rank: string; id: number}
-        }) => <PayrollCreateWorkerCell data={getValue()} />,
-      },
+      // {
+      //   header: 'Сотрудник',
+      //   accessorFn: (row: PayrollCreatePageProps['data'][0]) => {
+      //     return {name: row.name, rank: row.rank, workerId: row.id}
+      //   },
+      //   cell: ({
+      //     getValue,
+      //   }: {
+      //     getValue: () => {name: string; rank: string; id: number}
+      //   }) => <PayrollCreateWorkerCell data={getValue()} />,
+      // },
       {
         header: 'Сумма',
         accessorKey: 'value',
@@ -98,25 +105,23 @@ export default function PayrollCreatePage({
       {
         header: 'Локация',
         accessorFn: (row: PayrollCreatePageProps['data'][0]) => {
-          return {workerId: row.id}
+          return row.id
         },
-        cell: ({getValue}: {getValue: () => {workerId: number}}) => (
+        cell: ({getValue}: {getValue: () => number}) => (
           <PayrollCreateLocationCell
             locations={locations}
-            callback={(location: LTLocation) => {
-              setPayrollData(prev =>
-                prev.map(d =>
-                  d.workerId === getValue().workerId
-                    ? {...d, location: location.id}
-                    : d,
-                ),
-              )
-            }}
+            callback={(location: LTLocation) =>
+              handleUpdateLocation(getValue(), location)
+            }
           />
         ),
       },
     ]
-  }, [])
+  }, [handleUpdateLocation, locations])
+
+  const sendData = useCallback(() => {
+    console.debug(payrollData)
+  }, [payrollData])
 
   return (
     <main className="p-4">
@@ -161,9 +166,10 @@ export default function PayrollCreatePage({
             })}
           <Button
             startContent={<Plain size={24} />}
-            className="cols-span-full w-full"
+            className="col-span-full w-full"
             variant="shadow"
-            color="primary">
+            color="primary"
+            onPress={sendData}>
             Отправить
           </Button>
         </div>

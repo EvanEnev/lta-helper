@@ -1,15 +1,17 @@
 import {LTLocation} from '@/src/utils/types'
 import LocationSelect from '@/src/components/global/LocationSelect'
+import {memo} from 'react'
 
 interface PayrollCreateLocationCellProps {
   callback: (location: LTLocation) => void
   locations: LTLocation[]
 }
 
-export default function PayrollCreateLocationCell({
+export default memo(function PayrollCreateLocationCell({
   callback,
   locations,
 }: PayrollCreateLocationCellProps) {
+  console.debug('payrollCreateLocationCell')
   return (
     <LocationSelect
       locationId={-1}
@@ -19,4 +21,4 @@ export default function PayrollCreateLocationCell({
       exclude={['другое', 'выезд', 'отдел продаж']}
     />
   )
-}
+})

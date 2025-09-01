@@ -1,12 +1,12 @@
 import {NumberInput} from '@heroui/react'
-import {useCallback, useState} from 'react'
+import {memo, useCallback, useState} from 'react'
 
 interface PayrollCreateValueCellProps {
   data: number
   callback: (value: number) => void
 }
 
-export default function PayrollCreateValueCell({
+export default memo(function PayrollCreateValueCell({
   data,
   callback,
 }: PayrollCreateValueCellProps) {
@@ -17,6 +17,8 @@ export default function PayrollCreateValueCell({
     callback(value)
   }, [])
 
+  console.debug('payrollCreateValueCell')
+
   return (
     <NumberInput
       value={value}
@@ -25,4 +27,4 @@ export default function PayrollCreateValueCell({
       onValueChange={onValueChange}
     />
   )
-}
+})
