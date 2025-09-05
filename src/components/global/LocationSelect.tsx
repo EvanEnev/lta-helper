@@ -34,6 +34,7 @@ export default function LocationSelect({
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
   const [selectedLocation, setSelectedLocation] =
     useState<LTLocation['id']>(locationId)
+
   const {worker} = useAuth()
   async function getLocations() {
     if (definedLocations.length) return
@@ -95,6 +96,7 @@ export default function LocationSelect({
     <Autocomplete
       required
       className={className}
+      inputProps={{classNames: {inputWrapper: 'h-full'}}}
       clearButtonProps={{hidden: true}}
       label={showLabel ? 'Локация' : ''}
       labelPlacement={labelPlacement}

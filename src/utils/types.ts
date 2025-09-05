@@ -177,13 +177,31 @@ export interface LTWorkerPayroll {
 }
 
 export interface LTWorkerPayrollData {
-  id: number
-  worker_id: LTWorker['id']
-  payroll_id: LTPayroll['id']
+  worker: {
+    name: LTWorker['name']
+    id: LTWorker['id']
+    rank: LTWorker['rank']
+  }
   value: number
   location_id: LTLocation['id']
   to_take_by: LTWorker['id'] | null
+  issue_confirmed: boolean | null
   taken_by: LTWorker['id'] | null
   taken: number | null
   taken_at: DateTime | null
+}
+
+export interface LTPayrollData {
+  workerId: LTWorker['id']
+  location: LTLocation['id']
+  bonuses?: number
+  fines?: number
+  value: number
+}
+
+export interface LTPayrollCreateData {
+  workersData: LTPayrollData[]
+  dates: {start: string; end: string}
+  withBonuses: boolean
+  takeBy: string
 }

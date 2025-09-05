@@ -41,17 +41,10 @@ export default async function PayrollsCreate({
   if (bonuses) {
     data = data.map(row => {
       const newData = {...row}
-
       // @ts-ignore
-      newData.value = evaluate(
-        // @ts-ignore
-        `${row.value || 0} + ${row.bonuses || 0} + ${row.fines || 0}`,
-      )
-
+      newData.bonuses = evaluate(newData.bonuses || '0')
       // @ts-ignore
-      delete newData.bonuses
-      // @ts-ignore
-      delete newData.fines
+      newData.fines = evaluate(newData.fines || '0')
 
       return newData
     })
@@ -61,10 +54,12 @@ export default async function PayrollsCreate({
 
   return (
     <PayrollCreatePage
-      // @ts-ignore
-      data={data}
+      bonuses={bonuses || false}
+      dates={dates}
       moneyOnLocations={moneyOnLocations}
       locations={locations}
+      // @ts-ignore
+      data={data}
     />
   )
 }

@@ -2,6 +2,8 @@ import db from '@/lib/database'
 import {NextResponse} from 'next/server'
 import google from '@/lib/google'
 import {DateTime} from 'luxon'
+import {evaluate} from 'mathjs'
+import capitalize from '@/lib/functions/capitalize'
 
 export async function GET() {
   const workersResponse = await fetch(
@@ -15,7 +17,8 @@ export async function GET() {
 
   const workers = (await workersResponse.json()).result.LIST
 
-  const workersMap: {worker: string; value: number}[] = []
+  const workersMap: {worker: string; value: number; oldValue: number}[] = []
+  const workersDatesMap: {worker: string; dates: string[]} | {} = {}
 
   const done: string[] = []
   const n = 100
@@ -54,9 +57,10 @@ export async function GET() {
       }
 
       const date = DateTime.fromISO(deal.result.UF_CRM_1571227371991)
-      const gameHours = deal.result.UF_CRM_1571227391338
-      const gameType = deal.result.UF_CRM_1571227421480
-      const comment = deal.result.COMMENTS
+      const gameHours: number = Number(deal.result.UF_CRM_1571227391338)
+      const gameType: number = Number(deal.result.UF_CRM_1571227421480)
+      const comment: string = deal.result.COMMENTS
+      const dealAdditions: string = deal.result.UF_CRM_1614616587929
 
       if (
         deal.result.TITLE.includes('VR') ||
@@ -68,20 +72,33 @@ export async function GET() {
       const dealWorkers = deal.result.UF_CRM_1614616543051
 
       for (const workerId of dealWorkers) {
-        if (workerId === 465) continue
-
         const worker = workers.find(
           (d: any) => d.ID.toString() === workerId.toString(),
         )
         if (!worker) continue
 
-        const workerName = worker.VALUE
+        let workerName: string = worker?.VALUE
 
-        const query = `select value from lt_arena.salary where date = '${date.toFormat('yyyy-MM-dd')}' and worker_id = (select id from lt_arena.workers where name ilike '${workerName}')`
+        if (workerId === 465) {
+          const lines = comment.split('\n')
+          lines.forEach((line: string) => {
+            if (line.toLowerCase().includes('инст')) {
+              const lineSplit = line.split('-')
+              if (lineSplit.length > 1) {
+                workerName = lineSplit[1].trim()
+              } else {
+                workerName = lineSplit[0].split(' ')[1].trim()
+              }
+            }
+          })
+        }
+
+        const query = `select value, overwork, bonuses, fines from lt_arena.salary where date = '${date.toFormat('yyyy-MM-dd')}' and worker_id = (select id from lt_arena.workers where name ilike '${workerName}')`
         const response = await db.query(query)
 
         if (!response.rows.length) continue
-        let salary: number = response.rows[0]?.value
+        const data = response.rows[0]
+        let salary: number = data?.value
 
         let bonus = 0
         if (!salary || salary === 1500) continue
@@ -101,29 +118,117 @@ export async function GET() {
         if (gameType !== 87) {
           bonus += 500
         }
-        if (workerName === 'Эван') {
-          console.debug(bonus, gameType, comment, date, deal.result.ID)
+
+        if (
+          dealAdditions.toLowerCase().includes('дп') ||
+          dealAdditions.toLowerCase().includes('перс')
+        ) {
+          bonus += 250
         }
-        const oldDataIndex = workersMap.findIndex(d => d.worker === workerName)
+        //
+        // if (workerName === 'Якудза') {
+        //   console.debug(
+        //     gameType,
+        //     salary,
+        //     gameHours,
+        //     bonus,
+        //     comment,
+        //     date,
+        //     deal.result.ID,
+        //   )
+        // }
+
+        const oldDataIndex = workersMap.findIndex(
+          d => d.worker.toLowerCase() === workerName.toLowerCase(),
+        )
+
+        workersDatesMap[workerName] = {
+          worker: capitalize(workerName.toLowerCase()),
+          dates: [
+            ...(workersDatesMap[capitalize(workerName.toLowerCase())]?.dates ||
+              []),
+            date.toFormat('yyyy-MM-dd'),
+          ],
+        }
 
         if (oldDataIndex !== -1) {
           workersMap[oldDataIndex] = {
             ...workersMap[oldDataIndex],
-            value: workersMap[oldDataIndex].value + bonus,
+            value: workersMap[oldDataIndex].value + salary + bonus,
+            oldValue: 0,
           }
         } else {
-          workersMap.push({worker: workerName, value: salary + bonus})
+          workersMap.push({
+            worker: workerName,
+            value: salary + bonus,
+            oldValue: 0,
+          })
         }
       }
     }
   }
 
-  console.debug(
-    'done\n\n',
-    workersMap
-      .sort((d1, d2) => d1.worker.localeCompare(d2.worker))
-      .map(w => `${w.worker}: ${w.value}`)
-      .join('\n'),
-  )
+  for (const data of Object.values(workersDatesMap)) {
+    const uniqueDates = Array.from(new Set(data.dates))
+
+    const query = `select sum(value) + sum(coalesce(overwork, 0)) as value, string_agg(bonuses, '+') as bonuses from lt_arena.salary where worker_id=(select id from lt_arena.workers where name ilike '${data.worker}') and date in (
+      ${uniqueDates
+        .map(d => {
+          return `'${d}'`
+        })
+        .join(', ')})`
+
+    const response = await db.query(query)
+
+    const {value, bonuses} = response.rows[0]
+
+    const summary = evaluate(`${value || 0} + ${bonuses || 0}`)
+    const oldDataIndex = workersMap.findIndex(
+      d => d.worker.trim().toLowerCase() === data.worker.trim().toLowerCase(),
+    )
+
+    if (data.worker === 'Пабло') {
+      // console.debug(
+      //   oldDataIndex,
+      //   workersMap[oldDataIndex],
+      //   summary,
+      //   response.rows,
+      //   value,
+      //   bonuses,
+      //   evaluate(`${value || 0} + ${bonuses || 0}`),
+      //   data.dates,
+      //   uniqueDates
+      //     .map(d => {
+      //       return `'${d}'`
+      //     })
+      //     .join(', '),
+      // )
+    }
+
+    workersMap[oldDataIndex] = {
+      ...workersMap[oldDataIndex],
+      oldValue: summary,
+    }
+
+    console.debug(`${data.worker} ${workersMap[oldDataIndex].value} ${summary}`)
+    // if (data.worker === 'Пабло') {
+    //   console.debug('pablo', oldDataIndex)
+    //   console.debug(
+    //     {
+    //       ...workersMap[oldDataIndex],
+    //       oldValue: summary,
+    //     },
+    //     workersMap[oldDataIndex],
+    //   )
+    // }
+  }
+
+  console.debug(workersMap)
+  const text = workersMap
+    .map(w => `${w.worker} ${w.value} ${w.oldValue}`)
+    .join('\n')
+
+  console.debug('done\n\n', text)
+
   return NextResponse.json({data: ''})
 }

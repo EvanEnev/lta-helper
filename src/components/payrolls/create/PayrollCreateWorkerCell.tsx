@@ -1,16 +1,19 @@
 import RankIcon from '@/src/components/global/RankIcon'
+import {LTRank, LTWorker} from '@/src/utils/types'
 
 interface PayrollCreateWorkerCellProps {
-  data: {name: string; rank: string}
+  name: LTWorker['name']
+  rank: LTRank['name']
 }
 
 export default function PayrollCreateWorkerCell({
-  data,
+  name,
+  rank,
 }: PayrollCreateWorkerCellProps) {
   return (
-    <div className="flex items-center justify-center gap-2">
-      <RankIcon rank={data.rank} />
-      <p>{data.name}</p>
+    <div className="flex flex-1 items-center justify-start gap-2">
+      <RankIcon rank={rank} />
+      <p className="mx-auto">{name}</p>
     </div>
   )
 }
