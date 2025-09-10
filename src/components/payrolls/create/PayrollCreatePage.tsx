@@ -80,16 +80,16 @@ export default function PayrollCreatePage({
       workersData: payrollData,
       takeBy,
       dates,
+      moneyOnLocations
     }
 
-    console.debug(payrollData)
-    // ;(async () =>
-    //   fetchHandler({
-    //     url: '/api/payrolls/create',
-    //     method: 'POST',
-    //     body: dataToSend,
-    //   }))()
-  }, [bonuses, dates, payrollData, takeBy])
+    ;(async () =>
+      fetchHandler({
+        url: '/api/payrolls/create',
+        method: 'POST',
+        body: dataToSend,
+      }))()
+  }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
 
   const handleUpdate = useCallback(
     (

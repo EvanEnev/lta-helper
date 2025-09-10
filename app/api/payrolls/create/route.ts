@@ -57,7 +57,13 @@ export async function POST(req: NextRequest) {
     )
     .join(',\n')}`
 
+    const createMoneyOnLocationsQuery = `
+    insert into lt_arena.locations_money
+    (location_id, payroll_id, value) values
+    ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}`
+
   await db.query(createWorkersPayrollQuery)
+    await db.query(createMoneyOnLocationsQuery)
 
   return NextResponse.json({}, {status: 200})
 }

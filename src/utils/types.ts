@@ -204,4 +204,8 @@ export interface LTPayrollCreateData {
   dates: {start: string; end: string}
   withBonuses: boolean
   takeBy: string
+    moneyOnLocations: {
+      location: LTLocation['id']
+      value: number
+    }[]
 }

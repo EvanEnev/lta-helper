@@ -2,6 +2,9 @@ import auth from '@/lib/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {DateTime} from 'luxon'
 import {LTLocation, LTPayroll, LTWorker} from '@/src/utils/types'
+import PayrollsDetailsPage from "@/src/components/payrolls/details/PayrollsDetailsPage";
+import db from "@/lib/database";
+import getLocations from "@/lib/functions/getLocations";
 
 interface PayrollDetailsProps {
   params: Promise<{id: string}>
@@ -50,4 +53,11 @@ where p.id = ${id}`
   ) {
     workersPayrollDataQuery += `\nand wp.worker_id = ${worker.id}`
   }
+
+  const result = await db.query(workersPayrollDataQuery)
+    const data = result.rows
+
+    const locations = await getLocations()
+
+  return <PayrollsDetailsPage data={data} locations={locations} />
 }

@@ -10,7 +10,7 @@ import {
   semanticColors,
 } from '@heroui/react'
 import Link from 'next/link'
-import {CheckCircle, CloseCircle, Pen2} from 'solar-icon-set'
+import {ChatLine, CheckCircle, CloseCircle, Document, Pen2} from 'solar-icon-set'
 import {useTheme} from 'next-themes'
 
 interface PayrollCardProps {
@@ -61,8 +61,8 @@ export default function PayrollCard({data}: PayrollCardProps) {
           className="w-full"
           as={Link}
           href={`/payrolls/${data.id}`}
-          startContent={<Pen2 />}>
-          Изменить
+          startContent={<ChatLine iconStyle='Bold' />}>
+          Подробнее
         </Button>
       </CardFooter>
     </Card>

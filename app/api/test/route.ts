@@ -105,13 +105,13 @@ export async function GET() {
 
         switch (gameHours) {
           case 1:
-            bonus += 250
+            bonus += 200
             break
           case 2:
-            bonus += 500
+            bonus += 400
             break
           case 3:
-            bonus += 750
+            bonus += 600
             break
         }
 
