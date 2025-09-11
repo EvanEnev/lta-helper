@@ -1,40 +1,126 @@
 'use client'
 
-import {LTLocation, LTWorkerPayrollData} from '@/src/utils/types'
-import {useAuth} from "@/src/components/global/providers/authProvider";
-import {useMemo} from "react";
-import checkPermissions from "@/lib/functions/checkPermissions";
-import {Divider} from "@heroui/react";
-import RankIcon from "@/src/components/global/RankIcon";
+import {
+  LTLocation,
+  LTMoneyOnLocationsData,
+  LTPayroll,
+  LTWorkerPayrollData,
+} from '@/src/utils/types'
+import {useAuth} from '@/src/components/global/providers/authProvider'
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import checkPermissions from '@/lib/functions/checkPermissions'
+import {Button, Code, Divider, Link} from '@heroui/react'
+import Location from '@/src/components/global/Location'
+import {ArrowLeft} from 'solar-icon-set'
+import PayrollsDetailsRow from '@/src/components/payrolls/details/PayrollsDetailsRow'
+import PayrollsDetailsHeader from '@/src/components/payrolls/details/PayrollsDetailsHeader'
+import {io, Socket} from 'socket.io-client'
 
 interface PayrollsDetailsPageProps {
   data: LTWorkerPayrollData[]
+  locationsData: LTMoneyOnLocationsData[]
   locations: LTLocation[]
+  payroll: LTPayroll
 }
 
 export default function PayrollsDetailsPage({
-  data,
+  data: initialData,
+  locationsData,
   locations,
+  payroll,
 }: PayrollsDetailsPageProps) {
-    const {worker} = useAuth()
-    const canIssue = useMemo(() => checkPermissions(['issue_payrolls'], worker), [worker])
+  const [data, setData] = useState<LTWorkerPayrollData[]>(initialData)
+  const socketRef = useRef<Socket | null>(null)
+  const {worker} = useAuth()
+  const canIssue = useMemo(
+    () => checkPermissions(['issue_payrolls'], worker),
+    [worker],
+  )
 
-  return <main className="p-4">
-      <div className='flex justify-between sticky top-0 bg-content2 rounded-2xl p-2'>
-          <p>Сотрудник</p>
-          <Divider orientation='vertical' />
-          <p>Сумма</p>
-          <Divider orientation='vertical' />
-          <p>Локация</p>
-          {canIssue && (<><Divider orientation='vertical' />
-          <p>Выдача</p></>)}
+  const canEdit = useMemo(
+    () => checkPermissions(['edit_payrolls'], worker),
+    [worker],
+  )
+
+  const checkTarget = useCallback((row: LTWorkerPayrollData, data: any) => {
+    return row.worker.id === data.worker_id
+  }, [])
+
+  useEffect(() => {
+    const socket = io()
+
+    socketRef.current = socket
+
+    socket.on('workers_payrolls:update', (data: any) => {
+      setData(prev =>
+        prev.map(row => {
+          if (!checkTarget(row, data)) return row
+          return {
+            ...row,
+            ...data,
+          }
+        }),
+      )
+    })
+
+    return () => {
+      socket.off('workers_payrolls:update')
+      socket.disconnect()
+    }
+  }, [checkTarget, worker.id])
+
+  return (
+    <main className="p-4">
+      <div className="flex items-center gap-2 pb-4">
+        <Button as={Link} href="/payrolls" startContent={<ArrowLeft />}>
+          Назад
+        </Button>
       </div>
-      <div className='flex flex-col gap-2'>
-          {data.map((item, index) => {
-              return <div key={index} className='flex justify-between p-2 rounded-2xl bg-content1'>
-                  <p><RankIcon rank={item.worker.rank} /> {item.worker.name}</p>
-              </div>
-          })}
+      <div className="flex gap-4">
+        <div className="bg-content1 flex w-full flex-col gap-2 rounded-2xl">
+          <PayrollsDetailsHeader canIssue={canIssue} />
+          <div className="flex flex-col gap-2">
+            {data.map((item, index) => {
+              return (
+                <PayrollsDetailsRow
+                  socketRef={socketRef}
+                  payrollId={payroll.id}
+                  lastRow={index === data.length - 1}
+                  key={index}
+                  data={item}
+                  canIssue={canIssue}
+                  canEdit={canEdit}
+                  locations={locations}
+                />
+              )
+            })}
+          </div>
+        </div>
+        <div className="sticky top-0 flex h-fit flex-col gap-2">
+          <div className="glass grid auto-rows-auto grid-cols-2 gap-2 rounded-2xl p-2">
+            <p className="text-center">Локация</p>
+            <Code color="primary" className="text-center">
+              Выделено
+            </Code>
+            {locationsData.map((data, index) => {
+              return (
+                <Fragment key={index}>
+                  <Divider className="col-span-full" />
+                  <Location locationName={data.location} />
+                  <Code color="primary">{data.value}</Code>
+                </Fragment>
+              )
+            })}
+          </div>
+        </div>
       </div>
-  </main>
+    </main>
+  )
 }

@@ -6,7 +6,8 @@ import {useAuth} from '@/src/components/global/providers/authProvider'
 import checkPermissions from '@/lib/functions/checkPermissions'
 
 interface LocationSelectProps {
-  callback: any
+  callback: (location: LTLocation | null) => void
+  isDisabled?: boolean
   locationId: number
   labelPlacement?:
     | 'outside'
@@ -23,6 +24,7 @@ interface LocationSelectProps {
 
 export default function LocationSelect({
   callback,
+  isDisabled = false,
   locationId,
   labelPlacement = 'outside',
   showLabel = true,
@@ -94,6 +96,7 @@ export default function LocationSelect({
 
   return (
     <Autocomplete
+      isDisabled={isDisabled}
       required
       className={className}
       inputProps={{classNames: {inputWrapper: 'h-full'}}}

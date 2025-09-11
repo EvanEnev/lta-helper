@@ -1,4 +1,4 @@
-import {DateTime, Interval} from 'luxon'
+import {DateTime} from 'luxon'
 import {Client} from 'pg'
 
 export type Day = {
@@ -164,18 +164,6 @@ export interface LTPayroll {
   workersCount: string
 }
 
-export interface LTWorkerPayroll {
-  id: number
-  worker: LTWorker
-  payroll: LTPayroll
-  value: number
-  location: LTLocation
-  to_take_by: LTWorker | null
-  taken_by: LTWorker | null
-  taken: number | null
-  taken_at: DateTime | null
-}
-
 export interface LTWorkerPayrollData {
   worker: {
     name: LTWorker['name']
@@ -183,12 +171,14 @@ export interface LTWorkerPayrollData {
     rank: LTWorker['rank']
   }
   value: number
+  bonuses: number | null
   location_id: LTLocation['id']
-  to_take_by: LTWorker['id'] | null
+  to_take_by: LTWorker['name'] | null
+  to_take: number | null
   issue_confirmed: boolean | null
-  taken_by: LTWorker['id'] | null
+  taken_by: LTWorker['name'] | null
   taken: number | null
-  taken_at: DateTime | null
+  taken_at: string | null
 }
 
 export interface LTPayrollData {
@@ -204,8 +194,20 @@ export interface LTPayrollCreateData {
   dates: {start: string; end: string}
   withBonuses: boolean
   takeBy: string
-    moneyOnLocations: {
-      location: LTLocation['id']
-      value: number
-    }[]
+  moneyOnLocations: {
+    location: LTLocation['id']
+    value: number
+  }[]
+}
+
+export interface LTMoneyOnLocationsData {
+  location: LTLocation['name']
+  value: number
+}
+
+export interface LTPayrollIssueData {
+  to_take_by: LTPayroll['takeBy']
+  dates: LTPayroll['dates']
+  location: LTLocation['name']
+  value: number
 }

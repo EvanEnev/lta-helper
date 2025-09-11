@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server'
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 import {DateTime} from 'luxon'
 import db from '@/lib/database'
 import {WorkerSalary} from '@/src/utils/types'

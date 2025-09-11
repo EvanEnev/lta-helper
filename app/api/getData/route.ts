@@ -3,7 +3,7 @@ import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
 import {DateTime} from 'luxon'
 import createAdminSupabase from '@/lib/createAdminSupabase'
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 
 export async function GET() {
   const supabase = await createAdminSupabase()

@@ -4,7 +4,7 @@ import {Server as SocketIOServer} from 'socket.io'
 let client: Client
 
 export async function initListener(io: SocketIOServer) {
-  const listeners = ['salary_updates', 'points_updates']
+  const listeners = ['salary:update', 'workers_payrolls:update']
 
   client = new Client({
     user: process.env.DATABASE_USER,
@@ -15,7 +15,7 @@ export async function initListener(io: SocketIOServer) {
 
   await client.connect()
   for (const listener of listeners) {
-    await client.query(`LISTEN ${listener}`)
+    await client.query(`LISTEN "${listener}"`)
     console.log(`[Postgres] LISTEN ${listener} started`)
   }
 

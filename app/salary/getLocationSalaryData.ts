@@ -1,4 +1,4 @@
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'

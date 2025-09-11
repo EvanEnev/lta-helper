@@ -1,34 +1,11 @@
 'use server'
 
-import createAdminSupabase from '@/lib/createAdminSupabase'
 import convertTZ from '@/lib/functions/convertTZ'
-import db from '@/lib/database'
-import {LTWorker} from '@/src/utils/types'
+import {User} from '@supabase/supabase-js'
 
-export default async function auth(): Promise<LTWorker> {
-  const supabase = await createAdminSupabase()
-
-  const {data: session} = await supabase.auth.getUser()
-  const user = session?.user
-
-  if (!user)
-    return {
-      email: '',
-      firstName: '',
-      id: 0,
-      isFormer: false,
-      lastName: '',
-      location: '',
-      middleName: '',
-      name: '',
-      permissions: [],
-      phoneNumber: '',
-      photoUrl: '',
-      rank: '',
-      telegramId: 0,
-      number: 0,
-    }
-
+export default async function authQueryGenerator(
+  user: User,
+): Promise<{worker: string; permissions: string}> {
   const telegramId = user?.user_metadata.telegram_id
 
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
@@ -65,31 +42,5 @@ export default async function auth(): Promise<LTWorker> {
       pm.id = dp.permission_id
        OR pm.id = w_pm.permission_id`
 
-  const result = await db.query(query)
-
-  const permissionsResult = await db.query(permissionsQuery)
-  const permissions = permissionsResult.rows
-  const workerResult = result.rows[0] || {}
-
-  const worker: LTWorker = {
-    name: workerResult.name,
-    id: workerResult.id,
-    telegramId: workerResult.telegram_id,
-    rank: workerResult.rank,
-    firstName: workerResult.first_name,
-    lastName: workerResult.last_name,
-    middleName: workerResult.middle_name,
-    phoneNumber: workerResult.phone_number,
-    photoUrl: workerResult.photo_url,
-    locationId: workerResult.location_id,
-    location: workerResult.location,
-    permissions,
-    email: workerResult.email,
-  }
-
-  if (workerResult?.today_location) {
-    worker.locationId = workerResult?.today_location
-  }
-
-  return worker
+  return {worker: query, permissions: permissionsQuery}
 }

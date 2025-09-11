@@ -1,6 +1,6 @@
 import db from '@/lib/database'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 import SalaryPage from '@/src/components/salary/Salary'
 import getLocationSalaryData from '@/app/salary/getLocationSalaryData'
 import {DateTime} from 'luxon'

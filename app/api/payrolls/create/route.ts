@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 import createAdminSupabase from '@/lib/createAdminSupabase'
 import {LTPayrollCreateData} from '@/src/utils/types'
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 import db from '@/lib/database'
 
 export async function POST(req: NextRequest) {
@@ -57,13 +57,13 @@ export async function POST(req: NextRequest) {
     )
     .join(',\n')}`
 
-    const createMoneyOnLocationsQuery = `
+  const createMoneyOnLocationsQuery = `
     insert into lt_arena.locations_money
     (location_id, payroll_id, value) values
     ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}`
 
   await db.query(createWorkersPayrollQuery)
-    await db.query(createMoneyOnLocationsQuery)
+  await db.query(createMoneyOnLocationsQuery)
 
   return NextResponse.json({}, {status: 200})
 }

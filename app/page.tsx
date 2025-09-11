@@ -1,5 +1,5 @@
 import MainPage from '@/src/components/page/MainPage'
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
 import {evaluate} from 'mathjs'

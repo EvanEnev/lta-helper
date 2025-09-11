@@ -6,7 +6,7 @@ import {Day} from '@/src/utils/types'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
 import createAdminSupabase from '@/lib/createAdminSupabase'
-import auth from '@/lib/auth'
+import auth from '@/lib/auth/auth'
 import {DateTime} from 'luxon'
 
 export async function POST(req: NextRequest) {
