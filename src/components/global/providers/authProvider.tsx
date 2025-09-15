@@ -51,13 +51,13 @@ export default function AuthProvider({children}: {children: ReactNode}) {
     const userRes = await fetch('/api/getData')
     const userData = await userRes.json()
 
-    const workingDays = userData.workingDays.map((day: any) => ({
+    const workingDays = userData.workingDays?.map((day: any) => ({
       ...day,
       date: DateTime.fromISO(day.date),
     }))
 
     setWorker(userData.worker)
-    setWorkingDays(workingDays)
+    setWorkingDays(workingDays || [])
   }, [])
 
   const autoLogin = useCallback(() => {
