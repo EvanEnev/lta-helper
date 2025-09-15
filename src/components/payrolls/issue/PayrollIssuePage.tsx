@@ -16,7 +16,7 @@ import {
   SelectItem,
 } from '@heroui/react'
 import {DateTime, Interval} from 'luxon'
-import {useCallback, useMemo, useState} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import RankIcon from '@/src/components/global/RankIcon'
 import {CheckCircle} from 'solar-icon-set'
@@ -33,7 +33,12 @@ export default function PayrollIssuePage({
   workers,
   takeByData,
 }: PayrollIssuePageProps) {
-  const {worker} = useAuth()
+  const {worker, setExiting} = useAuth()
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
+
   const [selectedPayrollId, setSelectedPayrollId] = useState<
     LTPayrollIssueData['id'] | null
   >(payrolls[0].id)

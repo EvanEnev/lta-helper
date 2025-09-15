@@ -38,7 +38,12 @@ export default function PayrollsDetailsPage({
 }: PayrollsDetailsPageProps) {
   const [data, setData] = useState<LTWorkerPayrollData[]>(initialData)
   const socketRef = useRef<Socket | null>(null)
-  const {worker} = useAuth()
+  const {worker, setExiting} = useAuth()
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
+
   const canIssue = useMemo(
     () => checkPermissions(['issue_payrolls'], worker),
     [worker],

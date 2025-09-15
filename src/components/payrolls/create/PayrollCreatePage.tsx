@@ -7,7 +7,7 @@ import {
   LTRank,
   LTWorker,
 } from '@/src/utils/types'
-import {Fragment, useCallback, useMemo, useState} from 'react'
+import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import Location from '@/src/components/global/Location'
 import {
   Button,
@@ -25,6 +25,7 @@ import {DateTime, Interval} from 'luxon'
 import {useTheme} from 'next-themes'
 import {parseDate} from '@internationalized/date'
 import fetchHandler from '@/src/utils/global/fetchHandler'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface PayrollCreatePageProps {
   data: {
@@ -53,6 +54,12 @@ export default function PayrollCreatePage({
   moneyOnLocations,
   locations,
 }: PayrollCreatePageProps) {
+  const {setExiting} = useAuth()
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
+
   const {theme} = useTheme()
   // @ts-ignore
   const themeColors = semanticColors[theme || 'dark']

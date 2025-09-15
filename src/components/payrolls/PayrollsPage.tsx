@@ -1,7 +1,7 @@
 'use client'
 
 import {LTLocation, LTPayroll} from '@/src/utils/types'
-import {Fragment} from 'react'
+import {Fragment, useEffect} from 'react'
 import PayrollCard from '@/src/components/payrolls/PayrollCard'
 import PayrollCreateCard from '@/src/components/payrolls/PayrollsCreateCard'
 import {useAuth} from '@/src/components/global/providers/authProvider'
@@ -13,7 +13,11 @@ interface PayrollsPageProps {
 }
 
 export default function PayrollsPage({data, locations}: PayrollsPageProps) {
-  const {worker} = useAuth()
+  const {worker, setExiting} = useAuth()
+
+  useEffect(() => {
+    setExiting(false)
+  }, [setExiting])
 
   return (
     <main className="p-4">
