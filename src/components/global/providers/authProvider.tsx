@@ -170,7 +170,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
       setDays(workingDays)
     }
 
-    if (worker.telegramId) {
+    if (worker?.telegramId) {
       if (requiredFields.some(key => !(worker as any)[key])) {
         return router.push('/register')
       } else if (path === '/login') {
