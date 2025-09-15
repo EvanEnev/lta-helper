@@ -48,7 +48,16 @@ export async function POST(req: NextRequest) {
     where worker_id = ${body.worker_id} and payroll_id = ${body.payroll_id}
   `
 
+  const updateWorkersBalanceQuery = `
+    update lt_arena.workers
+    set balance = (select (value + coalesce(bonuses, 0)) - ${body.value || 0}
+                   from lt_arena.workers_payrolls
+                   where worker_id = ${body.worker_id}
+                     and payroll_id = ${body.payroll_id})
+    where id = ${body.worker_id}`
+
   await db.query(updateWorkerPayrollQuery)
+  await db.query(updateWorkersBalanceQuery)
 
   return NextResponse.json({}, {status: 200})
 }

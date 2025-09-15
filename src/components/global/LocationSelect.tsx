@@ -8,6 +8,7 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 interface LocationSelectProps {
   callback: (location: LTLocation | null) => void
   isDisabled?: boolean
+  isReadOnly?: boolean
   locationId: number
   labelPlacement?:
     | 'outside'
@@ -25,6 +26,7 @@ interface LocationSelectProps {
 export default function LocationSelect({
   callback,
   isDisabled = false,
+  isReadOnly = false,
   locationId,
   labelPlacement = 'outside',
   showLabel = true,
@@ -97,6 +99,7 @@ export default function LocationSelect({
   return (
     <Autocomplete
       isDisabled={isDisabled}
+      isReadOnly={isReadOnly}
       required
       className={className}
       inputProps={{classNames: {inputWrapper: 'h-full'}}}

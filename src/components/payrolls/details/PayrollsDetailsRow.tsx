@@ -78,7 +78,7 @@ export default function PayrollsDetailsRow({
         </div>
         <Divider orientation="vertical" />
         <NumberInput
-          isDisabled={!canEdit}
+          isReadOnly={!canEdit}
           onValueChange={(value: number) => {
             updateCallback('value', value)
           }}
@@ -90,7 +90,7 @@ export default function PayrollsDetailsRow({
         />
         <Divider orientation="vertical" />
         <NumberInput
-          isDisabled={!canEdit}
+          isReadOnly={!canEdit}
           isWheelDisabled
           minValue={0}
           onValueChange={(value: number) => {
@@ -102,7 +102,7 @@ export default function PayrollsDetailsRow({
         />
         <Divider orientation="vertical" />
         <LocationSelect
-          isDisabled={!canEdit}
+          isReadOnly={!canEdit}
           className="h-14 flex-1"
           callback={location => {
             updateCallback('location_id', location!.id)

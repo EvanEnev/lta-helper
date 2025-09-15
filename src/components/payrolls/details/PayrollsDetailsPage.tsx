@@ -103,23 +103,28 @@ export default function PayrollsDetailsPage({
             })}
           </div>
         </div>
-        <div className="sticky top-0 flex h-fit flex-col gap-2">
-          <div className="glass grid auto-rows-auto grid-cols-2 gap-2 rounded-2xl p-2">
-            <p className="text-center">Локация</p>
-            <Code color="primary" className="text-center">
-              Выделено
-            </Code>
-            {locationsData.map((data, index) => {
-              return (
-                <Fragment key={index}>
-                  <Divider className="col-span-full" />
-                  <Location locationName={data.location} />
-                  <Code color="primary">{data.value}</Code>
-                </Fragment>
-              )
-            })}
+        {checkPermissions(
+          ['view_all_payrolls', 'view_location_payrolls'],
+          worker,
+        ) && (
+          <div className="sticky top-0 flex h-fit flex-col gap-2">
+            <div className="glass grid auto-rows-auto grid-cols-2 gap-2 rounded-2xl p-2">
+              <p className="text-center">Локация</p>
+              <Code color="primary" className="text-center">
+                Выделено
+              </Code>
+              {locationsData.map((data, index) => {
+                return (
+                  <Fragment key={index}>
+                    <Divider className="col-span-full" />
+                    <Location locationName={data.location} />
+                    <Code color="primary">{data.value}</Code>
+                  </Fragment>
+                )
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   )

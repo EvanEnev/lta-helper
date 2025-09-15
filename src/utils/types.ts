@@ -37,6 +37,7 @@ export interface LTWorker {
   name: string
   number?: number | null
   telegramId: number
+  balance: number | null
   isFormer?: boolean | null
   location?: LTLocation['name'] | null
   locationId?: LTLocation['id'] | null
@@ -206,8 +207,19 @@ export interface LTMoneyOnLocationsData {
 }
 
 export interface LTPayrollIssueData {
-  to_take_by: LTPayroll['takeBy']
+  take_by: LTPayroll['takeBy']
   dates: LTPayroll['dates']
+  to_take_by: LTWorkerPayrollData['to_take_by']
+  balance: LTWorker['balance']
   location: LTLocation['name']
   value: number
+  id: LTPayroll['id']
+}
+
+export interface LTTakeByPayrollData {
+  to_take: number
+  name: LTWorker['name']
+  id: LTWorker['id']
+  payroll_id: LTPayroll['id']
+  location_id: LTLocation['id']
 }
