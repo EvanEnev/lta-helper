@@ -1,6 +1,6 @@
 'use server'
 
-import convertTZ from '@/lib/functions/convertTZ'
+import convertTZ from '../functions/convertTZ'
 import {User} from '@supabase/supabase-js'
 
 export default async function authQueryGenerator(
