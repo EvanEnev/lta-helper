@@ -12,7 +12,6 @@ import Location from '@/src/components/global/Location'
 import {
   Button,
   Code,
-  DateInput,
   DatePicker,
   Divider,
   Link,
@@ -246,6 +245,7 @@ export default function PayrollCreatePage({
             <DatePicker
               // @ts-ignore
               value={parseDate(takeBy)}
+              // @ts-ignore
               onChange={d => setTakeBy(d?.toString() || '')}
             />
           </div>
