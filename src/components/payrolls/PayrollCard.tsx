@@ -39,7 +39,6 @@ export default function PayrollCard({data}: PayrollCardProps) {
       <CardBody className="flex flex-col gap-2">
         {canViewAllData && (
           <>
-            `
             <p>
               Создана: {createdAt.toFormat('dd.MM.yyyy HH:mm')},{' '}
               {data.createdBy.name}
