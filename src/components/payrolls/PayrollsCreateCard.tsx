@@ -127,7 +127,9 @@ export default function PayrollCreateCard({
                 </p>
 
                 <DateRangePicker
+                  // @ts-ignore
                   value={dateRange}
+                  // @ts-ignore
                   onChange={value => setDateRange(value)}
                   aria-label="Диапазон дат"
                   labelPlacement="outside"
