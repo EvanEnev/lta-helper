@@ -37,6 +37,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
     permissions: [],
     telegramId: 0,
     rank: '',
+    balance: 0,
   })
   const [workingDays, setWorkingDays] = useState<Day[]>([])
   const [isLoading, setLoading] = useState<boolean>(true)

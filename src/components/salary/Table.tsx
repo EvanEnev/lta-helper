@@ -327,7 +327,7 @@ export default memo(function Table({
               labelPlacement="inside"
               includeAll={true}
               className="w-fit"
-              callback={(location: LTLocation) =>
+              callback={(location: LTLocation | null) =>
                 updateData('location', location)
               }
               locationId={locationId}
