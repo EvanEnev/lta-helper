@@ -1,8 +1,8 @@
 import {SocketUpdateProps} from '@/src/utils/types'
 import {createClient} from '@supabase/supabase-js'
-import authQueryGenerator from '@/lib/auth/authQueryGenerator'
-import authParseWorker from '@/lib/auth/authParseWorker'
-import checkPermissions from '@/lib/functions/checkPermissions'
+import authQueryGenerator from '../../../lib/auth/authQueryGenerator'
+import authParseWorker from '../../../lib/auth/authParseWorker'
+import checkPermissions from '../../../lib/functions/checkPermissions'
 
 export default async function updateWorkersPayrolls({
   data,
