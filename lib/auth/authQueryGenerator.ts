@@ -15,6 +15,7 @@ export default async function authQueryGenerator(
                    w.id,
                    w.rank,
                    w.number,
+                   w.balance,
                    w.telegram_id,
                    l.name as location,
                    l.id as location_id,

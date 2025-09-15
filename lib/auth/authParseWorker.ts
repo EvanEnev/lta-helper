@@ -10,6 +10,7 @@ export default async function authParseWorker(
   const worker: LTWorker = {
     name: workerResult.name,
     id: workerResult.id,
+    balance: workerResult.balance,
     telegramId: workerResult.telegram_id,
     rank: workerResult.rank,
     firstName: workerResult.first_name,

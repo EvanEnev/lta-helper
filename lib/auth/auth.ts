@@ -28,6 +28,7 @@ export default async function auth(): Promise<LTWorker> {
       rank: '',
       telegramId: 0,
       number: 0,
+      balance: 0,
     }
 
   const queries = await authQueryGenerator(user)
