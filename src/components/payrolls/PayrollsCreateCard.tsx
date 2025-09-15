@@ -66,6 +66,7 @@ export default function PayrollCreateCard({
           .toFormat('yyyy-MM-dd'),
       )
 
+      // @ts-ignore
       setDateRange({start, end})
     } else {
       const monthNumber = currentDate.day
@@ -87,7 +88,7 @@ export default function PayrollCreateCard({
           })
           .toFormat('yyyy-MM-dd'),
       )
-
+      // @ts-ignore
       setDateRange({start, end})
       setBonuses(true)
     }
