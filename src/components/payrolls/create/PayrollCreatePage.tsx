@@ -80,7 +80,7 @@ export default function PayrollCreatePage({
       workersData: payrollData,
       takeBy,
       dates,
-      moneyOnLocations
+      moneyOnLocations,
     }
 
     ;(async () =>
@@ -244,6 +244,7 @@ export default function PayrollCreatePage({
           <div className="glass p-2">
             <p>Можно забрать до</p>
             <DatePicker
+              // @ts-ignore
               value={parseDate(takeBy)}
               onChange={d => setTakeBy(d?.toString() || '')}
             />
