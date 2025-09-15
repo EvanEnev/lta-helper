@@ -287,6 +287,7 @@ export default function EditDrawer({
                   label="Дата смены"
                   className="col-span-2"
                   onChange={value => update(value, 'newDate')}
+                  // @ts-ignore
                   value={parseDate(salaryDate.toFormat('yyyy-MM-dd'))}
                 />
                 <DeleteButton
