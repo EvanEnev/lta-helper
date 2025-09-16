@@ -10,12 +10,12 @@ import {
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import Location from '@/src/components/global/Location'
 import {
-  Button,
-  Code,
-  DatePicker,
-  Divider,
-  Link,
-  semanticColors,
+    Button, Checkbox,
+    Code,
+    DatePicker,
+    Divider,
+    Link,
+    semanticColors,
 } from '@heroui/react'
 import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
 import PayrollCreateWorkerCell from '@/src/components/payrolls/create/PayrollCreateWorkerCell'
@@ -75,6 +75,8 @@ export default function PayrollCreatePage({
   const [takeBy, setTakeBy] = useState<string>(
     DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
   )
+  const [selectedRows, setSelectedRows] = useState<number[]>([])
+  const [lastSelectedRow, setLastSelectedRow] = useState<number | null>(null)
 
   const interval = useMemo(() => {
     return Interval.fromISO(`${dates.start}/${dates.end}`)
@@ -103,12 +105,50 @@ export default function PayrollCreatePage({
       value: number,
       type: 'location' | 'bonuses' | 'fines' | 'value',
     ) => {
+        const index = data.findIndex(d => d.id === workerId)
+
+        if (selectedRows.length && selectedRows.includes(index)) {
+            const dataToCheck = data.filter((_, index) => selectedRows.includes(index))
+            setPayrollData(prev =>
+                prev.map(d => (dataToCheck.find(d2 => (d2.id === d.workerId)) !== undefined ? {...d, [type]: value} : d)),
+            )
+        } else {
       setPayrollData(prev =>
         prev.map(d => (d.workerId === workerId ? {...d, [type]: value} : d)),
-      )
+      )}
     },
-    [],
+    [selectedRows],
   )
+
+    const checkboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, rowIndex: number) => {
+        // @ts-ignore
+        const withShift = e.nativeEvent.shiftKey
+
+        if (lastSelectedRow !== null && withShift) {
+            let selected = [...selectedRows]
+            for (let i = lastSelectedRow + 1; i <= rowIndex; i++) {
+                if (selected.includes(i)) {
+                    selected = selected.filter(d => d !== i)
+                } else {
+                    selected.push(i)
+                }
+            }
+
+            const newSelected = new Set(selected)
+
+            setSelectedRows(Array.from(newSelected))
+            setLastSelectedRow(null)
+        } else {
+            if (!selectedRows.includes(rowIndex)) {
+                setSelectedRows(prev => [...prev, rowIndex])
+            } else {
+                setSelectedRows(prev => prev.filter(d => d !== rowIndex))
+            }
+
+            setLastSelectedRow(rowIndex)
+        }
+    }, [lastSelectedRow, selectedRows])
+
   return (
     <main className="p-4">
       <div className="flex items-center gap-2 pb-4">
@@ -163,6 +203,7 @@ export default function PayrollCreatePage({
             return (
               <Fragment key={index}>
                 <div className="flex items-center gap-2 p-2">
+                  <Checkbox onChange={(e) => checkboxChange(e, index)} isSelected={selectedRows.includes(index)} />
                   <PayrollCreateWorkerCell name={d.name} rank={d.rank} />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
@@ -195,6 +236,7 @@ export default function PayrollCreatePage({
                     </>
                   )}
                   <PayrollCreateLocationCell
+                    locationId={payrollWorkerData?.location || -1}
                     locations={locations}
                     callback={handleUpdate}
                     workerId={d.id}

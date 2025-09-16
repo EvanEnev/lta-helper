@@ -13,7 +13,7 @@ export default async function Payrolls() {
   bonuses,
   (select count(*) from lt_arena.workers_payrolls where payroll_id = p.id) as "workersCount"
   from lt_arena.payrolls p
-  order by lower(dates)
+  order by lower(dates) desc
   `
 
   const result = await db.query(query)
@@ -26,6 +26,7 @@ export default async function Payrolls() {
   }))
 
   const locations = await getLocations()
+
 
   return <PayrollsPage data={data} locations={locations} />
 }

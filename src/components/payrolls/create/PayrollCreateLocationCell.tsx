@@ -10,12 +10,14 @@ interface PayrollCreateLocationCellProps {
   ) => void
   locations: LTLocation[]
   workerId: number
+  locationId: LTLocation['id']
 }
 
 export default memo(function PayrollCreateLocationCell({
   callback,
   locations,
   workerId,
+  locationId
 }: PayrollCreateLocationCellProps) {
   const locationCallback = useCallback(
     (location: LTLocation | null) => {
@@ -26,7 +28,8 @@ export default memo(function PayrollCreateLocationCell({
 
   return (
     <LocationSelect
-      locationId={-1}
+        dynamicLocationId={true}
+      locationId={locationId}
       labelPlacement={'inside'}
       className="h-full flex-1"
       callback={locationCallback}

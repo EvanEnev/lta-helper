@@ -8,6 +8,7 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 interface LocationSelectProps {
   callback: (location: LTLocation | null) => void
   isDisabled?: boolean
+  dynamicLocationId?: boolean
   isReadOnly?: boolean
   locationId: number
   labelPlacement?:
@@ -26,6 +27,7 @@ interface LocationSelectProps {
 export default function LocationSelect({
   callback,
   isDisabled = false,
+  dynamicLocationId = false,
   isReadOnly = false,
   locationId,
   labelPlacement = 'outside',
@@ -87,6 +89,12 @@ export default function LocationSelect({
   useEffect(() => {
     getLocations()
   }, [])
+
+    useEffect(() => {
+        if (dynamicLocationId) {
+            setSelectedLocation(locationId)
+        }
+    }, [dynamicLocationId, locationId]);
 
   const onChange = useCallback(
     (locationId: any) => {
