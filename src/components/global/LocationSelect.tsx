@@ -7,6 +7,7 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 
 interface LocationSelectProps {
   callback: (location: LTLocation | null) => void
+  isClearable?: boolean
   isDisabled?: boolean
   dynamicLocationId?: boolean
   isReadOnly?: boolean
@@ -26,6 +27,7 @@ interface LocationSelectProps {
 
 export default function LocationSelect({
   callback,
+  isClearable = false,
   isDisabled = false,
   dynamicLocationId = false,
   isReadOnly = false,
@@ -90,11 +92,11 @@ export default function LocationSelect({
     getLocations()
   }, [])
 
-    useEffect(() => {
-        if (dynamicLocationId) {
-            setSelectedLocation(locationId)
-        }
-    }, [dynamicLocationId, locationId]);
+  useEffect(() => {
+    if (dynamicLocationId) {
+      setSelectedLocation(locationId)
+    }
+  }, [dynamicLocationId, locationId])
 
   const onChange = useCallback(
     (locationId: any) => {
@@ -109,13 +111,25 @@ export default function LocationSelect({
       isDisabled={isDisabled}
       isReadOnly={isReadOnly}
       required
+      startContent={
+        <LocationIcon
+          locationName={
+            locations.find(d => d.id === selectedLocation)?.name || ''
+          }
+        />
+      }
       className={className}
-      inputProps={{classNames: {inputWrapper: 'h-full'}}}
-      clearButtonProps={{hidden: true}}
+      inputProps={{
+        classNames: {
+          inputWrapper: 'h-full',
+          input: 'whitespace-normal break-normal truncate',
+        },
+      }}
+      clearButtonProps={{hidden: !isClearable}}
       label={showLabel ? 'Локация' : ''}
       labelPlacement={labelPlacement}
       onSelectionChange={onChange}
-      selectedKey={selectedLocation.toString()}
+      selectedKey={selectedLocation?.toString()}
       aria-label="Выбор локации">
       {locations.map(location => (
         <AutocompleteItem

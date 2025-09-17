@@ -1,7 +1,7 @@
 'use client'
 
 import {LTLocation, LTPayroll} from '@/src/utils/types'
-import {Fragment, useEffect} from 'react'
+import {Fragment, useCallback, useEffect, useState} from 'react'
 import PayrollCard from '@/src/components/payrolls/PayrollCard'
 import PayrollCreateCard from '@/src/components/payrolls/PayrollsCreateCard'
 import {useAuth} from '@/src/components/global/providers/authProvider'
@@ -12,12 +12,20 @@ interface PayrollsPageProps {
   locations: LTLocation[]
 }
 
-export default function PayrollsPage({data, locations}: PayrollsPageProps) {
+export default function PayrollsPage({
+  data: initialData,
+  locations,
+}: PayrollsPageProps) {
+  const [data, setData] = useState(initialData)
   const {worker, setExiting} = useAuth()
 
   useEffect(() => {
     setExiting(false)
   }, [setExiting])
+
+  const onDelete = useCallback((payrollId: LTPayroll['id']) => {
+    setData(prev => prev.filter(d => d.id !== payrollId))
+  }, [])
 
   return (
     <main className="p-4">
@@ -28,7 +36,7 @@ export default function PayrollsPage({data, locations}: PayrollsPageProps) {
         {data.map(payroll => {
           return (
             <Fragment key={payroll.id}>
-              <PayrollCard data={payroll} />
+              <PayrollCard data={payroll} onDelete={onDelete} />
             </Fragment>
           )
         })}

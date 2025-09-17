@@ -3,12 +3,18 @@ import {useState} from 'react'
 import {CheckCircle, MinusCircle, TrashBinTrash} from 'solar-icon-set'
 
 interface DeleteButtonProps {
+  label?: string
+  showConfirmLabel?: boolean
+  confirmLabel?: string
   callback: () => void
   className?: string
 }
 
 export default function DeleteButton({
   callback,
+  label = 'Удалить смену',
+  showConfirmLabel = true,
+  confirmLabel = 'Точно удалить?',
   className = '',
 }: DeleteButtonProps) {
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
@@ -17,7 +23,9 @@ export default function DeleteButton({
     <div className={className}>
       {showConfirm ? (
         <div className={'grid-rows-auto grid grid-flow-row grid-cols-2 gap-2'}>
-          <p className="col-span-2 h-fit font-bold">Точно удалить?</p>
+          {showConfirmLabel && (
+            <p className="col-span-2 h-fit font-bold">{confirmLabel}</p>
+          )}
           <Button
             onPress={() => setShowConfirm(false)}
             className="w-full"
@@ -42,7 +50,7 @@ export default function DeleteButton({
           variant="faded"
           onPress={() => setShowConfirm(true)}
           startContent={<TrashBinTrash />}>
-          Удалить смену
+          {label}
         </Button>
       )}
     </div>

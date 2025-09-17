@@ -17,7 +17,7 @@ export default memo(function PayrollCreateLocationCell({
   callback,
   locations,
   workerId,
-  locationId
+  locationId,
 }: PayrollCreateLocationCellProps) {
   const locationCallback = useCallback(
     (location: LTLocation | null) => {
@@ -28,10 +28,10 @@ export default memo(function PayrollCreateLocationCell({
 
   return (
     <LocationSelect
-        dynamicLocationId={true}
+      dynamicLocationId={true}
       locationId={locationId}
-      labelPlacement={'inside'}
-      className="h-full flex-1"
+      showLabel={false}
+      className="h-full min-w-[8rem] flex-1"
       callback={locationCallback}
       locations={locations}
       exclude={['другое', 'выезд', 'отдел продаж']}

@@ -69,7 +69,7 @@ export default function PayrollCreateCard({
       // @ts-ignore
       setDateRange({start, end})
     } else {
-      const monthNumber = currentDate.day
+      const monthNumber = currentDate.month
 
       const start = parseDate(
         currentDate
@@ -83,11 +83,13 @@ export default function PayrollCreateCard({
       const end = parseDate(
         currentDate
           .set({
-            day: currentDate.set({month: monthNumber}).daysInMonth,
+            day: 15,
             month: monthNumber,
           })
           .toFormat('yyyy-MM-dd'),
       )
+
+      console.debug(currentDate, monthNumber, start, end)
       // @ts-ignore
       setDateRange({start, end})
       setBonuses(true)

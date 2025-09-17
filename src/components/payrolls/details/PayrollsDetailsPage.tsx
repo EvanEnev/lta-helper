@@ -82,7 +82,7 @@ export default function PayrollsDetailsPage({
   }, [checkTarget, worker.id])
 
   return (
-    <main className="p-4">
+    <main className="h-full w-full overflow-x-auto p-4">
       <div className="flex items-center gap-2 pb-4">
         <Button as={Link} href="/payrolls" startContent={<ArrowLeft />}>
           Назад
@@ -112,18 +112,29 @@ export default function PayrollsDetailsPage({
           ['view_all_payrolls', 'view_location_payrolls'],
           worker,
         ) && (
-          <div className="sticky top-0 flex h-fit flex-col gap-2">
-            <div className="glass grid auto-rows-auto grid-cols-2 gap-2 rounded-2xl p-2">
+          <div className="sticky top-0 flex h-fit min-w-[22rem] flex-col gap-2">
+            <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
               <p className="text-center">Локация</p>
               <Code color="primary" className="text-center">
                 Выделено
               </Code>
-              {locationsData.map((data, index) => {
+              <Code color="success" className="text-center">
+                Выдано
+              </Code>
+              {locationsData.map((locationData, index) => {
+                const locationIssued = data
+                  .filter(d => d.location_id === locationData.location_id)
+                  .reduce((acc, cur) => acc + (cur.taken || 0), 0)
+
                 return (
                   <Fragment key={index}>
                     <Divider className="col-span-full" />
-                    <Location locationName={data.location} />
-                    <Code color="primary">{data.value}</Code>
+                    <Location
+                      className="break-all"
+                      locationName={locationData.location}
+                    />
+                    <Code color="primary">{locationData.value}</Code>
+                    <Code color="success">{locationIssued}</Code>
                   </Fragment>
                 )
               })}

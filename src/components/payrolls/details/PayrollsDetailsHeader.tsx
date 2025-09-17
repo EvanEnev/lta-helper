@@ -12,7 +12,9 @@ export default function PayrollsDetailsHeader({
     'Сотрудник',
     'Сумма',
     'Бонусы',
+    'Внешняя выплата',
     'Локация',
+    'Остаток',
   ])
 
   useEffect(() => {

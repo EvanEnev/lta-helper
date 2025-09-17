@@ -28,7 +28,7 @@ import Location from '@/src/components/global/Location'
 import {DateTime} from 'luxon'
 import {useCallback, useMemo} from 'react'
 import {parseDate} from '@internationalized/date'
-import DeleteButton from '@/src/components/salary/DeleteButton'
+import DeleteButton from '@/src/components/global/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import LocationSelect from '@/src/components/global/LocationSelect'
 

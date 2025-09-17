@@ -33,14 +33,13 @@ export default async function updateWorkersPayrolls({
     return
   }
 
-  console.debug(worker, checkPermissions(['edit_payrolls'], worker))
-
   loggerData.data = data
 
   const query = `update lt_arena.workers_payrolls
                 set value = ${data.value},
                     bonuses = ${data.bonuses || null},
-                    location_id = ${data.location_id}
+                    location_id = ${data.location_id},
+                    external_payment = ${data.external_payment || null}
                 where worker_id = ${data.worker_id}
                 and payroll_id = ${data.payroll_id}
                 `

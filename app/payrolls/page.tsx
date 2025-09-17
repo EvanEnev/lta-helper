@@ -3,6 +3,8 @@ import db from '@/lib/database'
 import PayrollsPage from '@/src/components/payrolls/PayrollsPage'
 import getLocations from '@/lib/functions/getLocations'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Payrolls() {
   const query = `select
   id,
@@ -26,7 +28,6 @@ export default async function Payrolls() {
   }))
 
   const locations = await getLocations()
-
 
   return <PayrollsPage data={data} locations={locations} />
 }

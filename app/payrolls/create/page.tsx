@@ -21,14 +21,15 @@ export default async function PayrollsCreate({
     w.id,
     w.rank,
     w.is_former,
-    sum(value) + sum(coalesce(overwork, 0)) as value
-    ${
-      bonuses
-        ? `,
-    string_agg(bonuses, '+') as bonuses,
-    string_agg(fines, '+') as fines`
-        : ''
-    }
+    sum(value) + sum(coalesce(overwork, 0)) as value,
+    case
+        when w.rank = 'Актёр' or ${bonuses} then string_agg(bonuses, '+')
+        else '0'
+    end as bonuses,
+    case
+      when w.rank = 'Актёр' or ${bonuses} then string_agg(fines, '+')
+      else '0'
+      end as fines
     from lt_arena.salary
     left join lt_arena.workers w on w.id = worker_id
     where date between '${dates.start}' and '${dates.end}'
@@ -38,17 +39,15 @@ export default async function PayrollsCreate({
 
   let data = salarySort(result.rows)
 
-  if (bonuses) {
-    data = data.map(row => {
-      const newData = {...row}
-      // @ts-ignore
-      newData.bonuses = evaluate(newData.bonuses || '0')
-      // @ts-ignore
-      newData.fines = evaluate(newData.fines || '0')
+  data = data.map(row => {
+    const newData = {...row}
+    // @ts-ignore
+    newData.bonuses = evaluate(newData.bonuses || '0')
+    // @ts-ignore
+    newData.fines = evaluate(newData.fines || '0')
 
-      return newData
-    })
-  }
+    return newData
+  })
 
   const locations = await getLocations()
 

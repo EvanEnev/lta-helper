@@ -8,12 +8,11 @@ import {
 import {
   Accordion,
   AccordionItem,
+  Alert,
   Autocomplete,
   AutocompleteItem,
   Button,
   NumberInput,
-  Select,
-  SelectItem,
 } from '@heroui/react'
 import {DateTime, Interval} from 'luxon'
 import {useCallback, useEffect, useMemo, useState} from 'react'
@@ -39,35 +38,22 @@ export default function PayrollIssuePage({
     setExiting(false)
   }, [setExiting])
 
-  const [selectedPayrollId, setSelectedPayrollId] = useState<
-    LTPayrollIssueData['id'] | null
-  >(payrolls[0].id)
   const [selectedWorker, setSelectedWorker] = useState<LTWorker['name'] | null>(
     null,
   )
   const [workersData, setWorkersData] = useState<
     {workerId: LTWorker['id']; value: number}[]
   >([])
-  const [payroll, setPayroll] = useState<LTPayrollIssueData | null>(null)
+  const [payroll, setPayroll] = useState<LTPayrollIssueData>(payrolls[0])
   const [isLoading, setIsLoading] = useState(false)
 
-  const updatePayroll = useCallback(
-    (payrollId: LTPayrollIssueData['id']) => {
-      setSelectedPayrollId(payrollId)
-      const payroll = payrolls.find(d => d.id === payrollId)!
-      setPayroll(payroll)
-      setSelectedWorker(payroll.to_take_by || worker.name)
-    },
-    [payrolls, worker.name],
-  )
-
   const takeByWorkers = useMemo(() => {
-    return takeByData.filter(d => d.payroll_id === selectedPayrollId)
-  }, [selectedPayrollId, takeByData])
+    return takeByData.filter(d => d.payroll_id === payroll.id)
+  }, [payroll.id, takeByData])
 
   const sendConfirm = useCallback(async () => {
     const body = {
-      payroll_id: selectedPayrollId,
+      payroll_id: payroll.id,
       workers: [
         {
           id: worker.id,
@@ -95,8 +81,8 @@ export default function PayrollIssuePage({
     setIsLoading(false)
   }, [
     payroll?.balance,
+    payroll.id,
     payroll?.value,
-    selectedPayrollId,
     selectedWorker,
     takeByWorkers,
     worker.id,
@@ -106,28 +92,19 @@ export default function PayrollIssuePage({
   return (
     <main className="p-4">
       <div className="flex flex-col gap-2">
-        <Select
-          label="Ведомость"
-          onSelectionChange={keys => updatePayroll(Number(keys.currentKey))}
-          value={selectedPayrollId || -1}>
-          {payrolls.map(payroll => {
-            const title = `${Interval.fromISO(payroll.dates).toFormat('dd.MM.yyyy')} (до 
-              ${DateTime.fromISO(payroll.take_by).toFormat('dd.MM.yyyy')})`
-
-            return (
-              <SelectItem key={payroll.id} title={title}>
-                {title}
-              </SelectItem>
-            )
-          })}
-        </Select>
+        {payroll?.issue_confirmed && (
+          <Alert title="Выдача подтверждена" color="success" />
+        )}
+        <p>
+          Ведомость: {Interval.fromISO(payroll.dates).toFormat('dd.MM.yyyy')}{' '}
+          (до {DateTime.fromISO(payroll.take_by).toFormat('dd.MM.yyyy')})
+        </p>
         <NumberInput
           maxValue={(payroll?.value || 0) + (payroll?.balance || 0)}
           label="Сумма к выдаче"
           value={(payroll?.value || 0) + (payroll?.balance || 0)}
           onValueChange={value =>
             setPayroll(d => {
-              if (!d) return null
               return {...d, balance: 0, value}
             })
           }
@@ -148,6 +125,7 @@ export default function PayrollIssuePage({
         </Autocomplete>
         <div className="flex flex-col gap-2">
           <p>Забираю за:</p>
+          {!takeByWorkers.length && <i>Пусто...</i>}
           <Accordion variant="splitted" itemClasses={{titleWrapper: 'p-0'}}>
             {takeByWorkers.map((data, index) => {
               const workerData = workersData.find(d => d.workerId === data.id)
@@ -184,7 +162,7 @@ export default function PayrollIssuePage({
       <Button
         onPress={sendConfirm}
         isLoading={isLoading}
-        isDisabled={!selectedPayrollId}
+        isDisabled={!payrolls[0].id}
         className="sticky bottom-4 my-2 h-14 w-full"
         color="primary"
         startContent={<CheckCircle iconStyle="Bold" size={24} />}>

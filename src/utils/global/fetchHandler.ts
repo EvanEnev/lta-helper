@@ -27,6 +27,7 @@ export default async function fetchHandler({
   } catch {}
 
   if (response.ok) {
+    addToast({color: 'success', title: 'Успешно!'})
     return json
   } else {
     addToast({

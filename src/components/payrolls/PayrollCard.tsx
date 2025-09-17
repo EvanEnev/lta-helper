@@ -14,12 +14,16 @@ import {ChatLine, CheckCircle, CloseCircle} from 'solar-icon-set'
 import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import DeleteButton from '@/src/components/global/DeleteButton'
+import {useCallback} from 'react'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface PayrollCardProps {
   data: LTPayroll
+  onDelete: (payrollId: LTPayroll['id']) => void
 }
 
-export default function PayrollCard({data}: PayrollCardProps) {
+export default function PayrollCard({data, onDelete}: PayrollCardProps) {
   const {worker} = useAuth()
   const {theme} = useTheme()
   const interval = Interval.fromISO(data.dates)
@@ -32,6 +36,13 @@ export default function PayrollCard({data}: PayrollCardProps) {
     ['view_all_payrolls', 'edit_payrolls'],
     worker,
   )
+
+  const deletePayroll = useCallback(async () => {
+    const body = {payroll_id: data.id}
+
+    await fetchHandler({url: '/api/payrolls/delete', method: 'POST', body})
+    onDelete(data.id)
+  }, [data.id, onDelete])
 
   return (
     <Card className="h-[18rem] w-[20rem]">
@@ -67,15 +78,20 @@ export default function PayrollCard({data}: PayrollCardProps) {
           )}
         </div>
       </CardBody>
-      <CardFooter>
+      <CardFooter className="flex gap-2">
         <Button
           variant="faded"
-          className="w-full"
           as={Link}
           href={`/payrolls/${data.id}`}
           startContent={<ChatLine iconStyle="Bold" />}>
           Подробнее
         </Button>
+        <DeleteButton
+          className="flex-1"
+          callback={deletePayroll}
+          showConfirmLabel={false}
+          label={'Удалить'}
+        />
       </CardFooter>
     </Card>
   )

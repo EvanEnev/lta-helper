@@ -14,7 +14,13 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
   const worker = await auth()
 
   const payrollDataQuery = `select
-  p.id, dates, take_by as "takeBy", created_at as "createdAt", w.name as "createdBy", bonuses, (select count(*) from lt_arena.workers_payrolls where payroll_id = p.id) as "workersCount"
+  p.id,
+  dates,
+  take_by as "takeBy",
+  created_at as "createdAt",
+  w.name as "createdBy",
+  bonuses,
+  (select count(*) from lt_arena.workers_payrolls where payroll_id = p.id) as "workersCount"
   from lt_arena.payrolls p
   left join lt_arena.workers w on w.id = p.created_by
   where p.id = ${id}`
@@ -32,6 +38,7 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
     w2.name as to_take_by,
     wp.to_take,
     wp.taken,
+    wp.external_payment,
     w3.name as taken_by,
     wp.taken_at::text
 from lt_arena.workers_payrolls wp
@@ -43,16 +50,17 @@ left join lt_arena.workers w3 on wp.taken_by = w3.id
 where p.id = ${id}`
 
   let moneyOnLocationsQuery = `
-  select
-  l.name as location,
-  lp.value
-  from lt_arena.locations_payrolls lp
-  left join lt_arena.locations l on l.id = lp.location_id
-  where lp.payroll_id = ${id}`
+    select
+      l.name as location,
+      l.id as location_id,
+      lm.value
+    from lt_arena.locations_money lm
+           left join lt_arena.locations l on l.id = lm.location_id
+    where lm.payroll_id = ${id} and value is not null`
 
   if (!checkPermissions(['view_payrolls'], worker)) {
     workersPayrollDataQuery += `\nand p.id = -1`
-    moneyOnLocationsQuery += `\nand lp.payroll_id = -1`
+    moneyOnLocationsQuery += `\nand lm.payroll_id = -1`
   }
 
   if (
@@ -60,14 +68,14 @@ where p.id = ${id}`
     checkPermissions(['view_location_payrolls'], worker)
   ) {
     workersPayrollDataQuery += `\nand wp.location_id = ${worker.locationId}`
-    moneyOnLocationsQuery += `\nand lp.location_id = ${worker.locationId}`
+    moneyOnLocationsQuery += `\nand lm.location_id = ${worker.locationId}`
   }
 
   if (
     !checkPermissions(['view_all_payrolls', 'view_location_payrolls'], worker)
   ) {
     workersPayrollDataQuery += `\nand wp.worker_id = ${worker.id}`
-    moneyOnLocationsQuery += `\nand lp.payroll_id = -1`
+    moneyOnLocationsQuery += `\nand lm.payroll_id = -1`
   }
 
   const result = await db.query(workersPayrollDataQuery)

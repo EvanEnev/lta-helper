@@ -44,7 +44,11 @@ export default function PayrollsDetailsRow({
   }, [data.to_take, data.worker.id, payrollId])
 
   const updateCallback = useCallback(
-    async (key: 'location_id' | 'value' | 'bonuses', value: number) => {
+    async (
+      key: 'location_id' | 'value' | 'bonuses' | 'external_payment',
+      value: number | null,
+    ) => {
+      if (!value) value = -1
       const session = await supabase.auth.getSession()
 
       const body = {
@@ -72,7 +76,7 @@ export default function PayrollsDetailsRow({
   return (
     <>
       <div className="flex items-center gap-2 rounded-2xl p-2">
-        <div className="flex flex-1 items-center justify-start gap-2">
+        <div className="flex min-w-[9rem] flex-1 items-center justify-start gap-2">
           <RankIcon rank={data.worker.rank} />
           <p className="mx-auto">{data.worker.name}</p>
         </div>
@@ -85,7 +89,7 @@ export default function PayrollsDetailsRow({
           isWheelDisabled
           minValue={0}
           endContent={<Ruble iconStyle="Bold" />}
-          className="flex-1"
+          className="min-w-[9rem] flex-1"
           defaultValue={data.value || 0}
         />
         <Divider orientation="vertical" />
@@ -97,28 +101,45 @@ export default function PayrollsDetailsRow({
             updateCallback('bonuses', value)
           }}
           endContent={<Ruble iconStyle="Bold" />}
-          className="flex-1"
+          className="min-w-[9rem] flex-1"
           defaultValue={data.bonuses || 0}
         />
         <Divider orientation="vertical" />
-        <LocationSelect
+        <NumberInput
           isReadOnly={!canEdit}
-          className="h-14 flex-1"
+          isWheelDisabled
+          minValue={0}
+          onValueChange={(value: number) => {
+            updateCallback('external_payment', value)
+          }}
+          endContent={<Ruble iconStyle="Bold" />}
+          className="min-w-[9rem] flex-1"
+          defaultValue={data.external_payment || 0}
+        />
+        <Divider orientation="vertical" />
+        <LocationSelect
+          isClearable
+          isReadOnly={!canEdit}
+          className="h-14 min-w-[9rem] flex-1"
           callback={location => {
-            updateCallback('location_id', location!.id)
+            updateCallback('location_id', location?.id || null)
           }}
           locationId={data.location_id}
           showLabel={false}
           locations={locations}
         />
+        <Divider orientation="vertical" />
+        <p className="min-w-[9rem] flex-1 text-center">
+          {data.value - (data.taken || 0) - (data.external_payment || 0)}
+        </p>
         {canIssue && (
           <>
             <Divider orientation="vertical" />
-            <p className="flex-1 text-center">{data.to_take}</p>
+            <p className="min-w-[9rem] flex-1 text-center">{data.to_take}</p>
             <Divider orientation="vertical" />
-            <p className="flex-1 text-center">{data.to_take_by}</p>
+            <p className="min-w-[9rem] flex-1 text-center">{data.to_take_by}</p>
             <Divider orientation="vertical" />
-            <div className="flex flex-1 flex-col gap-1 text-center">
+            <div className="flex min-w-[9rem] flex-1 flex-col gap-1 text-center">
               <p>{data.taken_by}</p>
               <p>
                 {data.taken_at &&
@@ -130,7 +151,7 @@ export default function PayrollsDetailsRow({
               <p>{data.taken}</p>
             </div>
             <Divider orientation="vertical" />
-            <div className="flex-1">
+            <div className="`flex-1 min-w-[9rem]">
               <Button
                 isLoading={loading}
                 onPress={issuePayroll}

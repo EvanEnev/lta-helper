@@ -20,12 +20,14 @@ export default async function PayrollIssue() {
     w.balance,
     l.name as location,
     wp.value + coalesce(wp.bonuses, 0) as value,
+    wp.issue_confirmed,
     w2.name as to_take_by
     from lt_arena.payrolls p
     left join lt_arena.workers_payrolls wp on wp.worker_id = ${worker.id} and wp.payroll_id = p.id
     left join lt_arena.locations l on l.id = wp.location_id
     left join lt_arena.workers w on w.id = ${worker.id}
     left join lt_arena.workers w2 on w2.id = wp.to_take_by
+    where p.take_by < NOW()
     order by p.take_by desc
   `
 

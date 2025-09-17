@@ -173,6 +173,7 @@ export interface LTWorkerPayrollData {
   }
   value: number
   bonuses: number | null
+  external_payment: number | null
   location_id: LTLocation['id']
   to_take_by: LTWorker['name'] | null
   to_take: number | null
@@ -185,6 +186,7 @@ export interface LTWorkerPayrollData {
 export interface LTPayrollData {
   workerId: LTWorker['id']
   location: LTLocation['id']
+  external_payment: number | null
   bonuses?: number
   fines?: number
   value: number
@@ -203,6 +205,7 @@ export interface LTPayrollCreateData {
 
 export interface LTMoneyOnLocationsData {
   location: LTLocation['name']
+  location_id: LTLocation['id']
   value: number
 }
 
@@ -213,6 +216,7 @@ export interface LTPayrollIssueData {
   balance: LTWorker['balance']
   location: LTLocation['name']
   value: number
+  issue_confirmed: boolean | null
   id: LTPayroll['id']
 }
 
