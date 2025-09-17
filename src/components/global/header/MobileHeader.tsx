@@ -68,6 +68,7 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                           <Button
                             variant="ghost"
                             key={index}
+                            as={Link}
                             className="h-16 w-full"
                             startContent={
                               child.icon ? <child.icon size={24} /> : ''

@@ -81,6 +81,8 @@ export default function DesktopHeader() {
                       .map((child, index) => (
                         <DropdownItem
                           title={child.name}
+                          // @ts-ignore
+                          routerOptions={{replace: true}}
                           key={index}
                           className="h-12"
                           startContent={
