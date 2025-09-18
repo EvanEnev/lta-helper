@@ -21,6 +21,7 @@ export default async function PayrollIssue() {
     l.name as location,
     wp.value + coalesce(wp.bonuses, 0) as value,
     wp.issue_confirmed,
+    wp.external_payment,
     w2.name as to_take_by
     from lt_arena.payrolls p
     left join lt_arena.workers_payrolls wp on wp.worker_id = ${worker.id} and wp.payroll_id = p.id

@@ -14,12 +14,13 @@ export default function PayrollsDetailsHeader({
     'Бонусы',
     'Внешняя выплата',
     'Локация',
+    'Выдано',
     'Остаток',
   ])
 
   useEffect(() => {
     if (canIssue) {
-      const headerValuesToAdd = ['К выдаче', 'Заберёт', 'Выдано', 'Выдача']
+      const headerValuesToAdd = ['К выдаче', 'Заберёт', 'Выдача']
 
       setHeaderValues(prev =>
         headerValuesToAdd.every(v => prev.includes(v))

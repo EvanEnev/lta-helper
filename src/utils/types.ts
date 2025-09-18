@@ -217,6 +217,7 @@ export interface LTPayrollIssueData {
   location: LTLocation['name']
   value: number
   issue_confirmed: boolean | null
+  external_payment: number | null
   id: LTPayroll['id']
 }
 

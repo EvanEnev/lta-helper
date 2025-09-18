@@ -129,6 +129,18 @@ export default function PayrollsDetailsRow({
           locations={locations}
         />
         <Divider orientation="vertical" />
+        <div className="flex min-w-[9rem] flex-1 flex-col gap-1 text-center">
+          <p>{data.taken_by}</p>
+          <p>
+            {data.taken_at &&
+              DateTime.fromFormat(
+                data.taken_at,
+                'yyyy-MM-dd HH:mm:ss',
+              ).toFormat('dd.MM.yyyy HH:mm:ss')}
+          </p>
+          <p>{data.taken}</p>
+        </div>
+        <Divider orientation="vertical" />
         <p className="min-w-[9rem] flex-1 text-center">
           {data.value - (data.taken || 0) - (data.external_payment || 0)}
         </p>
@@ -138,18 +150,6 @@ export default function PayrollsDetailsRow({
             <p className="min-w-[9rem] flex-1 text-center">{data.to_take}</p>
             <Divider orientation="vertical" />
             <p className="min-w-[9rem] flex-1 text-center">{data.to_take_by}</p>
-            <Divider orientation="vertical" />
-            <div className="flex min-w-[9rem] flex-1 flex-col gap-1 text-center">
-              <p>{data.taken_by}</p>
-              <p>
-                {data.taken_at &&
-                  DateTime.fromFormat(
-                    data.taken_at,
-                    'yyyy-MM-dd HH:mm:ss',
-                  ).toFormat('dd.MM.yyyy HH:mm:ss')}
-              </p>
-              <p>{data.taken}</p>
-            </div>
             <Divider orientation="vertical" />
             <div className="`flex-1 min-w-[9rem]">
               <Button

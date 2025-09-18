@@ -102,7 +102,11 @@ export default function PayrollIssuePage({
         <NumberInput
           maxValue={(payroll?.value || 0) + (payroll?.balance || 0)}
           label="Сумма к выдаче"
-          value={(payroll?.value || 0) + (payroll?.balance || 0)}
+          value={
+            (payroll?.value || 0) +
+            (payroll?.balance || 0) -
+            (payroll?.external_payment || 0)
+          }
           onValueChange={value =>
             setPayroll(d => {
               return {...d, balance: 0, value}
