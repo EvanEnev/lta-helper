@@ -209,7 +209,8 @@ export default function PayrollCreatePage({
             const summary =
               (payrollWorkerData.fines || 0) +
               (payrollWorkerData.bonuses || 0) +
-              (Number(payrollWorkerData.value) || 0)
+              (Number(payrollWorkerData.value) || 0) -
+              (payrollWorkerData.external_payment || 0)
 
             return (
               <Fragment key={index}>
