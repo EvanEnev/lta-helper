@@ -31,7 +31,7 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
         'id', w.id,
         'rank', w.rank
     ) as worker,
-    wp.value,
+    wp.value + coalesce(w.balance, 0) as value,
     wp.bonuses,
     wp.issue_confirmed,
     l.id as location_id,

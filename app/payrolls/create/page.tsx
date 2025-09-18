@@ -21,7 +21,7 @@ export default async function PayrollsCreate({
     w.id,
     w.rank,
     w.is_former,
-    sum(value) + sum(coalesce(overwork, 0)) as value,
+    sum(value) + sum(coalesce(overwork, 0)) + coalesce(w.balance, 0) as value,
     case
         when w.rank = 'Актёр' or ${bonuses} then string_agg(bonuses, '+')
         else '0'
