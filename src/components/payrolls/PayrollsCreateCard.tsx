@@ -73,6 +73,7 @@ export default function PayrollCreateCard({
 
       // @ts-ignore
       setDateRange({start, end})
+      // @ts-ignore
       setActorsBonusesRange({start, end})
     } else {
       const monthNumber = currentDate.month
@@ -112,7 +113,9 @@ export default function PayrollCreateCard({
       console.debug(currentDate, monthNumber, start, end)
       // @ts-ignore
       setDateRange({start, end})
+      // @ts-ignore
       setWorkersBonusesRange({start: workersStart, end: workersEnd})
+      // @ts-ignore
       setActorsBonusesRange({start, end})
       setBonuses(true)
     }
