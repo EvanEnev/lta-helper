@@ -15,6 +15,12 @@ export default async function PayrollsCreate({
   const dates = JSON.parse(params?.dates as string)
   const moneyOnLocations = JSON.parse(params?.moneyOnLocations as string)
   const bonuses = JSON.parse(params?.bonuses as string)
+  const workersBonusesRange: {start: string; end: string} = JSON.parse(
+    params?.workersBonusesRange as string,
+  )
+  const actorsBonusesRange: {start: string; end: string} = JSON.parse(
+    params?.actorsBonusesRange as string,
+  )
 
   const query = `select
     w.name,
@@ -23,11 +29,13 @@ export default async function PayrollsCreate({
     w.is_former,
     sum(value) + sum(coalesce(overwork, 0)) + coalesce(w.balance, 0) as value,
     case
-        when w.rank = 'Актёр' or ${bonuses} then string_agg(bonuses, '+')
-        else '0'
+        when w.rank = 'Актёр' then (select string_agg(bonuses, '+') from lt_arena.salary where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
+        when w.rank != 'Актёр' and ${bonuses} then (select string_agg(bonuses, '+') from lt_arena.salary where worker_id = w.id and date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}')  
+      else '0'
     end as bonuses,
     case
-      when w.rank = 'Актёр' or ${bonuses} then string_agg(fines, '+')
+      when w.rank = 'Актёр' then (select string_agg(fines, '+') from lt_arena.salary where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
+      when w.rank != 'Актёр' and ${bonuses} then (select string_agg(fines, '+') from lt_arena.salary where worker_id = w.id and date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}')
       else '0'
       end as fines
     from lt_arena.salary

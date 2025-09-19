@@ -39,6 +39,11 @@ export default function PayrollCreateCard({
   const [dateRange, setDateRange] = useState<RangeValue<CalendarDate> | null>(
     null,
   )
+  const [actorsBonusesRange, setActorsBonusesRange] =
+    useState<RangeValue<CalendarDate> | null>(null)
+  const [workersBonusesRange, setWorkersBonusesRange] =
+    useState<RangeValue<CalendarDate> | null>(null)
+
   const currentDate = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
 
   const [bonuses, setBonuses] = useState<boolean>(false)
@@ -68,6 +73,7 @@ export default function PayrollCreateCard({
 
       // @ts-ignore
       setDateRange({start, end})
+      setActorsBonusesRange({start, end})
     } else {
       const monthNumber = currentDate.month
 
@@ -89,12 +95,28 @@ export default function PayrollCreateCard({
           .toFormat('yyyy-MM-dd'),
       )
 
+      const workersStart = parseDate(
+        currentDate
+          .set({month: monthNumber - 1, day: 1})
+          .toFormat('yyyy-MM-dd'),
+      )
+
+      const workersEnd = parseDate(
+        currentDate
+          .set({
+            month: monthNumber - 1,
+            day: currentDate.set({month: monthNumber - 1}).daysInMonth,
+          })
+          .toFormat('yyyy-MM-dd'),
+      )
       console.debug(currentDate, monthNumber, start, end)
       // @ts-ignore
       setDateRange({start, end})
+      setWorkersBonusesRange({start: workersStart, end: workersEnd})
+      setActorsBonusesRange({start, end})
       setBonuses(true)
     }
-  }, [])
+  }, [currentDate])
 
   const filteredLocations = useMemo(
     () =>
@@ -127,7 +149,6 @@ export default function PayrollCreateCard({
                 <p className="bg-content3 z-100 w-full rounded-xl p-2">
                   Диапазон дат
                 </p>
-
                 <DateRangePicker
                   // @ts-ignore
                   value={dateRange}
@@ -137,9 +158,36 @@ export default function PayrollCreateCard({
                   labelPlacement="outside"
                 />
                 <Divider />
-                <Checkbox onValueChange={setBonuses} isSelected={bonuses}>
+                <p className="bg-content3 z-100 w-full rounded-xl p-2">
                   Бонусы
-                </Checkbox>
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
+                    <Checkbox isSelected>Актёры</Checkbox>
+                    <DateRangePicker
+                      // @ts-ignore
+                      value={actorsBonusesRange}
+                      // @ts-ignore
+                      onChange={value => setActorsBonusesRange(value)}
+                      aria-label="Диапазон дат бонусов актёров"
+                      labelPlacement="outside"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Checkbox onValueChange={setBonuses} isSelected={bonuses}>
+                      Инструкторы
+                    </Checkbox>
+                    <DateRangePicker
+                      isDisabled={!bonuses}
+                      // @ts-ignore
+                      value={workersBonusesRange}
+                      // @ts-ignore
+                      onChange={value => setWorkersBonusesRange(value)}
+                      aria-label="Диапазон дат бонусов актёров"
+                      labelPlacement="outside"
+                    />
+                  </div>
+                </div>
                 <Divider />
                 <div className="grid grid-flow-row auto-rows-auto grid-cols-2 gap-2 overflow-auto">
                   <p className="bg-content3 sticky top-0 z-100 col-span-full w-full rounded-xl p-2">
@@ -188,6 +236,14 @@ export default function PayrollCreateCard({
                         }),
                         moneyOnLocations: JSON.stringify(moneyOnLocations),
                         bonuses,
+                        workersBonusesRange: JSON.stringify({
+                          start: workersBonusesRange?.start.toString(),
+                          end: workersBonusesRange?.end.toString(),
+                        }),
+                        actorsBonusesRange: JSON.stringify({
+                          start: actorsBonusesRange?.start.toString(),
+                          end: actorsBonusesRange?.end.toString(),
+                        }),
                       },
                     }}>
                     Продолжить

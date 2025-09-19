@@ -195,9 +195,9 @@ export default function PayrollCreatePage({
             <Divider orientation="vertical" />
             <p className="min-w-[8rem] flex-1 text-center">Бонусы</p>
             <Divider orientation="vertical" />
-            <p className="min-w-[8rem] flex-1 text-center">Внешняя выплата</p>
-            <Divider orientation="vertical" />
             <p className="min-w-[8rem] flex-1 text-center">Штрафы</p>
+            <Divider orientation="vertical" />
+            <p className="min-w-[8rem] flex-1 text-center">Внешняя выплата</p>
             <Divider orientation="vertical" />
             <p className="min-w-[8rem] flex-1 text-center">Итог</p>
             <Divider orientation="vertical" />
@@ -235,15 +235,15 @@ export default function PayrollCreatePage({
                   />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
-                    data={0}
-                    type="external_payment"
+                    type="fines"
+                    data={d.fines || 0}
                     workerId={d.id}
                     callback={handleUpdate}
                   />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
-                    type="fines"
-                    data={d.fines || 0}
+                    data={0}
+                    type="external_payment"
                     workerId={d.id}
                     callback={handleUpdate}
                   />
