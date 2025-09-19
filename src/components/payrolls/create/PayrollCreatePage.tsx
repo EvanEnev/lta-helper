@@ -206,6 +206,9 @@ export default function PayrollCreatePage({
           {data.map((d, index) => {
             const payrollWorkerData = payrollData[index]
 
+            if (d.id === 94) {
+              console.debug(d, payrollWorkerData)
+            }
             const summary =
               (payrollWorkerData.fines || 0) +
               (payrollWorkerData.bonuses || 0) +
@@ -222,12 +225,14 @@ export default function PayrollCreatePage({
                   <PayrollCreateWorkerCell name={d.name} rank={d.rank} />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
+                    minValue={0}
                     data={d.value || 0}
                     workerId={d.id}
                     callback={handleUpdate}
                   />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
+                    minValue={0}
                     data={d.bonuses || 0}
                     type="bonuses"
                     workerId={d.id}
@@ -242,6 +247,7 @@ export default function PayrollCreatePage({
                   />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
+                    minValue={0}
                     data={0}
                     type="external_payment"
                     workerId={d.id}
