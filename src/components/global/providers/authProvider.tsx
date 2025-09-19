@@ -37,6 +37,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
     permissions: [],
     telegramId: 0,
     rank: '',
+    balance: 0,
   })
   const [workingDays, setWorkingDays] = useState<Day[]>([])
   const [isLoading, setLoading] = useState<boolean>(true)
@@ -50,13 +51,13 @@ export default function AuthProvider({children}: {children: ReactNode}) {
     const userRes = await fetch('/api/getData')
     const userData = await userRes.json()
 
-    const workingDays = userData.workingDays.map((day: any) => ({
+    const workingDays = userData.workingDays?.map((day: any) => ({
       ...day,
       date: DateTime.fromISO(day.date),
     }))
 
     setWorker(userData.worker)
-    setWorkingDays(workingDays)
+    setWorkingDays(workingDays || [])
   }, [])
 
   const autoLogin = useCallback(() => {
@@ -169,7 +170,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
       setDays(workingDays)
     }
 
-    if (worker.telegramId) {
+    if (worker?.telegramId) {
       if (requiredFields.some(key => !(worker as any)[key])) {
         return router.push('/register')
       } else if (path === '/login') {

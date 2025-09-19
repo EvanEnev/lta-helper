@@ -1,4 +1,6 @@
 import {
+  Accordion,
+  AccordionItem,
   Button,
   Drawer,
   DrawerBody,
@@ -43,6 +45,48 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
               )
                 return ''
 
+              if (button.children?.length) {
+                return (
+                  <Accordion
+                    key={index}
+                    defaultExpandedKeys={['1']}
+                    variant="splitted">
+                    <AccordionItem
+                      classNames={{content: 'flex flex-col gap-2'}}
+                      title="Деньги"
+                      startContent={
+                        button.icon ? <button.icon size={24} /> : ''
+                      }
+                      key={'1'}>
+                      {button.children
+                        .filter(d =>
+                          d.permission
+                            ? checkPermissions([d.permission], worker)
+                            : true,
+                        )
+                        .map((child, index) => (
+                          <Button
+                            variant="ghost"
+                            key={index}
+                            as={Link}
+                            className="h-16 w-full"
+                            startContent={
+                              child.icon ? <child.icon size={24} /> : ''
+                            }
+                            href={path === child.href ? '#' : child.href}
+                            onPress={() => {
+                              if (path !== child.href) {
+                                setExiting(true)
+                              }
+                            }}>
+                            {child.name}
+                          </Button>
+                        ))}
+                    </AccordionItem>
+                  </Accordion>
+                )
+              }
+
               return (
                 <Button
                   key={index}
@@ -59,7 +103,7 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                   title={button.name}
                   aria-label={button.name}
                   aria-placeholder={button.name}
-                  startContent={<button.icon size={24} />}>
+                  startContent={button.icon ? <button.icon size={24} /> : ''}>
                   {button.name}
                 </Button>
               )

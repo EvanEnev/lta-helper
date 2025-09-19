@@ -28,9 +28,9 @@ import Location from '@/src/components/global/Location'
 import {DateTime} from 'luxon'
 import {useCallback, useMemo} from 'react'
 import {parseDate} from '@internationalized/date'
-import DeleteButton from '@/src/components/salary/DeleteButton'
+import DeleteButton from '@/src/components/global/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import LocationSelect from '@/src/components/salary/LocationSelect'
+import LocationSelect from '@/src/components/global/LocationSelect'
 
 interface EditDrawerProps {
   data: SalaryData
@@ -287,6 +287,7 @@ export default function EditDrawer({
                   label="Дата смены"
                   className="col-span-2"
                   onChange={value => update(value, 'newDate')}
+                  // @ts-ignore
                   value={parseDate(salaryDate.toFormat('yyyy-MM-dd'))}
                 />
                 <DeleteButton

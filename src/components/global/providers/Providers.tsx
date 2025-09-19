@@ -12,7 +12,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
       <HeroUIProvider
         locale="ru-RU"
         className="gradient relative min-h-[100dvh] w-full min-w-fit">
-        <NextThemesProvider attribute="class" defaultTheme="light">
+        <NextThemesProvider attribute="class" defaultTheme="dark">
           <div className="sm:flex sm:gap-2">
             <Header />
             <Provider>

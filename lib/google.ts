@@ -1,7 +1,6 @@
-import {JWT} from 'google-auth-library'
+import {JWT, GoogleAuth} from 'google-auth-library'
 import {GoogleSpreadsheet} from 'google-spreadsheet'
 import {google} from 'googleapis'
-import {GoogleAuth} from 'google-auth-library'
 
 declare global {
   namespace NodeJS {

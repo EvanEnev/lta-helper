@@ -6,7 +6,11 @@ import {useAuth} from '@/src/components/global/providers/authProvider'
 import checkPermissions from '@/lib/functions/checkPermissions'
 
 interface LocationSelectProps {
-  callback: any
+  callback: (location: LTLocation | null) => void
+  isClearable?: boolean
+  isDisabled?: boolean
+  dynamicLocationId?: boolean
+  isReadOnly?: boolean
   locationId: number
   labelPlacement?:
     | 'outside'
@@ -17,19 +21,32 @@ interface LocationSelectProps {
   showLabel?: boolean
   className?: string
   includeAll?: boolean
+  exclude?: (string | number)[]
+  locations?: LTLocation[]
 }
 
 export default function LocationSelect({
   callback,
+  isClearable = false,
+  isDisabled = false,
+  dynamicLocationId = false,
+  isReadOnly = false,
   locationId,
   labelPlacement = 'outside',
   showLabel = true,
   className = '',
   includeAll = false,
+  exclude = [],
+  locations: definedLocations = [],
 }: LocationSelectProps) {
-  const [locations, setLocations] = useState<LTLocation[]>([])
+  const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
+  const [selectedLocation, setSelectedLocation] =
+    useState<LTLocation['id']>(locationId)
+
   const {worker} = useAuth()
   async function getLocations() {
+    if (definedLocations.length) return
+
     const response = await fetch('/api/getLocations')
 
     const json = await response.json()
@@ -53,6 +70,13 @@ export default function LocationSelect({
           )
         }
 
+        sortedLocations = sortedLocations.filter(
+          d =>
+            !exclude?.includes(d.id) &&
+            !exclude?.includes(d.name.toLowerCase()) &&
+            !exclude?.includes(d.name),
+        )
+
         setLocations(sortedLocations)
       }
     } else {
@@ -68,8 +92,15 @@ export default function LocationSelect({
     getLocations()
   }, [])
 
+  useEffect(() => {
+    if (dynamicLocationId) {
+      setSelectedLocation(locationId)
+    }
+  }, [dynamicLocationId, locationId])
+
   const onChange = useCallback(
     (locationId: any) => {
+      setSelectedLocation(locationId)
       callback(locations.find(location => location.id == locationId) || null)
     },
     [callback, locations],
@@ -77,13 +108,28 @@ export default function LocationSelect({
 
   return (
     <Autocomplete
+      isDisabled={isDisabled}
+      isReadOnly={isReadOnly}
       required
+      startContent={
+        <LocationIcon
+          locationName={
+            locations.find(d => d.id === selectedLocation)?.name || ''
+          }
+        />
+      }
       className={className}
-      clearButtonProps={{hidden: true}}
+      inputProps={{
+        classNames: {
+          inputWrapper: 'h-full',
+          input: 'whitespace-normal break-normal truncate',
+        },
+      }}
+      clearButtonProps={{hidden: !isClearable}}
       label={showLabel ? 'Локация' : ''}
       labelPlacement={labelPlacement}
       onSelectionChange={onChange}
-      selectedKey={locationId.toString()}
+      selectedKey={selectedLocation?.toString()}
       aria-label="Выбор локации">
       {locations.map(location => (
         <AutocompleteItem

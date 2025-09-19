@@ -21,7 +21,7 @@ export default function User() {
           aria-label="Профиль"
           className="flex h-fit items-center p-2 text-3xl"
           variant="ghost">
-          <Avatar src={worker.photoUrl} size="lg" />
+          <Avatar src={worker.photoUrl || undefined} size="lg" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex flex-col gap-1 py-4 text-2xl">

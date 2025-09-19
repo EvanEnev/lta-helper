@@ -1,20 +1,47 @@
-import {Home, ClockCircle, Ruble, AddCircle} from 'solar-icon-set'
+import {
+  Home,
+  ClockCircle,
+  Ruble,
+  AddCircle,
+  BillList,
+  CashOut,
+  Wallet,
+} from 'solar-icon-set'
+import {ElementType} from 'react'
 
-const buttons: {
+interface PathButton {
   name: string
   href: string
   permission?: string
-  icon?: any
-}[] = [
+  icon?: ElementType
+  children?: {
+    name: string
+    href: string
+    permission?: string
+    icon?: ElementType
+  }[]
+}
+
+const buttons: PathButton[] = [
   {name: 'Главная', href: '/', icon: Home},
   {name: 'График работы', href: '/schedule', icon: ClockCircle},
+
   {
-    name: 'График персонала',
-    href: '/admin',
-    permission: 'set_salary',
-    icon: AddCircle,
+    name: 'Деньги',
+    href: '#',
+    icon: Ruble,
+    children: [
+      {
+        name: 'Проставление ЗП',
+        href: '/admin',
+        permission: 'set_salary',
+        icon: AddCircle,
+      },
+      {name: 'График ЗП', href: '/salary', icon: Wallet},
+      {name: 'Ведомости', href: '/payrolls', icon: BillList},
+      {name: 'Получение ЗП', href: 'payrolls/issue', icon: CashOut},
+    ],
   },
-  {name: 'График ЗП', href: '/salary', icon: Ruble},
 ]
 
 export default buttons

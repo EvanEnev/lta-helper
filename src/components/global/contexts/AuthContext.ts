@@ -27,6 +27,7 @@ const AuthContext = createContext<Auth>({
     telegramId: 0,
     rank: '',
     permissions: [],
+    balance: 0,
   },
   workingDays: [],
   login: async (data: TelegramAuthData | string): Promise<void> => {},

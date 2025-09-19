@@ -10,7 +10,7 @@ import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {Input, Spinner} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
-import LocationSelect from '@/src/components/salary/LocationSelect'
+import LocationSelect from '@/src/components/global/LocationSelect'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import CTable from '@/src/components/global/table/Table'
 import useIsMobile from '@/src/hooks/useIsMobile'
@@ -327,7 +327,7 @@ export default memo(function Table({
               labelPlacement="inside"
               includeAll={true}
               className="w-fit"
-              callback={(location: LTLocation) =>
+              callback={(location: LTLocation | null) =>
                 updateData('location', location)
               }
               locationId={locationId}

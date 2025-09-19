@@ -13,6 +13,10 @@
     border-radius: 1rem;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
     color: #e0e0e0;
+
+    @variant light {
+        color: #11181c;
+    }
 }
 
 

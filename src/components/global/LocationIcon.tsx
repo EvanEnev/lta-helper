@@ -59,6 +59,12 @@ export default function LocationIcon({
   }
 
   return (
-    <Icon fill={'currentColor'} color={'currentColor'} width={40} height={40} />
+    <Icon
+      className="min-w-fit"
+      fill={'currentColor'}
+      color={'currentColor'}
+      width={40}
+      height={40}
+    />
   )
 }

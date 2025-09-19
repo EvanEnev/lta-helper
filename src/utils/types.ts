@@ -33,21 +33,23 @@ export interface Permission {
 }
 
 export interface LTWorker {
-  name: string
   id: number
-  number?: number
+  name: string
+  number?: number | null
   telegramId: number
-  isFormer?: boolean
-  location?: string
-  locationId?: number
-  rank: string
-  firstName?: string
-  middleName?: string
-  lastName?: string
-  phoneNumber?: string
-  email?: string
-  photoUrl?: string
+  balance: number | null
+  isFormer?: boolean | null
+  location?: LTLocation['name'] | null
+  locationId?: LTLocation['id'] | null
+  rank: LTRank['name']
+  firstName?: string | null
+  middleName?: string | null
+  lastName?: string | null
+  phoneNumber?: string | null
+  email?: string | null
+  photoUrl?: string | null
   permissions: Permission[]
+  todayLocation?: LTLocation['id'] | null
 }
 
 export interface WorkerSalary {
@@ -151,4 +153,78 @@ export interface Filter {
 export interface SocketUpdateProps {
   data: any
   client: Client
+}
+
+export interface LTPayroll {
+  id: number
+  dates: string
+  takeBy: string
+  createdAt: string
+  createdBy: LTWorker
+  bonuses: boolean | null
+  workersCount: string
+}
+
+export interface LTWorkerPayrollData {
+  worker: {
+    name: LTWorker['name']
+    id: LTWorker['id']
+    rank: LTWorker['rank']
+  }
+  value: number
+  bonuses: number | null
+  external_payment: number | null
+  location_id: LTLocation['id']
+  to_take_by: LTWorker['name'] | null
+  to_take: number | null
+  issue_confirmed: boolean | null
+  taken_by: LTWorker['name'] | null
+  taken: number | null
+  taken_at: string | null
+}
+
+export interface LTPayrollData {
+  workerId: LTWorker['id']
+  location: LTLocation['id']
+  external_payment: number | null
+  bonuses?: number
+  fines?: number
+  value: number
+}
+
+export interface LTPayrollCreateData {
+  workersData: LTPayrollData[]
+  dates: {start: string; end: string}
+  withBonuses: boolean
+  takeBy: string
+  moneyOnLocations: {
+    location: LTLocation['id']
+    value: number
+  }[]
+}
+
+export interface LTMoneyOnLocationsData {
+  location: LTLocation['name']
+  location_id: LTLocation['id']
+  value: number
+}
+
+export interface LTPayrollIssueData {
+  take_by: LTPayroll['takeBy']
+  dates: LTPayroll['dates']
+  to_take_by: LTWorkerPayrollData['to_take_by']
+  balance: LTWorker['balance']
+  location: LTLocation['name']
+  value: number
+  issue_confirmed: boolean | null
+  external_payment: number | null
+  id: LTPayroll['id']
+}
+
+export interface LTTakeByPayrollData {
+  to_take: number
+  name: LTWorker['name']
+  id: LTWorker['id']
+  payroll_id: LTPayroll['id']
+  location_id: LTLocation['id']
 }
