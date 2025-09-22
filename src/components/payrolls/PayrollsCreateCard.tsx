@@ -4,6 +4,7 @@ import {
   Checkbox,
   DateRangePicker,
   Divider,
+  Input,
   NumberInput,
   RangeValue,
   useDisclosure,
@@ -22,6 +23,7 @@ import {parseDate} from '@internationalized/date'
 import {LTLocation} from '@/src/utils/types'
 import Location from '@/src/components/global/Location'
 import Link from 'next/link'
+import {evaluate} from 'mathjs'
 
 interface PayrollsCreateCardProps {
   locations: LTLocation[]
@@ -34,7 +36,7 @@ export default function PayrollCreateCard({
 }: PayrollsCreateCardProps) {
   const {isOpen, onOpen, onOpenChange} = useDisclosure()
   const [moneyOnLocations, setMoneyOnLocations] = useState<
-    {location: LTLocation['id']; value: number}[]
+    {location: LTLocation['id']; value: number; error?: boolean}[]
   >(locations.map(l => ({location: l.id, value: 0})))
   const [dateRange, setDateRange] = useState<RangeValue<CalendarDate> | null>(
     null,
@@ -110,7 +112,6 @@ export default function PayrollCreateCard({
           })
           .toFormat('yyyy-MM-dd'),
       )
-      console.debug(currentDate, monthNumber, start, end)
       // @ts-ignore
       setDateRange({start, end})
       // @ts-ignore
@@ -192,33 +193,44 @@ export default function PayrollCreateCard({
                   </div>
                 </div>
                 <Divider />
-                <div className="grid grid-flow-row auto-rows-auto grid-cols-2 gap-2 overflow-auto">
+                <div className="grid grid-flow-row auto-rows-auto grid-cols-3 gap-2 overflow-auto">
                   <p className="bg-content3 sticky top-0 z-100 col-span-full w-full rounded-xl p-2">
                     Зарплатные деньги на локациях
                   </p>
                   {filteredLocations.map(location => {
+                    const moneyData = moneyOnLocations.find(
+                      d => d.location === location.id,
+                    )
+
                     return (
                       <Fragment key={location.id}>
                         <Location locationName={location.name} />
-                        <NumberInput
+                        <Input
+                          color={moneyData?.error ? 'danger' : 'default'}
                           onValueChange={value =>
                             setMoneyOnLocations(prev =>
-                              prev.map(d =>
-                                d.location === location.id
-                                  ? {location: location.id, value}
-                                  : d,
-                              ),
+                              prev.map(d => {
+                                let newValue = null
+                                try {
+                                  newValue = evaluate(value)
+                                } catch {}
+
+                                return d.location === location.id
+                                  ? {
+                                      location: location.id,
+                                      value: newValue || 0,
+                                      error: newValue === null,
+                                    }
+                                  : d
+                              }),
                             )
                           }
                           endContent={<Ruble />}
-                          defaultValue={0}
-                          minValue={0}
-                          value={
-                            moneyOnLocations.find(
-                              d => d.location === location.id,
-                            )?.value
-                          }
+                          defaultValue={'0'}
                         />
+                        <p className="bg-content2 flex rounded-xl p-2">
+                          {moneyData?.value || 0}
+                        </p>
                       </Fragment>
                     )
                   })}

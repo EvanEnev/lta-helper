@@ -15,6 +15,7 @@ import {
   Code,
   DatePicker,
   Divider,
+  Input,
   Link,
   semanticColors,
 } from '@heroui/react'
@@ -27,6 +28,7 @@ import {useTheme} from 'next-themes'
 import {parseDate} from '@internationalized/date'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {evaluate} from 'mathjs'
 
 interface PayrollCreatePageProps {
   data: {
@@ -52,7 +54,7 @@ export default function PayrollCreatePage({
   data,
   dates,
   bonuses,
-  moneyOnLocations,
+  moneyOnLocations: initialMoney,
   locations,
 }: PayrollCreatePageProps) {
   const {setExiting} = useAuth()
@@ -79,10 +81,37 @@ export default function PayrollCreatePage({
   )
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [lastSelectedRow, setLastSelectedRow] = useState<number | null>(null)
+  const [moneyOnLocations, setMoneyOnLocations] = useState<
+    {
+      location: LTLocation['id']
+      value: number
+      error?: boolean
+    }[]
+  >(initialMoney)
 
   const interval = useMemo(() => {
     return Interval.fromISO(`${dates.start}/${dates.end}`)
   }, [dates.start, dates.end])
+
+  const updateLocationMoney = useCallback(
+    (locationId: number, rawValue: string) => {
+      let value = null
+      try {
+        value = evaluate(rawValue)
+      } catch {}
+
+      setMoneyOnLocations(prev =>
+        prev.map(d =>
+          d.location === locationId
+            ? value === null
+              ? {location: locationId, value: d.value, error: true}
+              : {location: locationId, value}
+            : d,
+        ),
+      )
+    },
+    [],
+  )
 
   const sendData = useCallback(() => {
     const dataToSend: LTPayrollCreateData = {
@@ -283,9 +312,11 @@ export default function PayrollCreatePage({
             {locations
               .filter(l => !locationsToHide.includes(l.name.toLowerCase()))
               .map(location => {
-                const locationMoney =
-                  moneyOnLocations.find(d => d.location === location.id)!
-                    .value || 0
+                const locationData = moneyOnLocations.find(
+                  d => d.location === location.id,
+                )!
+
+                const locationMoney = locationData.value || 0
 
                 const usedMoney = payrollData
                   .filter(d => d.location === location.id)
@@ -302,8 +333,15 @@ export default function PayrollCreatePage({
                   <Fragment key={location.id}>
                     <Divider className="col-span-full" />
                     <Location locationName={location.name} />
-                    <Code color="primary">{locationMoney}</Code>
+                    <Input
+                      color={locationData.error ? 'danger' : 'primary'}
+                      defaultValue={locationMoney.toString()}
+                      onValueChange={value =>
+                        updateLocationMoney(location.id, value)
+                      }
+                    />
                     <Code
+                      className="flex h-10 items-center"
                       color={
                         locationMoney - usedMoney < 0 ? 'danger' : 'success'
                       }>
