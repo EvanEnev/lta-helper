@@ -213,6 +213,28 @@ export default function PayrollCreatePage({
             />
           )}
         </div>
+        <div className="glass flex items-center gap-2 p-2">
+          <p>Сотрудники:</p>
+          <Code color="success" className="flex items-center gap-2">
+            {payrollData.reduce(
+              (acc, cur) =>
+                acc +
+                ((cur.fines || 0) +
+                  Number(cur.value || 0) +
+                  (cur.bonuses || 0) -
+                  (cur.external_payment || 0)),
+              0,
+            )}
+            <Ruble iconStyle="Bold" />
+          </Code>
+        </div>
+        <div className="glass flex items-center gap-2 p-2">
+          <p>Площадки:</p>
+          <Code color="primary" className="flex items-center gap-2">
+            {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
+            <Ruble iconStyle="Bold" />
+          </Code>
+        </div>
       </div>
       <div className="flex gap-4">
         <div className="bg-content1 flex w-[90%] flex-col gap-2 rounded-2xl">
