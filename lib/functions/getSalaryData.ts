@@ -24,6 +24,9 @@ interface SalaryDataProps {
   value?: number
   overwork?: number
   worker: LTWorker
+  oneGames: number | null
+  twoGames: number | null
+  threeGames: number | null
 }
 
 export default function getSalaryData({
@@ -37,6 +40,9 @@ export default function getSalaryData({
   bonuses,
   fines,
   worker,
+  oneGames,
+  twoGames,
+  threeGames,
 }: SalaryDataProps): LTSalary | null {
   let workingTimeParts: string[] | number[] = workingHours.split('-')
 
@@ -130,7 +136,9 @@ export default function getSalaryData({
   }
 
   return {
-    value: salary,
+    value:
+      salary +
+      ((oneGames || 0) * 250 + (twoGames || 0) * 500 + (threeGames || 0) * 750),
     start_time: workingStart,
     end_time: workingEnd,
     overwork: overworkSalary,

@@ -28,6 +28,9 @@ export async function POST(req: NextRequest) {
   w.name,
   w.rank,
   w.first_name,
+  s.one_games,
+  s.two_games,
+  s.three_games,
   l.name as location_name
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.workers w ON w.id = s.worker_id

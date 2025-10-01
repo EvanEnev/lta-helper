@@ -65,7 +65,10 @@ export default function WorkData({
         | 'overwork'
         | 'fines'
         | 'type'
-        | 'withoutDate',
+        | 'withoutDate'
+        | 'oneGames'
+        | 'twoGames'
+        | 'threeGames',
       value: Key | string | boolean | null | undefined,
     ) => {
       const currentData = {...data}
@@ -106,10 +109,14 @@ export default function WorkData({
       bonuses: data.bonuses,
       value: data.location === 'Другое' ? data.value || 0 : data.value,
       overwork: data.location === 'Другое' ? 0 : data.overwork,
+      oneGames: data.oneGames,
+      twoGames: data.twoGames,
+      threeGames: data.threeGames,
     })
   }, [
     ranks,
     user,
+    data.location,
     data.workingHours,
     data.fines,
     data.isHardTime,
@@ -117,8 +124,10 @@ export default function WorkData({
     data.comment,
     data.bonuses,
     data.value,
-    data.location,
     data.overwork,
+    data.oneGames,
+    data.twoGames,
+    data.threeGames,
     worker?.rank,
   ])
 
@@ -190,6 +199,31 @@ export default function WorkData({
         className={data.type ? 'hidden' : ''}
         onValueChange={value => updateData('workingHours', value)}
       />
+      {worker?.rank !== 'Актёр' && (
+        <>
+          <NumberInput
+            minValue={0}
+            isWheelDisabled
+            value={data.oneGames || 0}
+            label="Игр 1 час."
+            onValueChange={value => updateData('oneGames', value)}
+          />
+          <NumberInput
+            minValue={0}
+            isWheelDisabled
+            value={data.twoGames || 0}
+            label="Игр 2 час."
+            onValueChange={value => updateData('twoGames', value)}
+          />
+          <NumberInput
+            minValue={0}
+            isWheelDisabled
+            value={data.threeGames || 0}
+            label="Игр 3 час."
+            onValueChange={value => updateData('threeGames', value)}
+          />
+        </>
+      )}
       {data.type && (
         <Checkbox onValueChange={value => updateData('withoutDate', value)}>
           Без даты

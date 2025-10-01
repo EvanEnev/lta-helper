@@ -42,6 +42,9 @@ export default function DesktopHeader() {
             )
               return ''
 
+            if (button.isDisabled && !checkPermissions(['admin'], worker))
+              return ''
+
             if (button.children?.length) {
               return (
                 <Dropdown
@@ -77,6 +80,12 @@ export default function DesktopHeader() {
                         d.permission
                           ? checkPermissions([d.permission], worker)
                           : true,
+                      )
+                      .filter(
+                        d =>
+                          !(
+                            d.isDisabled && !checkPermissions(['admin'], worker)
+                          ),
                       )
                       .map((child, index) => (
                         <DropdownItem
