@@ -7,6 +7,7 @@ import {CellBGColorStyle, Change} from './types'
 import getCellValue from './getCellValue'
 import getComments from './getComments'
 import getLocations from '@/lib/functions/getLocations'
+import db from '@/lib/database'
 
 interface Options {
   sheet: GoogleSpreadsheetWorksheet
@@ -37,7 +38,9 @@ export default async function getChanges({
 
   await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
-  const comments = await getComments(workerName)
+  const commentsQuery = `select date, comment from lt_arena.schedule where worker_id = (select id from lt_arena.workers where name ilike '${name}') order by date`
+
+  const comments = (await db.query(commentsQuery)).rows
   const locations = await getLocations()
 
   for (const headerValue of headerValues.slice(10)) {
@@ -54,7 +57,9 @@ export default async function getChanges({
       ?.backgroundColorStyle as CellBGColorStyle
 
     const cellValue = await getCellValue(currentValue, currentBGColor)
-    const comment = comments.find(comment => comment.date === date)
+    const comment = comments.find(
+      comment => comment.date.toFormat('dd.MM') === date,
+    )
     const commentValue = comment?.value || ''
     const dayComment = day.comment || ''
     const cellNote = cell.note || ''
