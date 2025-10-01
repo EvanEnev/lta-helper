@@ -38,7 +38,7 @@ export default async function getChanges({
 
   await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
-  const commentsQuery = `select date, comment from lt_arena.schedule where worker_id = (select id from lt_arena.workers where name ilike '${name}') order by date`
+  const commentsQuery = `select date, comment from lt_arena.schedule where worker_id = (select id from lt_arena.workers where name ilike '${workerName}') order by date`
 
   const comments = (await db.query(commentsQuery)).rows
   const locations = await getLocations()

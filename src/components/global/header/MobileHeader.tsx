@@ -44,6 +44,8 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                 !checkPermissions([button.permission], worker)
               )
                 return ''
+              if (button.isDisabled && !checkPermissions(['admin'], worker))
+                return ''
 
               if (button.children?.length) {
                 return (
@@ -63,6 +65,13 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                           d.permission
                             ? checkPermissions([d.permission], worker)
                             : true,
+                        )
+                        .filter(
+                          d =>
+                            !(
+                              d.isDisabled &&
+                              !checkPermissions(['admin'], worker)
+                            ),
                         )
                         .map((child, index) => (
                           <Button
