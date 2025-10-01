@@ -35,6 +35,9 @@ export default function AdminPage({
       comment: '',
       isHardTime: false,
       gamesCount: 1,
+      oneGames: null,
+      twoGames: null,
+      threeGames: null,
     },
   ])
   const [date, setDate] = useState<DateTime>(
@@ -108,6 +111,9 @@ export default function AdminPage({
             comment: '',
             isHardTime: false,
             gamesCount: 1,
+            oneGames: null,
+            twoGames: null,
+            threeGames: null,
           },
         ])
       }
@@ -143,6 +149,9 @@ export default function AdminPage({
               comment: '',
               isHardTime: false,
               gamesCount: 1,
+              oneGames: null,
+              twoGames: null,
+              threeGames: null,
             },
           ])
         }

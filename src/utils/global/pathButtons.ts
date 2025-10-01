@@ -13,11 +13,13 @@ interface PathButton {
   name: string
   href: string
   permission?: string
+  isDisabled?: boolean
   icon?: ElementType
   children?: {
     name: string
     href: string
     permission?: string
+    isDisabled?: boolean
     icon?: ElementType
   }[]
 }
@@ -38,8 +40,13 @@ const buttons: PathButton[] = [
         icon: AddCircle,
       },
       {name: 'График ЗП', href: '/salary', icon: Wallet},
-      {name: 'Ведомости', href: '/payrolls', icon: BillList},
-      {name: 'Получение ЗП', href: 'payrolls/issue', icon: CashOut},
+      {name: 'Ведомости', href: '/payrolls', icon: BillList, isDisabled: true},
+      {
+        name: 'Получение ЗП',
+        href: 'payrolls/issue',
+        icon: CashOut,
+        isDisabled: true,
+      },
     ],
   },
 ]

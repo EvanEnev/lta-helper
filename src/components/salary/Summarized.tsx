@@ -150,6 +150,7 @@ export default function Summarized({
               name: `${key} - ${value[0].first_name}`,
               rank: value[0].rank,
             }
+
             value.forEach((value: any) => {
               newUser.salary += value.value
               newUser.overwork += value.overwork || 0
@@ -165,7 +166,11 @@ export default function Summarized({
                   value.bonuses = value.bonuses.slice(1)
                 }
 
-                newUser.bonuses += evaluate(value.bonuses || '0')
+                newUser.bonuses +=
+                  evaluate(value.bonuses || '0') +
+                  (value.one_games || 0) * 250 +
+                  (value.two_games || 0) * 500 +
+                  (value.three_games || 0) * 750
                 newUser.fines += evaluate(value.fines || '0')
               }
             })

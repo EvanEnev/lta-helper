@@ -67,6 +67,9 @@ export interface WorkerSalary {
   deleted?: number
   type?: string
   withoutDate?: boolean
+  oneGames: number | null
+  twoGames: number | null
+  threeGames: number | null
 }
 
 export interface SalaryData {
@@ -87,6 +90,9 @@ export interface SalaryData {
   updated_by?: number
   location: LTLocation
   type?: string
+  oneGames: number | null
+  twoGames: number | null
+  threeGames: number | null
 }
 
 export interface SalaryUser {
