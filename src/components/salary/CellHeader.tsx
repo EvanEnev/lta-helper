@@ -112,6 +112,15 @@ export default function CellHeader({data}: {data: SalaryData}) {
         className={`${data.type ? 'hidden!' : ''} text-foreground text-small col-span-2 flex justify-between`}>
         {data.overwork?.toString() || ''} <Ruble className="ml-auto" />
       </CellChip>
+      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
+        Игр 1 час.: {data.oneGames || 0} / {(data.oneGames || 0) * 250}
+      </CellChip>
+      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
+        Игр 2 час.: {data.twoGames || 0} / {(data.twoGames || 0) * 500}
+      </CellChip>
+      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
+        Игр 3 час.: {data.threeGames || 0} / {(data.threeGames || 0) * 750}
+      </CellChip>
       <Divider className={`col-span-2 ${data.type ? 'hidden' : ''}`} />
       <div className="col-span-full flex items-center gap-1">
         <BillCheck iconStyle="Bold" size={22} />

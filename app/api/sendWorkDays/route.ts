@@ -139,6 +139,9 @@ export async function POST(req: NextRequest) {
       isHardTime: data.isHardTime,
       worker: user,
       workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+      oneGames: data.oneGames,
+      twoGames: data.twoGames,
+      threeGames: data.threeGames,
     })
 
     loggerData.salary.push(salary)
@@ -180,7 +183,7 @@ export async function POST(req: NextRequest) {
     }
 
     queries.push(`INSERT INTO lt_arena.salary
-                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type)
+                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games)
                   VALUES
                     (
                         (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
@@ -196,7 +199,10 @@ export async function POST(req: NextRequest) {
                         ${salary.overwork_start ? (!data.type ? `'${salary.overwork_start}'` : 'NULL') : 'NULL'},
                         ${salary.overwork_end ? (!data.type ? `'${salary.overwork_end}'` : 'NULL') : 'NULL'},
                         ${salary.overwork || 'NULL'},
-                        ${data.type ? `'${data.type}'` : 'NULL'}
+                        ${data.type ? `'${data.type}'` : 'NULL'},
+                        ${data.oneGames ? data.oneGames : 'NULL'},
+                        ${data.twoGames ? data.twoGames : 'NULL'},
+                        ${data.threeGames ? data.threeGames : 'NULL'}
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET
@@ -209,7 +215,10 @@ export async function POST(req: NextRequest) {
                       end_time=excluded.end_time,
                       overwork_start=excluded.overwork_start,
                       overwork_end=excluded.overwork_end,
-                      overwork=excluded.overwork
+                      overwork=excluded.overwork,
+                      one_games=excluded.one_games,
+                      two_games=excluded.two_games,
+                      three_games=excluded.three_games
     `)
   }
 
