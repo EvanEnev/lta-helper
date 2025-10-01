@@ -40,7 +40,10 @@ export async function POST(req: NextRequest) {
   overwork_end,
   overwork,
   value,
-  date
+  date,
+  one_games,
+  two_games,
+  three_games
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
@@ -75,6 +78,9 @@ export async function POST(req: NextRequest) {
       fines: row.fines,
       isHardTime,
       gamesCount,
+      oneGames: row.one_games,
+      twoGames: row.two_games,
+      threeGames: row.three_games,
     }
   })
 
