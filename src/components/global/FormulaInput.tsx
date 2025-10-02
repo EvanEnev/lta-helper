@@ -1,0 +1,60 @@
+import {Input} from '@heroui/react'
+import {useCallback, useState} from 'react'
+import {evaluate} from 'mathjs'
+
+interface FormulaInputProps {
+  label: string
+  labelPlacement?: 'outside' | 'outside-left' | 'outside-top' | 'inside'
+  callback: ({
+    text,
+    value,
+    error,
+  }: {
+    text: string
+    value: number
+    error?: boolean
+  }) => void
+  value?: string
+  className?: string
+}
+
+export default function FormulaInput({
+  label,
+  labelPlacement = 'inside',
+  callback,
+  value: initialValue = '',
+  className = '',
+}: FormulaInputProps) {
+  const [hasError, setHasError] = useState<boolean>(false)
+  const [value, setValue] = useState<string>(initialValue)
+  const onChange = useCallback(
+    (value: string) => {
+      let newValue = null
+      setValue(value || '')
+      try {
+        newValue = evaluate(value)
+      } catch {}
+
+      const isError = newValue === null || typeof newValue !== 'number'
+      setHasError(isError)
+
+      callback({
+        text: value,
+        value: newValue,
+        error: isError,
+      })
+    },
+    [callback],
+  )
+
+  return (
+    <Input
+      labelPlacement={labelPlacement}
+      color={hasError ? 'danger' : 'default'}
+      className={className}
+      label={label}
+      value={value}
+      onValueChange={onChange}
+    />
+  )
+}

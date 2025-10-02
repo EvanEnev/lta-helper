@@ -100,7 +100,8 @@ export interface SalaryData {
   oneGames: number | null
   twoGames: number | null
   threeGames: number | null
-  workType: LTWorkType['name']
+  actorGames: number | null
+  workTypes: LTWorkType['id'][]
 }
 
 export interface SalaryUser {

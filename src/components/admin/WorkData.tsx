@@ -22,6 +22,7 @@ import groupBy from '@/lib/functions/groupBy'
 import RankIcon from '@/src/components/global/RankIcon'
 import {evaluate} from 'mathjs'
 import LocationSelect from '@/src/components/global/LocationSelect'
+import FormulaInput from '@/src/components/global/FormulaInput'
 
 type WorkDataProps = {
   data: WorkerSalary
@@ -282,19 +283,27 @@ export default function WorkData({
           Есть игры
         </Checkbox>
       )}
-      <Input
+      <FormulaInput
         labelPlacement="outside"
         className="col-2"
         label="Бонусы"
         value={data.bonuses}
-        onValueChange={value => updateData('bonuses', value)}
+        callback={({text, error}) => {
+          if (!error) {
+            updateData('bonuses', text)
+          }
+        }}
       />
-      <Input
+      <FormulaInput
         labelPlacement="outside"
         className="col-2"
         label="Штрафы"
         value={data.fines}
-        onValueChange={value => updateData('fines', value)}
+        callback={({text, error}) => {
+          if (!error) {
+            updateData('fines', text)
+          }
+        }}
       />
       <Textarea
         labelPlacement="outside"

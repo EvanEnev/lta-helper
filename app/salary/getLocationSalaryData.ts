@@ -78,7 +78,9 @@ export default async function getLocationSalaryData({
                                     s.type,
                                     s.one_games,
                                     s.two_games,
-                                    s.three_games
+                                    s.three_games,
+                                    s.actor_games,
+                                    s.work_types
                              FROM lt_arena.salary s
                                       LEFT JOIN lt_arena.workers w ON w.id = s.worker_id
                                       LEFT JOIN lt_arena.workers ws ON ws.id = s.created_by
@@ -151,6 +153,8 @@ export default async function getLocationSalaryData({
       oneGames: row.one_games,
       twoGames: row.two_games,
       threeGames: row.three_games,
+      actorGames: row.actorGames,
+      workTypes: row.work_types,
     }
   })
 
