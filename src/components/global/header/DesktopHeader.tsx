@@ -16,8 +16,9 @@ import {useEffect, useState} from 'react'
 export default function DesktopHeader() {
   const {headerRef, setExiting, worker} = useAuth()
   const path = usePathname()
-  const [rawHover, setRawHover] = useState<boolean>(false)
-  const [isHover, setIsHover] = useState<boolean>(false)
+  const [permanentHovers, setPermanentHovers] = useState<number[]>([])
+  const [rawHover, setRawHover] = useState<number | null>(null)
+  const [isHover, setIsHover] = useState<number | null>(null)
 
   useEffect(() => {
     if (isHover === rawHover) return
@@ -48,21 +49,21 @@ export default function DesktopHeader() {
             if (button.children?.length) {
               return (
                 <Dropdown
+                  onOpenChange={() => {
+                    if (permanentHovers.includes(index)) {
+                      setPermanentHovers(prev => prev.filter(i => i !== index))
+                    } else {
+                      setPermanentHovers(prev => [...prev, index])
+                    }
+                  }}
                   placement="right"
                   key={index}
-                  isOpen={isHover}
+                  isOpen={isHover === index || permanentHovers.includes(index)}
                   classNames={{backdrop: 'z-10000', content: 'z-10000'}}>
                   <DropdownTrigger>
                     <Button
-                      as={Link}
-                      onMouseEnter={() => setRawHover(true)}
-                      onMouseLeave={() => setRawHover(false)}
-                      href={path === button.href ? '#' : button.href}
-                      onPress={() => {
-                        if (path !== button.href) {
-                          setExiting(true)
-                        }
-                      }}
+                      onMouseEnter={() => setRawHover(index)}
+                      onMouseLeave={() => setRawHover(null)}
                       variant={path === button.href ? 'shadow' : 'ghost'}
                       className="h-16 w-full flex-col p-2 text-xs"
                       size="lg"
@@ -73,8 +74,8 @@ export default function DesktopHeader() {
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
-                    onMouseEnter={() => setRawHover(true)}
-                    onMouseLeave={() => setRawHover(false)}>
+                    onMouseEnter={() => setRawHover(index)}
+                    onMouseLeave={() => setRawHover(null)}>
                     {button.children
                       .filter(d =>
                         d.permission
