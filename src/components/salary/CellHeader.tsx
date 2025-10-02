@@ -6,7 +6,13 @@ import {DateTime} from 'luxon'
 import {BillCheck, BillCross, Ruble} from 'solar-icon-set'
 import LocationIcon from '@/src/components/global/LocationIcon'
 
-export default function CellHeader({data}: {data: SalaryData}) {
+export default function CellHeader({
+  data,
+  canEdit,
+}: {
+  data: SalaryData
+  canEdit: boolean
+}) {
   const time = useMemo(() => {
     const startTime = data.start_time.slice(0, -3)
     const endTime = data.end_time.slice(0, -3)
@@ -112,15 +118,33 @@ export default function CellHeader({data}: {data: SalaryData}) {
         className={`${data.type ? 'hidden!' : ''} text-foreground text-small col-span-2 flex justify-between`}>
         {data.overwork?.toString() || ''} <Ruble className="ml-auto" />
       </CellChip>
-      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
-        Игр 1 час.: {data.oneGames || 0} / {(data.oneGames || 0) * 250}
-      </CellChip>
-      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
-        Игр 2 час.: {data.twoGames || 0} / {(data.twoGames || 0) * 500}
-      </CellChip>
-      <CellChip className="text-foreground text-small col-span-2 flex justify-between">
-        Игр 3 час.: {data.threeGames || 0} / {(data.threeGames || 0) * 750}
-      </CellChip>
+      {(data.oneGames || canEdit) && (
+        <>
+          <CellChip className="text-foreground text-small">1 час</CellChip>
+          <CellChip className="text-foreground text-small flex justify-between">
+            {data.oneGames || 0} ({(data.oneGames || 0) * 250}{' '}
+            <Ruble iconStyle="Bold" />)
+          </CellChip>
+        </>
+      )}
+      {(data.oneGames || canEdit) && (
+        <>
+          <CellChip className="text-foreground text-small">2 часа</CellChip>
+          <CellChip className="text-foreground text-small flex justify-between">
+            {data.twoGames || 0} ({(data.twoGames || 0) * 500}{' '}
+            <Ruble iconStyle="Bold" />)
+          </CellChip>
+        </>
+      )}
+      {(data.oneGames || canEdit) && (
+        <>
+          <CellChip className="text-foreground text-small">3 часа</CellChip>
+          <CellChip className="text-foreground text-small flex justify-between">
+            {data.threeGames || 0} ({(data.threeGames || 0) * 750}{' '}
+            <Ruble iconStyle="Bold" />)
+          </CellChip>
+        </>
+      )}
       <Divider className={`col-span-2 ${data.type ? 'hidden' : ''}`} />
       <div className="col-span-full flex items-center gap-1">
         <BillCheck iconStyle="Bold" size={22} />

@@ -154,6 +154,15 @@ export default function Summarized({
             value.forEach((value: any) => {
               newUser.salary += value.value
               newUser.overwork += value.overwork || 0
+
+              if (value[0].rank !== 'Железный') {
+                newUser.overwork +=
+                  (value.one_games || 0) * 250 +
+                  (value.two_games || 0) * 500 +
+                  (value.three_games || 0) * 750 +
+                  (value.actor_games || 0) * 250
+              }
+
               if (bonuses) {
                 if (
                   value.bonuses.endsWith('+') ||
@@ -166,11 +175,7 @@ export default function Summarized({
                   value.bonuses = value.bonuses.slice(1)
                 }
 
-                newUser.bonuses +=
-                  evaluate(value.bonuses || '0') +
-                  (value.one_games || 0) * 250 +
-                  (value.two_games || 0) * 500 +
-                  (value.three_games || 0) * 750
+                newUser.bonuses += evaluate(value.bonuses || '0')
                 newUser.fines += evaluate(value.fines || '0')
               }
             })

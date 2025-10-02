@@ -67,7 +67,7 @@ export default memo(function Cell({
       className={`${canViewFull ? 'min-w-[11rem]' : 'min-h-[15rem] min-w-[12rem]'} max-h-full ${textColorClass}`}>
       <CardHeader
         className={`grid-rows-auto grid grid-flow-row grid-cols-2 ${canEdit ? 'gap-1' : 'gap-2'} pb-0`}>
-        <CellHeader data={cellData} />
+        <CellHeader data={cellData} canEdit={canEdit} />
       </CardHeader>
       <CardBody
         className={`${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} h-fit max-h-fit text-center`}>
