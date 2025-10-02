@@ -1,18 +1,18 @@
-import google, {GoogleDocument} from '@/lib/google'
+import {NextRequest, NextResponse} from 'next/server'
 import {WorkerSalary} from '@/src/utils/types'
+import {DateTime} from 'luxon'
+import auth from '@/lib/auth/auth'
+import google, {GoogleDocument} from '@/lib/google'
 import {
   GoogleSpreadsheetRow,
   GoogleSpreadsheetWorksheet,
 } from 'google-spreadsheet'
-import {NextRequest, NextResponse} from 'next/server'
-import auth from '@/lib/auth/auth'
-import updatePoints from '@/src/utils/admin/updatePoints'
 import db from '@/lib/database'
-import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
-import getRanks from '@/lib/functions/getRanks'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import getRanks from '@/lib/functions/getRanks'
 import getSalaryData from '@/lib/functions/getSalaryData'
+import updatePoints from '@/src/utils/admin/updatePoints'
 import logger from '@/Logger'
 
 export interface SheetData {
@@ -183,12 +183,12 @@ export async function POST(req: NextRequest) {
     }
 
     queries.push(`INSERT INTO lt_arena.salary
-                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games)
+                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
                   VALUES
                     (
                         (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
                         '${date.toFormat('yyyy-MM-dd')}',
-                        ${salary.value || 0},
+                        ${salary.rawValue || 0},
                         '${salary.bonuses}',
                         '${salary.fines}',
                         '${data.comment}',
@@ -202,7 +202,9 @@ export async function POST(req: NextRequest) {
                         ${data.type ? `'${data.type}'` : 'NULL'},
                         ${data.oneGames ? data.oneGames : 'NULL'},
                         ${data.twoGames ? data.twoGames : 'NULL'},
-                        ${data.threeGames ? data.threeGames : 'NULL'}
+                        ${data.threeGames ? data.threeGames : 'NULL'},
+                        ${data.actorGames ? data.actorGames : 'NULL'},
+                        array[${data.workTypes}]
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET
@@ -218,7 +220,9 @@ export async function POST(req: NextRequest) {
                       overwork=excluded.overwork,
                       one_games=excluded.one_games,
                       two_games=excluded.two_games,
-                      three_games=excluded.three_games
+                      three_games=excluded.three_games,
+                      actor_games=excluded.actor_games,
+                      work_types=excluded.work_types
     `)
   }
 

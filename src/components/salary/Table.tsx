@@ -76,7 +76,7 @@ export default memo(function Table({
       }
 
       const data = await fetchHandler({
-        url: '/api/getSalaryData',
+        url: '/api/salary/getData',
         body: {
           locationId: newLocationId || 1,
           date: newDate,
@@ -107,7 +107,7 @@ export default memo(function Table({
 
     ;(async () => {
       const data = await fetchHandler({
-        url: '/api/getSalaryData',
+        url: '/api/salary/getData',
         body: {
           locationId: localLocationId || locationId,
           date: localDate || date,

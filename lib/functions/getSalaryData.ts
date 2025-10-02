@@ -1,6 +1,7 @@
 import {LTRank, LTWorker} from '@/src/utils/types'
 
 interface LTSalary {
+  rawValue: number
   value: number
   bonuses: string
   fines: string
@@ -136,6 +137,7 @@ export default function getSalaryData({
   }
 
   return {
+    rawValue: salary,
     value:
       salary +
       ((oneGames || 0) * 250 + (twoGames || 0) * 500 + (threeGames || 0) * 750),

@@ -8,7 +8,13 @@ import {
 } from '@heroui/react'
 import WorkData from './WorkData'
 import {useCallback, useEffect, useState} from 'react'
-import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTRank,
+  LTWorker,
+  LTWorkType,
+  WorkerSalary,
+} from '@/src/utils/types'
 import {MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
@@ -30,6 +36,7 @@ interface MobileAdminProps {
   isLoading: boolean
   canEdit: boolean
   ranks: LTRank[]
+  workTypes: LTWorkType[]
 }
 
 export default function MobileAdmin({
@@ -43,6 +50,7 @@ export default function MobileAdmin({
   isLoading,
   canEdit,
   ranks,
+  workTypes,
 }: MobileAdminProps) {
   const {setExiting, worker} = useAuth()
   const [key, setKey] = useState(0)
@@ -182,6 +190,7 @@ export default function MobileAdmin({
                 </Button>
               }>
               <WorkData
+                workTypes={workTypes}
                 ranks={ranks}
                 locations={locations}
                 data={data}

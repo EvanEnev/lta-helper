@@ -8,11 +8,11 @@ export async function POST(req: NextRequest) {
   const date: string | undefined = body.date
 
   if (!date) {
-    return NextResponse.json({message: 'Неправльный месяц'}, {status: 500})
+    return NextResponse.json({message: 'Неправильный месяц'}, {status: 500})
   }
 
   if (!locationId) {
-    return NextResponse.json({message: 'Неправльная локация'}, {status: 500})
+    return NextResponse.json({message: 'Неправильная локация'}, {status: 500})
   }
 
   const data = await getLocationSalaryData({

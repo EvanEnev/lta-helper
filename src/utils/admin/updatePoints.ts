@@ -1,4 +1,4 @@
-import {SheetData} from '@/app/api/sendWorkDays/route'
+import {SheetData} from '@/app/api/salary/send/route'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import db from '@/lib/database'
 import google from '@/lib/google'

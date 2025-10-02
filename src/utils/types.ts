@@ -52,6 +52,11 @@ export interface LTWorker {
   todayLocation?: LTLocation['id'] | null
 }
 
+export interface LTWorkType {
+  id: number
+  name: string
+}
+
 export interface WorkerSalary {
   worker: string
   location: string
@@ -70,6 +75,8 @@ export interface WorkerSalary {
   oneGames: number | null
   twoGames: number | null
   threeGames: number | null
+  actorGames: number | null
+  workTypes: LTWorkType['id'][]
 }
 
 export interface SalaryData {
@@ -93,6 +100,7 @@ export interface SalaryData {
   oneGames: number | null
   twoGames: number | null
   threeGames: number | null
+  workType: LTWorkType['name']
 }
 
 export interface SalaryUser {

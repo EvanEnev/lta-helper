@@ -13,8 +13,10 @@ import PirateStation from '@/public/icons/locations/PirateStation'
 
 export default function LocationIcon({
   locationName = '',
+  className = '',
 }: {
   locationName: string
+  className?: string
 }) {
   let Icon
 
@@ -60,7 +62,7 @@ export default function LocationIcon({
 
   return (
     <Icon
-      className="min-w-fit"
+      className={`min-w-fit ${className}`}
       fill={'currentColor'}
       color={'currentColor'}
       width={40}

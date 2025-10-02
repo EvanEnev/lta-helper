@@ -1,11 +1,16 @@
 import getSalaryData from '@/lib/functions/getSalaryData'
-import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTRank,
+  LTWorker,
+  LTWorkType,
+  WorkerSalary,
+} from '@/src/utils/types'
 import {
   Autocomplete,
   AutocompleteItem,
   AutocompleteSection,
   Checkbox,
-  Divider,
   Input,
   NumberInput,
   Select,
@@ -16,6 +21,7 @@ import {Key, useCallback, useMemo} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 import RankIcon from '@/src/components/global/RankIcon'
 import {evaluate} from 'mathjs'
+import LocationSelect from '@/src/components/global/LocationSelect'
 
 type WorkDataProps = {
   data: WorkerSalary
@@ -25,6 +31,7 @@ type WorkDataProps = {
   locations: LTLocation[]
   ranks: LTRank[]
   worker: LTWorker
+  workTypes: LTWorkType[]
 }
 
 const types = [
@@ -44,11 +51,16 @@ export default function WorkData({
   locations,
   ranks,
   worker: user,
+  workTypes,
 }: WorkDataProps) {
   const worker = workers.find(
     (worker: {name: string}) =>
       worker.name?.toLowerCase() === data.worker?.toLowerCase(),
   )
+
+  const locationId = useMemo(() => {
+    return locations.find(l => l.name === data.location)?.id || -1
+  }, [data.location, locations])
 
   const updateData = useCallback(
     (
@@ -68,8 +80,10 @@ export default function WorkData({
         | 'withoutDate'
         | 'oneGames'
         | 'twoGames'
-        | 'threeGames',
-      value: Key | string | boolean | null | undefined,
+        | 'threeGames'
+        | 'actorGames'
+        | 'workTypes',
+      value: Key | string | boolean | null | undefined | number | Key[],
     ) => {
       const currentData = {...data}
 
@@ -85,14 +99,6 @@ export default function WorkData({
     },
     [data, index, setData],
   )
-
-  const validate = (value: number) => {
-    if (value <= 0) {
-      return 'Число должно быть положительным'
-    }
-
-    return null
-  }
 
   const salary = useMemo(() => {
     const rank = ranks.find(d => d.name === worker?.rank)
@@ -141,50 +147,65 @@ export default function WorkData({
   }, [workers])
 
   return (
-    <div className="flex w-full flex-col gap-4">
-      <Autocomplete
-        isRequired
-        label="Сотрудник"
-        selectedKey={data.worker}
-        scrollShadowProps={{
-          isEnabled: false,
-        }}
-        onSelectionChange={value => updateData('worker', value)}>
-        {Object.entries(groupedWorkers).map(([key, value], index) => {
-          const title = (
-            <div className="bg-default-100 z-100 flex flex-1 items-center gap-1 rounded-xl px-2 select-none">
-              <RankIcon rank={key} className="h-6 w-fit" /> {key}
-            </div>
-          )
+    <div className="grid w-full min-w-[15rem] grid-flow-row-dense auto-rows-min grid-cols-2 gap-4">
+      <div className="col-span-full flex flex-col gap-4">
+        <Autocomplete
+          isRequired
+          label="Сотрудник"
+          labelPlacement="outside"
+          startContent={
+            <RankIcon
+              className="h-6 w-fit"
+              rank={workers.find(w => w.name === data.worker)?.rank || ''}
+            />
+          }
+          selectedKey={data.worker}
+          scrollShadowProps={{
+            isEnabled: false,
+          }}
+          onSelectionChange={value => updateData('worker', value)}>
+          {Object.entries(groupedWorkers).map(([key, value], index) => {
+            const title = (
+              <div className="bg-default-100 z-100 flex flex-1 items-center gap-1 rounded-xl px-2 select-none">
+                <RankIcon rank={key} className="h-6 w-fit" /> {key}
+              </div>
+            )
 
-          return (
-            <AutocompleteSection
-              // @ts-ignore
-              title={key === 'null' ? '' : title}
-              key={index}>
-              {value.map(worker => (
-                <AutocompleteItem key={worker.name}>
-                  {worker.name}
-                </AutocompleteItem>
-              ))}
-            </AutocompleteSection>
-          )
-        })}
-      </Autocomplete>
-      <Autocomplete
-        isRequired
-        label="Локация"
-        selectedKey={data.location}
-        onSelectionChange={value => updateData('location', value)}>
-        {locations.map(location => (
-          <AutocompleteItem key={location.name}>
-            {location.name}
-          </AutocompleteItem>
-        ))}
-      </Autocomplete>
+            return (
+              <AutocompleteSection
+                // @ts-ignore
+                title={key === 'null' ? '' : title}
+                key={index}>
+                {value.map(worker => (
+                  <AutocompleteItem key={worker.name}>
+                    {worker.name}
+                  </AutocompleteItem>
+                ))}
+              </AutocompleteSection>
+            )
+          })}
+        </Autocomplete>
+        <LocationSelect
+          dynamicLocationId
+          locations={locations}
+          callback={value => updateData('location', value?.name)}
+          locationId={locationId}
+        />
+        <Select
+          label="Тип работы"
+          labelPlacement="outside"
+          selectionMode="multiple"
+          selectedKeys={data.workTypes?.map(String) || []}
+          onSelectionChange={value => updateData('workTypes', [...value])}>
+          {workTypes.map(type => (
+            <SelectItem key={type.id}>{type.name}</SelectItem>
+          ))}
+        </Select>
+      </div>
       {data.location === 'Другое' && (
         <Select
           label="Тип"
+          labelPlacement="outside"
           selectedKeys={[data.type || '']}
           onSelectionChange={value => updateData('type', [...value][0])}>
           {types.map(type => (
@@ -193,121 +214,136 @@ export default function WorkData({
         </Select>
       )}
       <Input
+        labelPlacement="outside"
         isRequired
         label="Время работы"
         value={data.workingHours}
-        className={data.type ? 'hidden' : ''}
+        className={data.type ? 'hidden' : 'col-1'}
         onValueChange={value => updateData('workingHours', value)}
       />
       {worker?.rank !== 'Актёр' && (
         <>
           <NumberInput
+            labelPlacement="outside"
+            className="col-1"
             minValue={0}
             isWheelDisabled
             value={data.oneGames || 0}
-            label="Игр 1 час."
+            label="Кол-во 1-час. игр"
             onValueChange={value => updateData('oneGames', value)}
           />
           <NumberInput
+            labelPlacement="outside"
+            className="col-1"
             minValue={0}
             isWheelDisabled
             value={data.twoGames || 0}
-            label="Игр 2 час."
+            label="Кол-во 2-час. игр"
             onValueChange={value => updateData('twoGames', value)}
           />
           <NumberInput
+            labelPlacement="outside"
+            className="col-1"
             minValue={0}
             isWheelDisabled
             value={data.threeGames || 0}
-            label="Игр 3 час."
+            label="Кол-во 3-час. игр"
             onValueChange={value => updateData('threeGames', value)}
           />
         </>
       )}
-      {data.type && (
-        <Checkbox onValueChange={value => updateData('withoutDate', value)}>
+      <NumberInput
+        labelPlacement="outside"
+        className="col-1"
+        minValue={0}
+        isWheelDisabled
+        value={data.actorGames || 0}
+        label="Кол-во актёр. игр"
+        onValueChange={value => updateData('actorGames', value)}
+      />
+      {worker?.rank !== 'Актёр' && (
+        <Checkbox
+          onValueChange={value => updateData('isHardTime', value)}
+          className="col-1 h-fit">
+          Загруз
+        </Checkbox>
+      )}
+      {data.type && data.location === 'Другое' && (
+        <Checkbox
+          className="col-1 h-fit"
+          onValueChange={value => updateData('withoutDate', value)}>
           Без даты
         </Checkbox>
       )}
       {worker?.rank === 'Каменный' && (
         <Checkbox
           onValueChange={value => updateData('hasGames', value)}
-          className="max-w-full">
+          className="col-1 max-w-full">
           Есть игры
         </Checkbox>
       )}
-      {worker?.rank === 'Актёр' ? (
-        <NumberInput
-          label="Кол-во игр"
-          type="number"
-          validate={validate}
-          value={data.gamesCount}
-          onValueChange={value => updateData('gamesCount', value)}
-        />
-      ) : (
-        <Checkbox
-          onValueChange={value => updateData('isHardTime', value)}
-          className="max-w-full">
-          Загруз
-        </Checkbox>
-      )}
       <Input
+        labelPlacement="outside"
+        className="col-2"
         label="Бонусы"
         value={data.bonuses}
         onValueChange={value => updateData('bonuses', value)}
       />
       <Input
+        labelPlacement="outside"
+        className="col-2"
         label="Штрафы"
         value={data.fines}
         onValueChange={value => updateData('fines', value)}
       />
       <Textarea
+        labelPlacement="outside"
+        className="col-2 row-span-2 h-full"
+        classNames={{inputWrapper: 'h-full!'}}
         label="Комментарий"
         value={data.comment}
         onValueChange={value => updateData('comment', value)}
       />
-      <Divider />
-      <div className="flex flex-col gap-2">
-        <div>
-          <p>
-            Смена{' '}
-            {salary?.start_time &&
-              salary.end_time &&
-              `(${salary.start_time}-${salary.end_time})`}
-            :
-          </p>
-          <NumberInput
-            aria-label="Смена"
-            minValue={0}
-            className="h-full w-full"
-            value={salary?.value || 0}
-            onValueChange={value => updateData('value', value)}
-          />
-        </div>
-        <div className={data.type ? 'hidden' : ''}>
-          <p>
-            Переработка{' '}
-            {salary?.overwork_start &&
-              salary.overwork_end &&
-              `(${salary.overwork_start}-${salary.overwork_end})`}
-            :
-          </p>
-          <NumberInput
-            aria-label="Переработка"
-            minValue={0}
-            className="h-full w-full"
-            value={salary?.overwork || 0}
-            onValueChange={value => {
-              updateData('overwork', value)
-            }}
-          />
-        </div>
-        <div>
-          <p>
-            Бонусы/штрафы:{' '}
-            {evaluate(`${salary?.bonuses || 0} + ${salary?.fines || 0}`)}
-          </p>
-        </div>
+      <div className="col-2">
+        <p>
+          Смена{' '}
+          {salary?.start_time &&
+            salary.end_time &&
+            `(${salary.start_time}-${salary.end_time})`}
+          :
+        </p>
+        <NumberInput
+          labelPlacement="outside"
+          aria-label="Смена"
+          minValue={0}
+          className="h-full w-full"
+          value={salary?.value || 0}
+          onValueChange={value => updateData('value', value)}
+        />
+      </div>
+      <div className={data.type ? 'hidden' : 'col-2'}>
+        <p>
+          Переработка{' '}
+          {salary?.overwork_start &&
+            salary.overwork_end &&
+            `(${salary.overwork_start}-${salary.overwork_end})`}
+          :
+        </p>
+        <NumberInput
+          aria-label="Переработка"
+          minValue={0}
+          className="h-full w-full"
+          value={salary?.overwork || 0}
+          onValueChange={value => {
+            updateData('overwork', value)
+          }}
+        />
+      </div>
+      <div className="col-2">
+        <p>
+          Бонусы/штрафы:{' '}
+          {evaluate(`${salary?.bonuses || 0} + ${salary?.fines || 0}`)}
+        </p>
       </div>
     </div>
   )

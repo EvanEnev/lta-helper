@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server'
-import auth from '@/lib/auth/auth'
 import {DateTime} from 'luxon'
+import auth from '@/lib/auth/auth'
 import db from '@/lib/database'
 import {WorkerSalary} from '@/src/utils/types'
 
@@ -43,7 +43,9 @@ export async function POST(req: NextRequest) {
   date,
   one_games,
   two_games,
-  three_games
+  three_games,
+  actor_games,
+  work_types
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
@@ -81,6 +83,8 @@ export async function POST(req: NextRequest) {
       oneGames: row.one_games,
       twoGames: row.two_games,
       threeGames: row.three_games,
+      actorGames: row.actor_games,
+      workTypes: row.work_types,
     }
   })
 

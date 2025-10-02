@@ -10,6 +10,13 @@ import getRanks from '@/lib/functions/getRanks'
 export default async function Admin() {
   const worker = await auth()
 
+  const workTypesQuery = `select
+  id,
+  name
+  from lt_arena.work_types order by name`
+
+  const workTypesResult = await db.query(workTypesQuery)
+
   const workersQuery = `SELECT
   name,
   rank,
@@ -38,6 +45,7 @@ export default async function Admin() {
       canEdit={canEdit}
       locations={locations}
       ranks={ranks}
+      workTypes={workTypesResult.rows}
     />
   )
 }

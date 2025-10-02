@@ -4,7 +4,13 @@ import convertTZ from '@/lib/functions/convertTZ'
 import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
 import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTRank,
+  LTWorker,
+  LTWorkType,
+  WorkerSalary,
+} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {DateTime} from 'luxon'
 import {addToast} from '@heroui/react'
@@ -15,6 +21,23 @@ interface AdminPageProps {
   canEdit: boolean
   locations: LTLocation[]
   ranks: LTRank[]
+  workTypes: LTWorkType[]
+}
+
+const defaultSalaryData: WorkerSalary = {
+  worker: '',
+  workingHours: '',
+  location: '',
+  bonuses: '',
+  fines: '',
+  comment: '',
+  isHardTime: false,
+  gamesCount: 1,
+  oneGames: null,
+  twoGames: null,
+  threeGames: null,
+  actorGames: null,
+  workTypes: [],
 }
 
 export default function AdminPage({
@@ -22,23 +45,12 @@ export default function AdminPage({
   ranks,
   canEdit,
   locations,
+  workTypes,
 }: AdminPageProps) {
   const {worker} = useAuth()
   const isMobile = useIsMobile()
   const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
-    {
-      worker: '',
-      workingHours: '',
-      location: '',
-      bonuses: '',
-      fines: '',
-      comment: '',
-      isHardTime: false,
-      gamesCount: 1,
-      oneGames: null,
-      twoGames: null,
-      threeGames: null,
-    },
+    defaultSalaryData,
   ])
   const [date, setDate] = useState<DateTime>(
     convertTZ(new Date(), 'Europe/Moscow'),
@@ -69,6 +81,14 @@ export default function AdminPage({
       })
     }
 
+    if (salaryData.some(d => !d.workTypes?.length)) {
+      return addToast({
+        title: 'Ошибка!',
+        description: 'Не указаны типы работ',
+        color: 'warning',
+      })
+    }
+
     const data = {
       salaryData,
       // @ts-ignore
@@ -77,7 +97,7 @@ export default function AdminPage({
 
     setLoading(true)
 
-    const response = await fetch('/api/sendWorkDays', {
+    const response = await fetch('/api/salary/send', {
       method: 'POST',
       body: JSON.stringify(data),
     })
@@ -101,21 +121,7 @@ export default function AdminPage({
       })
 
       if (!worker.locationId) {
-        setSalaryData([
-          {
-            worker: '',
-            workingHours: '',
-            location: '',
-            bonuses: '',
-            fines: '',
-            comment: '',
-            isHardTime: false,
-            gamesCount: 1,
-            oneGames: null,
-            twoGames: null,
-            threeGames: null,
-          },
-        ])
+        setSalaryData([defaultSalaryData])
       }
     } else {
       addToast({
@@ -130,7 +136,7 @@ export default function AdminPage({
 
   useEffect(() => {
     if (worker.locationId) {
-      fetch('/api/getLocationSalary', {
+      fetch('/api/salary/getLocationData', {
         method: 'POST',
         body: JSON.stringify({date: date?.toISO()}),
       }).then(async res => {
@@ -139,21 +145,7 @@ export default function AdminPage({
         if (data.data.length) {
           setSalaryData(data.data)
         } else {
-          setSalaryData([
-            {
-              worker: '',
-              workingHours: '',
-              location: '',
-              bonuses: '',
-              fines: '',
-              comment: '',
-              isHardTime: false,
-              gamesCount: 1,
-              oneGames: null,
-              twoGames: null,
-              threeGames: null,
-            },
-          ])
+          setSalaryData([defaultSalaryData])
         }
       })
     }
@@ -162,6 +154,7 @@ export default function AdminPage({
   return isMobile ? (
     <MobileAdmin
       {...{
+        workTypes,
         ranks,
         locations,
         sendData,
@@ -178,6 +171,7 @@ export default function AdminPage({
   ) : (
     <DesktopAdmin
       {...{
+        workTypes,
         ranks,
         sendData,
         locations,

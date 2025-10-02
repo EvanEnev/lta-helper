@@ -1,4 +1,10 @@
-import {LTLocation, LTRank, LTWorker, WorkerSalary} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTRank,
+  LTWorker,
+  LTWorkType,
+  WorkerSalary,
+} from '@/src/utils/types'
 import {
   Button,
   CalendarDate,
@@ -31,6 +37,7 @@ interface DesktopAdminProps {
   isLoading: boolean
   canEdit: boolean
   ranks: LTRank[]
+  workTypes: LTWorkType[]
 }
 
 export default function DesktopAdmin({
@@ -44,6 +51,7 @@ export default function DesktopAdmin({
   isLoading,
   canEdit,
   ranks,
+  workTypes,
 }: DesktopAdminProps) {
   const {worker} = useAuth()
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
@@ -90,10 +98,12 @@ export default function DesktopAdmin({
 
   return (
     <main className="flex min-h-full gap-4 p-4">
-      <div className="grid h-full w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 overflow-auto lg:grid-cols-4">
+      <div className="grid h-full w-full grid-cols-[repeat(auto-fit,minmax(300px,max-content))] gap-4 overflow-auto">
         {salaryData.map((data, index) => {
           return (
-            <Card key={index} className={data.deleted ? 'bg-danger/50' : ''}>
+            <Card
+              key={index}
+              className={data.deleted ? 'bg-danger/50 min-w-fit' : 'min-w-fit'}>
               <CardHeader className={`gap-4`}>
                 {index + 1}.
                 <Button
@@ -135,6 +145,7 @@ export default function DesktopAdmin({
               </CardHeader>
               <CardBody>
                 <WorkData
+                  workTypes={workTypes}
                   ranks={ranks}
                   locations={locations}
                   data={data}

@@ -257,9 +257,6 @@ export default function PayrollCreatePage({
           {data.map((d, index) => {
             const payrollWorkerData = payrollData[index]
 
-            if (d.id === 94) {
-              console.debug(d, payrollWorkerData)
-            }
             const summary =
               (payrollWorkerData.fines || 0) +
               (payrollWorkerData.bonuses || 0) +

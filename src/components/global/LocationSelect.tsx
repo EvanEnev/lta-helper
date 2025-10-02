@@ -113,8 +113,9 @@ export default function LocationSelect({
       required
       startContent={
         <LocationIcon
+          className="h-6"
           locationName={
-            locations.find(d => d.id === selectedLocation)?.name || ''
+            locations.find(d => d.id === Number(selectedLocation))?.name || ''
           }
         />
       }
