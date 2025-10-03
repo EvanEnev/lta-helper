@@ -7,7 +7,14 @@ import {
   LTRank,
   LTWorker,
 } from '@/src/utils/types'
-import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import Location from '@/src/components/global/Location'
 import {
   Button,
@@ -58,6 +65,7 @@ export default function PayrollCreatePage({
   locations,
 }: PayrollCreatePageProps) {
   const {setExiting} = useAuth()
+  const headerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setExiting(false)
@@ -192,7 +200,9 @@ export default function PayrollCreatePage({
 
   return (
     <main className="h-full w-full p-4">
-      <div className="flex items-center gap-2 pb-4">
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-1000 flex items-center gap-2 pb-4">
         <Button as={Link} href="/payrolls" startContent={<ArrowLeft />}>
           Назад
         </Button>
@@ -238,7 +248,9 @@ export default function PayrollCreatePage({
       </div>
       <div className="flex gap-4">
         <div className="bg-content1 flex w-[90%] flex-col gap-2 rounded-2xl">
-          <div className="bg-content2 sticky top-0 z-1000 flex items-center gap-2 rounded-xl p-2">
+          <div
+            className="bg-content2 sticky z-1000 flex items-center gap-2 rounded-xl p-2"
+            style={{top: `${headerRef?.current?.offsetHeight}px`}}>
             <Checkbox className="invisible" />
             <p className="min-w-[8rem] flex-1 text-center">Сотрудник</p>
             <Divider orientation="vertical" />
@@ -341,9 +353,10 @@ export default function PayrollCreatePage({
                   .reduce(
                     (acc, d) =>
                       acc +
-                      Number(d.value) -
-                      (Number(d.fines) || 0) +
-                      (Number(d.bonuses) || 0),
+                      (d.fines || 0) +
+                      (d.bonuses || 0) +
+                      (d.value || 0) -
+                      (d.external_payment || 0),
                     0,
                   )
 

@@ -48,12 +48,12 @@ export default function PayrollIssuePage({
   const [isLoading, setIsLoading] = useState(false)
 
   const takeByWorkers = useMemo(() => {
-    return takeByData.filter(d => d.payroll_id === payroll.id)
-  }, [payroll.id, takeByData])
+    return takeByData.filter(d => d.payroll_id === payroll?.id)
+  }, [payroll?.id, takeByData])
 
   const sendConfirm = useCallback(async () => {
     const body = {
-      payroll_id: payroll.id,
+      payroll_id: payroll?.id,
       workers: [
         {
           id: worker.id,
@@ -81,7 +81,7 @@ export default function PayrollIssuePage({
     setIsLoading(false)
   }, [
     payroll?.balance,
-    payroll.id,
+    payroll?.id,
     payroll?.value,
     selectedWorker,
     takeByWorkers,
@@ -96,8 +96,8 @@ export default function PayrollIssuePage({
           <Alert title="Выдача подтверждена" color="success" />
         )}
         <p>
-          Ведомость: {Interval.fromISO(payroll.dates).toFormat('dd.MM.yyyy')}{' '}
-          (до {DateTime.fromISO(payroll.take_by).toFormat('dd.MM.yyyy')})
+          Ведомость: {Interval.fromISO(payroll?.dates).toFormat('dd.MM.yyyy')}{' '}
+          (до {DateTime.fromISO(payroll?.take_by).toFormat('dd.MM.yyyy')})
         </p>
         <NumberInput
           maxValue={(payroll?.value || 0) + (payroll?.balance || 0)}
@@ -166,7 +166,7 @@ export default function PayrollIssuePage({
       <Button
         onPress={sendConfirm}
         isLoading={isLoading}
-        isDisabled={!payrolls[0].id}
+        isDisabled={!payrolls[0]?.id}
         className="sticky bottom-4 my-2 h-14 w-full"
         color="primary"
         startContent={<CheckCircle iconStyle="Bold" size={24} />}>
