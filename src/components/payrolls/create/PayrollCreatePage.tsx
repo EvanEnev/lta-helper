@@ -273,7 +273,6 @@ export default function PayrollCreatePage({
                   <PayrollCreateWorkerCell name={d.name} rank={d.rank} />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
-                    minValue={0}
                     data={d.value || 0}
                     workerId={d.id}
                     callback={handleUpdate}
