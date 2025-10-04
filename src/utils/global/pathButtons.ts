@@ -40,12 +40,11 @@ const buttons: PathButton[] = [
         icon: AddCircle,
       },
       {name: 'График ЗП', href: '/salary', icon: Wallet},
-      {name: 'Ведомости', href: '/payrolls', icon: BillList, isDisabled: true},
+      {name: 'Ведомости', href: '/payrolls', icon: BillList},
       {
         name: 'Получение ЗП',
         href: '/payrolls/issue',
         icon: CashOut,
-        isDisabled: true,
       },
     ],
   },

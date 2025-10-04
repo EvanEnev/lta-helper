@@ -57,7 +57,7 @@ export default function PayrollIssuePage({
       workers: [
         {
           id: worker.id,
-          value: (payroll?.value || 0) + (payroll?.balance || 0),
+          value: payroll?.value || 0,
           selectedWorker: selectedWorker || null,
         },
         ...takeByWorkers.map(w => {
@@ -80,7 +80,6 @@ export default function PayrollIssuePage({
     })
     setIsLoading(false)
   }, [
-    payroll?.balance,
     payroll?.id,
     payroll?.value,
     selectedWorker,
@@ -89,6 +88,7 @@ export default function PayrollIssuePage({
     workersData,
   ])
 
+  console.debug(payroll)
   return (
     <main className="p-4">
       <div className="flex flex-col gap-2">
@@ -100,16 +100,13 @@ export default function PayrollIssuePage({
           (до {DateTime.fromISO(payroll?.take_by).toFormat('dd.MM.yyyy')})
         </p>
         <NumberInput
-          maxValue={(payroll?.value || 0) + (payroll?.balance || 0)}
-          label="Сумма к выдаче"
-          value={
-            (payroll?.value || 0) +
-            (payroll?.balance || 0) -
-            (payroll?.external_payment || 0)
-          }
+          maxValue={(payrolls[0]?.value || 0) < 0 ? 0 : payrolls[0]?.value || 0}
+          minValue={(payrolls[0]?.value || 0) < 0 ? payrolls[0]?.value || 0 : 0}
+          label={`Сумма к выдаче (макс.: ${(payrolls[0]?.value || 0) < 0 ? 0 : payrolls[0]?.value || 0})`}
+          value={(payroll?.value || 0) - (payroll?.external_payment || 0)}
           onValueChange={value =>
             setPayroll(d => {
-              return {...d, balance: 0, value}
+              return {...d, value}
             })
           }
         />

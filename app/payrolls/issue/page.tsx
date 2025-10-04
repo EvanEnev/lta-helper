@@ -1,14 +1,6 @@
 import auth from '@/lib/auth/auth'
-import {LTLocation, LTPayroll} from '@/src/utils/types'
 import db from '@/lib/database'
 import PayrollIssuePage from '@/src/components/payrolls/issue/PayrollIssuePage'
-
-export interface LTPayrollIssueData {
-  take_by: LTPayroll['takeBy']
-  dates: LTPayroll['dates']
-  location: LTLocation['name']
-  value: number
-}
 
 export default async function PayrollIssue() {
   const worker = await auth()
@@ -17,7 +9,6 @@ export default async function PayrollIssue() {
     p.id,
     p.take_by,
     p.dates,
-    w.balance,
     l.name as location,
     wp.value + coalesce(wp.bonuses, 0) as value,
     wp.issue_confirmed,
@@ -28,7 +19,7 @@ export default async function PayrollIssue() {
     left join lt_arena.locations l on l.id = wp.location_id
     left join lt_arena.workers w on w.id = ${worker.id}
     left join lt_arena.workers w2 on w2.id = wp.to_take_by
-    where p.take_by < NOW()
+    where p.take_by > NOW()
     order by p.take_by desc
   `
 
