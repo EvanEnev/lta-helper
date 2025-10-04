@@ -13,7 +13,7 @@ export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
         <RankIcon rank={worker.rank || ''} className="w-full" />
         {worker.rank}
       </div>
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex max-w-[90dvw] flex-col items-center gap-4">
         <UpcomingShifts />
         <UpcomingSalary data={salaryData} />
       </div>

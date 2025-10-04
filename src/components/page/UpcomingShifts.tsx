@@ -30,9 +30,9 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
   }, [days, getDatesDiff])
 
   return (
-    <Card className={`w-full max-w-fit ${className}`}>
+    <Card className={`w-full ${className}`}>
       <CardHeader className="text-3xl">Ближайшие смены</CardHeader>
-      <CardBody className="flex flex-row gap-4 overflow-auto">
+      <CardBody className="flex max-w-full flex-row gap-4 overflow-auto">
         {filteredDats.length ? (
           filteredDats.map((day, index) => {
             const dayData = day.locationData?.find(data => data.self)
