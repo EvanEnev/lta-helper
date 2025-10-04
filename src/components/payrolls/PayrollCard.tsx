@@ -81,17 +81,22 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
       <CardFooter className="flex gap-2">
         <Button
           variant="faded"
+          className={
+            checkPermissions(['edit_payrolls'], worker) ? '' : 'flex-1'
+          }
           as={Link}
           href={`/payrolls/${data.id}`}
           startContent={<ChatLine iconStyle="Bold" />}>
           Подробнее
         </Button>
-        <DeleteButton
-          className="flex-1"
-          callback={deletePayroll}
-          showConfirmLabel={false}
-          label={'Удалить'}
-        />
+        {checkPermissions(['edit_payrolls'], worker) && (
+          <DeleteButton
+            className="flex-1"
+            callback={deletePayroll}
+            showConfirmLabel={false}
+            label={'Удалить'}
+          />
+        )}
       </CardFooter>
     </Card>
   )
