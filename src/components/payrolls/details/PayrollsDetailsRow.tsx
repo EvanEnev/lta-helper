@@ -87,7 +87,6 @@ export default function PayrollsDetailsRow({
             updateCallback('value', value)
           }}
           isWheelDisabled
-          minValue={0}
           endContent={<Ruble iconStyle="Bold" />}
           className="min-w-[9rem] flex-1"
           defaultValue={data.value || 0}
