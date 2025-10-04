@@ -48,12 +48,12 @@ export async function POST(req: NextRequest) {
 
   const createWorkersPayrollQuery = `
   insert into lt_arena.workers_payrolls
-  (worker_id, payroll_id, value, location_id, bonuses) values
+  (worker_id, payroll_id, value, location_id, bonuses, external_payment) values
   ${data.workersData
     .filter(d => d.location !== -1)
     .map(
       worker =>
-        `(${worker.workerId}, ${payrollId}, ${worker.value}, ${worker.location}, ${data.withBonuses ? (worker.bonuses || 0) + (worker.fines || 0) : 'NULL'})`,
+        `(${worker.workerId}, ${payrollId}, ${worker.value}, ${worker.location}, ${data.withBonuses ? (worker.bonuses || 0) + (worker.fines || 0) : 'NULL'}, ${worker.external_payment ? worker.external_payment : 'NULL'})`,
     )
     .join(',\n')}`
 

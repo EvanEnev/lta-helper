@@ -43,7 +43,7 @@ const buttons: PathButton[] = [
       {name: 'Ведомости', href: '/payrolls', icon: BillList, isDisabled: true},
       {
         name: 'Получение ЗП',
-        href: 'payrolls/issue',
+        href: '/payrolls/issue',
         icon: CashOut,
         isDisabled: true,
       },
