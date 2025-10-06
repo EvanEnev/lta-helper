@@ -139,8 +139,11 @@ export async function POST(req: NextRequest) {
       isHardTime: data.isHardTime,
       worker: user,
       workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+      // @ts-ignore
       oneGames: data.oneGames,
+      // @ts-ignore
       twoGames: data.twoGames,
+      // @ts-ignore
       threeGames: data.threeGames,
     })
 

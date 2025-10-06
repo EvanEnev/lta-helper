@@ -72,10 +72,10 @@ export interface WorkerSalary {
   deleted?: number
   type?: string
   withoutDate?: boolean
-  oneGames: number | null
-  twoGames: number | null
-  threeGames: number | null
-  actorGames: number | null
+  oneGames: {id: LTGamePayment['id']; value: number; number: number} | null
+  twoGames: {id: LTGamePayment['id']; value: number; number: number} | null
+  threeGames: {id: LTGamePayment['id']; value: number; number: number} | null
+  actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
   workTypes: LTWorkType['id'][]
 }
 

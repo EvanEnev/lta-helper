@@ -127,8 +127,11 @@ export default function WorkData({
       bonuses: data.bonuses,
       value: data.location === 'Другое' ? data.value || 0 : data.value,
       overwork: data.location === 'Другое' ? 0 : data.overwork,
+      // @ts-ignore
       oneGames: data.oneGames,
+      // @ts-ignore
       twoGames: data.twoGames,
+      // @ts-ignore
       threeGames: data.threeGames,
     })
   }, [
