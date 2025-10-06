@@ -127,7 +127,7 @@ export default function CellHeader({
           </CellChip>
         </>
       )}
-      {(data.oneGames || canEdit) && (
+      {(data.twoGames || canEdit) && (
         <>
           <CellChip className="text-foreground text-small">2 часа</CellChip>
           <CellChip className="text-foreground text-small flex justify-between">
@@ -136,7 +136,7 @@ export default function CellHeader({
           </CellChip>
         </>
       )}
-      {(data.oneGames || canEdit) && (
+      {(data.threeGames || canEdit) && (
         <>
           <CellChip className="text-foreground text-small">3 часа</CellChip>
           <CellChip className="text-foreground text-small flex justify-between">

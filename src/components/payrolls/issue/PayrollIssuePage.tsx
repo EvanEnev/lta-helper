@@ -111,7 +111,6 @@ export default function PayrollIssuePage({
           }
         />
         <Autocomplete
-          isDisabled={takeByWorkers.length > 0}
           label="Заберёт"
           onSelectionChange={key => setSelectedWorker(key?.toString() || null)}
           selectedKey={selectedWorker || ''}>

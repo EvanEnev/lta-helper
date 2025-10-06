@@ -67,7 +67,7 @@ where p.id = ${id}`
     !checkPermissions(['view_all_payrolls'], worker) &&
     checkPermissions(['view_location_payrolls'], worker)
   ) {
-    workersPayrollDataQuery += `\nand wp.location_id = ${worker.locationId}`
+    workersPayrollDataQuery += `\nand wp.location_id = ${worker.locationId} or wp.worker_id = ${worker.id}`
     moneyOnLocationsQuery += `\nand lm.location_id = ${worker.locationId}`
   }
 

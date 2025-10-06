@@ -9,6 +9,7 @@ import fetchHandler from '@/src/utils/global/fetchHandler'
 import {Socket} from 'socket.io-client'
 import {DefaultEventsMap} from 'socket.io'
 import supabase from '@/lib/supabase'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface PayrollsDetailsRowProps {
   data: LTWorkerPayrollData
@@ -29,6 +30,7 @@ export default function PayrollsDetailsRow({
   payrollId,
   socketRef,
 }: PayrollsDetailsRowProps) {
+  const {worker} = useAuth()
   const [loading, setLoading] = useState(false)
 
   const issuePayroll = useCallback(async () => {
@@ -165,7 +167,12 @@ export default function PayrollsDetailsRow({
                       ? 'success'
                       : 'default'
                 }
-                isDisabled={!data.issue_confirmed}>
+                isDisabled={
+                  !(
+                    data.issue_confirmed &&
+                    data.location_id === worker.locationId
+                  )
+                }>
                 Выдать
               </Button>
             </div>
