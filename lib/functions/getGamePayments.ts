@@ -1,0 +1,18 @@
+import db from '@/lib/database'
+import {LTGamePayment} from '@/src/utils/types'
+
+export default async function getGamePayments(): Promise<LTGamePayment[]> {
+  const query = `select
+  id,
+  name,
+  description,
+  value,
+  rank,
+  key
+  from lt_arena.games_payments
+  order by id`
+
+  const result = await db.query(query)
+
+  return result.rows
+}

@@ -204,7 +204,8 @@ export async function POST(req: NextRequest) {
                           data.oneGames?.id
                             ? `json_build_object(
                         'id', ${data.oneGames.id},
-                        'value', ${data.oneGames.value} * (select value from lt_arena.games_payments where id = ${data.oneGames.id}),
+                        'value', case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
+                            else  ${data.oneGames.value} * (select value from lt_arena.games_payments where id = ${data.oneGames.id}) end,
                         'number', ${data.oneGames.value}
                         )`
                             : 'NULL'
@@ -213,8 +214,9 @@ export async function POST(req: NextRequest) {
                           data.twoGames?.id
                             ? `json_build_object(
                         'id', ${data.twoGames.id},
-                        'value', ${data.twoGames.value} * (select value from lt_arena.games_payments where id = ${data.twoGames.id}),
-                        'number', ${data.twoGames.value} / (select value from lt_arena.games_payments where id = ${data.twoGames.id})
+                        'value', case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
+                            else  ${data.twoGames.value} * (select value from lt_arena.games_payments where id = ${data.twoGames.id}) end,
+                        'number', ${data.twoGames.value}
                         )`
                             : 'NULL'
                         },
@@ -222,7 +224,8 @@ export async function POST(req: NextRequest) {
                           data.threeGames?.id
                             ? `json_build_object(
                         'id', ${data.threeGames.id},
-                        'value', ${data.threeGames.value} * (select value from lt_arena.games_payments where id = ${data.threeGames.id}),
+                        'value', case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
+                            else  ${data.threeGames.value} * (select value from lt_arena.games_payments where id = ${data.threeGames.id}) end,
                         'number', ${data.threeGames.value}
                         )`
                             : 'NULL'
@@ -233,7 +236,9 @@ export async function POST(req: NextRequest) {
                         'id', ${data.actorGames.id},
                         'value',  case
                           when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') != 'Актёр' then
-                            ${data.actorGames.value} * (select value from lt_arena.games_payments where id = ${data.actorGames.id})
+                            case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
+                            else ${data.actorGames.value} * (select value from lt_arena.games_payments where id = ${data.actorGames.id})
+                            end
                           else (select value from lt_arena.games_payments where id = ${data.actorGames.id}) * ${data.actorGames.value > 2 ? data.actorGames.value - 2 : 0}
                           end,
                         'number', ${data.actorGames.value}
