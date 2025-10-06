@@ -141,7 +141,10 @@ export default function PayrollsDetailsRow({
         </div>
         <Divider orientation="vertical" />
         <p className="min-w-[9rem] flex-1 text-center">
-          {data.value - (data.taken || 0) - (data.external_payment || 0)}
+          {data.value +
+            (data.bonuses || 0) -
+            (data.taken || 0) -
+            (data.external_payment || 0)}
         </p>
         {canIssue && (
           <>
