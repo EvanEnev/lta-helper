@@ -9,6 +9,7 @@ import {
 import WorkData from './WorkData'
 import {useCallback, useEffect, useState} from 'react'
 import {
+  LTGamePayment,
   LTLocation,
   LTRank,
   LTWorker,
@@ -37,6 +38,7 @@ interface MobileAdminProps {
   canEdit: boolean
   ranks: LTRank[]
   workTypes: LTWorkType[]
+  gamesPayments: LTGamePayment[]
 }
 
 export default function MobileAdmin({
@@ -51,6 +53,7 @@ export default function MobileAdmin({
   canEdit,
   ranks,
   workTypes,
+  gamesPayments,
 }: MobileAdminProps) {
   const {setExiting, worker} = useAuth()
   const [key, setKey] = useState(0)
@@ -190,6 +193,7 @@ export default function MobileAdmin({
                 </Button>
               }>
               <WorkData
+                gamesPayments={gamesPayments}
                 workTypes={workTypes}
                 ranks={ranks}
                 locations={locations}

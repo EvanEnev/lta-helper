@@ -5,6 +5,7 @@ import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
 import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {
+  LTGamePayment,
   LTLocation,
   LTRank,
   LTWorker,
@@ -22,6 +23,7 @@ interface AdminPageProps {
   locations: LTLocation[]
   ranks: LTRank[]
   workTypes: LTWorkType[]
+  gamesPayments: LTGamePayment[]
 }
 
 const defaultSalaryData: WorkerSalary = {
@@ -46,6 +48,7 @@ export default function AdminPage({
   canEdit,
   locations,
   workTypes,
+  gamesPayments,
 }: AdminPageProps) {
   const {worker} = useAuth()
   const isMobile = useIsMobile()
@@ -154,6 +157,7 @@ export default function AdminPage({
   return isMobile ? (
     <MobileAdmin
       {...{
+        gamesPayments,
         workTypes,
         ranks,
         locations,
@@ -171,6 +175,7 @@ export default function AdminPage({
   ) : (
     <DesktopAdmin
       {...{
+        gamesPayments,
         workTypes,
         ranks,
         sendData,

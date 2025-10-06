@@ -183,10 +183,10 @@ export async function POST(req: NextRequest) {
     }
 
     queries.push(`INSERT INTO lt_arena.salary
-                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
+                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games_2, two_games_2, three_games_2, actor_games_2, work_types)
                   VALUES
                     (
-                        (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'),
+                        (SELECT id FROM lt_arena.workers WHERE name ilike '${data.worker}'),
                         '${date.toFormat('yyyy-MM-dd')}',
                         ${salary.rawValue || 0},
                         '${salary.bonuses}',
@@ -200,10 +200,46 @@ export async function POST(req: NextRequest) {
                         ${salary.overwork_end ? (!data.type ? `'${salary.overwork_end}'` : 'NULL') : 'NULL'},
                         ${salary.overwork || 'NULL'},
                         ${data.type ? `'${data.type}'` : 'NULL'},
-                        ${data.oneGames ? data.oneGames : 'NULL'},
-                        ${data.twoGames ? data.twoGames : 'NULL'},
-                        ${data.threeGames ? data.threeGames : 'NULL'},
-                        ${data.actorGames ? data.actorGames : 'NULL'},
+                        ${
+                          data.oneGames?.id
+                            ? `json_build_object(
+                        'id', ${data.oneGames.id},
+                        'value', ${data.oneGames.value} * (select value from lt_arena.games_payments where id = ${data.oneGames.id}),
+                        'number', ${data.oneGames.value}
+                        )`
+                            : 'NULL'
+                        },
+                        ${
+                          data.twoGames?.id
+                            ? `json_build_object(
+                        'id', ${data.twoGames.id},
+                        'value', ${data.twoGames.value} * (select value from lt_arena.games_payments where id = ${data.twoGames.id}),
+                        'number', ${data.twoGames.value} / (select value from lt_arena.games_payments where id = ${data.twoGames.id})
+                        )`
+                            : 'NULL'
+                        },
+                        ${
+                          data.threeGames?.id
+                            ? `json_build_object(
+                        'id', ${data.threeGames.id},
+                        'value', ${data.threeGames.value} * (select value from lt_arena.games_payments where id = ${data.threeGames.id}),
+                        'number', ${data.threeGames.value}
+                        )`
+                            : 'NULL'
+                        },
+                        ${
+                          data.actorGames?.id
+                            ? `json_build_object(
+                        'id', ${data.actorGames.id},
+                        'value',  case
+                          when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') != 'Актёр' then
+                            ${data.actorGames.value} * (select value from lt_arena.games_payments where id = ${data.actorGames.id})
+                          else (select value from lt_arena.games_payments where id = ${data.actorGames.id}) * ${data.actorGames.value > 2 ? data.actorGames.value - 2 : 0}
+                          end,
+                        'number', ${data.actorGames.value}
+                        )`
+                            : 'NULL'
+                        },
                         array[${data.workTypes}]
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
@@ -218,10 +254,10 @@ export async function POST(req: NextRequest) {
                       overwork_start=excluded.overwork_start,
                       overwork_end=excluded.overwork_end,
                       overwork=excluded.overwork,
-                      one_games=excluded.one_games,
-                      two_games=excluded.two_games,
-                      three_games=excluded.three_games,
-                      actor_games=excluded.actor_games,
+                      one_games_2=excluded.one_games_2,
+                      two_games_2=excluded.two_games_2,
+                      three_games_2=excluded.three_games_2,
+                      actor_games_2=excluded.actor_games_2,
                       work_types=excluded.work_types
     `)
   }

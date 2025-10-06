@@ -6,6 +6,7 @@ import auth from '@/lib/auth/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getLocations from '@/lib/functions/getLocations'
 import getRanks from '@/lib/functions/getRanks'
+import getGamePayments from '@/lib/functions/getGamePayments'
 
 export default async function Admin() {
   const worker = await auth()
@@ -18,10 +19,12 @@ export default async function Admin() {
   const workTypesResult = await db.query(workTypesQuery)
 
   const workersQuery = `SELECT
-  name,
-  rank,
-  is_former
-  FROM lt_arena.workers`
+  w.name,
+  w.rank,
+  r.id as "rankId",
+  w.is_former
+  FROM lt_arena.workers w
+  left join lt_arena.ranks r on r.name = w.rank`
 
   const workersResult = await db.query(workersQuery)
 
@@ -38,6 +41,7 @@ export default async function Admin() {
 
   const locations = await getLocations()
   const ranks = await getRanks()
+  const gamesPayments = await getGamePayments()
 
   return (
     <AdminPage
@@ -46,6 +50,7 @@ export default async function Admin() {
       locations={locations}
       ranks={ranks}
       workTypes={workTypesResult.rows}
+      gamesPayments={gamesPayments}
     />
   )
 }

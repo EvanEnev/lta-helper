@@ -1,4 +1,5 @@
 import {
+  LTGamePayment,
   LTLocation,
   LTRank,
   LTWorker,
@@ -38,6 +39,7 @@ interface DesktopAdminProps {
   canEdit: boolean
   ranks: LTRank[]
   workTypes: LTWorkType[]
+  gamesPayments: LTGamePayment[]
 }
 
 export default function DesktopAdmin({
@@ -52,6 +54,7 @@ export default function DesktopAdmin({
   canEdit,
   ranks,
   workTypes,
+  gamesPayments,
 }: DesktopAdminProps) {
   const {worker} = useAuth()
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
@@ -145,6 +148,7 @@ export default function DesktopAdmin({
               </CardHeader>
               <CardBody>
                 <WorkData
+                  gamesPayments={gamesPayments}
                   workTypes={workTypes}
                   ranks={ranks}
                   locations={locations}

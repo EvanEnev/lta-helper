@@ -243,3 +243,12 @@ export interface LTTakeByPayrollData {
   payroll_id: LTPayroll['id']
   location_id: LTLocation['id']
 }
+
+export interface LTGamePayment {
+  id: number
+  name: string
+  description: string
+  value: number
+  key: string
+  rank: number
+}

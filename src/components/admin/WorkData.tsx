@@ -1,5 +1,6 @@
 import getSalaryData from '@/lib/functions/getSalaryData'
 import {
+  LTGamePayment,
   LTLocation,
   LTRank,
   LTWorker,
@@ -33,6 +34,7 @@ type WorkDataProps = {
   ranks: LTRank[]
   worker: LTWorker
   workTypes: LTWorkType[]
+  gamesPayments: LTGamePayment[]
 }
 
 const types = [
@@ -53,6 +55,7 @@ export default function WorkData({
   ranks,
   worker: user,
   workTypes,
+  gamesPayments,
 }: WorkDataProps) {
   const worker = workers.find(
     (worker: {name: string}) =>
@@ -84,7 +87,15 @@ export default function WorkData({
         | 'threeGames'
         | 'actorGames'
         | 'workTypes',
-      value: Key | string | boolean | null | undefined | number | Key[],
+      value:
+        | Key
+        | string
+        | boolean
+        | null
+        | undefined
+        | number
+        | Key[]
+        | {id: number; value: number},
     ) => {
       const currentData = {...data}
 
@@ -222,46 +233,42 @@ export default function WorkData({
         className={data.type ? 'hidden' : 'col-1'}
         onValueChange={value => updateData('workingHours', value)}
       />
-      {worker?.rank !== 'Актёр' && (
-        <>
-          <NumberInput
-            labelPlacement="outside"
-            className="col-1"
-            minValue={0}
-            isWheelDisabled
-            value={data.oneGames || 0}
-            label="Кол-во 1-час. игр"
-            onValueChange={value => updateData('oneGames', value)}
-          />
-          <NumberInput
-            labelPlacement="outside"
-            className="col-1"
-            minValue={0}
-            isWheelDisabled
-            value={data.twoGames || 0}
-            label="Кол-во 2-час. игр"
-            onValueChange={value => updateData('twoGames', value)}
-          />
-          <NumberInput
-            labelPlacement="outside"
-            className="col-1"
-            minValue={0}
-            isWheelDisabled
-            value={data.threeGames || 0}
-            label="Кол-во 3-час. игр"
-            onValueChange={value => updateData('threeGames', value)}
-          />
-        </>
-      )}
-      <NumberInput
-        labelPlacement="outside"
-        className="col-1"
-        minValue={0}
-        isWheelDisabled
-        value={data.actorGames || 0}
-        label="Кол-во актёр. игр"
-        onValueChange={value => updateData('actorGames', value)}
-      />
+      {worker?.rank !== 'Актёр' &&
+        gamesPayments
+          .filter(d => d.rank !== 12)
+          .map((d, index) => {
+            return (
+              <NumberInput
+                key={index}
+                labelPlacement="outside"
+                className="col-1"
+                minValue={0}
+                isWheelDisabled
+                label={d.description}
+                // @ts-ignore
+                onValueChange={value => updateData(d.key, {id: d.id, value})}
+              />
+            )
+          })}
+      {worker?.rank === 'Актёр' &&
+        gamesPayments
+          .filter(d => d.rank === 12)
+          .map((d, index) => {
+            return (
+              <NumberInput
+                key={index}
+                labelPlacement="outside"
+                className="col-1"
+                minValue={0}
+                isWheelDisabled
+                label={d.description}
+                onValueChange={value =>
+                  // @ts-ignore
+                  updateData(d.key, {id: d.id, value})
+                }
+              />
+            )
+          })}
       {worker?.rank !== 'Актёр' && (
         <Checkbox
           onValueChange={value => updateData('isHardTime', value)}
