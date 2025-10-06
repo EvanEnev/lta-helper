@@ -155,7 +155,7 @@ export default function Summarized({
               newUser.salary += value.value
               newUser.overwork += value.overwork || 0
 
-              if (value[0].rank !== 'Железный') {
+              if (value.rank !== 'Железный') {
                 newUser.overwork +=
                   (value.one_games || 0) * 250 +
                   (value.two_games || 0) * 500 +
