@@ -161,6 +161,7 @@ export async function POST(req: NextRequest) {
         number: data.actorGames?.number || 0,
       },
       override: {
+        value: data.value,
         overwork: data.location === 'Другое' ? 0 : data.overwork,
         workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
         // @ts-ignore
