@@ -12,13 +12,14 @@ import {
   AutocompleteItem,
   AutocompleteSection,
   Checkbox,
+  Divider,
   Input,
   NumberInput,
   Select,
   SelectItem,
   Textarea,
 } from '@heroui/react'
-import {Key, useCallback, useMemo} from 'react'
+import {Key, useCallback, useMemo, useRef} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 import RankIcon from '@/src/components/global/RankIcon'
 import {evaluate} from 'mathjs'
@@ -57,6 +58,8 @@ export default function WorkData({
   workTypes,
   gamesPayments,
 }: WorkDataProps) {
+  // @ts-ignore
+  const ref = useRef()
   const worker = workers.find(
     (worker: {name: string}) =>
       worker.name?.toLowerCase() === data.worker?.toLowerCase(),
@@ -95,7 +98,7 @@ export default function WorkData({
         | undefined
         | number
         | Key[]
-        | {id: number; value: number},
+        | {id: number; value: number; number: number},
     ) => {
       const currentData = {...data}
 
@@ -117,38 +120,71 @@ export default function WorkData({
     if (!rank) return null
 
     return getSalaryData({
+      gamesPayments,
       worker: user,
       rank,
-      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+      workingHours: data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
       gamesCount: data.gamesCount,
       comment: data.comment,
       bonuses: data.bonuses,
       value: data.location === 'Другое' ? data.value || 0 : data.value,
-      overwork: data.location === 'Другое' ? 0 : data.overwork,
-      // @ts-ignore
-      oneGames: data.oneGames,
-      // @ts-ignore
-      twoGames: data.twoGames,
-      // @ts-ignore
-      threeGames: data.threeGames,
+      overwork: data.overwork,
+      oneGames: {
+        id: data.oneGames?.id || 0,
+        number: data.oneGames?.number || 0,
+      },
+      twoGames: {
+        id: data.twoGames?.id || 0,
+        number: data.twoGames?.number || 0,
+      },
+      threeGames: {
+        id: data.threeGames?.id || 0,
+        number: data.threeGames?.number || 0,
+      },
+      actorGames: {
+        id: data.actorGames?.id || 0,
+        number: data.actorGames?.number || 0,
+      },
+      override: {
+        overwork: data.location === 'Другое' ? 0 : data.overwork,
+        workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+        // @ts-ignore
+        oneGames: data.oneGames?.value,
+        // @ts-ignore
+        twoGames: data.twoGames?.value,
+        // @ts-ignore
+        threeGames: data.threeGames?.value,
+        // @ts-ignore
+        actorGames: data.actorGames?.value,
+      },
     })
   }, [
     ranks,
+    gamesPayments,
     user,
-    data.location,
     data.workingHours,
     data.fines,
     data.isHardTime,
     data.gamesCount,
     data.comment,
     data.bonuses,
+    data.location,
     data.value,
     data.overwork,
-    data.oneGames,
-    data.twoGames,
-    data.threeGames,
+    data.oneGames?.id,
+    data.oneGames?.number,
+    data.oneGames?.value,
+    data.twoGames?.id,
+    data.twoGames?.number,
+    data.twoGames?.value,
+    data.threeGames?.id,
+    data.threeGames?.number,
+    data.threeGames?.value,
+    data.actorGames?.id,
+    data.actorGames?.number,
+    data.actorGames?.value,
     worker?.rank,
   ])
 
@@ -162,207 +198,318 @@ export default function WorkData({
   }, [workers])
 
   return (
-    <div className="grid w-full min-w-[15rem] grid-flow-row-dense auto-rows-min grid-cols-2 gap-4">
-      <div className="col-span-full flex flex-col gap-4">
-        <Autocomplete
-          isRequired
-          label="Сотрудник"
-          labelPlacement="outside"
-          startContent={
-            <RankIcon
-              className="h-6 w-fit"
-              rank={workers.find(w => w.name === data.worker)?.rank || ''}
-            />
-          }
-          selectedKey={data.worker}
-          scrollShadowProps={{
-            isEnabled: false,
-          }}
-          onSelectionChange={value => updateData('worker', value)}>
-          {Object.entries(groupedWorkers).map(([key, value], index) => {
-            const title = (
-              <div className="bg-default-100 z-100 flex flex-1 items-center gap-1 rounded-xl px-2 select-none">
-                <RankIcon rank={key} className="h-6 w-fit" /> {key}
-              </div>
-            )
+    <div className="flex w-full min-w-[15rem] flex-row gap-2">
+      <div
+        className="grid w-[15rem] grid-flow-row-dense auto-rows-min grid-cols-2 gap-4"
+        // @ts-ignore
+        ref={ref}>
+        <div className="bg-primary/10 col-span-full mb-2 rounded-lg p-1 font-bold">
+          Простановка:
+        </div>
+        <div className="col-span-full flex flex-col gap-4">
+          <Autocomplete
+            isRequired
+            label="Сотрудник"
+            labelPlacement="outside"
+            startContent={
+              <RankIcon
+                className="h-6 w-fit"
+                rank={workers.find(w => w.name === data.worker)?.rank || ''}
+              />
+            }
+            selectedKey={data.worker}
+            scrollShadowProps={{
+              isEnabled: false,
+            }}
+            onSelectionChange={value => updateData('worker', value)}>
+            {Object.entries(groupedWorkers).map(([key, value], index) => {
+              const title = (
+                <div className="bg-default-100 z-100 flex flex-1 items-center gap-1 rounded-xl px-2 select-none">
+                  <RankIcon rank={key} className="h-6 w-fit" /> {key}
+                </div>
+              )
 
-            return (
-              <AutocompleteSection
-                // @ts-ignore
-                title={key === 'null' ? '' : title}
-                key={index}>
-                {value.map(worker => (
-                  <AutocompleteItem key={worker.name}>
-                    {worker.name}
-                  </AutocompleteItem>
-                ))}
-              </AutocompleteSection>
-            )
-          })}
-        </Autocomplete>
-        <LocationSelect
-          dynamicLocationId
-          locations={locations}
-          callback={value => updateData('location', value?.name)}
-          locationId={locationId}
-        />
-        <Select
-          label="Тип работы"
-          labelPlacement="outside"
-          selectionMode="multiple"
-          selectedKeys={data.workTypes?.map(String) || []}
-          onSelectionChange={value => updateData('workTypes', [...value])}>
-          {workTypes.map(type => (
-            <SelectItem key={type.id}>{type.name}</SelectItem>
-          ))}
-        </Select>
-      </div>
-      {data.location === 'Другое' && (
-        <Select
-          label="Тип"
-          labelPlacement="outside"
-          selectedKeys={[data.type || '']}
-          onSelectionChange={value => updateData('type', [...value][0])}>
-          {types.map(type => (
-            <SelectItem key={type}>{type}</SelectItem>
-          ))}
-        </Select>
-      )}
-      <Input
-        labelPlacement="outside"
-        isRequired
-        label="Время работы"
-        value={data.workingHours}
-        className={data.type ? 'hidden' : 'col-1'}
-        onValueChange={value => updateData('workingHours', value)}
-      />
-      {worker?.rank !== 'Актёр' &&
-        gamesPayments
-          .filter(d => d.rank !== 12)
-          .map((d, index) => {
-            return (
-              <NumberInput
-                key={index}
-                labelPlacement="outside"
-                className="col-1"
-                minValue={0}
-                isWheelDisabled
-                label={d.description}
-                // @ts-ignore
-                onValueChange={value => updateData(d.key, {id: d.id, value})}
-              />
-            )
-          })}
-      {worker?.rank === 'Актёр' &&
-        gamesPayments
-          .filter(d => d.rank === 12)
-          .map((d, index) => {
-            return (
-              <NumberInput
-                key={index}
-                labelPlacement="outside"
-                className="col-1"
-                minValue={0}
-                isWheelDisabled
-                label={d.description}
-                onValueChange={value =>
+              return (
+                <AutocompleteSection
                   // @ts-ignore
-                  updateData(d.key, {id: d.id, value})
-                }
-              />
-            )
-          })}
-      {worker?.rank !== 'Актёр' && (
-        <Checkbox
-          onValueChange={value => updateData('isHardTime', value)}
-          className="col-1 h-fit">
-          Загруз
-        </Checkbox>
-      )}
-      {data.type && data.location === 'Другое' && (
-        <Checkbox
-          className="col-1 h-fit"
-          onValueChange={value => updateData('withoutDate', value)}>
-          Без даты
-        </Checkbox>
-      )}
-      {worker?.rank === 'Каменный' && (
-        <Checkbox
-          onValueChange={value => updateData('hasGames', value)}
-          className="col-1 max-w-full">
-          Есть игры
-        </Checkbox>
-      )}
-      <FormulaInput
-        labelPlacement="outside"
-        className="col-2"
-        label="Бонусы"
-        value={data.bonuses}
-        callback={({text, error}) => {
-          if (!error) {
-            updateData('bonuses', text)
-          }
-        }}
-      />
-      <FormulaInput
-        labelPlacement="outside"
-        className="col-2"
-        label="Штрафы"
-        value={data.fines}
-        callback={({text, error}) => {
-          if (!error) {
-            updateData('fines', text)
-          }
-        }}
-      />
-      <Textarea
-        labelPlacement="outside"
-        className="col-2 row-span-2 h-full"
-        classNames={{inputWrapper: 'h-full!'}}
-        label="Комментарий"
-        value={data.comment}
-        onValueChange={value => updateData('comment', value)}
-      />
-      <div className="col-2">
-        <p>
-          Смена{' '}
-          {salary?.start_time &&
-            salary.end_time &&
-            `(${salary.start_time}-${salary.end_time})`}
-          :
-        </p>
-        <NumberInput
+                  title={key === 'null' ? '' : title}
+                  key={index}>
+                  {value.map(worker => (
+                    <AutocompleteItem key={worker.name}>
+                      {worker.name}
+                    </AutocompleteItem>
+                  ))}
+                </AutocompleteSection>
+              )
+            })}
+          </Autocomplete>
+          <LocationSelect
+            dynamicLocationId
+            locations={locations}
+            callback={value => updateData('location', value?.name)}
+            locationId={locationId}
+          />
+          <Select
+            label="Тип работы"
+            labelPlacement="outside"
+            selectionMode="multiple"
+            selectedKeys={data.workTypes?.map(String) || []}
+            onSelectionChange={value => updateData('workTypes', [...value])}>
+            {workTypes.map(type => (
+              <SelectItem key={type.id}>{type.name}</SelectItem>
+            ))}
+          </Select>
+        </div>
+        {data.location === 'Другое' && (
+          <Select
+            label="Тип"
+            labelPlacement="outside"
+            selectedKeys={[data.type || '']}
+            onSelectionChange={value => updateData('type', [...value][0])}>
+            {types.map(type => (
+              <SelectItem key={type}>{type}</SelectItem>
+            ))}
+          </Select>
+        )}
+        <Input
           labelPlacement="outside"
-          aria-label="Смена"
-          minValue={0}
-          className="h-full w-full"
-          value={salary?.value || 0}
-          onValueChange={value => updateData('value', value)}
+          isRequired
+          label="Время работы"
+          value={data.workingHours}
+          className={data.type ? 'hidden' : 'col-1'}
+          onValueChange={value => updateData('workingHours', value)}
         />
-      </div>
-      <div className={data.type ? 'hidden' : 'col-2'}>
-        <p>
-          Переработка{' '}
-          {salary?.overwork_start &&
-            salary.overwork_end &&
-            `(${salary.overwork_start}-${salary.overwork_end})`}
-          :
-        </p>
-        <NumberInput
-          aria-label="Переработка"
-          minValue={0}
-          className="h-full w-full"
-          value={salary?.overwork || 0}
-          onValueChange={value => {
-            updateData('overwork', value)
+        {worker?.rank !== 'Актёр' &&
+          gamesPayments
+            .filter(d => d.rank !== 12)
+            .map((d, index) => {
+              return (
+                <NumberInput
+                  key={index}
+                  labelPlacement="outside"
+                  classNames={{
+                    stepperButton: 'hidden',
+                  }}
+                  className="col-1"
+                  minValue={0}
+                  isWheelDisabled
+                  label={d.description}
+                  onValueChange={value =>
+                    // @ts-ignore
+                    updateData(d.key, {id: d.id, number: value})
+                  }
+                />
+              )
+            })}
+        {worker?.rank === 'Актёр' &&
+          gamesPayments
+            .filter(d => d.rank === 12)
+            .map((d, index) => {
+              return (
+                <NumberInput
+                  classNames={{
+                    stepperButton: 'hidden',
+                  }}
+                  key={index}
+                  labelPlacement="outside"
+                  className="col-1"
+                  minValue={0}
+                  isWheelDisabled
+                  label={d.description}
+                  onValueChange={value =>
+                    // @ts-ignore
+                    updateData(d.key, {id: d.id, number: value})
+                  }
+                />
+              )
+            })}
+        {worker?.rank !== 'Актёр' && (
+          <Checkbox
+            onValueChange={value => updateData('isHardTime', value)}
+            className="col-1 h-fit">
+            Загруз
+          </Checkbox>
+        )}
+        {data.type && data.location === 'Другое' && (
+          <Checkbox
+            className="col-1 h-fit"
+            onValueChange={value => updateData('withoutDate', value)}>
+            Без даты
+          </Checkbox>
+        )}
+        {worker?.rank === 'Каменный' && (
+          <Checkbox
+            onValueChange={value => updateData('hasGames', value)}
+            className="col-1 max-w-full">
+            Есть игры
+          </Checkbox>
+        )}
+        <FormulaInput
+          labelPlacement="outside"
+          className="col-2"
+          label="Бонусы"
+          value={data.bonuses}
+          callback={({text, error}) => {
+            if (!error) {
+              updateData('bonuses', text)
+            }
           }}
         />
+        <FormulaInput
+          labelPlacement="outside"
+          className="col-2"
+          label="Штрафы"
+          value={data.fines}
+          callback={({text, error}) => {
+            if (!error) {
+              updateData('fines', text)
+            }
+          }}
+        />
+        <Textarea
+          labelPlacement="outside"
+          className="col-2 row-span-2 h-full"
+          classNames={{inputWrapper: 'h-full!'}}
+          label="Комментарий"
+          value={data.comment}
+          onValueChange={value => updateData('comment', value)}
+        />
       </div>
-      <div className="col-2">
-        <p>
-          Бонусы/штрафы:{' '}
-          {evaluate(`${salary?.bonuses || 0} + ${salary?.fines || 0}`)}
-        </p>
+      <Divider
+        orientation="vertical"
+        className="h-full"
+        // @ts-ignore
+        style={{height: ref.current?.offsetHeight || 0}}
+      />
+      <div className="grid w-[15rem] grid-flow-row-dense auto-rows-min grid-cols-2 gap-4">
+        <div className="bg-success/10 col-span-full mb-2 rounded-lg p-1 font-bold">
+          Результат:
+        </div>
+        <div className="">
+          <NumberInput
+            classNames={{
+              stepperButton: 'hidden',
+            }}
+            labelPlacement="outside"
+            label={`Смена ${
+              salary?.start_time && salary.end_time
+                ? `(${salary?.start_time}-${salary?.end_time})`
+                : ''
+            }
+            :`}
+            aria-label="Смена"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.value || 0}
+            onValueChange={value => updateData('value', value)}
+          />
+        </div>
+        <div className={data.type ? 'hidden' : ''}>
+          <NumberInput
+            classNames={{
+              stepperButton: 'hidden',
+            }}
+            label={` Переработка ${salary?.overwork_start && salary.overwork_end ? `(${salary.overwork_start}-${salary.overwork_end})` : ''}
+            :`}
+            labelPlacement="outside"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.overwork || 0}
+            onValueChange={value => {
+              updateData('overwork', value)
+            }}
+          />
+        </div>
+        <div className="">
+          <p>
+            Бонусы/штрафы:{' '}
+            {evaluate(`${salary?.bonuses || 0} + ${salary?.fines || 0}`)}
+          </p>
+        </div>
+        <div className={data.type ? 'hidden' : ''}>
+          <NumberInput
+            classNames={{
+              stepperButton: 'hidden',
+            }}
+            label="1-час. игры:"
+            labelPlacement="outside"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.oneGames}
+            onValueChange={value => {
+              const existingData = data.oneGames
+              if (!existingData) return
+              updateData('oneGames', {
+                id: existingData.id,
+                number: existingData.number,
+                value,
+              })
+            }}
+          />
+        </div>
+        <div className={data.type ? 'hidden' : ''}>
+          <NumberInput
+            classNames={{
+              stepperButton: 'hidden',
+            }}
+            label="2-час. игры:"
+            labelPlacement="outside"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.twoGames}
+            onValueChange={value => {
+              const existingData = data.oneGames
+              if (!existingData) return
+              updateData('twoGames', {
+                id: existingData.id,
+                number: existingData.number,
+                value,
+              })
+            }}
+          />
+        </div>
+        <div className={data.type ? 'hidden' : ''}>
+          <NumberInput
+            classNames={{
+              stepperButton: 'hidden',
+            }}
+            label="3-час. игры:"
+            labelPlacement="outside"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.threeGames}
+            onValueChange={value => {
+              const existingData = data.oneGames
+              if (!existingData) return
+              updateData('threeGames', {
+                id: existingData.id,
+                number: existingData.number,
+                value,
+              })
+            }}
+          />
+        </div>
+        <div className={data.type ? 'hidden' : ''}>
+          <NumberInput
+            classNames={{
+              stepperButton: 'hidden',
+            }}
+            label="акт. игры:"
+            labelPlacement="outside"
+            minValue={0}
+            className="h-full w-full"
+            value={salary?.actorGames}
+            onValueChange={value => {
+              const existingData = data.oneGames
+              if (!existingData) return
+              updateData('actorGames', {
+                id: existingData.id,
+                number: existingData.number,
+                value,
+              })
+            }}
+          />
+        </div>
       </div>
     </div>
   )

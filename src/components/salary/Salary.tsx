@@ -3,9 +3,9 @@
 import {LTLocation, LTRank, UserSalary} from '@/src/utils/types'
 import {Button, Tab, Tabs} from '@heroui/react'
 import Table from '@/src/components/salary/Table'
-import Summarized from '@/src/components/salary/Summarized'
 import {useEffect, useMemo, useState} from 'react'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import SummarizedPage from '@/src/components/salary/summarized/SummarizedPage'
 
 export default function Salary({
   data,
@@ -64,24 +64,30 @@ export default function Salary({
   }
 
   return (
-    <Tabs
-      color="primary"
-      size="lg"
-      className="sticky left-0 ml-4"
-      selectedKey={selectedTab}
-      onSelectionChange={setSelectedTab}
-      classNames={{base: 'hidden'}}>
-      <Tab key="table" title="График" className="data-[slot=panel]:p-0">
-        <Table
-          dates={dates}
-          data={data}
-          canEdit={canEdit}
-          canViewFull={canViewFull}
-        />
-      </Tab>
-      <Tab key="summary" title="Сводная">
-        <Summarized ranks={ranks} locations={locations} />
-      </Tab>
-    </Tabs>
+    <Table
+      dates={dates}
+      data={data}
+      canEdit={canEdit}
+      canViewFull={canViewFull}
+    />
+    // <Tabs
+    //   color="primary"
+    //   size="lg"
+    //   className="sticky left-0 ml-4"
+    //   selectedKey={selectedTab}
+    //   onSelectionChange={setSelectedTab}
+    //   classNames={{base: 'hidden'}}>
+    //   <Tab key="table" title="График" className="data-[slot=panel]:p-0">
+    //     <Table
+    //       dates={dates}
+    //       data={data}
+    //       canEdit={canEdit}
+    //       canViewFull={canViewFull}
+    //     />
+    //   </Tab>
+    //   <Tab key="summary" title="Сводная">
+    //     <SummarizedPage ranks={ranks} locations={locations} />
+    //   </Tab>
+    // </Tabs>
   )
 }

@@ -14,6 +14,7 @@ import getRanks from '@/lib/functions/getRanks'
 import getSalaryData from '@/lib/functions/getSalaryData'
 import updatePoints from '@/src/utils/admin/updatePoints'
 import logger from '@/Logger'
+import getGamePayments from '@/lib/functions/getGamePayments'
 
 export interface SheetData {
   sheets: {
@@ -128,23 +129,49 @@ export async function POST(req: NextRequest) {
     const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
 
+    const gamesPayments = await getGamePayments()
+
+    console.debug(data)
     const salary = getSalaryData({
-      rank: rankData,
-      bonuses: data.bonuses,
-      fines: data.fines,
-      comment: data.comment,
-      gamesCount: data.gamesCount,
-      value: data.location === 'Другое' ? data.value || 0 : data.value,
-      overwork: data.location === 'Другое' ? 0 : data.overwork,
-      isHardTime: data.isHardTime,
+      gamesPayments,
       worker: user,
-      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
-      // @ts-ignore
-      oneGames: data.oneGames,
-      // @ts-ignore
-      twoGames: data.twoGames,
-      // @ts-ignore
-      threeGames: data.threeGames,
+      rank: rankData,
+      workingHours: data.workingHours,
+      fines: data.fines,
+      isHardTime: data.isHardTime,
+      gamesCount: data.gamesCount,
+      comment: data.comment,
+      bonuses: data.bonuses,
+      value: data.location === 'Другое' ? data.value || 0 : data.value,
+      overwork: data.overwork,
+      oneGames: {
+        id: data.oneGames?.id || 0,
+        number: data.oneGames?.number || 0,
+      },
+      twoGames: {
+        id: data.twoGames?.id || 0,
+        number: data.twoGames?.number || 0,
+      },
+      threeGames: {
+        id: data.threeGames?.id || 0,
+        number: data.threeGames?.number || 0,
+      },
+      actorGames: {
+        id: data.actorGames?.id || 0,
+        number: data.actorGames?.number || 0,
+      },
+      override: {
+        overwork: data.location === 'Другое' ? 0 : data.overwork,
+        workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+        // @ts-ignore
+        oneGames: data.oneGames?.value,
+        // @ts-ignore
+        twoGames: data.twoGames?.value,
+        // @ts-ignore
+        threeGames: data.threeGames?.value,
+        // @ts-ignore
+        actorGames: data.actorGames?.value,
+      },
     })
 
     loggerData.salary.push(salary)
@@ -186,7 +213,7 @@ export async function POST(req: NextRequest) {
     }
 
     queries.push(`INSERT INTO lt_arena.salary
-                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games_2, two_games_2, three_games_2, actor_games_2, work_types)
+                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
                   VALUES
                     (
                         (SELECT id FROM lt_arena.workers WHERE name ilike '${data.worker}'),
@@ -207,9 +234,8 @@ export async function POST(req: NextRequest) {
                           data.oneGames?.id
                             ? `json_build_object(
                         'id', ${data.oneGames.id},
-                        'value', case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
-                            else  ${data.oneGames.value} * (select value from lt_arena.games_payments where id = ${data.oneGames.id}) end,
-                        'number', ${data.oneGames.value}
+                        'value', ${salary.oneGames},
+                        'number', ${data.oneGames.number}
                         )`
                             : 'NULL'
                         },
@@ -217,9 +243,8 @@ export async function POST(req: NextRequest) {
                           data.twoGames?.id
                             ? `json_build_object(
                         'id', ${data.twoGames.id},
-                        'value', case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
-                            else  ${data.twoGames.value} * (select value from lt_arena.games_payments where id = ${data.twoGames.id}) end,
-                        'number', ${data.twoGames.value}
+                        'value', ${salary.twoGames},
+                        'number', ${data.twoGames.number}
                         )`
                             : 'NULL'
                         },
@@ -227,9 +252,8 @@ export async function POST(req: NextRequest) {
                           data.threeGames?.id
                             ? `json_build_object(
                         'id', ${data.threeGames.id},
-                        'value', case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
-                            else  ${data.threeGames.value} * (select value from lt_arena.games_payments where id = ${data.threeGames.id}) end,
-                        'number', ${data.threeGames.value}
+                        'value', ${salary.threeGames},
+                        'number', ${data.threeGames.number}
                         )`
                             : 'NULL'
                         },
@@ -237,14 +261,8 @@ export async function POST(req: NextRequest) {
                           data.actorGames?.id
                             ? `json_build_object(
                         'id', ${data.actorGames.id},
-                        'value',  case
-                          when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') != 'Актёр' then
-                            case when (select rank FROM lt_arena.workers WHERE name ilike '${data.worker}') = 'Железный' then null
-                            else ${data.actorGames.value} * (select value from lt_arena.games_payments where id = ${data.actorGames.id})
-                            end
-                          else (select value from lt_arena.games_payments where id = ${data.actorGames.id}) * ${data.actorGames.value > 2 ? data.actorGames.value - 2 : 0}
-                          end,
-                        'number', ${data.actorGames.value}
+                        'value',  ${salary.actorGames},
+                        'number', ${data.actorGames.number}
                         )`
                             : 'NULL'
                         },
@@ -262,10 +280,10 @@ export async function POST(req: NextRequest) {
                       overwork_start=excluded.overwork_start,
                       overwork_end=excluded.overwork_end,
                       overwork=excluded.overwork,
-                      one_games_2=excluded.one_games_2,
-                      two_games_2=excluded.two_games_2,
-                      three_games_2=excluded.three_games_2,
-                      actor_games_2=excluded.actor_games_2,
+                      one_games=excluded.one_games,
+                      two_games=excluded.two_games,
+                      three_games=excluded.three_games,
+                      actor_games=excluded.actor_games,
                       work_types=excluded.work_types
     `)
   }

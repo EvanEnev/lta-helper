@@ -1,4 +1,4 @@
-import {LTRank, LTWorker} from '@/src/utils/types'
+import {LTGamePayment, LTRank, LTWorker} from '@/src/utils/types'
 
 interface LTSalary {
   rawValue: number
@@ -12,9 +12,14 @@ interface LTSalary {
   overwork_start?: string
   overwork_end?: string
   overwork?: number
+  oneGames: number
+  twoGames: number
+  threeGames: number
+  actorGames: number
 }
 
 interface SalaryDataProps {
+  gamesPayments: LTGamePayment[]
   rank?: LTRank
   workingHours: string
   isHardTime: boolean
@@ -25,9 +30,14 @@ interface SalaryDataProps {
   value?: number
   overwork?: number
   worker: LTWorker
-  oneGames: number | null
-  twoGames: number | null
-  threeGames: number | null
+  oneGames: {id: number; number: number} | null
+  twoGames: {id: number; number: number} | null
+  threeGames: {id: number; number: number} | null
+  actorGames: {id: number; number: number} | null
+}
+
+interface SalaryDataPropsWithOverride extends SalaryDataProps {
+  override?: Partial<SalaryDataProps>
 }
 
 export default function getSalaryData({
@@ -44,7 +54,10 @@ export default function getSalaryData({
   oneGames,
   twoGames,
   threeGames,
-}: SalaryDataProps): LTSalary | null {
+  actorGames,
+  gamesPayments,
+  override,
+}: SalaryDataPropsWithOverride): LTSalary | null {
   let workingTimeParts: string[] | number[] = workingHours.split('-')
 
   if (workingTimeParts.length < 2) return null
@@ -79,25 +92,61 @@ export default function getSalaryData({
 
   let salary = rank?.salary || 0
   let overworkSalary = 0
+  let oneGamesSalary =
+    rank?.name === 'Железный'
+      ? 0
+      : (oneGames?.number || 0) *
+        (gamesPayments.find(p => p.id === oneGames?.id)?.value || 0)
+
+  let twoGamesSalary =
+    rank?.name === 'Железный'
+      ? 0
+      : (twoGames?.number || 0) *
+        (gamesPayments.find(p => p.id === twoGames?.id)?.value || 0)
+
+  let threeGamesSalary =
+    rank?.name === 'Железный'
+      ? 0
+      : (threeGames?.number || 0) *
+        (gamesPayments.find(p => p.id === threeGames?.id)?.value || 0)
+
+  let actorGamesSalary =
+    rank?.name === 'Железный'
+      ? 0
+      : (actorGames?.number || 0) *
+        (gamesPayments.find(p => p.id === actorGames?.id)?.value || 0)
+
+  if (rank?.name === 'Актёр') {
+    if ((actorGames?.number || 0) < 3) {
+      actorGamesSalary = 0
+    } else {
+      actorGamesSalary =
+        actorGamesSalary -
+        (gamesPayments.find(p => p.id === actorGames?.id)?.value || 0) * 2
+    }
+  }
+  console.debug(
+    oneGames,
+    twoGames,
+    threeGames,
+    actorGames,
+    gamesPayments,
+    oneGamesSalary,
+    twoGamesSalary,
+    threeGamesSalary,
+    actorGamesSalary,
+  )
 
   if (comment?.toLowerCase().includes('под игру')) {
     salary = 1500
   }
 
-  if (rank?.name === 'Актёр' && gamesCount && gamesCount > 2) {
-    overworkSalary += (rank?.overwork || 0) * (gamesCount - 2)
-  }
+  // if (rank?.name === 'Актёр' && gamesCount && gamesCount > 2) {
+  //   overworkSalary += (rank?.overwork || 0) * (gamesCount - 2)
+  // }
 
   if (isOverWork) {
     overworkSalary += (rank?.overwork || 0) * overWorkTime
-  }
-
-  if (value !== undefined) {
-    salary = value
-  }
-
-  if (overwork !== undefined) {
-    overworkSalary = overwork
   }
 
   let workingStart = calculatedWorkingTime.split('-')[0]
@@ -132,15 +181,13 @@ export default function getSalaryData({
   fines = fines?.replace(/[+\-*/%^]+$/, '').replaceAll('+', '-')
   comment = comment?.trim()
 
-  if (!fines?.startsWith('-')) {
+  if (!fines?.startsWith('-') && fines !== '0') {
     fines = '-' + (fines || '0')
   }
 
-  return {
+  const data = {
     rawValue: salary,
-    value:
-      salary +
-      ((oneGames || 0) * 250 + (twoGames || 0) * 500 + (threeGames || 0) * 750),
+    value: salary,
     start_time: workingStart,
     end_time: workingEnd,
     overwork: overworkSalary,
@@ -150,5 +197,18 @@ export default function getSalaryData({
     fines: fines || '0',
     comment,
     created_by: worker.id,
+    oneGames: oneGamesSalary,
+    twoGames: twoGamesSalary,
+    threeGames: threeGamesSalary,
+    actorGames: actorGamesSalary,
   }
+
+  Object.keys(override || {}).forEach(key => {
+    // @ts-ignore
+    if (override[key] === undefined) return
+    // @ts-ignore
+    data[key] = override[key]
+  })
+
+  return data
 }

@@ -1,3 +1,5 @@
+'use client'
+
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react'
 import {
   Button,
@@ -22,7 +24,7 @@ import useIsMobile from '@/src/hooks/useIsMobile'
 import Excel from '@/public/icons/Excel'
 import {Interval} from 'luxon'
 
-export default function Summarized({
+export default function SummarizedPage({
   ranks,
   locations,
 }: {

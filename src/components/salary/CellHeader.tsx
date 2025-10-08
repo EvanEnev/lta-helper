@@ -118,29 +118,29 @@ export default function CellHeader({
         className={`${data.type ? 'hidden!' : ''} text-foreground text-small col-span-2 flex justify-between`}>
         {data.overwork?.toString() || ''} <Ruble className="ml-auto" />
       </CellChip>
-      {(data.oneGames || canEdit) && (
+      {(data.oneGames?.number || canEdit) && (
         <>
           <CellChip className="text-foreground text-small">1 час</CellChip>
           <CellChip className="text-foreground text-small flex justify-between">
-            {data.oneGames || 0} ({(data.oneGames || 0) * 250}{' '}
+            {data.oneGames?.number || 0} ({data.oneGames?.value || 0}{' '}
             <Ruble iconStyle="Bold" />)
           </CellChip>
         </>
       )}
-      {(data.twoGames || canEdit) && (
+      {(data.twoGames?.number || canEdit) && (
         <>
           <CellChip className="text-foreground text-small">2 часа</CellChip>
           <CellChip className="text-foreground text-small flex justify-between">
-            {data.twoGames || 0} ({(data.twoGames || 0) * 500}{' '}
+            {data.twoGames?.number || 0} ({data.twoGames?.value || 0}{' '}
             <Ruble iconStyle="Bold" />)
           </CellChip>
         </>
       )}
-      {(data.threeGames || canEdit) && (
+      {(data.threeGames?.number || canEdit) && (
         <>
           <CellChip className="text-foreground text-small">3 часа</CellChip>
           <CellChip className="text-foreground text-small flex justify-between">
-            {data.threeGames || 0} ({(data.threeGames || 0) * 750}{' '}
+            {data.threeGames?.number || 0} ({data.threeGames?.value || 0}{' '}
             <Ruble iconStyle="Bold" />)
           </CellChip>
         </>
