@@ -97,10 +97,10 @@ export interface SalaryData {
   updated_by?: number
   location: LTLocation
   type?: string
-  oneGames: number | null
-  twoGames: number | null
-  threeGames: number | null
-  actorGames: number | null
+  oneGames: {id: LTGamePayment['id']; value: number; number: number} | null
+  twoGames: {id: LTGamePayment['id']; value: number; number: number} | null
+  threeGames: {id: LTGamePayment['id']; value: number; number: number} | null
+  actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
   workTypes: LTWorkType['id'][]
 }
 
