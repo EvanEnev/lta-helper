@@ -139,11 +139,8 @@ export async function POST(req: NextRequest) {
       workingHours: data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
-      gamesCount: data.gamesCount,
       comment: data.comment,
       bonuses: data.bonuses,
-      value: data.location === 'Другое' ? data.value || 0 : data.value,
-      overwork: data.overwork,
       oneGames: {
         id: data.oneGames?.id || 0,
         number: data.oneGames?.number || 0,
@@ -163,14 +160,9 @@ export async function POST(req: NextRequest) {
       override: {
         value: data.value,
         overwork: data.location === 'Другое' ? 0 : data.overwork,
-        workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
-        // @ts-ignore
         oneGames: data.oneGames?.value,
-        // @ts-ignore
         twoGames: data.twoGames?.value,
-        // @ts-ignore
         threeGames: data.threeGames?.value,
-        // @ts-ignore
         actorGames: data.actorGames?.value,
       },
     })
@@ -219,7 +211,7 @@ export async function POST(req: NextRequest) {
                     (
                         (SELECT id FROM lt_arena.workers WHERE name ilike '${data.worker}'),
                         '${date.toFormat('yyyy-MM-dd')}',
-                        ${salary.rawValue || 0},
+                        ${salary.value || 0},
                         '${salary.bonuses}',
                         '${salary.fines}',
                         '${data.comment}',

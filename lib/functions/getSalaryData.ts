@@ -1,7 +1,6 @@
 import {LTGamePayment, LTRank, LTWorker} from '@/src/utils/types'
 
 interface LTSalary {
-  rawValue: number
   value: number
   bonuses: string
   fines: string
@@ -24,30 +23,22 @@ interface SalaryDataProps {
   workingHours: string
   isHardTime: boolean
   comment: string
-  gamesCount: number
   bonuses: string
   fines: string
-  value?: number
-  overwork?: number
   worker: LTWorker
   oneGames: {id: number; number: number} | null
   twoGames: {id: number; number: number} | null
   threeGames: {id: number; number: number} | null
   actorGames: {id: number; number: number} | null
+  override?: Partial<LTSalary>
 }
 
-interface SalaryDataPropsWithOverride extends SalaryDataProps {
-  override?: Partial<SalaryDataProps>
-}
 
 export default function getSalaryData({
   rank,
   workingHours,
-  gamesCount,
   isHardTime,
   comment,
-  value,
-  overwork,
   bonuses,
   fines,
   worker,
@@ -57,7 +48,7 @@ export default function getSalaryData({
   actorGames,
   gamesPayments,
   override,
-}: SalaryDataPropsWithOverride): LTSalary | null {
+}: SalaryDataProps): LTSalary | null {
   let workingTimeParts: string[] | number[] = workingHours.split('-')
 
   if (workingTimeParts.length < 2) return null
@@ -125,17 +116,6 @@ export default function getSalaryData({
         (gamesPayments.find(p => p.id === actorGames?.id)?.value || 0) * 2
     }
   }
-  console.debug(
-    oneGames,
-    twoGames,
-    threeGames,
-    actorGames,
-    gamesPayments,
-    oneGamesSalary,
-    twoGamesSalary,
-    threeGamesSalary,
-    actorGamesSalary,
-  )
 
   if (comment?.toLowerCase().includes('под игру')) {
     salary = 1500
@@ -186,7 +166,6 @@ export default function getSalaryData({
   }
 
   const data = {
-    rawValue: salary,
     value: salary,
     start_time: workingStart,
     end_time: workingEnd,
