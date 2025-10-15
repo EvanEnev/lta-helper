@@ -147,7 +147,7 @@ export default async function getLocationSalaryData({
       oneGames: row.one_games,
       twoGames: row.two_games,
       threeGames: row.three_games,
-      actorGames: row.actorGames,
+      actorGames: row.actor_games,
       workTypes: row.work_types,
     }
   })
