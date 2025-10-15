@@ -90,12 +90,6 @@ export default async function getLocationSalaryData({
 
     let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker.name.toLowerCase()}'` : ''}`
 
-    const nameFilter = filters.find(filter => filter.key === 'w.name')
-
-    if (nameFilter) {
-      workersQueryAddon = ` WHERE name ILIKE '${nameFilter.value}%'`
-    }
-
     const workersQuery = `
     SELECT
     id, name, first_name, rank, telegram_id, is_former
