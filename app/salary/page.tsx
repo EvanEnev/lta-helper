@@ -21,7 +21,7 @@ export default async function Salary() {
 
   const rawDates = datesResult.rows
 
-  const dates = rawDates.map((d: DateTime) => d.toISO()!)
+  const dates = rawDates.map((d: {date: DateTime}) => d.date.toISO()!)
 
   return (
     <main className="h-fit">
