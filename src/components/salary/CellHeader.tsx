@@ -145,6 +145,15 @@ export default function CellHeader({
           </CellChip>
         </>
       )}
+      {(data.actorGames?.number || canEdit) && (
+        <>
+          <CellChip className="text-foreground text-small">актёр</CellChip>
+          <CellChip className="text-foreground text-small flex justify-between">
+            {data.actorGames?.number || 0} ({data.actorGames?.value || 0}{' '}
+            <Ruble iconStyle="Bold" />)
+          </CellChip>
+        </>
+      )}
       <Divider className={`col-span-2 ${data.type ? 'hidden' : ''}`} />
       <div className="col-span-full flex items-center gap-1">
         <BillCheck iconStyle="Bold" size={22} />
