@@ -307,8 +307,9 @@ export default memo(function Table({
         }}
         className={`scrolled sticky top-2 left-0 z-1000 mb-4 flex w-[100dvw] flex-wrap items-center gap-2 p-4 text-xl font-bold`}>
         <MonthSelect
+          type="select"
           labelPlacement="inside"
-          className="w-fit"
+          className="w-fit min-w-[10rem]"
           dates={dates}
           date={date}
           callback={(date: string) => updateData('date', date)}

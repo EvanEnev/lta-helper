@@ -19,7 +19,6 @@ export default function Salary({
   const {setExiting} = useAuth()
 
   useEffect(() => {
-    console.log(data)
     setExiting(false)
   }, [setExiting])
 
