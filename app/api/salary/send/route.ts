@@ -14,7 +14,7 @@ import getRanks from '@/lib/functions/getRanks'
 import getSalaryData from '@/lib/functions/getSalaryData'
 import updatePoints from '@/src/utils/admin/updatePoints'
 import logger from '@/Logger'
-import getGamePayments from '@/lib/functions/getGamePayments'
+import getGamePayments from '@/lib/functions/getGamesPayments'
 
 export interface SheetData {
   sheets: {

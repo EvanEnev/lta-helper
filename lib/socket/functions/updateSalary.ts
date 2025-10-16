@@ -38,9 +38,14 @@ export default async function updateSalary({data, client}: SocketUpdateProps) {
                     updated_by = ${data.updated_by},
                     overwork_start = ${overworkStart},
                     overwork_end = ${overworkEnd},
+                    ${data.oneGames ? `one_games = '${JSON.stringify(data.oneGames)}',` : ''}
+                    ${data.twoGames ? `two_games = '${JSON.stringify(data.twoGames)}',` : ''}
+                    ${data.threeGames ? `three_games = '${JSON.stringify(data.threeGames)}',` : ''}
+                    ${data.actorGames ? `actor_games = '${JSON.stringify(data.actorGames)}',` : ''}
                     overwork = ${data.overwork || 'NULL'}
                     ${data.newDate ? `, date = '${data.newDate}'` : ''}
                     ${data.newLocation ? `, location_id = (SELECT id FROM lt_arena.locations WHERE id = ${data.newLocation.id})` : ''}
+                  
                     WHERE
                     date = '${date.toFormat('yyyy-MM-dd')}'
                     AND worker_id = ${data.worker_id}

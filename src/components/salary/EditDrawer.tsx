@@ -19,11 +19,12 @@ import {
   BillCross,
   ChatRoundLine,
   ClockCircle,
+  Gamepad,
   History,
   Pen2,
   Ruble,
 } from 'solar-icon-set'
-import {SalaryData} from '@/src/utils/types'
+import {LTGamePayment, SalaryData} from '@/src/utils/types'
 import Location from '@/src/components/global/Location'
 import {DateTime} from 'luxon'
 import {useCallback, useMemo} from 'react'
@@ -36,12 +37,14 @@ interface EditDrawerProps {
   data: SalaryData
   handleEdit: any
   handleDelete: any
+  gamesPayments: LTGamePayment[]
 }
 
 export default function EditDrawer({
   data,
   handleEdit,
   handleDelete,
+  gamesPayments,
 }: EditDrawerProps) {
   const {isOpen, onOpen, onOpenChange} = useDisclosure()
   const isMobile = useIsMobile()
@@ -95,7 +98,8 @@ export default function EditDrawer({
             minute: number
           }
         | DateValue
-        | null,
+        | null
+        | {number: number | null; value: number | null; id: number | null},
       type:
         | 'delete'
         | 'newLocation'
@@ -108,7 +112,11 @@ export default function EditDrawer({
         | 'overwork_start'
         | 'overwork_end'
         | 'overwork'
-        | 'comment',
+        | 'comment'
+        | 'actorGames'
+        | 'oneGames'
+        | 'twoGames'
+        | 'threeGames',
     ) => {
       const newData: SalaryData = {...data}
 
@@ -241,6 +249,175 @@ export default function EditDrawer({
                   minValue={0}
                   onValueChange={value => update(value.toString(), 'overwork')}
                   endContent={<Ruble iconStyle="Bold" />}
+                />
+                <Divider className="col-span-full" />
+                <div className="col-span-full flex items-center gap-1">
+                  <Gamepad iconStyle="Bold" size={22} />
+                  <p>Игры</p>
+                </div>
+                <p className="col-span-full">1 часовые</p>
+                <NumberInput
+                  label="Кол-во"
+                  minValue={0}
+                  isWheelDisabled
+                  value={data.oneGames?.number || 0}
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'oneGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: value,
+                        value: (paymentData?.value || 0) * value,
+                      },
+                      'oneGames',
+                    )
+                  }}
+                />
+                <NumberInput
+                  label="Сумма"
+                  minValue={0}
+                  isWheelDisabled
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'oneGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: data.oneGames?.number || null,
+                        value,
+                      },
+                      'oneGames',
+                    )
+                  }}
+                  value={data.oneGames?.value}
+                />
+                <p className="col-span-full">2-х часовые</p>
+                <NumberInput
+                  label="Кол-во"
+                  minValue={0}
+                  isWheelDisabled
+                  value={data.twoGames?.number || 0}
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'twoGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: value,
+                        value: (paymentData?.value || 0) * value,
+                      },
+                      'twoGames',
+                    )
+                  }}
+                />
+                <NumberInput
+                  label="Сумма"
+                  minValue={0}
+                  isWheelDisabled
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'twoGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: data.twoGames?.number || null,
+                        value,
+                      },
+                      'twoGames',
+                    )
+                  }}
+                  value={data.twoGames?.value || 0}
+                />
+                <p className="col-span-full">3-х часовые</p>
+                <NumberInput
+                  label="Кол-во"
+                  minValue={0}
+                  isWheelDisabled
+                  value={data.threeGames?.number || 0}
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'threeGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: value,
+                        value: (paymentData?.value || 0) * value,
+                      },
+                      'threeGames',
+                    )
+                  }}
+                />
+                <NumberInput
+                  label="Сумма"
+                  minValue={0}
+                  isWheelDisabled
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'threeGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: data.threeGames?.number || null,
+                        value,
+                      },
+                      'threeGames',
+                    )
+                  }}
+                  value={data.threeGames?.value || 0}
+                />
+                <p className="col-span-full">Актёрские</p>
+                <NumberInput
+                  label="Кол-во"
+                  minValue={0}
+                  isWheelDisabled
+                  value={data.actorGames?.number || 0}
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'actorGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: value,
+                        value: (paymentData?.value || 0) * value,
+                      },
+                      'actorGames',
+                    )
+                  }}
+                />
+                <NumberInput
+                  label="Сумма"
+                  minValue={0}
+                  isWheelDisabled
+                  onValueChange={value => {
+                    const paymentData = gamesPayments.find(
+                      d => d.key === 'actorGames',
+                    )
+
+                    update(
+                      {
+                        id: paymentData?.id || null,
+                        number: data.actorGames?.number || null,
+                        value,
+                      },
+                      'actorGames',
+                    )
+                  }}
+                  value={data.actorGames?.value || 0}
                 />
                 <Divider className="col-span-full" />
                 <div className="col-span-full flex items-center gap-1">

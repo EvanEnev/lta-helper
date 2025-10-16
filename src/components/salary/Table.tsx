@@ -1,4 +1,10 @@
-import {LTLocation, SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
+import {
+  LTGamePayment,
+  LTLocation,
+  SalaryData,
+  SalaryUser,
+  UserSalary,
+} from '@/src/utils/types'
 import {Header, Row, RowData} from '@tanstack/react-table'
 import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import Cell from './Cell'
@@ -26,11 +32,13 @@ export default memo(function Table({
   canViewFull,
   canEdit,
   dates,
+  gamesPayments,
 }: {
   data: UserSalary[]
   canViewFull: boolean
   canEdit: boolean
   dates: string[]
+  gamesPayments: LTGamePayment[]
 }) {
   const [columnFilters, setColumnFiltersAction] = useState([])
   const socketRef = useRef<Socket | null>(null)
@@ -244,6 +252,7 @@ export default memo(function Table({
         accessorKey: `day${day}`,
         cell: ({getValue}: {getValue: () => SalaryData | undefined}) => (
           <Cell
+            gamesPayments={gamesPayments}
             data={getValue()}
             canEdit={canEdit}
             handleEdit={handleEdit}

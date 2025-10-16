@@ -5,6 +5,7 @@ import SalaryPage from '@/src/components/salary/Salary'
 import getLocationSalaryData from '@/app/salary/getLocationSalaryData'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
+import getGamesPayments from '@/lib/functions/getGamesPayments'
 
 export default async function Salary() {
   const worker = await auth()
@@ -22,10 +23,12 @@ export default async function Salary() {
   const rawDates = datesResult.rows
 
   const dates = rawDates.map((d: {date: DateTime}) => d.date.toISO()!)
+  const gamesPayments = await getGamesPayments()
 
   return (
     <main className="h-fit">
       <SalaryPage
+        gamesPayments={gamesPayments}
         dates={dates}
         data={data}
         canEdit={canEdit}

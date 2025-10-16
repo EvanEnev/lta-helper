@@ -58,7 +58,7 @@ export default function MonthSelect({
         }}
         label={showLabel ? 'Месяц' : ''}
         labelPlacement={labelPlacement}
-        onSelectionChange={onChange}
+        onSelectionChange={values => onChange([...values][0])}
         selectedKeys={[date]}
         aria-label="Выбор месяца">
         {datetimes.map(date => (

@@ -8,7 +8,7 @@ import {DateTime} from 'luxon'
 
 interface GetLocationSalaryDataProps {
   locationId?: number
-  date: string
+  date: string | Set<string>
   allLocations?: boolean
   filters?: Filter[]
 }
@@ -23,6 +23,10 @@ export default async function getLocationSalaryData({
   const canView = checkPermissions(['view_salary'], worker)
   const canViewLocation = checkPermissions(['view_location_salary'], worker)
   const canViewFull = checkPermissions(['view_full_salary'], worker)
+
+  if (typeof date === 'object') {
+    date = Array.from(date)[0]
+  }
 
   const currentDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
 

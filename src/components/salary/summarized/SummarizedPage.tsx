@@ -157,13 +157,11 @@ export default function SummarizedPage({
               newUser.salary += value.value
               newUser.overwork += value.overwork || 0
 
-              if (value.rank !== 'Железный') {
-                newUser.overwork +=
-                  (value.one_games || 0) * 250 +
-                  (value.two_games || 0) * 500 +
-                  (value.three_games || 0) * 750 +
-                  (value.actor_games || 0) * 250
-              }
+              newUser.overwork +=
+                (value.one_games.value || 0) +
+                (value.two_games.value || 0) +
+                (value.three_games.value || 0) +
+                (value.actor_games.value || 0)
 
               if (bonuses) {
                 if (

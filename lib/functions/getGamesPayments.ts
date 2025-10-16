@@ -1,7 +1,7 @@
 import db from '@/lib/database'
 import {LTGamePayment} from '@/src/utils/types'
 
-export default async function getGamePayments(): Promise<LTGamePayment[]> {
+export default async function getGamesPayments(): Promise<LTGamePayment[]> {
   const query = `select
   id,
   name,

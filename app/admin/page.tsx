@@ -6,7 +6,7 @@ import auth from '@/lib/auth/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getLocations from '@/lib/functions/getLocations'
 import getRanks from '@/lib/functions/getRanks'
-import getGamePayments from '@/lib/functions/getGamePayments'
+import getGamesPayments from '@/lib/functions/getGamesPayments'
 
 export default async function Admin() {
   const worker = await auth()
@@ -41,7 +41,7 @@ export default async function Admin() {
 
   const locations = await getLocations()
   const ranks = await getRanks()
-  const gamesPayments = await getGamePayments()
+  const gamesPayments = await getGamesPayments()
 
   return (
     <AdminPage

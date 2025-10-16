@@ -1,4 +1,4 @@
-import {SalaryData} from '@/src/utils/types'
+import {LTGamePayment, SalaryData} from '@/src/utils/types'
 import {Card, CardBody, CardHeader, Divider} from '@heroui/react'
 import CellHeader from '@/src/components/salary/CellHeader'
 import CellBody from '@/src/components/salary/CellBody'
@@ -14,6 +14,7 @@ interface CellProps {
   canViewFull: boolean
   handleEdit: (data: SalaryData) => void
   handleDelete: any
+  gamesPayments: LTGamePayment[]
 }
 
 export default memo(function Cell({
@@ -22,6 +23,7 @@ export default memo(function Cell({
   canViewFull,
   handleEdit,
   handleDelete,
+  gamesPayments,
 }: CellProps) {
   const [cellData, setCellData] = useState<SalaryData | undefined>(data)
   const {theme} = useTheme()
@@ -82,6 +84,7 @@ export default memo(function Cell({
             data={cellData}
             handleEdit={handleCellEdit}
             handleDelete={handleCellDelete}
+            gamesPayments={gamesPayments}
           />
         )}
       </CardBody>
