@@ -1,11 +1,9 @@
 import {LTLocation, SalaryData, SalaryUser, UserSalary} from '@/src/utils/types'
-import {Header, Row} from '@tanstack/react-table'
-import {useCallback, useEffect, useMemo, useRef, useState, memo} from 'react'
+import {Header, Row, RowData} from '@tanstack/react-table'
+import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import Cell from './Cell'
-import {RowData} from '@tanstack/react-table'
 import WorkerCell from '@/src/components/salary/WorkerCell'
-import {io} from 'socket.io-client'
-import {Socket} from 'socket.io-client'
+import {io, Socket} from 'socket.io-client'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {Input, Spinner} from '@heroui/react'
@@ -122,15 +120,7 @@ export default memo(function Table({
 
   const checkTarget = useCallback(
     (row: UserSalary, date: DateTime, data: any) => {
-      const cell = row[`day${date.toFormat('d')}`] as SalaryData
-      const cellDate = DateTime.fromISO(cell.date)
-
-      const isTarget =
-        typeof cell === 'object' &&
-        cell?.worker_id === data.worker_id &&
-        date.toFormat('yyyy-MM-dd') === cellDate.toFormat('yyyy-MM-dd')
-
-      if (!isTarget) return row
+      return row?.user.id === data.worker_id
     },
     [],
   )
@@ -144,6 +134,8 @@ export default memo(function Table({
       if (data.updated_by === worker.id) return
 
       const date = DateTime.fromISO(data.date)
+
+      if (locationId && data.location.id !== locationId) return
 
       setData((prev: UserSalary[]) =>
         prev.map(row => {
@@ -161,7 +153,7 @@ export default memo(function Table({
       socket.off('salary:update')
       socket.disconnect()
     }
-  }, [checkTarget, worker.id])
+  }, [checkTarget, locationId, worker.id])
 
   const handleEdit = useCallback(
     (data: SalaryData) => {

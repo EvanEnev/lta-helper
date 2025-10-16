@@ -46,9 +46,15 @@ const buttons: PathButton[] = [
         icon: Wallet,
         permission: 'view_full_salary',
       },
-      {name: 'Ведомости', href: '/payrolls', icon: BillList},
+      {
+        name: 'Ведомости',
+        href: '/payrolls',
+        permission: 'view_payrolls',
+        icon: BillList,
+      },
       {
         name: 'Получение ЗП',
+        permission: 'view_payrolls',
         href: '/payrolls/issue',
         icon: CashOut,
       },
