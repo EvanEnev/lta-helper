@@ -58,13 +58,17 @@ interface PayrollCreatePageProps {
 const locationsToHide = ['выезд', 'другое', 'отдел продаж']
 
 export default function PayrollCreatePage({
-  data,
-  dates,
-  bonuses,
+  data: initialData,
+  dates: initialDates,
+  bonuses: initialBonuses,
   moneyOnLocations: initialMoney,
   locations,
 }: PayrollCreatePageProps) {
   const {setExiting} = useAuth()
+    const firstRender = useRef<boolean>(true)
+    const [data, setData] = useState(initialData)
+    const [dates, setDates] = useState(initialDates)
+    const [bonuses, setBonuses] = useState(initialBonuses)
   const headerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -121,7 +125,35 @@ export default function PayrollCreatePage({
     [],
   )
 
-  const sendData = useCallback(() => {
+    useEffect(() => {
+        const localItem = localStorage.getItem('payrollsCreate')
+
+        if (localItem) {
+            const data = JSON.parse(localItem)
+            setBonuses(data.withBonuses)
+            setPayrollData(data.workersData)
+            setTakeBy(data.takeBy)
+            setDates(data.dates)
+            setMoneyOnLocations(data.moneyOnLocations)
+        }
+        firstRender.current = false
+    }, []);
+
+    useEffect(() => {
+        if (firstRender.current) return
+
+        const data = {
+            withBonuses: bonuses,
+            workersData: payrollData,
+            takeBy,
+            dates,
+            moneyOnLocations
+        }
+
+        localStorage.setItem('payrollsCreate', JSON.stringify(data))
+    }, [bonuses, dates, moneyOnLocations, payrollData, takeBy]);
+
+  const sendData = useCallback(async () => {
     const dataToSend: LTPayrollCreateData = {
       withBonuses: bonuses,
       workersData: payrollData,
@@ -130,12 +162,15 @@ export default function PayrollCreatePage({
       moneyOnLocations,
     }
 
-    ;(async () =>
-      fetchHandler({
-        url: '/api/payrolls/create',
-        method: 'POST',
-        body: dataToSend,
-      }))()
+      const result = await fetchHandler({
+          url: '/api/payrolls/create',
+          method: 'POST',
+          body: dataToSend,
+      })
+
+      if (result) {
+          localStorage.removeItem('payrollsCreate')
+      }
   }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
 
   const handleUpdate = useCallback(
