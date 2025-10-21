@@ -5,15 +5,14 @@ import {
   DateRangePicker,
   Divider,
   Input,
-  NumberInput,
   RangeValue,
   useDisclosure,
 } from '@heroui/react'
 import {AddCircle, Ruble} from 'solar-icon-set'
 import {
   Modal,
-  ModalContent,
   ModalBody,
+  ModalContent,
   ModalFooter,
   ModalHeader,
 } from '@heroui/modal'
@@ -130,6 +129,16 @@ export default function PayrollCreateCard({
     [locations],
   )
 
+  const existingAttempt = useMemo(() => {
+    const localItem = localStorage.getItem('payrollsCreate')
+
+    if (localItem) {
+      return JSON.parse(localItem)
+    }
+
+    return null
+  }, [])
+
   return (
     <>
       <Button
@@ -240,7 +249,35 @@ export default function PayrollCreateCard({
                 <Button color="danger" variant="light" onPress={onClose}>
                   Закрыть
                 </Button>
-                <Button color="primary">
+                {existingAttempt && (
+                  <Button color="success">
+                    <Link
+                      href={{
+                        pathname: '/payrolls/create',
+                        query: {
+                          dates: JSON.stringify({
+                            start: dateRange?.start.toString(),
+                            end: dateRange?.end.toString(),
+                          }),
+                          moneyOnLocations: JSON.stringify(moneyOnLocations),
+                          bonuses,
+                          workersBonusesRange: JSON.stringify({
+                            start: workersBonusesRange?.start.toString(),
+                            end: workersBonusesRange?.end.toString(),
+                          }),
+                          actorsBonusesRange: JSON.stringify({
+                            start: actorsBonusesRange?.start.toString(),
+                            end: actorsBonusesRange?.end.toString(),
+                          }),
+                        },
+                      }}>
+                      Продолжить черновик
+                    </Link>
+                  </Button>
+                )}
+                <Button
+                  color="primary"
+                  onPress={() => localStorage.removeItem('payrollsCreate')}>
                   <Link
                     href={{
                       pathname: '/payrolls/create',

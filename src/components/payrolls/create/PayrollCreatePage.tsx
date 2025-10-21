@@ -29,7 +29,14 @@ import {
 import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
 import PayrollCreateWorkerCell from '@/src/components/payrolls/create/PayrollCreateWorkerCell'
 import PayrollCreateLocationCell from '@/src/components/payrolls/create/PayrollCreateLocationCell'
-import {ArrowLeft, CheckCircle, CloseCircle, Plain, Ruble} from 'solar-icon-set'
+import {
+  ArrowLeft,
+  CheckCircle,
+  CloseCircle,
+  CloseSquare,
+  Plain,
+  Ruble,
+} from 'solar-icon-set'
 import {DateTime, Interval} from 'luxon'
 import {useTheme} from 'next-themes'
 import {parseDate} from '@internationalized/date'
@@ -65,10 +72,15 @@ export default function PayrollCreatePage({
   locations,
 }: PayrollCreatePageProps) {
   const {setExiting} = useAuth()
-    const firstRender = useRef<boolean>(true)
-    const [data, setData] = useState(initialData)
-    const [dates, setDates] = useState(initialDates)
-    const [bonuses, setBonuses] = useState(initialBonuses)
+  const [data, setData] = useState(initialData)
+  const [dates, setDates] = useState(
+    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.dates ||
+      initialDates,
+  )
+  const [bonuses, setBonuses] = useState(
+    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.bonuses ||
+      initialBonuses,
+  )
   const headerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -79,17 +91,19 @@ export default function PayrollCreatePage({
   // @ts-ignore
   const themeColors = semanticColors[theme || 'dark']
   const [payrollData, setPayrollData] = useState<LTPayrollData[]>(
-    data.map(d => ({
-      workerId: d.id,
-      external_payment: 0,
-      location: -1,
-      value: d.value || 0,
-      fines: d.fines || 0,
-      bonuses: d.bonuses || 0,
-    })),
+    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.workersData ||
+      data.map(d => ({
+        workerId: d.id,
+        external_payment: 0,
+        location: -1,
+        value: d.value || 0,
+        fines: d.fines || 0,
+        bonuses: d.bonuses || 0,
+      })),
   )
   const [takeBy, setTakeBy] = useState<string>(
-    DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
+    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
+      DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
   )
   const [selectedRows, setSelectedRows] = useState<number[]>([])
   const [lastSelectedRow, setLastSelectedRow] = useState<number | null>(null)
@@ -99,7 +113,10 @@ export default function PayrollCreatePage({
       value: number
       error?: boolean
     }[]
-  >(initialMoney)
+  >(
+    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')
+      ?.moneyOnLocations || initialMoney,
+  )
 
   const interval = useMemo(() => {
     return Interval.fromISO(`${dates.start}/${dates.end}`)
@@ -125,33 +142,33 @@ export default function PayrollCreatePage({
     [],
   )
 
-    useEffect(() => {
-        const localItem = localStorage.getItem('payrollsCreate')
+  useEffect(() => {
+    // if (firstRender.current) {
+    //   const localItem = localStorage.getItem('payrollsCreate')
+    //
+    //   if (localItem) {
+    //     const data = JSON.parse(localItem)
+    //     setBonuses(data.withBonuses)
+    //     setPayrollData(data.workersData)
+    //     setTakeBy(data.takeBy)
+    //     setDates(data.dates)
+    //     setMoneyOnLocations(data.moneyOnLocations)
+    //   }
+    //
+    //   firstRender.current = false
+    //   return
+    // }
 
-        if (localItem) {
-            const data = JSON.parse(localItem)
-            setBonuses(data.withBonuses)
-            setPayrollData(data.workersData)
-            setTakeBy(data.takeBy)
-            setDates(data.dates)
-            setMoneyOnLocations(data.moneyOnLocations)
-        }
-        firstRender.current = false
-    }, []);
+    const data = {
+      withBonuses: bonuses,
+      workersData: payrollData,
+      takeBy,
+      dates,
+      moneyOnLocations,
+    }
 
-    useEffect(() => {
-        if (firstRender.current) return
-
-        const data = {
-            withBonuses: bonuses,
-            workersData: payrollData,
-            takeBy,
-            dates,
-            moneyOnLocations
-        }
-
-        localStorage.setItem('payrollsCreate', JSON.stringify(data))
-    }, [bonuses, dates, moneyOnLocations, payrollData, takeBy]);
+    localStorage.setItem('payrollsCreate', JSON.stringify(data))
+  }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
 
   const sendData = useCallback(async () => {
     const dataToSend: LTPayrollCreateData = {
@@ -162,15 +179,15 @@ export default function PayrollCreatePage({
       moneyOnLocations,
     }
 
-      const result = await fetchHandler({
-          url: '/api/payrolls/create',
-          method: 'POST',
-          body: dataToSend,
-      })
+    const result = await fetchHandler({
+      url: '/api/payrolls/create',
+      method: 'POST',
+      body: dataToSend,
+    })
 
-      if (result) {
-          localStorage.removeItem('payrollsCreate')
-      }
+    if (result) {
+      localStorage.removeItem('payrollsCreate')
+    }
   }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
 
   const handleUpdate = useCallback(
@@ -233,6 +250,21 @@ export default function PayrollCreatePage({
     [lastSelectedRow, selectedRows],
   )
 
+  const locationsFilter = useCallback(
+    (value: boolean) => {
+      if (!value) {
+        setData(initialData)
+      } else {
+        setData(prev =>
+          prev.filter(
+            d => payrollData.find(d2 => d2.workerId === d.id)?.location === -1,
+          ),
+        )
+      }
+    },
+    [initialData, payrollData],
+  )
+
   return (
     <main className="h-full w-full p-4">
       <div
@@ -283,10 +315,21 @@ export default function PayrollCreatePage({
       </div>
       <div className="flex gap-4">
         <div className="bg-content1 flex w-[90%] flex-col gap-2 rounded-2xl">
+          <div className="flex justify-end p-2">
+            <Checkbox onValueChange={locationsFilter}>Пустые</Checkbox>
+          </div>
           <div
             className="bg-content2 sticky z-1000 flex items-center gap-2 rounded-xl p-2"
             style={{top: `${headerRef?.current?.offsetHeight}px`}}>
-            <Checkbox className="invisible" />
+            <Button
+              className="max-w-[1.75rem] min-w-[1.75rem]"
+              onPress={() => {
+                setLastSelectedRow(null)
+                setSelectedRows([])
+              }}
+              startContent={<CloseSquare iconStyle="Bold" />}
+              isIconOnly
+            />
             <p className="min-w-[8rem] flex-1 text-center">Сотрудник</p>
             <Divider orientation="vertical" />
             <p className="min-w-[8rem] flex-1 text-center">Сумма</p>
@@ -301,14 +344,16 @@ export default function PayrollCreatePage({
             <Divider orientation="vertical" />
             <p className="flex-1 text-center">Локация</p>
           </div>
-          {data.map((d, index) => {
-            const payrollWorkerData = payrollData[index]
+          {payrollData.map((payrollWorkerData, index) => {
+            const d = data.find(d2 => d2.id === payrollWorkerData.workerId)!
+
+            if (!d) return null
 
             const summary =
-              (payrollWorkerData.fines || 0) +
-              (payrollWorkerData.bonuses || 0) +
-              (Number(payrollWorkerData.value) || 0) -
-              (payrollWorkerData.external_payment || 0)
+              (payrollWorkerData?.fines || 0) +
+              (payrollWorkerData?.bonuses || 0) +
+              (Number(payrollWorkerData?.value) || 0) -
+              (payrollWorkerData?.external_payment || 0)
 
             return (
               <Fragment key={index}>
@@ -320,14 +365,14 @@ export default function PayrollCreatePage({
                   <PayrollCreateWorkerCell name={d.name} rank={d.rank} />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
-                    data={d.value || 0}
+                    data={payrollWorkerData?.value || 0}
                     workerId={d.id}
                     callback={handleUpdate}
                   />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
                     minValue={0}
-                    data={d.bonuses || 0}
+                    data={payrollWorkerData?.bonuses || 0}
                     type="bonuses"
                     workerId={d.id}
                     callback={handleUpdate}
@@ -335,14 +380,14 @@ export default function PayrollCreatePage({
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
                     type="fines"
-                    data={d.fines || 0}
+                    data={payrollWorkerData?.fines || 0}
                     workerId={d.id}
                     callback={handleUpdate}
                   />
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
                     minValue={0}
-                    data={0}
+                    data={payrollWorkerData?.external_payment || 0}
                     type="external_payment"
                     workerId={d.id}
                     callback={handleUpdate}
@@ -365,7 +410,7 @@ export default function PayrollCreatePage({
             )
           })}
         </div>
-        <div className="sticky top-0 flex h-fit min-w-[20rem] flex-col gap-2">
+        <div className="sticky top-0 flex h-fit max-h-[87vh] min-w-[20rem] flex-col gap-2 overflow-auto">
           <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
             <p className="text-center">Локация</p>
             <Code color="primary" className="text-center">
