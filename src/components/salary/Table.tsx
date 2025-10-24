@@ -52,7 +52,9 @@ export default memo(function Table({
   const [locationId, setLocationId] = useState<number>(
     data
       .find((d: UserSalary) => d.dates.length)
-      ?.dates.find(d => d?.location.id)?.location.id || 2,
+      ?.dates.find(d => d?.location.id)?.location.id ||
+      worker.locationId ||
+      2,
   )
   const [loading, setLoading] = useState<boolean>(false)
   const isMobile = useIsMobile()
@@ -262,7 +264,15 @@ export default memo(function Table({
         ),
       }
     })
-  }, [canEdit, canViewFull, date, daysInMonth, handleDelete, handleEdit])
+  }, [
+    canEdit,
+    canViewFull,
+    date,
+    daysInMonth,
+    gamesPayments,
+    handleDelete,
+    handleEdit,
+  ])
 
   const columns = useMemo(() => {
     const baseColumns = []

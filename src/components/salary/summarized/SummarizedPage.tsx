@@ -154,14 +154,14 @@ export default function SummarizedPage({
             }
 
             value.forEach((value: any) => {
-              newUser.salary += value.value
+              newUser.salary += value.value || 0
               newUser.overwork += value.overwork || 0
 
               newUser.overwork +=
-                (value.one_games.value || 0) +
-                (value.two_games.value || 0) +
-                (value.three_games.value || 0) +
-                (value.actor_games.value || 0)
+                (value.one_games?.value || 0) +
+                (value.two_games?.value || 0) +
+                (value.three_games?.value || 0) +
+                (value.actor_games?.value || 0)
 
               if (bonuses) {
                 if (

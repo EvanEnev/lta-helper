@@ -101,7 +101,6 @@ export default function PayrollsDetailsRow({
             classNames={{stepperButton: 'hidden'}}
             isReadOnly={!canEdit}
             isWheelDisabled
-            minValue={0}
             onValueChange={(value: number) => {
               updateCallback('bonuses', value)
             }}

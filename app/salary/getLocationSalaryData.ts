@@ -13,7 +13,7 @@ interface GetLocationSalaryDataProps {
   filters?: Filter[]
 }
 export default async function getLocationSalaryData({
-  locationId = 2,
+  locationId,
   date,
   allLocations = false,
   filters = [],
@@ -45,11 +45,11 @@ export default async function getLocationSalaryData({
     }
 
     if (canViewLocation && !allLocations) {
-      queryAddon = `AND s.worker_id = ${worker.id} OR s.location_id = ${worker.locationId}`
+      queryAddon = `AND s.worker_id = ${worker.id} OR s.location_id = ${locationId || worker.locationId}`
     }
 
     if (canViewFull && !allLocations) {
-      queryAddon = `AND s.location_id = ${locationId}`
+      queryAddon = `AND s.location_id = ${locationId || 2}`
     }
 
     if (filters?.length) {

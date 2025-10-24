@@ -226,6 +226,7 @@ export interface LTMoneyOnLocationsData {
 
 export interface LTPayrollIssueData {
   take_by: LTPayroll['takeBy']
+  taken: number | null
   dates: LTPayroll['dates']
   to_take_by: LTWorkerPayrollData['to_take_by']
   balance: LTWorker['balance']

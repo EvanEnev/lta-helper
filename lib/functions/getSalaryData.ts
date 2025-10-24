@@ -33,7 +33,6 @@ interface SalaryDataProps {
   override?: Partial<LTSalary>
 }
 
-
 export default function getSalaryData({
   rank,
   workingHours,
@@ -118,7 +117,7 @@ export default function getSalaryData({
   }
 
   if (comment?.toLowerCase().includes('под игру')) {
-    salary = 1500
+    salary = 1000
   }
 
   // if (rank?.name === 'Актёр' && gamesCount && gamesCount > 2) {

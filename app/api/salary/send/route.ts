@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       gamesPayments,
       worker: user,
       rank: rankData,
-      workingHours: data.workingHours,
+      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
       comment: data.comment,

@@ -160,7 +160,6 @@ export default function WorkData({
     data.workingHours,
     data.fines,
     data.isHardTime,
-    data.gamesCount,
     data.comment,
     data.bonuses,
     data.location,
@@ -380,6 +379,7 @@ export default function WorkData({
         </div>
         <div className="">
           <NumberInput
+            isWheelDisabled
             classNames={{
               stepperButton: 'hidden',
             }}
@@ -399,6 +399,7 @@ export default function WorkData({
         </div>
         <div className={data.type ? 'hidden' : ''}>
           <NumberInput
+            isWheelDisabled
             classNames={{
               stepperButton: 'hidden',
             }}
@@ -421,6 +422,7 @@ export default function WorkData({
         </div>
         <div className={data.type ? 'hidden' : ''}>
           <NumberInput
+            isWheelDisabled
             classNames={{
               stepperButton: 'hidden',
             }}
@@ -442,6 +444,7 @@ export default function WorkData({
         </div>
         <div className={data.type ? 'hidden' : ''}>
           <NumberInput
+            isWheelDisabled
             classNames={{
               stepperButton: 'hidden',
             }}
@@ -463,6 +466,7 @@ export default function WorkData({
         </div>
         <div className={data.type ? 'hidden' : ''}>
           <NumberInput
+            isWheelDisabled
             classNames={{
               stepperButton: 'hidden',
             }}
@@ -484,6 +488,7 @@ export default function WorkData({
         </div>
         <div className={data.type ? 'hidden' : ''}>
           <NumberInput
+            isWheelDisabled
             classNames={{
               stepperButton: 'hidden',
             }}

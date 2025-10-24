@@ -101,7 +101,7 @@ export default function DesktopAdmin({
 
   return (
     <main className="flex min-h-full gap-4 p-4">
-      <div className="grid h-full w-full grid-cols-[repeat(auto-fit,minmax(450px,max-content))] gap-4 overflow-auto">
+      <div className="grid h-full w-full grid-cols-[repeat(auto-fit,minmax(500px,max-content))] gap-4 overflow-auto">
         {salaryData.map((data, index) => {
           return (
             <Card
