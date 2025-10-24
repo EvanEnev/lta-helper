@@ -1,6 +1,6 @@
 import {LTLocation, LTPayroll, LTWorkerPayrollData} from '@/src/utils/types'
 import RankIcon from '@/src/components/global/RankIcon'
-import {Button, Divider, NumberInput} from '@heroui/react'
+import {Button, Code, Divider, NumberInput} from '@heroui/react'
 import {DateTime} from 'luxon'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import {Ruble} from 'solar-icon-set'
@@ -15,7 +15,6 @@ interface PayrollsDetailsRowProps {
   data: LTWorkerPayrollData
   canIssue: boolean
   locations: LTLocation[]
-  lastRow: boolean
   canEdit: boolean
   socketRef: RefObject<Socket<DefaultEventsMap, DefaultEventsMap> | null>
   payrollId: LTPayroll['id']
@@ -25,7 +24,6 @@ export default function PayrollsDetailsRow({
   data,
   canIssue,
   locations,
-  lastRow,
   canEdit,
   payrollId,
   socketRef,
@@ -77,89 +75,102 @@ export default function PayrollsDetailsRow({
 
   return (
     <>
-      <div className="flex items-center gap-2 rounded-2xl p-2">
-        <div className="flex min-w-[9rem] flex-1 items-center justify-start gap-2">
+      <fieldset className="glass flex flex-col items-center gap-2 rounded-2xl p-2">
+        <legend className="flex translate-y-1 items-center justify-start gap-2">
           <RankIcon rank={data.worker.rank} />
           <p className="mx-auto">{data.worker.name}</p>
+        </legend>
+        <div className="flex items-center gap-2">
+          <NumberInput
+            label="Ставка"
+            labelPlacement="outside"
+            classNames={{stepperButton: 'hidden'}}
+            isReadOnly={!canEdit}
+            onValueChange={(value: number) => {
+              updateCallback('value', value)
+            }}
+            isWheelDisabled
+            endContent={<Ruble iconStyle="Bold" />}
+            className="min-w-[9rem] flex-1"
+            defaultValue={data.value || 0}
+          />
+          <Divider orientation="vertical" />
+          <NumberInput
+            label="Бонусы"
+            labelPlacement="outside"
+            classNames={{stepperButton: 'hidden'}}
+            isReadOnly={!canEdit}
+            isWheelDisabled
+            minValue={0}
+            onValueChange={(value: number) => {
+              updateCallback('bonuses', value)
+            }}
+            endContent={<Ruble iconStyle="Bold" />}
+            className="min-w-[9rem] flex-1"
+            defaultValue={data.bonuses || 0}
+          />
+          <Divider orientation="vertical" />
+          <NumberInput
+            label="Внешняя выплата"
+            labelPlacement="outside"
+            classNames={{stepperButton: 'hidden'}}
+            isReadOnly={!canEdit}
+            isWheelDisabled
+            minValue={0}
+            onValueChange={(value: number) => {
+              updateCallback('external_payment', value)
+            }}
+            endContent={<Ruble iconStyle="Bold" />}
+            className="min-w-[9rem] flex-1"
+            defaultValue={data.external_payment || 0}
+          />
+          <Divider orientation="vertical" />
+          <LocationSelect
+            isReadOnly={!canEdit}
+            className="min-w-[9rem] flex-1"
+            callback={location => {
+              updateCallback('location_id', location?.id || null)
+            }}
+            locationId={data.location_id}
+            locations={locations}
+          />
+          <Divider orientation="vertical" />
+          <NumberInput
+            readOnly
+            variant="bordered"
+            label="Сумма"
+            labelPlacement="outside"
+            classNames={{stepperButton: 'hidden'}}
+            endContent={<Ruble iconStyle="Bold" />}
+            className="min-w-[9rem] flex-1"
+            value={
+              data.value + (data.bonuses || 0) - (data.external_payment || 0)
+            }
+          />
+          <Divider orientation="vertical" />
+          <NumberInput
+            readOnly
+            variant="bordered"
+            label="Остаток"
+            labelPlacement="outside"
+            classNames={{stepperButton: 'hidden'}}
+            endContent={<Ruble iconStyle="Bold" />}
+            className="min-w-[9rem] flex-1"
+            value={
+              data.value +
+              (data.bonuses || 0) -
+              (data.taken || 0) -
+              (data.external_payment || 0)
+            }
+          />
         </div>
-        <Divider orientation="vertical" />
-        <NumberInput
-          isReadOnly={!canEdit}
-          onValueChange={(value: number) => {
-            updateCallback('value', value)
-          }}
-          isWheelDisabled
-          endContent={<Ruble iconStyle="Bold" />}
-          className="min-w-[9rem] flex-1"
-          defaultValue={data.value || 0}
-        />
-        <Divider orientation="vertical" />
-        <NumberInput
-          isReadOnly={!canEdit}
-          isWheelDisabled
-          minValue={0}
-          onValueChange={(value: number) => {
-            updateCallback('bonuses', value)
-          }}
-          endContent={<Ruble iconStyle="Bold" />}
-          className="min-w-[9rem] flex-1"
-          defaultValue={data.bonuses || 0}
-        />
-        <Divider orientation="vertical" />
-        <NumberInput
-          isReadOnly={!canEdit}
-          isWheelDisabled
-          minValue={0}
-          onValueChange={(value: number) => {
-            updateCallback('external_payment', value)
-          }}
-          endContent={<Ruble iconStyle="Bold" />}
-          className="min-w-[9rem] flex-1"
-          defaultValue={data.external_payment || 0}
-        />
-        <Divider orientation="vertical" />
-        <LocationSelect
-          isClearable
-          isReadOnly={!canEdit}
-          className="h-14 min-w-[9rem] flex-1"
-          callback={location => {
-            updateCallback('location_id', location?.id || null)
-          }}
-          locationId={data.location_id}
-          showLabel={false}
-          locations={locations}
-        />
-        <Divider orientation="vertical" />
-        <div className="flex min-w-[9rem] flex-1 flex-col gap-1 text-center">
-          <p>{data.taken_by}</p>
-          <p>
-            {data.taken_at &&
-              DateTime.fromFormat(
-                data.taken_at,
-                'yyyy-MM-dd HH:mm:ss',
-              ).toFormat('dd.MM.yyyy HH:mm:ss')}
-          </p>
-          <p>{data.taken}</p>
-        </div>
-        <Divider orientation="vertical" />
-        <p className="min-w-[9rem] flex-1 text-center">
-          {data.value +
-            (data.bonuses || 0) -
-            (data.taken || 0) -
-            (data.external_payment || 0)}
-        </p>
-        {canIssue && (
-          <>
-            <Divider orientation="vertical" />
-            <p className="min-w-[9rem] flex-1 text-center">{data.to_take}</p>
-            <Divider orientation="vertical" />
-            <p className="min-w-[9rem] flex-1 text-center">{data.to_take_by}</p>
-            <Divider orientation="vertical" />
-            <div className="`flex-1 min-w-[9rem]">
+        <div className="flex w-full items-center gap-2">
+          {canIssue && (
+            <>
               <Button
                 isLoading={loading}
+                className="min-w-[9rem]"
                 onPress={issuePayroll}
-                className="w-full"
                 color={
                   data.issue_confirmed
                     ? 'primary'
@@ -173,13 +184,58 @@ export default function PayrollsDetailsRow({
                     data.location_id === worker.locationId
                   )
                 }>
-                Выдать
+                {data.taken ? 'Выдано' : 'Выдать'}
               </Button>
-            </div>
-          </>
-        )}
-      </div>
-      <Divider hidden={lastRow} />
+              <Divider orientation="vertical" />
+              {data.taken ? (
+                <>
+                  <div className="min-w-[9rem]">
+                    <p>Выдано:</p>
+                    <Code className="w-full" color="success">
+                      {data.taken}
+                    </Code>
+                  </div>
+                  <Divider orientation="vertical" />
+                  <div>
+                    <p>Забрал:</p>
+                    <span className="border-white/20">{data.taken_by}, </span>
+                    <span className="text-white/50">
+                      {data.taken_at &&
+                        DateTime.fromFormat(
+                          data.taken_at,
+                          'yyyy-MM-dd HH:mm:ss',
+                        ).toFormat('dd.MM.yyyy HH:mm:ss')}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="min-w-[9rem]">
+                    <p>К выдаче:</p>
+                    {data.to_take ? (
+                      <Code className="w-full" color="primary">
+                        {data.to_take}
+                      </Code>
+                    ) : (
+                      <i>Не указано</i>
+                    )}
+                  </div>
+                  <Divider orientation="vertical" />
+                  <div>
+                    <p>Заберёт:</p>
+                    {data.to_take_by ? (
+                      <p>{data.to_take_by}</p>
+                    ) : (
+                      <i>Не указано</i>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </fieldset>
+      {/*<Divider hidden={lastRow} />*/}
     </>
   )
 }

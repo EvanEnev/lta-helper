@@ -162,7 +162,7 @@ export default function PayrollIssuePage({
       <Button
         onPress={sendConfirm}
         isLoading={isLoading}
-        isDisabled={!payrolls[0]?.id}
+        isDisabled={!payrolls[0]?.id || payrolls[0]?.taken !== null}
         className="sticky bottom-4 my-2 h-14 w-full"
         color="primary"
         startContent={<CheckCircle iconStyle="Bold" size={24} />}>

@@ -47,7 +47,9 @@ left join lt_arena.payrolls p on wp.payroll_id = p.id
 left join lt_arena.locations l on wp.location_id = l.id
 left join lt_arena.workers w2 on wp.to_take_by = w2.id
 left join lt_arena.workers w3 on wp.taken_by = w3.id
-where p.id = ${id}`
+left join lt_arena.ranks r on w.rank = r.name
+where p.id = ${id}
+order by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
 
   let moneyOnLocationsQuery = `
     select

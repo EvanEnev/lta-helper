@@ -15,7 +15,7 @@ import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import DeleteButton from '@/src/components/global/DeleteButton'
-import {useCallback} from 'react'
+import {useCallback, useMemo} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface PayrollCardProps {
@@ -29,6 +29,8 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)
   const takeBy = DateTime.fromISO(data.takeBy)
+  const today = useMemo(() => DateTime.now(), [])
+
   // @ts-ignore
   const themeColors = semanticColors[theme || 'dark']
 
@@ -59,7 +61,9 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
         )}
         <div>
           <span>Можно забрать до: </span>
-          <Code color="success">{takeBy.toFormat('dd.MM.yyyy')}</Code>
+          <Code color={takeBy > today ? 'success' : 'danger'}>
+            {takeBy.toFormat('dd.MM.yyyy')}
+          </Code>
         </div>
         <div className="flex items-center gap-2">
           <p>Бонусы: </p>

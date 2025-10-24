@@ -44,7 +44,8 @@ export default async function PayrollIssue() {
   w.name,
   w.id,
   wp.payroll_id,
-  wp.location_id
+  wp.location_id,
+  wp.taken
   from lt_arena.workers_payrolls wp
   left join lt_arena.workers w on w.id = wp.worker_id
   where wp.to_take_by = ${worker.id} and (wp.taken = 0 or wp.taken is null)
