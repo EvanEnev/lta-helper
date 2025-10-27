@@ -1,13 +1,13 @@
-import createAdminSupabase from '@/lib/createAdminSupabase'
 import {NextRequest, NextResponse} from 'next/server'
 import {
   AuthDataValidator,
   objectToAuthDataMap,
   urlStrToAuthDataMap,
 } from '@telegram-auth/server'
-
 import crypto from 'crypto'
 import db from '@/lib/database'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 function generatePassword(
   telegramId: number | string,
@@ -20,10 +20,7 @@ function generatePassword(
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createAdminSupabase()
-
   const body = await req.json()
-
   let credentials = body?.credentials
 
   try {
@@ -61,50 +58,29 @@ export async function POST(req: NextRequest) {
 
   const email =
     process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
-      ? `${user.id}@telegram.lta-test`
+      ? `${user.id}@telegram-test.lta`
       : `${user.id}@telegram.lta`
 
-  const {data: existingWorker, error: existingWorkerError} =
-    await supabase.auth.signInWithPassword({
-      email,
-      password: generatePassword(user.id, process.env.BOT_TOKEN!),
-    })
-
-  if (existingWorker.user) {
-    await supabase.auth.signInWithPassword({
-      email,
-      password: generatePassword(user.id, process.env.BOT_TOKEN!),
-    })
-
-    return NextResponse.json(
-      {
-        access_token: existingWorker.session?.access_token,
-        refresh_token: existingWorker.session?.refresh_token,
+  try {
+    await auth.api.signInEmail({
+      body: {
+        email,
+        password: generatePassword(user.id, process.env.BOT_TOKEN!),
+        callbackURL: '/',
       },
-      {status: 200},
-    )
+      headers: await headers(),
+    })
+  } catch (e) {
+    await auth.api.signUpEmail({
+      // @ts-ignore
+      body: {
+        email,
+        name: user.username || 'undefined',
+        password: generatePassword(user.id, process.env.BOT_TOKEN!),
+        callbackURL: '/',
+      },
+    })
   }
 
-  await supabase.auth.admin.createUser({
-    email,
-    password: generatePassword(user.id, process.env.BOT_TOKEN!),
-    user_metadata: {
-      telegram_id: user.id,
-    },
-    email_confirm: true,
-  })
-
-  const {data: newUserAuthorized, error: newUserAuthtorizedError} =
-    await supabase.auth.signInWithPassword({
-      email,
-      password: generatePassword(user.id, process.env.BOT_TOKEN!),
-    })
-
-  return NextResponse.json(
-    {
-      access_token: newUserAuthorized.session?.access_token,
-      refresh_token: newUserAuthorized.session?.refresh_token,
-    },
-    {status: 200},
-  )
+  return NextResponse.json({}, {status: 200})
 }

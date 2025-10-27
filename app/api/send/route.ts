@@ -5,18 +5,18 @@ import getRandomPhrase from '@/src/utils/send/getRandomPhrase'
 import {Day} from '@/src/utils/types'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import {NextRequest, NextResponse} from 'next/server'
-import createAdminSupabase from '@/lib/createAdminSupabase'
-import auth from '@/lib/auth/auth'
 import {DateTime} from 'luxon'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createAdminSupabase()
   const body = await req.json()
   let selectedDays: Day[] = body?.selectedDays?.filter(Boolean) || []
-  const {data: session} = await supabase.auth.getUser()
-  const user = session?.user
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
-  if (!user) {
+  if (!worker) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
@@ -29,9 +29,7 @@ export async function POST(req: NextRequest) {
     date: DateTime.fromISO(`${day.date}`),
   }))
 
-  const telegramId: number = user.user_metadata.telegram_id
-
-  const worker = await auth()
+  const telegramId: number = worker.telegramId
 
   if (!worker.name) {
     return NextResponse.json({}, {status: 404})

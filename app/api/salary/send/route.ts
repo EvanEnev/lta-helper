@@ -1,7 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {WorkerSalary} from '@/src/utils/types'
 import {DateTime} from 'luxon'
-import auth from '@/lib/auth/auth'
 import google, {GoogleDocument} from '@/lib/google'
 import {
   GoogleSpreadsheetRow,
@@ -15,6 +14,8 @@ import getSalaryData from '@/lib/functions/getSalaryData'
 import updatePoints from '@/src/utils/admin/updatePoints'
 import logger from '@/Logger'
 import getGamePayments from '@/lib/functions/getGamesPayments'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export interface SheetData {
   sheets: {
@@ -73,7 +74,9 @@ const loadData = async (google: GoogleDocument): Promise<SheetData> => {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const user = await auth()
+  const {user} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
   const salaryData: WorkerSalary[] = body.salaryData?.filter(
     (data: WorkerSalary) => data.worker && data.location,

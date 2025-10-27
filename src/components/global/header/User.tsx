@@ -9,8 +9,11 @@ import {
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {MoonIcon, SunIcon} from '@heroui/shared-icons'
 import {useTheme} from 'next-themes'
+import {authClient} from '@/lib/auth/authClient'
+import {useRouter} from 'next/navigation'
 
 export default function User() {
+  const router = useRouter()
   const {worker} = useAuth()
   const {theme, setTheme} = useTheme()
 
@@ -42,6 +45,23 @@ export default function User() {
             Светлая
           </Button>
         </div>
+        <Divider />
+        <Button
+          variant="ghost"
+          color="danger"
+          className="w-full"
+          onPress={async () =>
+            await authClient.signOut(
+              {},
+              {
+                onSuccess: () => {
+                  router.push('/login')
+                },
+              },
+            )
+          }>
+          Выйти
+        </Button>
       </PopoverContent>
     </Popover>
   )

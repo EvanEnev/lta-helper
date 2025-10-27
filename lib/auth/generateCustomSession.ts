@@ -1,10 +1,17 @@
-'use server'
+import convertTZ from '@/lib/functions/convertTZ'
+import {InferSession, InferUser} from 'better-auth'
+import db from '@/lib/database'
+import {LTWorker} from '@/src/utils/types'
 
-import convertTZ from '../functions/convertTZ'
+export default async function generateCustomSession({
+  user,
+  session,
+}: {
+  user: InferUser<any>
+  session: InferSession<any>
+}) {
+  const telegramId = Number(user.email.split('@')[0])
 
-export default async function authQueryGenerator(
-  telegramId: number,
-): Promise<{worker: string; permissions: string}> {
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
 
   const query = `SELECT
@@ -40,5 +47,32 @@ export default async function authQueryGenerator(
       pm.id = dp.permission_id
        OR pm.id = w_pm.permission_id`
 
-  return {worker: query, permissions: permissionsQuery}
+  const result = await db.query(query)
+  const permissionsResult = await db.query(permissionsQuery)
+
+  const permissions = permissionsResult.rows
+  const workerResult = result.rows[0] || {}
+
+  const worker: LTWorker = {
+    name: workerResult.name,
+    id: workerResult.id,
+    balance: workerResult.balance,
+    telegramId: workerResult.telegram_id,
+    rank: workerResult.rank,
+    firstName: workerResult.first_name,
+    lastName: workerResult.last_name,
+    middleName: workerResult.middle_name,
+    phoneNumber: workerResult.phone_number,
+    photoUrl: workerResult.photo_url,
+    locationId: workerResult.location_id,
+    location: workerResult.location,
+    permissions,
+    email: workerResult.email,
+  }
+
+  if (workerResult?.today_location) {
+    worker.locationId = workerResult?.today_location
+  }
+
+  return {user: {...user, ...worker}, session}
 }

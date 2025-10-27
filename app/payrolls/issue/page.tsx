@@ -1,9 +1,12 @@
-import auth from '@/lib/auth/auth'
 import db from '@/lib/database'
 import PayrollIssuePage from '@/src/components/payrolls/issue/PayrollIssuePage'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export default async function PayrollIssue() {
-  const worker = await auth()
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
   const query = `select
     p.id,
@@ -15,9 +18,9 @@ export default async function PayrollIssue() {
     wp.external_payment,
     w2.name as to_take_by
     from lt_arena.payrolls p
-    left join lt_arena.workers_payrolls wp on wp.worker_id = ${worker.id} and wp.payroll_id = p.id
+    left join lt_arena.workers_payrolls wp on wp.worker_id = ${worker?.id} and wp.payroll_id = p.id
     left join lt_arena.locations l on l.id = wp.location_id
-    left join lt_arena.workers w on w.id = ${worker.id}
+    left join lt_arena.workers w on w.id = ${worker?.id}
     left join lt_arena.workers w2 on w2.id = wp.to_take_by
     where p.take_by > NOW()
     order by p.take_by desc
@@ -48,7 +51,7 @@ export default async function PayrollIssue() {
   wp.taken
   from lt_arena.workers_payrolls wp
   left join lt_arena.workers w on w.id = wp.worker_id
-  where wp.to_take_by = ${worker.id} and (wp.taken = 0 or wp.taken is null)
+  where wp.to_take_by = ${worker?.id} and (wp.taken = 0 or wp.taken is null)
   `
 
   const workersResult = await db.query(workersQuery)

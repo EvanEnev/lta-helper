@@ -4,17 +4,17 @@ import getDefaultDays from '@/lib/functions/getDefaultDays'
 import capitalize from '@/lib/functions/capitalize'
 import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import google from '@/lib/google'
-import createAdminSupabase from '@/lib/createAdminSupabase'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createAdminSupabase()
+  const {user} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
   const body = await req.json()
 
   const data = body.data
-
-  const {data: session} = await supabase.auth.getUser()
-  const user = session?.user
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
   const rank = row?.get('Ранг')
 
-  const telegramId: number = user.user_metadata.telegram_id
+  const telegramId: number = user.telegramId
 
   const query = `INSERT
                  INTO lt_arena.workers

@@ -13,11 +13,11 @@ import {usePathname, useRouter} from 'next/navigation'
 import {useAtom, useSetAtom} from 'jotai'
 import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
 import AuthContext from '@/src/components/global/contexts/AuthContext'
-import supabase from '@/lib/supabase'
 import {DateTime} from 'luxon'
 import {Day, LTWorker} from '@/src/utils/types'
 import {TelegramAuthData} from '@telegram-auth/react'
 import Loader from '@/src/components/global/Loader'
+import {authClient} from '@/lib/auth/authClient'
 
 const requiredFields = ['name', 'email', 'phoneNumber', 'firstName', 'lastName']
 
@@ -61,16 +61,16 @@ export default function AuthProvider({children}: {children: ReactNode}) {
   }, [])
 
   const autoLogin = useCallback(() => {
-    let appTelegram: any = {}
+    let appTelegram: any
 
     if (process.env.NODE_ENV === 'development') {
-      appTelegram = {}
+      appTelegram = null
     } else {
       const telegramObject = (window as any)?.Telegram?.WebApp
       appTelegram = telegramObject.initData ? telegramObject : {}
     }
 
-    if (!appTelegram.initData) {
+    if (!appTelegram?.initData) {
       router.push('/login')
       setLoading(false)
       return
@@ -83,14 +83,11 @@ export default function AuthProvider({children}: {children: ReactNode}) {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          credentials: `https://lt.bubenev.su?${appTelegram.initData}`,
+          credentials: `https://lt.bubenev.su?${appTelegram?.initData}`,
           initiator: 'auto',
         }),
       }).then(async response => {
         if (response.ok) {
-          const {access_token, refresh_token} = await response.json()
-          await supabase.auth.setSession({access_token, refresh_token})
-
           await getData()
           setLoading(false)
         } else {
@@ -122,9 +119,6 @@ export default function AuthProvider({children}: {children: ReactNode}) {
         })
 
         if (response.ok) {
-          const {access_token, refresh_token} = await response.json()
-          await supabase.auth.setSession({access_token, refresh_token})
-
           await getData()
           setLoading(false)
         } else {
@@ -141,8 +135,8 @@ export default function AuthProvider({children}: {children: ReactNode}) {
   )
 
   useEffect(() => {
-    supabase.auth.getSession().then(async session => {
-      if (session.data.session?.user) {
+    authClient.getSession().then(async session => {
+      if (session.data?.user) {
         const response = await fetch('/api/getData')
 
         if (response.ok) {

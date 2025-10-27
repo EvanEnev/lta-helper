@@ -1,10 +1,11 @@
-import auth from '@/lib/auth/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
 import {LTWorker, SalaryData, UserSalary, Filter} from '@/src/utils/types'
 import sortByRank from '@/lib/functions/sortByRank'
 import {DateTime} from 'luxon'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 interface GetLocationSalaryDataProps {
   locationId?: number
@@ -18,7 +19,9 @@ export default async function getLocationSalaryData({
   allLocations = false,
   filters = [],
 }: GetLocationSalaryDataProps) {
-  const worker = await auth()
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
   const canView = checkPermissions(['view_salary'], worker)
   const canViewLocation = checkPermissions(['view_location_salary'], worker)
@@ -41,11 +44,11 @@ export default async function getLocationSalaryData({
     let queryAddon = ''
 
     if (!allLocations) {
-      queryAddon = `AND s.worker_id = ${worker.id}`
+      queryAddon = `AND s.worker_id = ${worker?.id}`
     }
 
     if (canViewLocation && !allLocations) {
-      queryAddon = `AND s.worker_id = ${worker.id} OR s.location_id = ${locationId || worker.locationId}`
+      queryAddon = `AND s.worker_id = ${worker?.id} OR s.location_id = ${locationId || worker?.locationId}`
     }
 
     if (canViewFull && !allLocations) {
@@ -92,7 +95,7 @@ export default async function getLocationSalaryData({
                          WHERE date BETWEEN '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}' AND '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'
                                  ${queryAddon}`
 
-    let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker.name.toLowerCase()}'` : ''}`
+    let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker?.name.toLowerCase()}'` : ''}`
 
     const workersQuery = `
     SELECT

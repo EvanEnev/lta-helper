@@ -2,14 +2,17 @@ import AdminPage from '@/src/components/admin/AdminPage'
 import db from '@/lib/database'
 import sortByRank from '@/lib/functions/sortByRank'
 import {LTWorker} from '@/src/utils/types'
-import auth from '@/lib/auth/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getLocations from '@/lib/functions/getLocations'
 import getRanks from '@/lib/functions/getRanks'
 import getGamesPayments from '@/lib/functions/getGamesPayments'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export default async function Admin() {
-  const worker = await auth()
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
   const workTypesQuery = `select
   id,

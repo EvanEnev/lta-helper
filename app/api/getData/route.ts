@@ -2,26 +2,23 @@ import db from '@/lib/database'
 import {NextResponse} from 'next/server'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
 import {DateTime} from 'luxon'
-import createAdminSupabase from '@/lib/createAdminSupabase'
-import auth from '@/lib/auth/auth'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export async function GET() {
-  const supabase = await createAdminSupabase()
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
-  const {data: session} = await supabase.auth.getUser()
-  const user = session?.user
-
-  if (!user) {
+  if (!worker) {
     return NextResponse.json({message: 'Пользователь не найден'}, {status: 500})
   }
 
-  const telegramId = user.user_metadata.telegram_id
+  const telegramId = worker.telegramId
 
   if (!telegramId) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
-
-  const worker = await auth()
 
   const dataQuery = `SELECT
   w.name,

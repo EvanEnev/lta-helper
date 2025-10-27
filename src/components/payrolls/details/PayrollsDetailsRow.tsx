@@ -8,8 +8,8 @@ import {RefObject, useCallback, useState} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {Socket} from 'socket.io-client'
 import {DefaultEventsMap} from 'socket.io'
-import supabase from '@/lib/supabase'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {authClient} from '@/lib/auth/authClient'
 
 interface PayrollsDetailsRowProps {
   data: LTWorkerPayrollData
@@ -49,7 +49,8 @@ export default function PayrollsDetailsRow({
       value: number | null,
     ) => {
       if (!value) value = -1
-      const session = await supabase.auth.getSession()
+      const session = await authClient.getSession()
+      console.debug(session)
 
       const body = {
         worker_id: data.worker.id,
@@ -58,7 +59,7 @@ export default function PayrollsDetailsRow({
         bonuses: data.bonuses,
         location_id: data.location_id,
         [key]: value,
-        auth: session?.data.session?.access_token,
+        auth: session.data?.session.token,
       }
 
       socketRef.current?.emit('update:workers_payrolls', body)

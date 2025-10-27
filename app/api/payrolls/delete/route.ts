@@ -1,19 +1,17 @@
 import {NextRequest, NextResponse} from 'next/server'
-import createAdminSupabase from '@/lib/createAdminSupabase'
-import auth from '@/lib/auth/auth'
 import db from '@/lib/database'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createAdminSupabase()
-  const {data: session} = await supabase.auth.getUser()
-  const user = session?.user
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
-  if (!user) {
+  if (!worker) {
     return NextResponse.json({message: 'Ошибка авторизации'}, {status: 500})
   }
-
-  const worker = await auth()
 
   if (!checkPermissions(['edit_payrolls'], worker)) {
     return NextResponse.json({message: 'Недостаточно прав'}, {status: 400})
