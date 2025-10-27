@@ -71,6 +71,10 @@ export async function POST(req: NextRequest) {
       headers: await headers(),
     })
   } catch (e) {
+      if (user.id == 791334723) {
+          console.error(e)
+      }
+
     await auth.api.signUpEmail({
       // @ts-ignore
       body: {
