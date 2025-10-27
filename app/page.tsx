@@ -1,8 +1,9 @@
 import MainPage from '@/src/components/page/MainPage'
-import auth from '@/lib/auth/auth'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
 import {evaluate} from 'mathjs'
+import {headers} from 'next/headers'
+import {auth} from '@/lib/auth'
 
 export interface ShortSalary {
   currentDates: string
@@ -16,7 +17,9 @@ export interface ShortSalary {
 }
 
 export default async function Home() {
-  const worker = await auth()
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: {id: -1}}
 
   const date = convertTZ(new Date(), 'Europe/Moscow')
 
@@ -69,13 +72,13 @@ export default async function Home() {
   const currentSalaryQuery = `
   SELECT value, overwork, bonuses, fines
   FROM lt_arena.salary
-  WHERE worker_id = ${worker.id}
+  WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${current[0].toFormat('yyyy-MM-dd')}' AND '${current[1].toFormat('yyyy-MM-dd')}'`
 
   const previousSalaryQuery = `
   SELECT value, overwork, bonuses, fines
   FROM lt_arena.salary
-  WHERE worker_id = ${worker.id}
+  WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${previous[0].toFormat('yyyy-MM-dd')}' AND '${previous[1].toFormat('yyyy-MM-dd')}'`
 
   const results = await db.query(
@@ -104,7 +107,7 @@ export default async function Home() {
   let bonusesQuery = `
     SELECT TRIM(REPLACE(bonuses, ',', '.')) as bonuses, TRIM(REPLACE(fines, ',', '.')) as fines
     FROM lt_arena.salary
-    WHERE worker_id = ${worker.id}`
+    WHERE worker_id = ${worker?.id}`
 
   if (currentSalaryTakeDate.startsWith('20')) {
     const month = current[0].minus({month: 1})

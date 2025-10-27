@@ -1,8 +1,9 @@
-import auth from '@/lib/auth/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import PayrollsDetailsPage from '@/src/components/payrolls/details/PayrollsDetailsPage'
 import db from '@/lib/database'
 import getLocations from '@/lib/functions/getLocations'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 interface PayrollDetailsProps {
   params: Promise<{id: string}>
@@ -11,7 +12,9 @@ interface PayrollDetailsProps {
 export default async function PayrollDetails({params}: PayrollDetailsProps) {
   const {id} = await params
 
-  const worker = await auth()
+  const {user: worker} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
 
   const payrollDataQuery = `select
   p.id,
@@ -69,14 +72,14 @@ order by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name
     !checkPermissions(['view_all_payrolls'], worker) &&
     checkPermissions(['view_location_payrolls'], worker)
   ) {
-    workersPayrollDataQuery += `\nand wp.location_id = ${worker.locationId} or wp.worker_id = ${worker.id}`
-    moneyOnLocationsQuery += `\nand lm.location_id = ${worker.locationId}`
+    workersPayrollDataQuery += `\nand wp.location_id = ${worker?.locationId} or wp.worker_id = ${worker?.id}`
+    moneyOnLocationsQuery += `\nand lm.location_id = ${worker?.locationId}`
   }
 
   if (
     !checkPermissions(['view_all_payrolls', 'view_location_payrolls'], worker)
   ) {
-    workersPayrollDataQuery += `\nand wp.worker_id = ${worker.id}`
+    workersPayrollDataQuery += `\nand wp.worker_id = ${worker?.id}`
     moneyOnLocationsQuery += `\nand lm.payroll_id = -1`
   }
 

@@ -1,16 +1,20 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {DateTime} from 'luxon'
-import auth from '@/lib/auth/auth'
 import db from '@/lib/database'
 import {WorkerSalary} from '@/src/utils/types'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
 
   const date = DateTime.fromISO(body.date).setZone('Europe/Moscow')
 
-  const user = await auth()
-  if (!user.id)
+  const {user} = (await auth.api.getSession({
+    headers: await headers(),
+  })) || {user: null}
+
+  if (!user?.id)
     return NextResponse.json({message: 'Пользователь не найден'}, {status: 500})
 
   let locationId = user.locationId
@@ -49,7 +53,7 @@ export async function POST(req: NextRequest) {
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
-  WHERE ${locationId ? `(s.location_id = ${locationId} OR s.location_id = 12 OR s.location_id = 13) AND ` : ''} s.date = '${date.toFormat('yyyy-MM-dd')}'`
+  WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12 OR s.location_id = 13)` : ''}`
 
   const result = await db.query(query)
   const rows = result.rows

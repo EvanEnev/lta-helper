@@ -1,5 +1,4 @@
 import {SocketUpdateProps} from '@/src/utils/types'
-import {createClient} from '@supabase/supabase-js'
 import authQueryGenerator from '../../../lib/auth/authQueryGenerator'
 import authParseWorker from '../../../lib/auth/authParseWorker'
 import checkPermissions from '../../../lib/functions/checkPermissions'
@@ -10,19 +9,27 @@ export default async function updateWorkersPayrolls({
 }: SocketUpdateProps) {
   const loggerData: any = {}
 
-  const supabase = createClient(
-    'https://db.bubenev.su',
-    process.env.NEXT_PUBLIC_ANON_KEY!,
-  )
-
   console.debug(data)
 
-  const {data: session} = await supabase.auth.getUser(data.auth)
-  const user = session?.user
+  const sessionQuery = `
+  select
+    "userId"
+  from auth.session where token = '${data.auth}'
+  order by "createdAt"
+  limit 1`
 
-  if (!user) return
+  const sessionResult = await client.query(sessionQuery)
+  const userId = sessionResult.rows[0]?.userId
 
-  const queries = await authQueryGenerator(user)
+  const userQuery = `select email from auth.user where id = '${userId}'`
+  const userResult = await client.query(userQuery)
+  const userEmail = userResult.rows[0]?.email
+
+  const telegramId = userEmail?.split('@')[0]
+
+  if (!telegramId) return
+
+  const queries = await authQueryGenerator(telegramId)
 
   const result = await client.query(queries.worker)
   const permissionsResult = await client.query(queries.permissions)
