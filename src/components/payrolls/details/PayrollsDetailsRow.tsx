@@ -131,6 +131,7 @@ export default function PayrollsDetailsRow({
             callback={location => {
               updateCallback('location_id', location?.id || null)
             }}
+            dynamicLocationId
             locationId={data.location_id}
             locations={locations}
           />

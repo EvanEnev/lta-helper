@@ -21,6 +21,7 @@ import Location from '@/src/components/global/Location'
 import {ArrowLeft} from 'solar-icon-set'
 import PayrollsDetailsRow from '@/src/components/payrolls/details/PayrollsDetailsRow'
 import {io, Socket} from 'socket.io-client'
+import LocationSelect from "@/src/components/global/LocationSelect";
 
 interface PayrollsDetailsPageProps {
   data: LTWorkerPayrollData[]
@@ -36,6 +37,7 @@ export default function PayrollsDetailsPage({
   payroll,
 }: PayrollsDetailsPageProps) {
   const [data, setData] = useState<LTWorkerPayrollData[]>(initialData)
+  const unfilteredData = useRef(initialData)
   const socketRef = useRef<Socket | null>(null)
   const {worker, setExiting} = useAuth()
 
@@ -52,6 +54,8 @@ export default function PayrollsDetailsPage({
     () => checkPermissions(['edit_payrolls'], worker),
     [worker],
   )
+
+  const canViewAll = useMemo(() => checkPermissions(['view_all_payrolls'], worker), [worker])
 
   const checkTarget = useCallback((row: LTWorkerPayrollData, data: any) => {
     return row.worker.id === data.worker_id
@@ -72,6 +76,14 @@ export default function PayrollsDetailsPage({
           }
         }),
       )
+
+      unfilteredData.current = data.map((row: any) => {
+          if (!checkTarget(row, data)) return row
+          return {
+              ...row,
+              ...data,
+          }
+      })
     })
 
     return () => {
@@ -115,6 +127,11 @@ export default function PayrollsDetailsPage({
               Назад
             </Button>
           </div>
+            <LocationSelect isClearable callback={(location) => {
+                if (!location) return setData(unfilteredData.current)
+
+                setData(unfilteredData.current.filter(d => d.location_id === location.id))
+            }} locationId={-1} />
           <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
             <p className="text-center">Локация</p>
             <Code color="primary" className="text-center">

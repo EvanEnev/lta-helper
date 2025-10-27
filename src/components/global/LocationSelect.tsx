@@ -115,6 +115,7 @@ export default function LocationSelect({
       isDisabled={isDisabled}
       isReadOnly={isReadOnly}
       required
+      placeholder='Не выбрано'
       startContent={
         <LocationIcon
           className="h-6"
