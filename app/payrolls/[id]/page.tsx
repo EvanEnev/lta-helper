@@ -51,8 +51,7 @@ left join lt_arena.locations l on wp.location_id = l.id
 left join lt_arena.workers w2 on wp.to_take_by = w2.id
 left join lt_arena.workers w3 on wp.taken_by = w3.id
 left join lt_arena.ranks r on w.rank = r.name
-where p.id = ${id}
-order by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
+where p.id = ${id}`
 
   let moneyOnLocationsQuery = `
     select
@@ -72,7 +71,7 @@ order by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name
     !checkPermissions(['view_all_payrolls'], worker) &&
     checkPermissions(['view_location_payrolls'], worker)
   ) {
-    workersPayrollDataQuery += `\nand wp.location_id = ${worker?.locationId} or wp.worker_id = ${worker?.id}`
+    workersPayrollDataQuery += `\nand (wp.location_id = ${worker?.locationId} or wp.worker_id = ${worker?.id})`
     moneyOnLocationsQuery += `\nand lm.location_id = ${worker?.locationId}`
   }
 
@@ -82,6 +81,8 @@ order by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name
     workersPayrollDataQuery += `\nand wp.worker_id = ${worker?.id}`
     moneyOnLocationsQuery += `\nand lm.payroll_id = -1`
   }
+
+  workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
 
   const result = await db.query(workersPayrollDataQuery)
   const data = result.rows

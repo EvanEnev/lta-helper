@@ -16,7 +16,8 @@ export default async function PayrollIssue() {
     wp.value + coalesce(wp.bonuses, 0) - coalesce(wp.external_payment, 0) as value,
     wp.issue_confirmed,
     wp.external_payment,
-    w2.name as to_take_by
+    w2.name as to_take_by,
+    wp.taken
     from lt_arena.payrolls p
     left join lt_arena.workers_payrolls wp on wp.worker_id = ${worker?.id} and wp.payroll_id = p.id
     left join lt_arena.locations l on l.id = wp.location_id
@@ -47,8 +48,7 @@ export default async function PayrollIssue() {
   w.name,
   w.id,
   wp.payroll_id,
-  wp.location_id,
-  wp.taken
+  wp.location_id
   from lt_arena.workers_payrolls wp
   left join lt_arena.workers w on w.id = wp.worker_id
   where wp.to_take_by = ${worker?.id} and (wp.taken = 0 or wp.taken is null)

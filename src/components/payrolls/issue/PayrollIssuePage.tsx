@@ -103,7 +103,7 @@ export default function PayrollIssuePage({
           maxValue={(payrolls[0]?.value || 0) < 0 ? 0 : payrolls[0]?.value || 0}
           minValue={(payrolls[0]?.value || 0) < 0 ? payrolls[0]?.value || 0 : 0}
           label={`Сумма к выдаче (макс.: ${(payrolls[0]?.value || 0) < 0 ? 0 : payrolls[0]?.value || 0})`}
-          value={(payroll?.value || 0) - (payroll?.external_payment || 0)}
+          value={(payroll?.value || 0)}
           onValueChange={value =>
             setPayroll(d => {
               return {...d, value}
