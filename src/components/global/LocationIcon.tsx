@@ -62,7 +62,7 @@ export default function LocationIcon({
 
   return (
     <Icon
-      className={`min-w-fit ${className}`}
+      className={`${className}`}
       fill={'currentColor'}
       color={'currentColor'}
       width={40}
