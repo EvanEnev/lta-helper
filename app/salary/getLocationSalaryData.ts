@@ -129,14 +129,13 @@ export default async function getLocationSalaryData({
 
   const salaryData: SalaryData[] = salaryResult.rows?.map((row: any) => {
     const date: DateTime = row.date.set({second: 0, minute: 0, hour: 0})
-    const createdAt: DateTime = convertTZ(row.created_at, 'Europe/Moscow')
     return {
       date: date.toFormat('yyyy-MM-dd'),
       value: row.value,
       bonuses: row.bonuses,
       fines: row.fines,
       comment: row.comment,
-      created_at: createdAt.toISO() || '',
+      created_at: row.created_at || '',
       created_by: row.created_by,
       worker_name: row.worker_name,
       worker_id: row.worker_id,

@@ -12,13 +12,14 @@ import WorkerCell from '@/src/components/salary/WorkerCell'
 import {io, Socket} from 'socket.io-client'
 import {DateTime} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import {Input, Spinner} from '@heroui/react'
+import {Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Spinner} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import CTable from '@/src/components/global/table/Table'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import {Filter} from "solar-icon-set";
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -334,23 +335,43 @@ export default memo(function Table({
           callback={(date: string) => updateData('date', date)}
         />
         {canViewLocation && (
-          <>
-            <LocationSelect
-              labelPlacement="inside"
-              includeAll={true}
-              className="w-fit"
-              callback={(location: LTLocation | null) =>
-                updateData('location', location)
-              }
-              locationId={locationId}
-            />
-            <Input
-              className="w-fit"
-              label="Позывной"
-              value={nameFilter}
-              onValueChange={value => setNameFilter(value)}
-            />
-          </>
+            isMobile ? <Dropdown closeOnSelect={false}>
+                <DropdownTrigger><Button variant='flat' isIconOnly><Filter /></Button></DropdownTrigger>
+                <DropdownMenu className='min-w-[10rem]'>
+                    <DropdownItem key='location'>
+                        <LocationSelect
+                            labelPlacement="inside"
+                            includeAll={true}
+                            className="w-fit"
+                            callback={(location: LTLocation | null) =>
+                                updateData('location', location)
+                            }
+                            locationId={locationId}
+                        /></DropdownItem>
+                    <DropdownItem key='name'><Input
+                        className="w-fit"
+                        label="Позывной"
+                        value={nameFilter}
+                        onValueChange={value => setNameFilter(value)}
+                    /></DropdownItem>
+                </DropdownMenu>
+            </Dropdown> : <>
+                <LocationSelect
+                    labelPlacement="inside"
+                    includeAll={true}
+                    className="w-fit"
+                    callback={(location: LTLocation | null) =>
+                        updateData('location', location)
+                    }
+                    locationId={locationId}
+                />
+                <Input
+                    className="w-fit"
+                    label="Позывной"
+                    value={nameFilter}
+                    onValueChange={value => setNameFilter(value)}
+                />
+            </>
         )}
         {loading && (
           <>
