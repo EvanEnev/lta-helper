@@ -93,7 +93,7 @@ export default function PayrollsDetailsRow({
             isWheelDisabled
             endContent={<Ruble iconStyle="Bold" />}
             className="min-w-[9rem] flex-1"
-            defaultValue={data.value || 0}
+            value={data.value || 0}
           />
           <Divider orientation="vertical" />
           <NumberInput
@@ -107,7 +107,7 @@ export default function PayrollsDetailsRow({
             }}
             endContent={<Ruble iconStyle="Bold" />}
             className="min-w-[9rem] flex-1"
-            defaultValue={data.bonuses || 0}
+            value={data.bonuses || 0}
           />
           <Divider orientation="vertical" />
           <NumberInput
@@ -122,7 +122,7 @@ export default function PayrollsDetailsRow({
             }}
             endContent={<Ruble iconStyle="Bold" />}
             className="min-w-[9rem] flex-1"
-            defaultValue={data.external_payment || 0}
+            value={data.external_payment || 0}
           />
           <Divider orientation="vertical" />
           <LocationSelect
@@ -236,7 +236,6 @@ export default function PayrollsDetailsRow({
           )}
         </div>
       </fieldset>
-      {/*<Divider hidden={lastRow} />*/}
     </>
   )
 }
