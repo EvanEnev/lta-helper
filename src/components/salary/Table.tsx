@@ -1,4 +1,7 @@
+'use client'
+
 import {
+  LTFaceIdData,
   LTGamePayment,
   LTLocation,
   SalaryData,
@@ -10,16 +13,25 @@ import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import Cell from './Cell'
 import WorkerCell from '@/src/components/salary/WorkerCell'
 import {io, Socket} from 'socket.io-client'
-import {DateTime} from 'luxon'
+import {DateTime, Interval} from 'luxon'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import {Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Spinner} from '@heroui/react'
+import {
+  Button,
+  Checkbox,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Input,
+  Spinner,
+} from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import CTable from '@/src/components/global/table/Table'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {Filter} from "solar-icon-set";
+import {Filter} from 'solar-icon-set'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -34,14 +46,19 @@ export default memo(function Table({
   canEdit,
   dates,
   gamesPayments,
+  faceIdData,
+  locations,
 }: {
   data: UserSalary[]
   canViewFull: boolean
   canEdit: boolean
   dates: string[]
   gamesPayments: LTGamePayment[]
+  faceIdData: LTFaceIdData[]
+  locations: LTLocation[]
 }) {
   const [columnFilters, setColumnFiltersAction] = useState([])
+  const [isReviewMode, setReviewMode] = useState<boolean>(false)
   const socketRef = useRef<Socket | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const {worker, headerRef, pageSettings} = useAuth()
@@ -105,6 +122,7 @@ export default memo(function Table({
   useEffect(() => {
     const localLocationId = localStorage.getItem('salaryLocationId')
     const localDate = localStorage.getItem('salaryDate')
+    const reviewMode = localStorage.getItem('salaryReview')
 
     if (localLocationId) {
       setLocationId(parseInt(localLocationId))
@@ -112,6 +130,10 @@ export default memo(function Table({
 
     if (localDate) {
       setDate(localDate)
+    }
+
+    if (reviewMode) {
+      setReviewMode(JSON.parse(reviewMode))
     }
 
     ;(async () => {
@@ -247,32 +269,56 @@ export default memo(function Table({
   const daysColumns = useMemo(() => {
     return Array.from({length: daysInMonth}, (_, i) => {
       const day = i + 1
-      const newDate = DateTime.fromFormat(date, 'yyyy-MM-dd').set({day})
+      const newDate = DateTime.fromFormat(date, 'yyyy-MM-dd').set({
+        day,
+        hour: 0,
+        minute: 0,
+        second: 0,
+      })
       const dateValue = newDate.toFormat('EEE, dd.MM', {locale: 'ru-RU'})
 
       return {
         header: dateValue,
         accessorKey: `day${day}`,
-        cell: ({getValue}: {getValue: () => SalaryData | undefined}) => (
-          <Cell
-            gamesPayments={gamesPayments}
-            data={getValue()}
-            canEdit={canEdit}
-            handleEdit={handleEdit}
-            handleDelete={handleDelete}
-            canViewFull={canViewFull}
-          />
-        ),
+        cell: ({getValue}: {getValue: () => SalaryData | undefined}) => {
+          const faceId = faceIdData.find(
+            d => d.workerId === getValue()?.worker_id,
+          )
+          const faceIdLocation = faceId?.data.filter(d =>
+            // d.location.id === getValue()?.location?.id &&
+            Interval.fromDateTimes(
+              newDate.plus({hour: 5}),
+              newDate.endOf('day').plus({hour: 5}),
+            ).contains(DateTime.fromFormat(d.date, 'yyyy-MM-dd HH:mm:ss')),
+          )
+
+          return (
+            <Cell
+              isReviewMode={isReviewMode}
+              locations={locations}
+              faceIdData={faceIdLocation}
+              gamesPayments={gamesPayments}
+              data={getValue()}
+              canEdit={canEdit}
+              handleEdit={handleEdit}
+              handleDelete={handleDelete}
+              canViewFull={canViewFull}
+            />
+          )
+        },
       }
     })
   }, [
-    canEdit,
-    canViewFull,
-    date,
     daysInMonth,
+    date,
+    faceIdData,
+    isReviewMode,
+    locations,
     gamesPayments,
-    handleDelete,
+    canEdit,
     handleEdit,
+    handleDelete,
+    canViewFull,
   ])
 
   const columns = useMemo(() => {
@@ -334,45 +380,77 @@ export default memo(function Table({
           date={date}
           callback={(date: string) => updateData('date', date)}
         />
-        {canViewLocation && (
-            isMobile ? <Dropdown closeOnSelect={false}>
-                <DropdownTrigger><Button variant='flat' isIconOnly><Filter /></Button></DropdownTrigger>
-                <DropdownMenu className='min-w-[10rem]'>
-                    <DropdownItem key='location'>
-                        <LocationSelect
-                            labelPlacement="inside"
-                            includeAll={true}
-                            className="w-fit"
-                            callback={(location: LTLocation | null) =>
-                                updateData('location', location)
-                            }
-                            locationId={locationId}
-                        /></DropdownItem>
-                    <DropdownItem key='name'><Input
-                        className="w-fit"
-                        label="Позывной"
-                        value={nameFilter}
-                        onValueChange={value => setNameFilter(value)}
-                    /></DropdownItem>
-                </DropdownMenu>
-            </Dropdown> : <>
-                <LocationSelect
+        {canViewLocation &&
+          (isMobile ? (
+            <Dropdown closeOnSelect={false}>
+              <DropdownTrigger>
+                <Button variant="flat" isIconOnly>
+                  <Filter />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu className="min-w-[10rem]">
+                <DropdownItem key="location">
+                  <LocationSelect
                     labelPlacement="inside"
                     includeAll={true}
                     className="w-fit"
                     callback={(location: LTLocation | null) =>
-                        updateData('location', location)
+                      updateData('location', location)
                     }
                     locationId={locationId}
-                />
-                <Input
+                  />
+                </DropdownItem>
+                <DropdownItem key="name">
+                  <Input
                     className="w-fit"
                     label="Позывной"
                     value={nameFilter}
                     onValueChange={value => setNameFilter(value)}
-                />
+                  />
+                </DropdownItem>
+                {canViewFull ? (
+                  <DropdownItem key="review">
+                    <Checkbox
+                      isSelected={isReviewMode}
+                      onValueChange={value => {
+                        setReviewMode(value)
+                        localStorage.setItem('salaryReview', `${value}`)
+                      }}>
+                      Проверка
+                    </Checkbox>
+                  </DropdownItem>
+                ) : null}
+              </DropdownMenu>
+            </Dropdown>
+          ) : (
+            <>
+              <LocationSelect
+                labelPlacement="inside"
+                includeAll={true}
+                className="w-fit"
+                callback={(location: LTLocation | null) =>
+                  updateData('location', location)
+                }
+                locationId={locationId}
+              />
+              <Input
+                className="w-fit"
+                label="Позывной"
+                value={nameFilter}
+                onValueChange={value => setNameFilter(value)}
+              />
+              {canViewFull && (
+                <Checkbox
+                  isSelected={isReviewMode}
+                  onValueChange={value => {
+                    setReviewMode(value)
+                    localStorage.setItem('salaryReview', `${value}`)
+                  }}>
+                  Проверка
+                </Checkbox>
+              )}
             </>
-        )}
+          ))}
         {loading && (
           <>
             <Spinner color="default" /> Загрузка
