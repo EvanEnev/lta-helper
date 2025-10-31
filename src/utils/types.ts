@@ -253,3 +253,11 @@ export interface LTGamePayment {
   key: string
   rank: number
 }
+
+export interface LTFaceIdData {
+  workerId: LTWorker['id']
+  data: {
+    location: LTLocation
+    date: string
+  }[]
+}
