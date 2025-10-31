@@ -76,8 +76,8 @@ export default function PayrollsDetailsRow({
 
   return (
     <>
-      <fieldset className="glass flex flex-col items-center gap-2 rounded-2xl p-2">
-        <legend className="flex translate-y-1 items-center justify-start gap-2">
+      <fieldset className="glass relative flex flex-col items-center gap-2 rounded-2xl p-2">
+        <legend className="sticky left-2 flex translate-y-1 items-center justify-start gap-2">
           <RankIcon rank={data.worker.rank} />
           <p className="mx-auto">{data.worker.name}</p>
         </legend>
