@@ -99,7 +99,6 @@ export default async function Home() {
     `${currentSalaryQuery}; ${previousSalaryQuery}`,
   )
 
-  console.debug(results[0].rows[0], results[1].rows[0])
   let currentSalary = results[0].rows[0].value + results[0].rows[0].overwork
   let previousSalary = results[1].rows[0].value + results[1].rows[0].overwork
 
