@@ -470,7 +470,9 @@ export default function EditDrawer({
                 <FormulaInput
                   className="col-span-full w-full justify-self-end text-end"
                   ariaLabel="Бонусы"
-                  callback={({text}) => {
+                  callback={({text, error}) => {
+                    if (error) return
+
                     update(text, 'bonuses')
                   }}
                   value={data.bonuses || ''}
@@ -482,7 +484,9 @@ export default function EditDrawer({
                 <FormulaInput
                   className="col-span-full w-full justify-self-end text-end"
                   ariaLabel="Штрафы"
-                  callback={({text}) => {
+                  callback={({text, error}) => {
+                    if (error) return
+
                     update(text, 'fines')
                   }}
                   value={data.fines || ''}
