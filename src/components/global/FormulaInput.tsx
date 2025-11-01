@@ -3,7 +3,9 @@ import {useCallback, useState} from 'react'
 import {evaluate} from 'mathjs'
 
 interface FormulaInputProps {
-  label: string
+  label?: string
+  ariaLabel?: string
+  isReadOnly?: boolean
   labelPlacement?: 'outside' | 'outside-left' | 'outside-top' | 'inside'
   callback: ({
     text,
@@ -20,8 +22,10 @@ interface FormulaInputProps {
 
 export default function FormulaInput({
   label,
+  ariaLabel,
   labelPlacement = 'inside',
   callback,
+  isReadOnly = false,
   value: initialValue = '',
   className = '',
 }: FormulaInputProps) {
@@ -49,10 +53,12 @@ export default function FormulaInput({
 
   return (
     <Input
+      isReadOnly={isReadOnly}
       labelPlacement={labelPlacement}
       color={hasError ? 'danger' : 'default'}
       className={className}
       label={label}
+      aria-label={ariaLabel}
       value={value}
       onValueChange={onChange}
     />

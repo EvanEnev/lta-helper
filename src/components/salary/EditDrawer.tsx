@@ -10,7 +10,6 @@ import {
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  Input,
   NumberInput,
   Textarea,
   TimeInput,
@@ -40,6 +39,7 @@ import DeleteButton from '@/src/components/global/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import CellChip from '@/src/components/salary/CellChip'
+import FormulaInput from '@/src/components/global/FormulaInput'
 
 interface EditDrawerProps {
   data: SalaryData
@@ -467,22 +467,24 @@ export default function EditDrawer({
                   <BillCheck iconStyle="Bold" size={22} />
                   <p>Бонусы</p>
                 </div>
-                <Input
-                  isReadOnly={isReadOnly}
-                  aria-label="Бонусы"
+                <FormulaInput
                   className="col-span-full w-full justify-self-end text-end"
-                  onValueChange={value => update(value, 'bonuses')}
+                  ariaLabel="Бонусы"
+                  callback={({text}) => {
+                    update(text, 'bonuses')
+                  }}
                   value={data.bonuses || ''}
                 />
                 <div className="col-span-full flex items-center gap-1">
                   <BillCross iconStyle="Bold" size={22} />
                   <p>Штрафы</p>
                 </div>
-                <Input
-                  isReadOnly={isReadOnly}
-                  aria-label="Штрафы"
+                <FormulaInput
                   className="col-span-full w-full justify-self-end text-end"
-                  onValueChange={value => update(value, 'fines')}
+                  ariaLabel="Штрафы"
+                  callback={({text}) => {
+                    update(text, 'fines')
+                  }}
                   value={data.fines || ''}
                 />
                 <Divider className="col-span-full" />
