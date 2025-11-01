@@ -4,6 +4,7 @@ import db from '@/lib/database'
 import {evaluate} from 'mathjs'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
+import {QueryResult} from 'pg'
 
 export interface ShortSalary {
   currentDates: string
@@ -74,36 +75,33 @@ export default async function Home() {
   }
 
   const currentSalaryQuery = `
-  SELECT value, overwork
+  SELECT (sum(value))::int as value, (sum(coalesce(overwork, 0)) +
+    sum(coalesce((one_games ->> 'value')::int, 0)) +
+    sum(coalesce((two_games ->> 'value')::int, 0)) +
+    sum(coalesce((three_games ->> 'value')::int, 0)) +
+    sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
   FROM lt_arena.salary
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${current[0].toFormat('yyyy-MM-dd')}' AND '${current[1].toFormat('yyyy-MM-dd')}'`
 
   const previousSalaryQuery = `
-  SELECT value, overwork
+  SELECT sum(value)::int as value, (sum(coalesce(overwork, 0)) +
+                sum(coalesce((one_games ->> 'value')::int, 0)) +
+                sum(coalesce((two_games ->> 'value')::int, 0)) +
+                sum(coalesce((three_games ->> 'value')::int, 0)) +
+                sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
   FROM lt_arena.salary
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${previous[0].toFormat('yyyy-MM-dd')}' AND '${previous[1].toFormat('yyyy-MM-dd')}'`
 
-  const results = await db.query(
+  // @ts-ignore
+  const results: [QueryResult<any>, QueryResult<any>] = await db.query(
     `${currentSalaryQuery}; ${previousSalaryQuery}`,
   )
 
-  let currentSalary = 0
-
-  // @ts-ignore
-  results[0].rows.forEach(row => {
-    currentSalary += row.value
-    currentSalary += row.overwork || 0
-  })
-
-  let previousSalary = 0
-
-  // @ts-ignore
-  results[1].rows.forEach(row => {
-    previousSalary += row.value
-    previousSalary += row.overwork || 0
-  })
+  console.debug(results[0].rows[0], results[1].rows[0])
+  let currentSalary = results[0].rows[0].value + results[0].rows[0].overwork
+  let previousSalary = results[1].rows[0].value + results[1].rows[0].overwork
 
   let bonuses = 0
   let fines = 0
