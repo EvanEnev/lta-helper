@@ -9,16 +9,28 @@ import {
 } from '@heroui/react'
 import Link from 'next/link'
 import {Ruble} from 'solar-icon-set'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
-function BonusesAndFines({bonuses, fines, salary}: {bonuses: number, fines: number, salary: number}) {
-  return <>
-    <p className="text-foreground-500">Бонусы: {bonuses}</p>
-    <p className="text-foreground-500">Штрафы: {fines}</p>
-    <p className="text-foreground-500">ЗП: {salary - (bonuses + fines)}</p>
-  </>
+function BonusesAndFines({
+  bonuses,
+  fines,
+  salary,
+}: {
+  bonuses: number
+  fines: number
+  salary: number
+}) {
+  return (
+    <>
+      <p className="text-foreground-500">Бонусы: {bonuses}</p>
+      <p className="text-foreground-500">Штрафы: {fines}</p>
+      <p className="text-foreground-500">ЗП: {salary}</p>
+    </>
+  )
 }
 
 export default function UpcomingSalary({data}: {data: ShortSalary}) {
+  const {worker} = useAuth()
   const isCurrentWithBonuses = data.currentSalaryTakeDate.startsWith('20')
 
   return (
@@ -36,9 +48,30 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
             Можно получить с {data.previousSalaryTakeDate}
           </p>
           <div className="flex items-center gap-1">
-            {data.previousSalary} <Ruble iconStyle="Bold" />
+            {data.previousSalary +
+              (worker.rank === 'Актёр' ? data.currentBonuses : data.bonuses) -
+              (worker.rank === 'Актёр' ? data.currentFines : data.fines)}{' '}
+            <Ruble iconStyle="Bold" />
           </div>
-          {!isCurrentWithBonuses && <BonusesAndFines bonuses={data.bonuses} fines={data.fines} salary={data.previousSalary} />}
+          {(!isCurrentWithBonuses || worker.rank === 'Актёр') && (
+            <BonusesAndFines
+              bonuses={
+                worker.rank === 'Актёр'
+                  ? data.currentBonuses
+                  : !isCurrentWithBonuses
+                    ? data.bonuses
+                    : 0
+              }
+              fines={
+                worker.rank === 'Актёр'
+                  ? data.currentFines
+                  : !isCurrentWithBonuses
+                    ? data.fines
+                    : 0
+              }
+              salary={data.previousSalary}
+            />
+          )}
         </div>
         <Divider />
         <div className="flex flex-col">
@@ -50,9 +83,30 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
             Можно получить с {data.currentSalaryTakeDate}
           </p>
           <div className="flex items-center gap-1">
-            {data.currentSalary} <Ruble iconStyle="Bold" />
+            {data.currentSalary +
+              (worker.rank === 'Актёр'
+                ? data.previousBonuses
+                : isCurrentWithBonuses
+                  ? data.bonuses
+                  : 0) -
+              (worker.rank === 'Актёр'
+                ? data.previousFines
+                : isCurrentWithBonuses
+                  ? data.fines
+                  : 0)}{' '}
+            <Ruble iconStyle="Bold" />
           </div>
-          {isCurrentWithBonuses && <BonusesAndFines bonuses={data.bonuses} fines={data.fines} salary={data.currentSalary} />}
+          {(isCurrentWithBonuses || worker.rank === 'Актёр') && (
+            <BonusesAndFines
+              bonuses={
+                worker.rank === 'Актёр' ? data.previousBonuses : data.bonuses
+              }
+              fines={
+                worker.rank === 'Актёр' ? data.previousFines : data.bonuses
+              }
+              salary={data.currentSalary}
+            />
+          )}
         </div>
       </CardBody>
       <CardFooter>

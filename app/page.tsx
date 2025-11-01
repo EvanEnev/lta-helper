@@ -14,12 +14,16 @@ export interface ShortSalary {
   previousSalaryTakeDate: string
   bonuses: number
   fines: number
+  currentBonuses: number
+  previousBonuses: number
+  currentFines: number
+  previousFines: number
 }
 
 export default async function Home() {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: {id: -1}}
+  })) || {user: {id: -1, rank: ''}}
 
   const date = convertTZ(new Date(), 'Europe/Moscow')
 
@@ -70,13 +74,13 @@ export default async function Home() {
   }
 
   const currentSalaryQuery = `
-  SELECT value, overwork, bonuses, fines
+  SELECT value, overwork
   FROM lt_arena.salary
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${current[0].toFormat('yyyy-MM-dd')}' AND '${current[1].toFormat('yyyy-MM-dd')}'`
 
   const previousSalaryQuery = `
-  SELECT value, overwork, bonuses, fines
+  SELECT value, overwork
   FROM lt_arena.salary
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${previous[0].toFormat('yyyy-MM-dd')}' AND '${previous[1].toFormat('yyyy-MM-dd')}'`
@@ -105,39 +109,43 @@ export default async function Home() {
   let fines = 0
 
   let bonusesQuery = `
-    SELECT TRIM(REPLACE(bonuses, ',', '.')) as bonuses, TRIM(REPLACE(fines, ',', '.')) as fines
+    SELECT string_agg(bonuses, '+') as bonuses,string_agg(fines, '+') as fines
     FROM lt_arena.salary
     WHERE worker_id = ${worker?.id}`
 
+  let addon
+  let currentAddon = ` and date between '${current[0].startOf('month').toFormat('yyyy-MM-dd')}' and '${current[0].startOf('month').toFormat('yyyy-MM-dd')}'::date + interval '14 days'`
+  let previousAddon = ` and date between '${previous[0].startOf('month').toFormat('yyyy-MM-dd')}'::date + interval '14 days' and '${previous[0].endOf('month').toFormat('yyyy-MM-dd')}'`
   if (currentSalaryTakeDate.startsWith('20')) {
     const month = current[0].minus({month: 1})
 
-    bonusesQuery += ` AND date BETWEEN '${month.startOf('month').toFormat('yyyy-MM-dd')}' AND '${month.endOf('month').toFormat('yyyy-MM-dd')}'`
-
-    const bonusesResult = await db.query(bonusesQuery)
-
-    bonusesResult.rows.forEach(row => {
-      currentSalary += evaluate(row.bonuses || '0')
-      currentSalary += evaluate(row.fines || '0')
-
-      fines += evaluate(row.fines || '0')
-      bonuses += evaluate(row.bonuses || '0')
-    })
+    addon = ` and extract(month from date) = ${month.month}`
   } else {
     const month = previous[0].minus({month: 1})
 
-    bonusesQuery += ` AND date BETWEEN '${month.startOf('month').toFormat('yyyy-MM-dd')}' AND '${month.endOf('month').toFormat('yyyy-MM-dd')}'`
-
-    const bonusesResult = await db.query(bonusesQuery)
-
-    bonusesResult.rows.forEach(row => {
-      previousSalary += evaluate(row.bonuses || '0')
-      previousSalary += evaluate(row.fines || '0')
-
-      fines += evaluate(row.fines || '0')
-      bonuses += evaluate(row.bonuses || '0')
-    })
+    addon = ` and extract(month from date) = ${month.month}`
   }
+
+  const currentBonusesQuery = bonusesQuery + currentAddon
+  const previousBonusesQuery = bonusesQuery + previousAddon
+
+  bonusesQuery += addon
+
+  const bonusesResult = await db.query(bonusesQuery)
+  const currentBonusesResult = await db.query(currentBonusesQuery)
+  const previousBonusesResult = await db.query(previousBonusesQuery)
+  const bonusesData = bonusesResult.rows[0]
+  const currentBonusesData = currentBonusesResult.rows[0]
+  const previousBonusesData = previousBonusesResult.rows[0]
+
+  fines += evaluate(bonusesData.fines || '0')
+  bonuses += evaluate(bonusesData.bonuses || '0')
+
+  const currentBonuses = evaluate(currentBonusesData.bonuses || '0')
+  const previousBonuses = evaluate(previousBonusesData.bonuses || '0')
+
+  const currentFines = evaluate(currentBonusesData.fines || '0')
+  const previousFines = evaluate(previousBonusesData.fines || '0')
 
   const salaryData: ShortSalary = {
     currentDates: `${current[0].toFormat('dd.MM')}-${current[1].toFormat('dd.MM')}`,
@@ -148,6 +156,10 @@ export default async function Home() {
     previousSalaryTakeDate,
     bonuses,
     fines,
+    currentBonuses,
+    previousBonuses,
+    currentFines,
+    previousFines,
   }
 
   return <MainPage salaryData={salaryData} />
