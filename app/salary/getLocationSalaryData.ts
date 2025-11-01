@@ -1,8 +1,7 @@
 import checkPermissions from '@/lib/functions/checkPermissions'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
-import {LTWorker, SalaryData, UserSalary, Filter} from '@/src/utils/types'
-import sortByRank from '@/lib/functions/sortByRank'
+import {SalaryData, UserSalary, Filter} from '@/src/utils/types'
 import {DateTime} from 'luxon'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
@@ -38,6 +37,7 @@ export default async function getLocationSalaryData({
   const daysInMonth = currentDate.daysInMonth || 1
 
   let workersRows = []
+  let faceIdRows = []
   let salaryResult = {rows: []}
 
   if (canView) {
@@ -65,12 +65,12 @@ export default async function getLocationSalaryData({
       })
     }
 
-    const salaryQuery = `SELECT date,
+    const salaryQuery = `SELECT date::text,
                                     value,
                                     bonuses,
                                     fines,
                                     comment,
-                                    created_at,
+                                    created_at::text,
                                     start_time,
                                     end_time,
                                     overwork_start,
@@ -79,14 +79,12 @@ export default async function getLocationSalaryData({
                                     w.name  AS worker_name,
                                     w.id AS worker_id,
                                     ws.name AS created_by,
-                                    l.name  AS location_name,
-                                    l.color AS location_color,
-                                    l.id AS location_id,
+                                    get_location(l.id) AS location,
                                     s.type,
-                                    s.one_games,
-                                    s.two_games,
-                                    s.three_games,
-                                    s.actor_games,
+                                    s.one_games as "oneGames",
+                                    s.two_games as "twoGames",
+                                    s.three_games as "threeGames",
+                                    s.actor_games as "actorGames",
                                     s.work_types
                              FROM lt_arena.salary s
                                       LEFT JOIN lt_arena.workers w ON w.id = s.worker_id
@@ -95,13 +93,15 @@ export default async function getLocationSalaryData({
                          WHERE date BETWEEN '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}' AND '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'
                                  ${queryAddon}`
 
-    let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `WHERE LOWER(name) = '${worker?.name.toLowerCase()}'` : ''}`
+    let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `where w.name ilike '${worker?.name}'` : ''}`
 
     const workersQuery = `
     SELECT
-    id, name, first_name, rank, telegram_id, is_former
-    FROM lt_arena.workers 
-    ${workersQueryAddon}`
+    w.id, w.name, first_name as "firstName", rank, telegram_id as "telegramId", is_former as "isFormer"
+    FROM lt_arena.workers w
+    left join lt_arena.ranks r on r.name ilike w.rank
+    ${workersQueryAddon}
+    order by w.is_former, r.sorting_weight desc, w.name`
 
     const results = await db.query(`${salaryQuery};\n${workersQuery}`)
 
@@ -111,54 +111,26 @@ export default async function getLocationSalaryData({
     salaryResult = results[0]
 
     workersRows = workersResult.rows
+
+    const faceIdQuery = `select
+                         worker_id as "workerId",
+                         json_agg(
+                           json_build_object(
+                             'location', get_location(location_id),
+                             'date', date::text
+                           )
+                         ) as data
+                       from lt_arena.face_id
+                       where extract(month from date) = ${DateTime.fromISO(date).month}
+                       group by worker_id`
+
+    const faceIdResult = await db.query(faceIdQuery)
+    faceIdRows = faceIdResult.rows
   }
 
-  const workers: Omit<LTWorker, 'permissions' | 'permissionLevel'>[] =
-    workersRows.map((row: any) => {
-      return {
-        id: row.id,
-        name: row.name,
-        telegramId: row.telegram_id,
-        rank: row.rank,
-        firstName: row.first_name,
-        isFormer: row.is_former,
-      }
-    })
+  const salaryData: SalaryData[] = salaryResult.rows
 
-  const sortedWorkers = sortByRank(workers)
-
-  const salaryData: SalaryData[] = salaryResult.rows?.map((row: any) => {
-    const date: DateTime = row.date.set({second: 0, minute: 0, hour: 0})
-    return {
-      date: date.toFormat('yyyy-MM-dd'),
-      value: row.value,
-      bonuses: row.bonuses,
-      fines: row.fines,
-      comment: row.comment,
-      created_at: row.created_at || '',
-      created_by: row.created_by,
-      worker_name: row.worker_name,
-      worker_id: row.worker_id,
-      start_time: row.start_time,
-      end_time: row.end_time,
-      overwork_start: row.overwork_start,
-      overwork_end: row.overwork_end,
-      overwork: row.overwork,
-      location: {
-        name: row.location_name,
-        color: row.location_color,
-        id: row.location_id,
-      },
-      type: row.type,
-      oneGames: row.one_games,
-      twoGames: row.two_games,
-      threeGames: row.three_games,
-      actorGames: row.actor_games,
-      workTypes: row.work_types,
-    }
-  })
-
-  return sortedWorkers.map(worker => {
+  const data = workersRows.map((worker: any) => {
     const rowWithDates: UserSalary = {
       user: {
         id: worker.id,
@@ -191,4 +163,6 @@ export default async function getLocationSalaryData({
 
     return rowWithDates
   })
+
+  return {data, faceId: faceIdRows}
 }

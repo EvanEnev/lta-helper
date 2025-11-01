@@ -46,7 +46,7 @@ export default memo(function Table({
   canEdit,
   dates,
   gamesPayments,
-  faceIdData,
+  faceIdData: initialFaceId,
   locations,
 }: {
   data: UserSalary[]
@@ -57,6 +57,7 @@ export default memo(function Table({
   faceIdData: LTFaceIdData[]
   locations: LTLocation[]
 }) {
+  const [faceIdData, setFaceIdData] = useState<LTFaceIdData[]>(initialFaceId)
   const [columnFilters, setColumnFiltersAction] = useState([])
   const [isReviewMode, setReviewMode] = useState<boolean>(false)
   const socketRef = useRef<Socket | null>(null)
@@ -114,6 +115,10 @@ export default memo(function Table({
         setData(data.data)
       }
 
+      if (data.faceId) {
+        setFaceIdData(data.faceId)
+      }
+
       setLoading(false)
     },
     [date, locationId],
@@ -147,6 +152,7 @@ export default memo(function Table({
 
       if (data) {
         setData(data.data)
+        setFaceIdData(data.faceId)
       }
     })()
   }, [])
