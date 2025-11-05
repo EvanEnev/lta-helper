@@ -325,6 +325,8 @@ export default function WorkData({
                   minValue={0}
                   isWheelDisabled
                   label={d.description}
+                  // @ts-ignore
+                  value={data[d.key]?.number}
                   onValueChange={value =>
                     // @ts-ignore
                     updateData(d.key, {id: d.id, number: value})
@@ -347,6 +349,8 @@ export default function WorkData({
                   minValue={0}
                   isWheelDisabled
                   label={d.description}
+                  // @ts-ignore
+                  value={data[d.key]?.number}
                   onValueChange={value =>
                     // @ts-ignore
                     updateData(d.key, {id: d.id, number: value})

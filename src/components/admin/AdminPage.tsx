@@ -153,7 +153,13 @@ export default function AdminPage({
         }
 
         if (data.data.length) {
-          setSalaryData(data.data)
+          setSalaryData(
+            data.data.map(v => ({
+              ...v,
+              value: v.value || undefined,
+              overwork: v.overwork || undefined,
+            })),
+          )
         } else {
           setSalaryData([defaultSalaryData])
         }
