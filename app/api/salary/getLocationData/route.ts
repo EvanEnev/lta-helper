@@ -101,6 +101,7 @@ export async function POST(req: NextRequest) {
   const faceIdQuery = `select
                      w.id as "workerId",
                      w.name,
+                     w.rank,
                      json_agg(
                        json_build_object(
                          'location', get_location(fd.location_id),
@@ -119,9 +120,33 @@ export async function POST(req: NextRequest) {
     const currentData = data.find(d => d.worker === row.name)
 
     if (!currentData) {
+      const workTypes = []
+
+      if (row.rank === 'Актёр') {
+        workTypes.push(7)
+      } else if (['Платиновый', 'Золотой'].includes(row.rank)) {
+        workTypes.push(8)
+      } else if (row.rank === 'ОП') {
+        workTypes.push(9)
+      } else {
+        workTypes.push(3)
+      }
+
+      let workingHours = ''
+
+      if (row.data.length && row.data[0].date) {
+        let date = DateTime.fromFormat(row.data[0].date, 'yyyy-MM-dd HH:mm:ss')
+
+        if (date.minute > 30) {
+          date = date.plus({hours: 1})
+        }
+
+        workingHours = `${date.hour}-${date.plus({hours: 9}).hour}`
+      }
+
       data.push({
         worker: row.name,
-        workingHours: '',
+        workingHours: workingHours,
         location: location.name,
         value: 0,
         comment: '',
@@ -133,7 +158,7 @@ export async function POST(req: NextRequest) {
         twoGames: null,
         threeGames: null,
         actorGames: null,
-        workTypes: [],
+        workTypes: workTypes,
       })
     }
   })
