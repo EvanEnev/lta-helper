@@ -1,4 +1,5 @@
 import {
+  LTFaceIdData,
   LTGamePayment,
   LTLocation,
   LTRank,
@@ -24,6 +25,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface DesktopAdminProps {
+  faceId: LTFaceIdData[]
   days: {
     current: DateTime
     previous: DateTime
@@ -43,6 +45,7 @@ interface DesktopAdminProps {
 }
 
 export default function DesktopAdmin({
+  faceId,
   days,
   setDate,
   locations,
@@ -148,6 +151,7 @@ export default function DesktopAdmin({
               </CardHeader>
               <CardBody>
                 <WorkData
+                  faceId={faceId}
                   gamesPayments={gamesPayments}
                   workTypes={workTypes}
                   ranks={ranks}

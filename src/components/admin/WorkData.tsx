@@ -1,5 +1,6 @@
 import getSalaryData from '@/lib/functions/getSalaryData'
 import {
+  LTFaceIdData,
   LTGamePayment,
   LTLocation,
   LTRank,
@@ -25,8 +26,11 @@ import RankIcon from '@/src/components/global/RankIcon'
 import {evaluate} from 'mathjs'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import FormulaInput from '@/src/components/global/FormulaInput'
+import {DateTime} from 'luxon'
+import CellChip from '@/src/components/salary/CellChip'
 
 type WorkDataProps = {
+  faceId: LTFaceIdData[]
   data: WorkerSalary
   setData: any
   workers: LTWorker[]
@@ -48,6 +52,7 @@ const types = [
 ]
 
 export default function WorkData({
+  faceId,
   data,
   setData,
   workers,
@@ -68,6 +73,40 @@ export default function WorkData({
   const locationId = useMemo(() => {
     return locations.find(l => l.name === data.location)?.id || -1
   }, [data.location, locations])
+
+  const faceIdData = useMemo(() => {
+    const workerId = workers.find(
+      w => w.name?.toLowerCase() === data.worker?.toLowerCase(),
+    )?.id
+
+    if (!workerId) return null
+
+    const faceIdResult: {location: LTLocation; date: string}[] | undefined =
+      faceId
+        .find(d => d.workerId === workerId)
+        ?.data?.sort(
+          (d1, d2) =>
+            DateTime.fromFormat(d1.date, 'yyyy-MM-dd HH:mm:ss').valueOf() -
+            DateTime.fromFormat(d2.date, 'yyyy-MM-dd HH:mm:ss').valueOf(),
+        )
+        ?.map(d => ({
+          ...d,
+          date: DateTime.fromFormat(d.date, 'yyyy-MM-dd HH:mm:ss').toFormat(
+            'dd.MM.yyyy HH:mm:ss',
+          ),
+        })) || []
+
+    const faceIdData: [
+      {location: LTLocation; date: string} | null,
+      {location: LTLocation; date: string} | null,
+    ] = [faceIdResult[0] || null, null]
+
+    if (faceIdResult?.length && faceIdResult?.length > 2) {
+      faceIdData[1] = faceIdResult[faceIdResult?.length - 1] || null
+    }
+
+    return faceIdData
+  }, [faceId, data.worker, workers])
 
   const updateData = useCallback(
     (
@@ -508,6 +547,21 @@ export default function WorkData({
             }}
           />
         </div>
+        <div />
+        <CellChip className="h-full">Вход</CellChip>
+        <CellChip
+          className={
+            !faceIdData || !faceIdData[0] ? 'text-foreground/50' : 'h-fit'
+          }>
+          {faceIdData && faceIdData[0] ? faceIdData[0]?.date : <i>Нет</i>}
+        </CellChip>
+        <CellChip className="h-full">Выход</CellChip>
+        <CellChip
+          className={
+            !faceIdData || !faceIdData[1] ? 'text-foreground/50' : 'h-fit'
+          }>
+          {faceIdData && faceIdData[1] ? faceIdData[1]?.date : <i>Нет</i>}
+        </CellChip>
       </div>
     </div>
   )

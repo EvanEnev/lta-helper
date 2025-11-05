@@ -1,7 +1,7 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {DateTime} from 'luxon'
 import db from '@/lib/database'
-import {WorkerSalary} from '@/src/utils/types'
+import {LTLocation, WorkerSalary} from '@/src/utils/types'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 
@@ -31,8 +31,13 @@ export async function POST(req: NextRequest) {
     locationId = adminsRows[0].location_id
   }
 
+  const locationQuery = `select get_location(${locationId}) as location;`
+  const locationResult = await db.query(locationQuery)
+  const location: LTLocation = locationResult.rows[0]
+
   const query = `SELECT
   w.name AS worker,
+  w.id,
   w.rank,
   l.name AS location,
   start_time,
@@ -76,6 +81,7 @@ export async function POST(req: NextRequest) {
 
     return {
       worker: row.worker,
+      workerId: row.id,
       workingHours,
       location: row.location,
       value: row.value,
@@ -92,5 +98,45 @@ export async function POST(req: NextRequest) {
     }
   })
 
-  return NextResponse.json({data})
+  const faceIdQuery = `select
+                     w.id as "workerId",
+                     w.name,
+                     json_agg(
+                       json_build_object(
+                         'location', get_location(fd.location_id),
+                         'date', date::text
+                       )
+                     ) as data
+                   from lt_arena.face_id fd
+                   left join lt_arena.workers w on w.id = fd.worker_id 
+                   where date::date = '${date.toFormat('yyyy-MM-dd')}' and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 ? ' or fd.location_id = 17' : ''})
+                   group by w.id`
+
+  const faceIdResult = await db.query(faceIdQuery)
+  const faceIdRows = faceIdResult.rows
+
+  faceIdRows.forEach(row => {
+    const currentData = data.find(d => d.worker === row.name)
+
+    if (!currentData) {
+      data.push({
+        worker: row.name,
+        workingHours: '',
+        location: location.name,
+        value: 0,
+        comment: '',
+        bonuses: '',
+        fines: '',
+        isHardTime: false,
+        gamesCount: 0,
+        oneGames: null,
+        twoGames: null,
+        threeGames: null,
+        actorGames: null,
+        workTypes: [],
+      })
+    }
+  })
+
+  return NextResponse.json({data, faceId: faceIdRows})
 }

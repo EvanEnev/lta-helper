@@ -9,6 +9,7 @@ import {
 import WorkData from './WorkData'
 import {useCallback, useEffect, useState} from 'react'
 import {
+  LTFaceIdData,
   LTGamePayment,
   LTLocation,
   LTRank,
@@ -23,6 +24,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface MobileAdminProps {
+  faceId: LTFaceIdData[]
   days: {
     current: DateTime
     previous: DateTime
@@ -42,6 +44,7 @@ interface MobileAdminProps {
 }
 
 export default function MobileAdmin({
+  faceId,
   days,
   setDate,
   locations,
@@ -193,6 +196,7 @@ export default function MobileAdmin({
                 </Button>
               }>
               <WorkData
+                faceId={faceId}
                 gamesPayments={gamesPayments}
                 workTypes={workTypes}
                 ranks={ranks}

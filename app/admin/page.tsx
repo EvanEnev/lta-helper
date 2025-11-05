@@ -23,19 +23,16 @@ export default async function Admin() {
 
   const workersQuery = `SELECT
   w.name,
+  w.id,
   w.rank,
   r.id as "rankId",
-  w.is_former
+  w.is_former as "isFormer"
   FROM lt_arena.workers w
   left join lt_arena.ranks r on r.name = w.rank`
 
   const workersResult = await db.query(workersQuery)
 
-  const workersRows = workersResult.rows.map(w => ({
-    name: w.name as string,
-    rank: w.rank,
-    isFormer: !!w.is_former,
-  }))
+  const workersRows = workersResult.rows
 
   const canEdit = checkPermissions(['edit_salary'], worker)
 

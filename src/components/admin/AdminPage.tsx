@@ -5,6 +5,7 @@ import DesktopAdmin from '@/src/components/admin/DesktopAdmin'
 import MobileAdmin from '@/src/components/admin/MobileAdmin'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {
+  LTFaceIdData,
   LTGamePayment,
   LTLocation,
   LTRank,
@@ -58,6 +59,7 @@ export default function AdminPage({
   const [date, setDate] = useState<DateTime>(
     convertTZ(new Date(), 'Europe/Moscow'),
   )
+  const [faceId, setFaceIdData] = useState<LTFaceIdData[]>([])
   const [isLoading, setLoading] = useState<boolean>(false)
 
   const days = useMemo(() => {
@@ -143,7 +145,12 @@ export default function AdminPage({
         method: 'POST',
         body: JSON.stringify({date: date?.toISO()}),
       }).then(async res => {
-        const data: {data: WorkerSalary[]} = await res.json()
+        const data: {data: WorkerSalary[]; faceId: LTFaceIdData[]} =
+          await res.json()
+
+        if (data.faceId.length) {
+          setFaceIdData(data.faceId)
+        }
 
         if (data.data.length) {
           setSalaryData(data.data)
@@ -152,11 +159,12 @@ export default function AdminPage({
         }
       })
     }
-  }, [date])
+  }, [date, worker.locationId])
 
   return isMobile ? (
     <MobileAdmin
       {...{
+        faceId,
         gamesPayments,
         workTypes,
         ranks,
@@ -175,6 +183,7 @@ export default function AdminPage({
   ) : (
     <DesktopAdmin
       {...{
+        faceId,
         gamesPayments,
         workTypes,
         ranks,

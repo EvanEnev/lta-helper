@@ -101,7 +101,7 @@ export default async function getLocationSalaryData({
     FROM lt_arena.workers w
     left join lt_arena.ranks r on r.name ilike w.rank
     ${workersQueryAddon}
-    order by w.is_former, r.sorting_weight desc, w.name`
+    order by w.is_former desc, r.sorting_weight desc, w.name`
 
     const results = await db.query(`${salaryQuery};\n${workersQuery}`)
 
