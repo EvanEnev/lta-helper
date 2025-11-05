@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
           date = date.plus({hours: 1})
         }
 
-        workingHours = `${date.hour}-${date.plus({hours: 9}).hour}`
+        workingHours = `${date.hour}-${date.plus({hours: row.rank === 'Актёр' ? 4 : 9}).hour}`
       }
 
       data.push({
