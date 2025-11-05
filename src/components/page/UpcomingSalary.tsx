@@ -49,7 +49,7 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
           </p>
           <div className="flex items-center gap-1">
             {data.previousSalary +
-              (worker.rank === 'Актёр' ? data.currentBonuses : data.bonuses) -
+              (worker.rank === 'Актёр' ? data.currentBonuses : data.bonuses) +
               (worker.rank === 'Актёр' ? data.currentFines : data.fines)}{' '}
             <Ruble iconStyle="Bold" />
           </div>
@@ -88,7 +88,7 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
                 ? data.previousBonuses
                 : isCurrentWithBonuses
                   ? data.bonuses
-                  : 0) -
+                  : 0) +
               (worker.rank === 'Актёр'
                 ? data.previousFines
                 : isCurrentWithBonuses
@@ -101,9 +101,7 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
               bonuses={
                 worker.rank === 'Актёр' ? data.previousBonuses : data.bonuses
               }
-              fines={
-                worker.rank === 'Актёр' ? data.previousFines : data.bonuses
-              }
+              fines={worker.rank === 'Актёр' ? data.previousFines : data.fines}
               salary={data.currentSalary}
             />
           )}
