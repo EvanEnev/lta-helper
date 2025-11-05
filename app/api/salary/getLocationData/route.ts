@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const locationQuery = `select get_location(${locationId}) as location;`
   const locationResult = await db.query(locationQuery)
-  const location: LTLocation = locationResult.rows[0]
+  const location: LTLocation = locationResult.rows[0]?.location || {}
 
   const query = `SELECT
   w.name AS worker,
