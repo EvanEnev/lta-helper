@@ -56,7 +56,7 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
                   : 0) +
               (worker.rank === 'Актёр'
                 ? data.currentFines
-                : isCurrentWithBonuses
+                : !isCurrentWithBonuses
                   ? data.fines
                   : 0)}{' '}
             <Ruble iconStyle="Bold" />
