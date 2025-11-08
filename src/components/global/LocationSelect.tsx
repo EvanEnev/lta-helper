@@ -105,7 +105,7 @@ export default function LocationSelect({
   const onChange = useCallback(
     (locationId: any) => {
       setSelectedLocation(locationId)
-      callback(locations.find(location => location.id == locationId) || null)
+      callback(locations.find(location => location?.id == locationId) || null)
     },
     [callback, locations],
   )

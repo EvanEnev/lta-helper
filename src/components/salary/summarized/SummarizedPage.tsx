@@ -78,39 +78,93 @@ export default function SummarizedPage({
       },
       {
         header: 'ЗП',
-        accessorKey: 'salary',
+        key: 'salary',
+          accessorFn: ((row: any) => {
+              let value = 0
+
+              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
+                  value += d.salary
+              })
+
+              return value
+          }),
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Переработка',
-        accessorKey: 'overwork',
+        key: 'overwork',
+          accessorFn: ((row: any) => {
+              let value = 0
+
+              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
+                  value += d.overwork
+              })
+
+              return value
+          }),
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Итог',
-        accessorKey: 'together',
+        key: 'together',
+          accessorFn: ((row: any) => {
+              let value = 0
+
+              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
+                  value += d.salary + d.overwork
+              })
+
+              return value
+          }),
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Бонусы',
-        accessorKey: 'bonuses',
+        key: 'bonuses',
+                    accessorFn: ((row: any) => {
+              let value = 0
+
+              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
+                  value += d.bonuses
+              })
+
+              return value
+          }),
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Штрафы',
-        accessorKey: 'fines',
+        key: 'fines',
+                    accessorFn: ((row: any) => {
+              let value = 0
+
+              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
+                  value += d.fines
+              })
+
+              return value
+          }),
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Бонусы + Штрафы',
-        accessorKey: 'bonusesfines',
+        key: 'bonusesfines',
+          accessorFn: ((row: any) => {
+              let value = 0
+
+              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
+                  value += d.bonuses + d.fines
+              })
+
+              return value
+          }),
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
     ]
-  }, [])
+  }, [selectedLocations])
 
   const columns = useMemo(() => {
-    return initialColumns.filter(c => !hiddenColumns?.includes(c.accessorKey))
+    return initialColumns.filter(c => !hiddenColumns?.includes(c.accessorKey || c.key || ''))
   }, [hiddenColumns, initialColumns])
 
   useEffect(() => {
@@ -132,7 +186,19 @@ export default function SummarizedPage({
         if (data.data) {
           const grouped: object = groupBy(data.data, 'name')
           Object.entries(grouped).forEach(([key, value]) => {
-            const newUser = {
+            const newUser: {
+                user: {name: string, rank: string},
+                salary: number
+                bonuses: number
+                fines: number
+                together: number
+                overwork: number
+                bonusesfines: number
+                name: string
+                rank: string
+                locations: string[]
+                salaryData: {location: string, salary: number, overwork: number, bonuses: number, fines: number}[]
+            } = {
               user: {name: '', rank: ''},
               salary: 0,
               bonuses: 0,
@@ -142,26 +208,37 @@ export default function SummarizedPage({
               bonusesfines: 0,
               name: '',
               rank: '',
-              locationName: '',
+              locations: [],
+              salaryData: []
             }
 
             newUser.name = key
             newUser.rank = value[0].rank
-            newUser.locationName = value[0].location_name
             newUser.user = {
               name: `${key} - ${value[0].first_name}`,
               rank: value[0].rank,
             }
 
             value.forEach((value: any) => {
-              newUser.salary += value.value || 0
-              newUser.overwork += value.overwork || 0
+                // @ts-ignore
+                if (!newUser.locations.includes(value.location_name)) {
+                    // @ts-ignore
+                    newUser.locations.push(value.location_name)
+                }
 
-              newUser.overwork +=
+              const salary = value.value || 0
+              let overwork = value.overwork || 0
+
+                const dataIndex = newUser.salaryData.findIndex(d => d.location === value.location_name)
+
+                overwork +=
                 (value.one_games?.value || 0) +
                 (value.two_games?.value || 0) +
                 (value.three_games?.value || 0) +
                 (value.actor_games?.value || 0)
+
+                let bonusesValue = 0
+                let fines = 0
 
               if (bonuses) {
                 if (
@@ -175,9 +252,23 @@ export default function SummarizedPage({
                   value.bonuses = value.bonuses.slice(1)
                 }
 
-                newUser.bonuses += evaluate(value.bonuses || '0')
-                newUser.fines += evaluate(value.fines || '0')
+                  bonusesValue = evaluate(value.bonuses || '0')
+                fines = evaluate(value.fines || '0')
               }
+
+                if (dataIndex === -1) {
+                    newUser.salaryData.push({location: value.location_name, salary, overwork, bonuses: bonusesValue, fines})
+                } else {
+                    newUser.salaryData[dataIndex].salary += salary
+                    newUser.salaryData[dataIndex].overwork += overwork
+                    newUser.salaryData[dataIndex].bonuses += bonusesValue
+                    newUser.salaryData[dataIndex].fines += fines
+                }
+
+                newUser.salary += salary
+                newUser.overwork += overwork
+                newUser.bonuses += bonusesValue
+                newUser.fines += fines
             })
 
             newUser.together = newUser.salary + newUser.overwork
@@ -211,14 +302,19 @@ export default function SummarizedPage({
     let fines = 0
 
     data.forEach((value: any) => {
-      allSalary += value.salary + value.overwork
-      bonuses += value.bonuses
-      fines += value.fines
-      summary += value.salary + value.overwork + value.bonuses + value.fines
+        // @ts-ignore
+        const obj = value.salaryData.filter(d => selectedLocations.includes(d.location))
+        obj.forEach((value: any) => {
+            allSalary += value.salary + value.overwork
+            bonuses += value.bonuses
+            fines += value.fines
+            summary += value.salary + value.overwork + value.bonuses + value.fines
+        })
+
     })
 
     return {salary: allSalary, bonuses, summary, fines}
-  }, [data])
+  }, [data, selectedLocations])
 
   const ranksToHide = useMemo(() => ['Деревянный'], [])
 
@@ -237,7 +333,7 @@ export default function SummarizedPage({
           // @ts-ignore
           selectedRanks.includes(d.rank) &&
           // @ts-ignore
-          selectedLocations.includes(d.locationName),
+          selectedLocations.some(sd => d.locations.includes(sd)),
       ),
     )
   }, [initialData, selectedLocations, selectedRanks])
