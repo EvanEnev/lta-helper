@@ -93,14 +93,12 @@ export default async function getLocationSalaryData({
                          WHERE date BETWEEN '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}' AND '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'
                                  ${queryAddon}`
 
-    let workersQueryAddon = `${!(canViewFull || canViewLocation) ? `where w.name ilike '${worker?.name}'` : ''}`
-
     const workersQuery = `
     SELECT
     w.id, w.name, first_name as "firstName", rank, telegram_id as "telegramId", is_former as "isFormer"
     FROM lt_arena.workers w
     left join lt_arena.ranks r on r.name ilike w.rank
-    ${workersQueryAddon}
+    ${!(canViewFull || canViewLocation) ? `where w.name ilike '${worker?.name}'` : ''}
     order by w.is_former desc, r.sorting_weight desc, w.name`
 
     const results = await db.query(`${salaryQuery};\n${workersQuery}`)
@@ -135,9 +133,9 @@ export default async function getLocationSalaryData({
       user: {
         id: worker.id,
         name: worker.name,
-        firstName: worker.firstName || null,
+        firstName: worker.firstName,
         rank: worker.rank,
-        isFormer: worker.isFormer || null,
+        isFormer: worker.isFormer,
       },
       dates: [],
     }

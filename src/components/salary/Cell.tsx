@@ -14,7 +14,7 @@ import {
 } from '@heroui/react'
 import CellBody from '@/src/components/salary/CellBody'
 import CellFooter from '@/src/components/salary/CellFooter'
-import {memo, useCallback, useEffect, useState} from 'react'
+import {memo, useCallback, useEffect, useMemo, useState} from 'react'
 import {ChatRoundLine} from 'solar-icon-set'
 import isDark from '@/lib/functions/isDark'
 import EditDrawer from '@/src/components/salary/EditDrawer'
@@ -72,6 +72,61 @@ export default memo(function Cell({
     [handleDelete],
   )
 
+  const defaultTime = useMemo(() => {
+    return {
+      start: {
+        hour: '',
+        minute: '',
+      },
+      end: {
+        hour: '',
+        minute: '',
+      },
+    }
+  }, [])
+
+  const time = useMemo(() => {
+    if (!cellData?.start_time || !cellData?.end_time) return defaultTime
+
+    const startTime = cellData.start_time.slice(0, -3)
+    const endTime = cellData.end_time.slice(0, -3)
+
+    return {
+      start: {
+        hour: startTime.split(':')[0],
+        minute: startTime.split(':')[1],
+      },
+      end: {
+        hour: endTime.split(':')[0],
+        minute: endTime.split(':')[1],
+      },
+    }
+  }, [cellData?.start_time, cellData?.end_time, defaultTime])
+
+  const overworkTime = useMemo(() => {
+    if (!cellData?.overwork_start) return defaultTime
+
+    if (!(cellData.overwork_start && cellData.overwork_end)) return defaultTime
+
+    const startTime =
+      cellData.overwork_start === '--'
+        ? '--'
+        : cellData.overwork_start.slice(0, -3)
+    const endTime =
+      cellData.overwork_end === '--' ? '--' : cellData.overwork_end.slice(0, -3)
+
+    return {
+      start: {
+        hour: startTime.split(':')[0],
+        minute: startTime.split(':')[1],
+      },
+      end: {
+        hour: endTime.split(':')[0],
+        minute: endTime.split(':')[1],
+      },
+    }
+  }, [cellData?.overwork_start, cellData?.overwork_end, defaultTime])
+
   if (!cellData) return null
 
   const textColorClass =
@@ -94,7 +149,10 @@ export default memo(function Cell({
             content={
               <p className="whitespace-nowrap">
                 {cellData.created_by}{' '}
-                {DateTime.fromISO(cellData.created_at).toFormat('dd.MM yyyy')}
+                {DateTime.fromFormat(
+                  cellData.created_at,
+                  'yyyy-MM-dd HH:mm:ss',
+                ).toFormat('dd.MM yyyy')}
               </p>
             }>
             <div className="text-large flex items-center gap-2">
@@ -110,6 +168,8 @@ export default memo(function Cell({
           isReviewMode={isReviewMode}
           faceId={faceIdData}
           data={cellData}
+          time={time}
+          overworkTime={overworkTime}
         />
       </CardBody>
       <CardFooter
@@ -121,6 +181,8 @@ export default memo(function Cell({
         </p>
         <CellFooter data={cellData} />
         <EditDrawer
+          time={time}
+          overworkTime={overworkTime}
           faceId={faceIdData}
           locations={locations}
           data={cellData}

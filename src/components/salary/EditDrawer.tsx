@@ -24,6 +24,7 @@ import {
   Gamepad,
   History,
   Ruble,
+  SortByTime,
 } from 'solar-icon-set'
 import {
   LTFaceIdData,
@@ -49,6 +50,14 @@ interface EditDrawerProps {
   isReadOnly: boolean
   faceId?: LTFaceIdData['data']
   locations: LTLocation[]
+  time: {
+    start: {hour: string; minute: string}
+    end: {hour: string; minute: string}
+  }
+  overworkTime: {
+    start: {hour: string; minute: string}
+    end: {hour: string; minute: string}
+  }
 }
 
 export default function EditDrawer({
@@ -59,47 +68,11 @@ export default function EditDrawer({
   isReadOnly,
   faceId = [],
   locations,
+  time,
+  overworkTime,
 }: EditDrawerProps) {
   const {isOpen, onOpen, onOpenChange} = useDisclosure()
   const isMobile = useIsMobile()
-
-  const time = useMemo(() => {
-    const startTime = data.start_time.slice(0, -3)
-    const endTime = data.end_time.slice(0, -3)
-
-    return {
-      start: {
-        hour: startTime.split(':')[0],
-        minute: startTime.split(':')[1],
-      },
-      end: {
-        hour: endTime.split(':')[0],
-        minute: endTime.split(':')[1],
-      },
-    }
-  }, [data.start_time, data.end_time])
-
-  const overWorkTime = useMemo(() => {
-    if (!(data.overwork_start && data.overwork_end)) {
-      return {}
-    }
-
-    const startTime =
-      data.overwork_start === '--' ? '--' : data.overwork_start.slice(0, -3)
-    const endTime =
-      data.overwork_end === '--' ? '--' : data.overwork_end.slice(0, -3)
-
-    return {
-      start: {
-        hour: startTime.split(':')[0],
-        minute: startTime.split(':')[1],
-      },
-      end: {
-        hour: endTime.split(':')[0],
-        minute: endTime.split(':')[1],
-      },
-    }
-  }, [data.overwork_start, data.overwork_end])
 
   const salaryDate = useMemo(() => DateTime.fromISO(data.date), [data.date])
 
@@ -204,11 +177,14 @@ export default function EditDrawer({
                 style={{backgroundColor: data.location.color}}>
                 <div className="flex items-center gap-2">
                   <Location locationName={data.location.name || ''} />
-                  <p>{DateTime.fromISO(data.date).toFormat('dd.MM yyyy')}</p>
+                  <p>{DateTime.fromISO(data.date).toFormat('dd.MM, yyyy')}</p>
                 </div>
                 <p className="text-foreground-500 text-s">
                   Проставлена: {data.created_by}{' '}
-                  {DateTime.fromISO(data.created_at).toFormat('dd.MM yyyy')}
+                  {DateTime.fromFormat(
+                    data.created_at,
+                    'yyyy-MM-dd HH:mm:ss',
+                  ).toFormat('dd.MM yyyy')}
                 </p>
               </DrawerHeader>
               <DrawerBody className="grid grid-flow-row auto-rows-min grid-cols-2 gap-2">
@@ -253,7 +229,7 @@ export default function EditDrawer({
                   isReadOnly={isReadOnly}
                   label="Начало"
                   // @ts-ignore
-                  value={overWorkTime.start}
+                  value={overworkTime.start}
                   // @ts-ignore
                   onChange={value => update(value, 'overwork_start')}
                 />
@@ -262,7 +238,7 @@ export default function EditDrawer({
                   isReadOnly={isReadOnly}
                   label="Конец"
                   // @ts-ignore
-                  value={overWorkTime.end}
+                  value={overworkTime.end}
                   // @ts-ignore
                   onChange={value => update(value, 'overwork_end')}
                 />
@@ -512,10 +488,7 @@ export default function EditDrawer({
                   onValueChange={value => update(value, 'comment')}
                 />
                 <p className="col-span-full w-full">
-                  <ChatRoundLine
-                    iconStyle="Bold"
-                    className="mr-1 align-middle"
-                  />
+                  <SortByTime iconStyle="Bold" className="mr-1 align-middle" />
                   FaceID
                 </p>
                 {faceId.map(data => (

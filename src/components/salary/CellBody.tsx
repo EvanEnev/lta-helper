@@ -1,6 +1,6 @@
 import {LTFaceIdData, SalaryData} from '@/src/utils/types'
 import {Divider, TimeInput, Tooltip} from '@heroui/react'
-import {memo, useMemo} from 'react'
+import {memo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
 import {BillCheck, BillCross, Ruble} from 'solar-icon-set'
@@ -10,10 +10,20 @@ export default function CellBody({
   data,
   faceId = [],
   isReviewMode,
+  time,
+  overworkTime,
 }: {
   data: SalaryData
   faceId?: LTFaceIdData['data']
   isReviewMode: boolean
+  time: {
+    start: {hour: string; minute: string}
+    end: {hour: string; minute: string}
+  }
+  overworkTime: {
+    start: {hour: string; minute: string}
+    end: {hour: string; minute: string}
+  }
 }) {
   // @ts-ignore
   faceId = faceId
@@ -27,44 +37,6 @@ export default function CellBody({
       ...d,
       date: DateTime.fromFormat(d.date, 'yyyy-MM-dd HH:mm:ss'),
     }))
-
-  const time = useMemo(() => {
-    const startTime = data.start_time.slice(0, -3)
-    const endTime = data.end_time.slice(0, -3)
-
-    return {
-      start: {
-        hour: startTime.split(':')[0],
-        minute: startTime.split(':')[1],
-      },
-      end: {
-        hour: endTime.split(':')[0],
-        minute: endTime.split(':')[1],
-      },
-    }
-  }, [data.start_time, data.end_time])
-
-  const overWorkTime = useMemo(() => {
-    if (!(data.overwork_start && data.overwork_end)) {
-      return {}
-    }
-
-    const startTime =
-      data.overwork_start === '--' ? '--' : data.overwork_start.slice(0, -3)
-    const endTime =
-      data.overwork_end === '--' ? '--' : data.overwork_end.slice(0, -3)
-
-    return {
-      start: {
-        hour: startTime.split(':')[0],
-        minute: startTime.split(':')[1],
-      },
-      end: {
-        hour: endTime.split(':')[0],
-        minute: endTime.split(':')[1],
-      },
-    }
-  }, [data.overwork_start, data.overwork_end])
 
   const Games = memo(function Games() {
     if (!isReviewMode)
@@ -154,14 +126,14 @@ export default function CellBody({
           className={data.type ? 'hidden' : ''}
           isReadOnly
           // @ts-ignore
-          value={overWorkTime.start}
+          value={overworkTime.start}
         />
         <TimeInput
           aria-label="Конец переработки"
           className={data.type ? 'hidden' : ''}
           isReadOnly
           // @ts-ignore
-          value={overWorkTime.end}
+          value={overworkTime.end}
         />
         <CellChip
           className={`${data.type ? 'hidden!' : ''} text-foreground text-small col-span-2 flex justify-between`}>

@@ -47,7 +47,8 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
   }, [data.id, onDelete])
 
   return (
-    <Card className="h-[18rem] w-[20rem]">
+    <Card
+      className={`h-[18rem] w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
       <CardHeader>{interval.toFormat('dd.MM.yyyy')}</CardHeader>
       <CardBody className="flex flex-col gap-2">
         {canViewAllData && (
@@ -86,7 +87,9 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
         <Button
           variant="faded"
           className={
-            checkPermissions(['edit_payrolls'], worker) ? '' : 'flex-1'
+            checkPermissions(['edit_payrolls'], worker)
+              ? 'flex-1 sm:flex-none'
+              : 'flex-1'
           }
           as={Link}
           href={`/payrolls/${data.id}`}

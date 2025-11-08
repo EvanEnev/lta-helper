@@ -144,7 +144,7 @@ export default function PayrollCreateCard({
       <Button
         variant="ghost"
         onPress={onOpen}
-        className="flex h-[18rem] w-[20rem] flex-col gap-2 border-dashed text-2xl">
+        className="flex h-[18rem] w-full flex-col gap-2 border-dashed text-2xl sm:w-[20rem]">
         <AddCircle size={50} />
         Создать
       </Button>

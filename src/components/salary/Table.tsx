@@ -403,6 +403,7 @@ export default memo(function Table({
                     callback={(location: LTLocation | null) =>
                       updateData('location', location)
                     }
+                    dynamicLocationId
                     locationId={locationId}
                   />
                 </DropdownItem>
@@ -437,6 +438,7 @@ export default memo(function Table({
                 callback={(location: LTLocation | null) =>
                   updateData('location', location)
                 }
+                dynamicLocationId
                 locationId={locationId}
               />
               <Input
