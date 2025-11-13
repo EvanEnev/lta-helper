@@ -3,9 +3,13 @@ import Image from 'next/image'
 export default function RankIcon({
   rank: workerRank,
   className = '',
+  width = 40,
+  height = 40,
 }: {
   rank: string
   className?: string
+  width?: number
+  height?: number
 }) {
   let rank = ''
 
@@ -47,8 +51,8 @@ export default function RankIcon({
       <Image
         src={`/icons/${rank}Icon.svg`}
         alt={workerRank}
-        width={40}
-        height={40}
+        width={width}
+        height={height}
         draggable={false}
         className={className + ' select-none'}
       />

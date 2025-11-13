@@ -7,21 +7,11 @@ import {
   LTWorkerPayrollData,
 } from '@/src/utils/types'
 import {useAuth} from '@/src/components/global/providers/authProvider'
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {Button, Code, Divider, Link} from '@heroui/react'
-import Location from '@/src/components/global/Location'
-import {ArrowLeft} from 'solar-icon-set'
 import PayrollsDetailsRow from '@/src/components/payrolls/details/PayrollsDetailsRow'
 import {io, Socket} from 'socket.io-client'
-import LocationSelect from "@/src/components/global/LocationSelect";
+import PayrollsDetailsNote from '@/src/components/payrolls/details/PayrollsDetailsNote'
 
 interface PayrollsDetailsPageProps {
   data: LTWorkerPayrollData[]
@@ -55,8 +45,6 @@ export default function PayrollsDetailsPage({
     [worker],
   )
 
-  const canViewAll = useMemo(() => checkPermissions(['view_all_payrolls'], worker), [worker])
-
   const checkTarget = useCallback((row: LTWorkerPayrollData, data: any) => {
     return row.worker.id === data.worker_id
   }, [])
@@ -78,11 +66,11 @@ export default function PayrollsDetailsPage({
       )
 
       unfilteredData.current = data.map((row: any) => {
-          if (!checkTarget(row, data)) return row
-          return {
-              ...row,
-              ...data,
-          }
+        if (!checkTarget(row, data)) return row
+        return {
+          ...row,
+          ...data,
+        }
       })
     })
 
@@ -91,6 +79,12 @@ export default function PayrollsDetailsPage({
       socket.disconnect()
     }
   }, [checkTarget, worker.id])
+
+  const locationSelectCallback = useCallback((location: LTLocation | null) => {
+    if (!location) return setData(unfilteredData.current)
+
+    setData(unfilteredData.current.filter(d => d.location_id === location.id))
+  }, [])
 
   return (
     <main className="flex h-full w-full gap-2 p-4">
@@ -117,48 +111,11 @@ export default function PayrollsDetailsPage({
         ['view_all_payrolls', 'view_location_payrolls'],
         worker,
       ) && (
-        <div className="sticky top-0 flex h-fit min-w-[22rem] flex-col gap-2">
-          <div className="flex w-full items-center gap-2">
-            <Button
-              className="w-full"
-              as={Link}
-              href="/payrolls"
-              startContent={<ArrowLeft />}>
-              Назад
-            </Button>
-          </div>
-            <LocationSelect isClearable callback={(location) => {
-                if (!location) return setData(unfilteredData.current)
-
-                setData(unfilteredData.current.filter(d => d.location_id === location.id))
-            }} locationId={-1} />
-          <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
-            <p className="text-center">Локация</p>
-            <Code color="primary" className="text-center">
-              Выделено
-            </Code>
-            <Code color="success" className="text-center">
-              Выдано
-            </Code>
-            {locationsData.map((locationData, index) => {
-              const locationIssued = data
-                .filter(d => d.location_id === locationData.location_id)
-                .reduce((acc, cur) => acc + (cur.taken || 0), 0)
-
-              return (
-                <Fragment key={index}>
-                  <Divider className="col-span-full" />
-                  <Location
-                    className="break-all"
-                    locationName={locationData.location}
-                  />
-                  <Code color="primary">{locationData.value}</Code>
-                  <Code color="success">{locationIssued}</Code>
-                </Fragment>
-              )
-            })}
-          </div>
-        </div>
+        <PayrollsDetailsNote
+          locationsData={locationsData}
+          locationSelectCallback={locationSelectCallback}
+          data={data}
+        />
       )}
     </main>
   )

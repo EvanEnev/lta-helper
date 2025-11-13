@@ -21,36 +21,47 @@ export default function LocationIcon({
   let Icon
 
   switch (locationName?.toLowerCase().trim()) {
+    case 'вб':
     case 'военный бункер':
       Icon = VB
       break
+    case 'уб':
     case 'убежище':
       Icon = Shelter
       break
+    case 'зф':
     case 'забытая фабрика':
       Icon = AbandonedFactory
       break
+    case 'ст':
     case 'сити':
       Icon = City
       break
+    case 'тп':
     case 'телепорт':
       Icon = Teleport
       break
+    case 'вр':
     case 'виармания':
       Icon = VR
       break
+    case 'дз':
     case 'дикий запад':
       Icon = WildWest
       break
+    case 'анк':
     case 'анклав':
       Icon = Enclave
       break
+    case 'кп':
     case 'киберпорт':
       Icon = Cyberport
       break
+    case 'пс':
     case 'пиратская станция':
       Icon = PirateStation
       break
+    case 'дж':
     case 'джунгли':
       Icon = Jungle
       break

@@ -190,10 +190,16 @@ export interface LTWorkerPayrollData {
   bonuses: number | null
   external_payment: number | null
   location_id: LTLocation['id']
-  to_take_by: LTWorker['name'] | null
+  to_take_by: {
+    name: LTWorker['name'] | null
+    rank: LTWorker['rank'] | null
+  }
   to_take: number | null
   issue_confirmed: boolean | null
-  taken_by: LTWorker['name'] | null
+  taken_by: {
+    name: LTWorker['name'] | null
+    rank: LTWorker['rank'] | null
+  }
   taken: number | null
   taken_at: string | null
 }

@@ -38,11 +38,17 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
     wp.bonuses,
     wp.issue_confirmed,
     l.id as location_id,
-    w2.name as to_take_by,
+    json_build_object(
+        'name', w2.name,
+        'rank', w2.rank
+    ) as to_take_by,
     wp.to_take,
     wp.taken,
     wp.external_payment,
-    w3.name as taken_by,
+    json_build_object(
+        'name', w3.name,
+        'rank', w3.rank
+    ) as taken_by,
     wp.taken_at::text
 from lt_arena.workers_payrolls wp
 left join lt_arena.workers w on wp.worker_id = w.id
@@ -54,13 +60,11 @@ left join lt_arena.ranks r on w.rank = r.name
 where p.id = ${id}`
 
   let moneyOnLocationsQuery = `
-    select
-      l.name as location,
-      l.id as location_id,
-      lm.value
-    from lt_arena.locations_money lm
-           left join lt_arena.locations l on l.id = lm.location_id
-    where lm.payroll_id = ${id} and value is not null`
+    select l.short_name as location, l.id as location_id, coalesce(lm.value, 0) as value
+    from (select distinct(location_id) from lt_arena.workers_payrolls where payroll_id = ${id}) lp
+           left join lt_arena.locations l on l.id = lp.location_id
+           left join lt_arena.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = ${id}
+    order by l.name`
 
   if (!checkPermissions(['view_payrolls'], worker)) {
     workersPayrollDataQuery += `\nand p.id = -1`

@@ -10,6 +10,8 @@ import {Socket} from 'socket.io-client'
 import {DefaultEventsMap} from 'socket.io'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {authClient} from '@/lib/auth/authClient'
+import separateNumber from '@/lib/functions/separateNumber'
+import useIsMobile from '@/src/hooks/useIsMobile'
 
 interface PayrollsDetailsRowProps {
   data: LTWorkerPayrollData
@@ -28,7 +30,8 @@ export default function PayrollsDetailsRow({
   payrollId,
   socketRef,
 }: PayrollsDetailsRowProps) {
-  const {worker} = useAuth()
+  const {worker, headerRef} = useAuth()
+  const isMobile = useIsMobile()
   const [loading, setLoading] = useState(false)
 
   const issuePayroll = useCallback(async () => {
@@ -50,7 +53,6 @@ export default function PayrollsDetailsRow({
     ) => {
       if (!value) value = -1
       const session = await authClient.getSession()
-      console.debug(session)
 
       const body = {
         worker_id: data.worker.id,
@@ -77,13 +79,17 @@ export default function PayrollsDetailsRow({
   return (
     <>
       <fieldset className="glass relative flex flex-col items-center gap-2 rounded-2xl p-2">
-        <legend className="sticky left-2 flex translate-y-1 items-center justify-start gap-2">
+        <legend
+          className="sticky left-2 flex translate-y-1 items-center justify-start gap-2"
+          style={{
+            left: isMobile ? '0.5rem' : headerRef.current?.offsetWidth,
+          }}>
           <RankIcon rank={data.worker.rank} />
           <p className="mx-auto">{data.worker.name}</p>
         </legend>
         <div className="flex items-center gap-2">
           <NumberInput
-            label="Ставка"
+            label="ЗП"
             labelPlacement="outside"
             classNames={{stepperButton: 'hidden'}}
             isReadOnly={!canEdit}
@@ -170,7 +176,7 @@ export default function PayrollsDetailsRow({
             <>
               <Button
                 isLoading={loading}
-                className="min-w-[9rem]"
+                className="h-full min-w-[9rem]"
                 onPress={issuePayroll}
                 color={
                   data.issue_confirmed
@@ -193,20 +199,29 @@ export default function PayrollsDetailsRow({
                   <div className="min-w-[9rem]">
                     <p>Выдано:</p>
                     <Code className="w-full" color="success">
-                      {data.taken}
+                      {separateNumber(data.taken)}
                     </Code>
                   </div>
                   <Divider orientation="vertical" />
                   <div>
                     <p>Забрал:</p>
-                    <span className="border-white/20">{data.taken_by}, </span>
-                    <span className="text-white/50">
-                      {data.taken_at &&
-                        DateTime.fromFormat(
-                          data.taken_at,
-                          'yyyy-MM-dd HH:mm:ss',
-                        ).toFormat('dd.MM.yyyy HH:mm:ss')}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-2">
+                        <RankIcon
+                          width={30}
+                          height={30}
+                          rank={data.taken_by.rank || ''}
+                        />{' '}
+                        <p>{data.taken_by.name},</p>
+                      </div>
+                      <p className="text-white/50">
+                        {data.taken_at &&
+                          DateTime.fromFormat(
+                            data.taken_at,
+                            'yyyy-MM-dd HH:mm:ss',
+                          ).toFormat('dd.MM.yyyy HH:mm:ss')}
+                      </p>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -214,8 +229,8 @@ export default function PayrollsDetailsRow({
                   <div className="min-w-[9rem]">
                     <p>К выдаче:</p>
                     {data.to_take ? (
-                      <Code className="w-full" color="primary">
-                        {data.to_take}
+                      <Code className="text-medium w-full" color="primary">
+                        {separateNumber(data.to_take)}
                       </Code>
                     ) : (
                       <i>Не указано</i>
@@ -224,11 +239,16 @@ export default function PayrollsDetailsRow({
                   <Divider orientation="vertical" />
                   <div>
                     <p>Заберёт:</p>
-                    {data.to_take_by ? (
-                      <p>{data.to_take_by}</p>
-                    ) : (
-                      <i>Не указано</i>
-                    )}
+                    {
+                      <div className="flex items-center gap-2">
+                        <RankIcon
+                          width={30}
+                          height={30}
+                          rank={data.to_take_by.rank || data.worker.rank || ''}
+                        />
+                        <p>{data.to_take_by.name || data.worker.name}</p>
+                      </div>
+                    }
                   </div>
                 </>
               )}
