@@ -63,12 +63,11 @@ where p.id = ${id}`
     select l.short_name as location, l.id as location_id, coalesce(lm.value, 0) as value
     from (select distinct(location_id) from lt_arena.workers_payrolls where payroll_id = ${id}) lp
            left join lt_arena.locations l on l.id = lp.location_id
-           left join lt_arena.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = ${id}
-    order by l.name`
+           left join lt_arena.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = ${id}`
 
   if (!checkPermissions(['view_payrolls'], worker)) {
     workersPayrollDataQuery += `\nand p.id = -1`
-    moneyOnLocationsQuery += `\nand lm.payroll_id = -1`
+    moneyOnLocationsQuery += `\nwhere lm.payroll_id = -1`
   }
 
   if (
@@ -76,17 +75,18 @@ where p.id = ${id}`
     checkPermissions(['view_location_payrolls'], worker)
   ) {
     workersPayrollDataQuery += `\nand (wp.location_id = ${worker?.locationId} or wp.worker_id = ${worker?.id})`
-    moneyOnLocationsQuery += `\nand lm.location_id = ${worker?.locationId}`
+    moneyOnLocationsQuery += `\nwhere lm.location_id = ${worker?.locationId}`
   }
 
   if (
     !checkPermissions(['view_all_payrolls', 'view_location_payrolls'], worker)
   ) {
     workersPayrollDataQuery += `\nand wp.worker_id = ${worker?.id}`
-    moneyOnLocationsQuery += `\nand lm.payroll_id = -1`
+    moneyOnLocationsQuery += `\nwhere lm.payroll_id = -1`
   }
 
-  workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
+    moneyOnLocationsQuery += `\norder by l.name`
+    workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
 
   const result = await db.query(workersPayrollDataQuery)
   const data = result.rows
