@@ -15,14 +15,11 @@ import {
   useRef,
   useState,
 } from 'react'
-import Location from '@/src/components/global/Location'
 import {
   Button,
   Checkbox,
   Code,
-  DatePicker,
   Divider,
-  Input,
   Link,
   semanticColors,
 } from '@heroui/react'
@@ -34,15 +31,15 @@ import {
   CheckCircle,
   CloseCircle,
   CloseSquare,
-  Plain,
   Ruble,
 } from 'solar-icon-set'
 import {DateTime, Interval} from 'luxon'
 import {useTheme} from 'next-themes'
-import {parseDate} from '@internationalized/date'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import {evaluate} from 'mathjs'
+import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
+import {useRouter} from 'next/navigation'
 
 interface PayrollCreatePageProps {
   data: {
@@ -72,15 +69,8 @@ export default function PayrollCreatePage({
   locations,
 }: PayrollCreatePageProps) {
   const {setExiting} = useAuth()
+  const router = useRouter()
   const [data, setData] = useState(initialData)
-  const [dates, setDates] = useState(
-    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.dates ||
-      initialDates,
-  )
-  const [bonuses, setBonuses] = useState(
-    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.bonuses ||
-      initialBonuses,
-  )
   const headerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -118,6 +108,20 @@ export default function PayrollCreatePage({
       ?.moneyOnLocations || initialMoney,
   )
 
+  const dates = useMemo(
+    () =>
+      JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.dates ||
+      initialDates,
+    [initialDates],
+  )
+
+  const bonuses = useMemo(
+    () =>
+      JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.bonuses ||
+      initialBonuses,
+    [initialBonuses],
+  )
+
   const interval = useMemo(() => {
     return Interval.fromISO(`${dates.start}/${dates.end}`)
   }, [dates.start, dates.end])
@@ -143,22 +147,6 @@ export default function PayrollCreatePage({
   )
 
   useEffect(() => {
-    // if (firstRender.current) {
-    //   const localItem = localStorage.getItem('payrollsCreate')
-    //
-    //   if (localItem) {
-    //     const data = JSON.parse(localItem)
-    //     setBonuses(data.withBonuses)
-    //     setPayrollData(data.workersData)
-    //     setTakeBy(data.takeBy)
-    //     setDates(data.dates)
-    //     setMoneyOnLocations(data.moneyOnLocations)
-    //   }
-    //
-    //   firstRender.current = false
-    //   return
-    // }
-
     const data = {
       withBonuses: bonuses,
       workersData: payrollData,
@@ -185,10 +173,11 @@ export default function PayrollCreatePage({
       body: dataToSend,
     })
 
-    if (result) {
+    if (result?.id) {
       localStorage.removeItem('payrollsCreate')
+      router.push(`/payrolls/${result.id}`)
     }
-  }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
+  }, [bonuses, dates, moneyOnLocations, payrollData, router, takeBy])
 
   const handleUpdate = useCallback(
     (
@@ -215,7 +204,7 @@ export default function PayrollCreatePage({
         )
       }
     },
-    [selectedRows],
+    [data, selectedRows],
   )
 
   const checkboxChange = useCallback(
@@ -410,78 +399,16 @@ export default function PayrollCreatePage({
             )
           })}
         </div>
-        <div className="sticky top-0 flex h-fit max-h-[87vh] min-w-[20rem] flex-col gap-2 overflow-auto">
-          <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
-            <p className="text-center">Локация</p>
-            <Code color="primary" className="text-center">
-              Начало
-            </Code>
-            <Code color="success" className="text-center">
-              Остаток
-            </Code>
-            {locations
-              .filter(l => !locationsToHide.includes(l.name.toLowerCase()))
-              .map(location => {
-                const locationData = moneyOnLocations.find(
-                  d => d.location === location.id,
-                )!
-
-                const locationMoney = locationData.value || 0
-
-                const usedMoney = payrollData
-                  .filter(d => d.location === location.id)
-                  .reduce(
-                    (acc, d) =>
-                      acc +
-                      (d.fines || 0) +
-                      (d.bonuses || 0) +
-                      (d.value || 0) -
-                      (d.external_payment || 0),
-                    0,
-                  )
-
-                return (
-                  <Fragment key={location.id}>
-                    <Divider className="col-span-full" />
-                    <Location locationName={location.name} />
-                    <Input
-                      color={locationData.error ? 'danger' : 'primary'}
-                      defaultValue={locationMoney.toString()}
-                      onValueChange={value =>
-                        updateLocationMoney(location.id, value)
-                      }
-                    />
-                    <Code
-                      className="flex h-10 items-center"
-                      color={
-                        locationMoney - usedMoney < 0 ? 'danger' : 'success'
-                      }>
-                      {locationMoney - usedMoney}
-                    </Code>
-                  </Fragment>
-                )
-              })}
-          </div>
-          <div className="glass p-2">
-            <p>Можно забрать до</p>
-            <DatePicker
-              // @ts-ignore
-              value={parseDate(takeBy)}
-              // @ts-ignore
-              onChange={d => setTakeBy(d?.toString() || '')}
-            />
-          </div>
-          <div className="glass p-2">
-            <Button
-              startContent={<Plain size={24} />}
-              className="col-span-full w-full"
-              variant="shadow"
-              color="primary"
-              onPress={sendData}>
-              Отправить
-            </Button>
-          </div>
-        </div>
+        <PayrollCreateNote
+          locations={locations}
+          locationsToHide={locationsToHide}
+          moneyOnLocations={moneyOnLocations}
+          payrollData={payrollData}
+          updateLocationMoneyCallback={updateLocationMoney}
+          sendDataCallback={sendData}
+          takeBy={takeBy}
+          setTakeBy={val => setTakeBy(val)}
+        />
       </div>
     </main>
   )

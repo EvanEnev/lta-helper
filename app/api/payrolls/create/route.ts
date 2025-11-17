@@ -63,5 +63,5 @@ export async function POST(req: NextRequest) {
   await db.query(createWorkersPayrollQuery)
   await db.query(createMoneyOnLocationsQuery)
 
-  return NextResponse.json({}, {status: 200})
+  return NextResponse.json({id: payrollId}, {status: 200})
 }
