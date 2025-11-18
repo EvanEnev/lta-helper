@@ -66,7 +66,7 @@ export default function LocationSelect({
 
         if (!checkPermissions(['view_full_salary'], worker)) {
           sortedLocations = sortedLocations.filter(d => {
-            if (worker.id === 42 && d.id === 17) {
+            if ((worker.id === 42 || worker.id === 12) && d.id === 17) {
               return true
             } else {
               return [worker.locationId, 12].includes(d.id)
@@ -115,7 +115,7 @@ export default function LocationSelect({
       isDisabled={isDisabled}
       isReadOnly={isReadOnly}
       required
-      placeholder='Не выбрано'
+      placeholder="Не выбрано"
       startContent={
         <LocationIcon
           className="h-6"

@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
-  WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12${user.id === 42 ? ' or s.location_id = 17' : ''})` : ''}`
+  WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12${user.id === 42 || user.id === 12 ? ' or s.location_id = 17' : ''})` : ''}`
 
   const result = await db.query(query)
   const rows = result.rows
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
                      ) as data
                    from lt_arena.face_id fd
                    left join lt_arena.workers w on w.id = fd.worker_id 
-                   where date::date = '${date.toFormat('yyyy-MM-dd')}' and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 ? ' or fd.location_id = 17' : ''})
+                   where date::date = '${date.toFormat('yyyy-MM-dd')}' and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 || user.id === 12 ? ' or fd.location_id = 17' : ''})
                    group by w.id`
 
   const faceIdResult = await db.query(faceIdQuery)
