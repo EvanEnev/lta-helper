@@ -89,6 +89,7 @@ export default function PayrollCreateNote({
         <DatePicker
           // @ts-ignore
           value={parseDate(takeBy)}
+          // @ts-ignore
           onChange={d => setTakeBy(d?.toString() || '')}
         />
       </div>
