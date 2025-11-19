@@ -39,6 +39,10 @@ export default function CellBody({
     }))
 
   const Games = memo(function Games() {
+    if (data.type) {
+      return null
+    }
+
     if (!isReviewMode)
       return (
         <>
@@ -93,72 +97,83 @@ export default function CellBody({
   return (
     <>
       {data.type && (
-        <CellChip className="glass text-foreground text-small col-span-2 mb-2 items-center justify-center">
+        <CellChip className="glass text-foreground text-small col-span-full mb-2 items-center justify-center">
           {data.type}
         </CellChip>
       )}
-      <div className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2">
+      <div
+        className={`grid-rows-auto grid grid-flow-row grid-cols-2 gap-2 ${data.type ? 'col-span-full' : ''}`}>
         <CellChip className="col-span-full border-2 bg-transparent text-inherit">
           Смена
         </CellChip>
-        <TimeInput
-          aria-label="Начало смены"
-          className={data.type ? 'hidden' : ''}
-          // @ts-ignore
-          value={time.start}
-          isReadOnly
-        />
-        <TimeInput
-          aria-label="Конец смены"
-          className={data.type ? 'hidden' : ''}
-          // @ts-ignore
-          value={time.end}
-          isReadOnly
-        />
+        {!data.type && (
+          <>
+            <TimeInput
+              aria-label="Начало смены"
+              className={data.type ? 'hidden' : ''}
+              // @ts-ignore
+              value={time.start}
+              isReadOnly
+            />
+            <TimeInput
+              aria-label="Конец смены"
+              className={data.type ? 'hidden' : ''}
+              // @ts-ignore
+              value={time.end}
+              isReadOnly
+            />
+          </>
+        )}
         <CellChip className="text-foreground text-small col-span-2 flex justify-between">
           {data.value.toString()} <Ruble iconStyle="Bold" />
         </CellChip>
-        <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-          Переработка
-        </CellChip>
-        <TimeInput
-          aria-label="Начало переработки"
-          className={data.type ? 'hidden' : ''}
-          isReadOnly
-          // @ts-ignore
-          value={overworkTime.start}
-        />
-        <TimeInput
-          aria-label="Конец переработки"
-          className={data.type ? 'hidden' : ''}
-          isReadOnly
-          // @ts-ignore
-          value={overworkTime.end}
-        />
-        <CellChip
-          className={`${data.type ? 'hidden!' : ''} text-foreground text-small col-span-2 flex justify-between`}>
-          {data.overwork?.toString() || ''}{' '}
-          <Ruble iconStyle="Bold" className="ml-auto" />
-        </CellChip>
+        {!data.type && (
+          <>
+            <CellChip className="col-span-full border-2 bg-transparent text-inherit">
+              Переработка
+            </CellChip>
+            <TimeInput
+              aria-label="Начало переработки"
+              isReadOnly
+              // @ts-ignore
+              value={overworkTime.start}
+            />
+            <TimeInput
+              aria-label="Конец переработки"
+              isReadOnly
+              // @ts-ignore
+              value={overworkTime.end}
+            />
+            <CellChip
+              className={`text-foreground text-small col-span-2 flex justify-between`}>
+              {data.overwork?.toString() || ''}{' '}
+              <Ruble iconStyle="Bold" className="ml-auto" />
+            </CellChip>
+          </>
+        )}
       </div>
-      <Divider orientation="vertical" className="bg-foreground" />
-      <div className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2">
-        <Games />
-        <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-          Вход
-        </CellChip>
-        <CellChip className="col-span-full">
-          {// @ts-ignore
-          faceId[0]?.date.toFormat('dd.MM.yyyy HH:mm:ss')}
-        </CellChip>
-        <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-          Выход
-        </CellChip>
-        <CellChip className="col-span-full">
-          {// @ts-ignore
-          faceId[faceId.length - 1]?.date.toFormat('dd.MM.yyyy HH:mm:ss')}
-        </CellChip>
-      </div>
+      {!data.type && (
+        <Divider orientation="vertical" className="bg-foreground" />
+      )}
+      {!data.type && (
+        <div className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2">
+          <Games />
+          <CellChip className="col-span-full border-2 bg-transparent text-inherit">
+            Вход
+          </CellChip>
+          <CellChip className="col-span-full">
+            {// @ts-ignore
+            faceId[0]?.date.toFormat('dd.MM.yyyy HH:mm:ss')}
+          </CellChip>
+          <CellChip className="col-span-full border-2 bg-transparent text-inherit">
+            Выход
+          </CellChip>
+          <CellChip className="col-span-full">
+            {// @ts-ignore
+            faceId[faceId.length - 1]?.date.toFormat('dd.MM.yyyy HH:mm:ss')}
+          </CellChip>
+        </div>
+      )}
       <div className="col-span-full flex justify-between gap-2">
         <div className="flex w-full flex-col gap-2">
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
