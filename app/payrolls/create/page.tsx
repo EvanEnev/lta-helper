@@ -57,23 +57,51 @@ export default async function PayrollsCreate({
   from lt_arena.workers
   where balance is not null and balance != 0`
 
+  const bonusesQuery = `select
+   w.name,
+   w.id,
+   w.rank,
+   w.is_former,
+   string_agg(s.bonuses, '+') as bonuses,
+   string_agg(s.fines, '+') as fines
+   from lt_arena.salary s
+   left join lt_arena.workers w on w.id = s.worker_id
+   where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}'
+   group by w.name, w.rank, w.is_former, w.id
+  `
+
+  let data = (await db.query(query)).rows
+
+  if (bonuses) {
+    const bonusesResult = await db.query(bonusesQuery)
+
+    bonusesResult.rows.forEach(row => {
+      const index = data.findIndex(d => d.id === row.id)
+
+      if (index === -1) {
+        const newData = {
+          name: row.name,
+          id: row.id,
+          rank: row.rank,
+          isFormer: row.is_former,
+          value: 0,
+          bonuses: row.bonuses || '0',
+          fines: row.fines || '0',
+        }
+
+        data.push(newData)
+      } else {
+        const newData = {...data[index]}
+
+        newData.bonuses += '+' + (row.bonuses || '0')
+        newData.fines += '+' + (row.fines || '0')
+
+        data[index] = newData
+      }
+    })
+  }
+
   const balancesResult = await db.query(balancesQuery)
-
-  const result = await db.query(query)
-
-  let data = salarySort(result.rows)
-
-  data = data.map(row => {
-    const newData = {...row}
-    // @ts-ignore
-    newData.bonuses = evaluate(newData.bonuses || '0')
-    // @ts-ignore
-    newData.fines = evaluate(newData.fines || '0')
-    // @ts-ignore
-    newData.value = Number(newData.value) || 0
-
-    return newData
-  })
 
   balancesResult.rows.forEach(row => {
     const index = data.findIndex(d => d.id === row.id)
@@ -102,12 +130,21 @@ export default async function PayrollsCreate({
 
   const locations = await getLocations()
 
-  data.forEach(d => {
-    // @ts-ignore
-    if (typeof d.bonuses !== 'number' || typeof d.fines !== 'number') {
-      console.debug(d)
-    }
-  })
+  data = data
+    .map(row => {
+      const newData = {...row}
+      // @ts-ignore
+      newData.bonuses = evaluate(newData.bonuses || '0')
+      // @ts-ignore
+      newData.fines = evaluate(newData.fines || '0')
+      // @ts-ignore
+      newData.value = Number(newData.value) || 0
+
+      return newData
+    })
+    .filter(row => row.value !== 0 || row.bonuses !== 0 || row.fines !== 0)
+
+  const sortedData = salarySort(data)
 
   return (
     <PayrollCreatePage
@@ -116,7 +153,7 @@ export default async function PayrollsCreate({
       moneyOnLocations={moneyOnLocations}
       locations={locations}
       // @ts-ignore
-      data={data}
+      data={sortedData}
     />
   )
 }

@@ -40,6 +40,7 @@ import {useAuth} from '@/src/components/global/providers/authProvider'
 import {evaluate} from 'mathjs'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
 import {useRouter} from 'next/navigation'
+import separateNumber from '@/lib/functions/separateNumber'
 
 interface PayrollCreatePageProps {
   data: {
@@ -59,7 +60,7 @@ interface PayrollCreatePageProps {
   locations: LTLocation[]
 }
 
-const locationsToHide = ['выезд', 'другое', 'отдел продаж']
+const locationsToHide = ['выезд', 'отдел продаж']
 
 export default function PayrollCreatePage({
   data: initialData,
@@ -258,7 +259,7 @@ export default function PayrollCreatePage({
     <main className="h-full w-full p-4">
       <div
         ref={headerRef}
-        className="sticky top-0 z-1000 flex items-center gap-2 pb-4">
+        className="sticky top-2 z-1000 flex items-center gap-2 pb-4">
         <Button as={Link} href="/payrolls" startContent={<ArrowLeft />}>
           Назад
         </Button>
@@ -303,7 +304,7 @@ export default function PayrollCreatePage({
         </div>
       </div>
       <div className="flex gap-4">
-        <div className="bg-content1 flex w-[90%] flex-col gap-2 rounded-2xl">
+        <div className="bg-content1 flex flex-col gap-2 rounded-2xl">
           <div className="flex justify-end p-2">
             <Checkbox onValueChange={locationsFilter}>Пустые</Checkbox>
           </div>
@@ -383,7 +384,7 @@ export default function PayrollCreatePage({
                   />
                   <Divider orientation="vertical" />
                   <div className="bg-content2 flex h-full min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-2xl">
-                    <p>{summary}</p>
+                    <p>{separateNumber(summary)}</p>
                     <Ruble iconStyle="Bold" />
                   </div>
                   <Divider orientation="vertical" />

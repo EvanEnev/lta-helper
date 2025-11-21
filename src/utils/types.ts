@@ -120,6 +120,7 @@ export interface UserSalary {
 
 export interface LTLocation {
   name: string
+  shortName: string
   color: string
   id: number
 }
