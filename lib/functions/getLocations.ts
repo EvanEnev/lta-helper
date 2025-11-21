@@ -4,6 +4,7 @@ import {LTLocation} from '@/src/utils/types'
 export default async function getLocations(): Promise<LTLocation[]> {
   const query = `SELECT
   name,
+  short_name as "shortName",
   color,
   id
   FROM lt_arena.locations

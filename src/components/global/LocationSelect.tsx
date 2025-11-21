@@ -23,6 +23,7 @@ interface LocationSelectProps {
   includeAll?: boolean
   exclude?: (string | number)[]
   locations?: LTLocation[]
+  useShortNames?: boolean
 }
 
 export default function LocationSelect({
@@ -38,6 +39,7 @@ export default function LocationSelect({
   includeAll = false,
   exclude = [],
   locations: definedLocations = [],
+  useShortNames = false,
 }: LocationSelectProps) {
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
   const [selectedLocation, setSelectedLocation] =
@@ -59,7 +61,7 @@ export default function LocationSelect({
 
         if (includeAll) {
           sortedLocations = [
-            {name: 'Все', id: 0, color: ''},
+            {name: 'Все', id: 0, color: '', shortName: 'Все'},
             ...sortedLocations,
           ]
         }
@@ -139,9 +141,13 @@ export default function LocationSelect({
       aria-label="Выбор локации">
       {locations.map(location => (
         <AutocompleteItem
-          startContent={<LocationIcon locationName={location.name} />}
+          startContent={
+            <LocationIcon
+              locationName={useShortNames ? location.shortName : location.name}
+            />
+          }
           key={location.id.toString()}>
-          {location.name}
+          {useShortNames ? location.shortName : location.name}
         </AutocompleteItem>
       ))}
     </Autocomplete>

@@ -57,7 +57,7 @@ export default function PayrollCreateCard({
       const start = parseDate(
         currentDate
           .set({
-            day: 15,
+            day: 16,
             month: monthNumber,
           })
           .toFormat('yyyy-MM-dd'),

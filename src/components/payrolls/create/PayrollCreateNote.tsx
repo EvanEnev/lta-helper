@@ -4,6 +4,7 @@ import Location from '@/src/components/global/Location'
 import {parseDate} from '@internationalized/date'
 import {Plain} from 'solar-icon-set'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
+import separateNumber from '@/lib/functions/separateNumber'
 
 interface PayrollCreateNoteProps {
   locations: LTLocation[]
@@ -34,7 +35,7 @@ export default function PayrollCreateNote({
   setTakeBy,
 }: PayrollCreateNoteProps) {
   return (
-    <div className="sticky top-0 flex h-fit max-h-[87vh] min-w-[20rem] flex-col gap-2 overflow-auto">
+    <div className="sticky top-2 flex h-fit max-h-[87vh] flex-col gap-2 overflow-auto">
       <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
         <p className="text-center">Локация</p>
         <Code color="primary" className="text-center">
@@ -67,7 +68,7 @@ export default function PayrollCreateNote({
             return (
               <Fragment key={location.id}>
                 <Divider className="col-span-full" />
-                <Location locationName={location.name} />
+                <Location locationName={location.shortName!} />
                 <Input
                   color={locationData.error ? 'danger' : 'primary'}
                   defaultValue={locationMoney.toString()}
@@ -78,7 +79,7 @@ export default function PayrollCreateNote({
                 <Code
                   className="flex h-10 items-center"
                   color={locationMoney - usedMoney < 0 ? 'danger' : 'success'}>
-                  {locationMoney - usedMoney}
+                  {separateNumber(locationMoney - usedMoney)}
                 </Code>
               </Fragment>
             )

@@ -28,6 +28,7 @@ export default memo(function PayrollCreateLocationCell({
 
   return (
     <LocationSelect
+      useShortNames
       dynamicLocationId={true}
       locationId={locationId}
       showLabel={false}
