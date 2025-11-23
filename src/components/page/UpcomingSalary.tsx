@@ -6,6 +6,7 @@ import {
   CardFooter,
   Divider,
   LinkIcon,
+  Skeleton,
 } from '@heroui/react'
 import Link from 'next/link'
 import {Ruble} from 'solar-icon-set'
@@ -42,77 +43,95 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
             <span className="ripple bg-success/90 absolute h-3 w-3 rounded-full delay-1" />
             <span className="ripple bg-success/90 absolute h-3 w-3 rounded-full delay-2" />
             <span className="bg-success z-10 block h-3 w-3 rounded-full" />
-            <p>Текущая выплата ({data.previousDates})</p>
+            <p>
+              Текущая выплата (
+              <Skeleton isLoaded={!!data} className="inline-flex">
+                {data.previousDates}
+              </Skeleton>
+              )
+            </p>
           </div>
-          <p className="text-foreground-500">
-            Можно получить с {data.previousSalaryTakeDate}
-          </p>
-          <div className="flex items-center gap-1">
-            {data.previousSalary +
-              (worker.rank === 'Актёр'
-                ? data.currentBonuses
-                : !isCurrentWithBonuses
-                  ? data.bonuses
-                  : 0) +
-              (worker.rank === 'Актёр'
-                ? data.currentFines
-                : !isCurrentWithBonuses
-                  ? data.fines
-                  : 0)}{' '}
-            <Ruble iconStyle="Bold" />
-          </div>
-          {(!isCurrentWithBonuses || worker.rank === 'Актёр') && (
-            <BonusesAndFines
-              bonuses={
-                worker.rank === 'Актёр'
+          <Skeleton isLoaded={!!data}>
+            <p className="text-foreground-500">
+              Можно получить с {data.previousSalaryTakeDate}
+            </p>
+            <div className="flex items-center gap-1">
+              {data.previousSalary +
+                (worker.rank === 'Актёр'
                   ? data.currentBonuses
                   : !isCurrentWithBonuses
                     ? data.bonuses
-                    : 0
-              }
-              fines={
-                worker.rank === 'Актёр'
+                    : 0) +
+                (worker.rank === 'Актёр'
                   ? data.currentFines
                   : !isCurrentWithBonuses
                     ? data.fines
-                    : 0
-              }
-              salary={data.previousSalary}
-            />
-          )}
+                    : 0)}{' '}
+              <Ruble iconStyle="Bold" />
+            </div>
+            {(!isCurrentWithBonuses || worker.rank === 'Актёр') && (
+              <BonusesAndFines
+                bonuses={
+                  worker.rank === 'Актёр'
+                    ? data.currentBonuses
+                    : !isCurrentWithBonuses
+                      ? data.bonuses
+                      : 0
+                }
+                fines={
+                  worker.rank === 'Актёр'
+                    ? data.currentFines
+                    : !isCurrentWithBonuses
+                      ? data.fines
+                      : 0
+                }
+                salary={data.previousSalary}
+              />
+            )}
+          </Skeleton>
         </div>
         <Divider />
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
             <span className="bg-primary block h-3 w-3 rounded-full" />
-            <p>Будущая выплата ({data.currentDates})</p>
+            <p>
+              Будущая выплата (
+              <Skeleton isLoaded={!!data} className="inline-flex">
+                {data.currentDates}
+              </Skeleton>
+              )
+            </p>
           </div>
-          <p className="text-foreground-500">
-            Можно получить с {data.currentSalaryTakeDate}
-          </p>
-          <div className="flex items-center gap-1">
-            {data.currentSalary +
-              (worker.rank === 'Актёр'
-                ? data.previousBonuses
-                : isCurrentWithBonuses
-                  ? data.bonuses
-                  : 0) +
-              (worker.rank === 'Актёр'
-                ? data.previousFines
-                : isCurrentWithBonuses
-                  ? data.fines
-                  : 0)}{' '}
-            <Ruble iconStyle="Bold" />
-          </div>
-          {(isCurrentWithBonuses || worker.rank === 'Актёр') && (
-            <BonusesAndFines
-              bonuses={
-                worker.rank === 'Актёр' ? data.previousBonuses : data.bonuses
-              }
-              fines={worker.rank === 'Актёр' ? data.previousFines : data.fines}
-              salary={data.currentSalary}
-            />
-          )}
+          <Skeleton isLoaded={!!data}>
+            <p className="text-foreground-500">
+              Можно получить с {data.currentSalaryTakeDate}
+            </p>
+            <div className="flex items-center gap-1">
+              {data.currentSalary +
+                (worker.rank === 'Актёр'
+                  ? data.previousBonuses
+                  : isCurrentWithBonuses
+                    ? data.bonuses
+                    : 0) +
+                (worker.rank === 'Актёр'
+                  ? data.previousFines
+                  : isCurrentWithBonuses
+                    ? data.fines
+                    : 0)}{' '}
+              <Ruble iconStyle="Bold" />
+            </div>
+            {(isCurrentWithBonuses || worker.rank === 'Актёр') && (
+              <BonusesAndFines
+                bonuses={
+                  worker.rank === 'Актёр' ? data.previousBonuses : data.bonuses
+                }
+                fines={
+                  worker.rank === 'Актёр' ? data.previousFines : data.fines
+                }
+                salary={data.currentSalary}
+              />
+            )}
+          </Skeleton>
         </div>
       </CardBody>
       <CardFooter>

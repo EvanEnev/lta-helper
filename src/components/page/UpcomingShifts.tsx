@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader} from '@heroui/react'
+import {Card, CardBody, CardHeader, Skeleton} from '@heroui/react'
 import {CalendarMinimalistic, ClockCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
@@ -38,7 +38,7 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
             const dayData = day.locationData?.find(data => data.self)
 
             return (
-              <div
+              <Skeleton
                 key={index}
                 className="text-foreground glass flex flex-col gap-4 rounded-xl border-1 p-4">
                 <Location locationName={dayData?.locationName || ''} />
@@ -50,7 +50,7 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
                   <ClockCircle />
                   {dayData?.data?.time}
                 </span>
-              </div>
+              </Skeleton>
             )
           })
         ) : (

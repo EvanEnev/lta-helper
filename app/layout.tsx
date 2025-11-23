@@ -26,7 +26,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <meta name="apple-mobile-web-app-title" content="LTA Helper" />
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
       </head>
       <body className={inter.className}>

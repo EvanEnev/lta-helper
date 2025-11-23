@@ -1,9 +1,22 @@
 'use client'
 
-import {useMediaQuery} from 'react-responsive'
+import {useEffect, useState} from 'react'
 
 export default function useIsMobile() {
-  const isPC = useMediaQuery({query: '(width >= 40rem)'})
+  const [isMobile, setIsMobile] = useState(false)
 
-  return !isPC
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 640px)')
+
+    const listener = () => {
+      setIsMobile(media.matches)
+    }
+
+    listener()
+    media.addEventListener('change', listener)
+
+    return () => media.removeEventListener('change', listener)
+  }, [])
+
+  return isMobile
 }

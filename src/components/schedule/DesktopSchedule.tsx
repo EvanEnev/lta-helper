@@ -6,11 +6,12 @@ import {
   Checkbox,
   Code,
   Divider,
+  Skeleton,
 } from '@heroui/react'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
 import {Day} from '@/src/utils/types'
-import {useEffect, useMemo, useState} from 'react'
+import {Fragment, useEffect, useMemo, useState} from 'react'
 import {Pen2} from 'solar-icon-set'
 import {useAtom} from 'jotai'
 import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
@@ -39,7 +40,8 @@ export default function DesktopSchedule() {
   }
 
   const getWeekday = (day: Day): string => {
-    return day.date?.toFormat('EEEE', {locale: 'ru-RU'}) || ''
+    if (!day.date) return ''
+    return day.date.toFormat('EEEE', {locale: 'ru-RU'}) || ''
   }
 
   const weeks = useMemo(() => {
@@ -76,43 +78,47 @@ export default function DesktopSchedule() {
       {days.length ? (
         <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
           {weeks.map((week: Day[], index: number) => (
-            <>
+            <Fragment key={index}>
               {index !== 0 && <Divider className="col-span-full" />}
               {week.map((day, index) => (
-                <AnimatedBorder
+                <Skeleton
+                  isLoaded={!!day.date}
                   key={index}
-                  isDisabled={
-                    today.toFormat('yyyy-MM-dd') !==
-                    day.date?.toFormat('yyyy-MM-dd')
-                  }>
-                  <Card className={`scrollbar-hide h-full overflow-hidden`}>
-                    <CardHeader className="w-full">
-                      <Checkbox
-                        className="w-full"
-                        size="lg"
-                        isSelected={
-                          !!selectedDates.find(
-                            date =>
-                              date.toFormat('yyyy-MM-dd') ===
-                              day.date?.toFormat('yyyy-MM-dd'),
-                          )
-                        }
-                        onValueChange={isSelected =>
-                          changeDates(day.date, isSelected)
-                        }>
-                        <span className="text-2xl font-bold">
-                          {day.date?.toFormat('dd.MM')},{' '}
-                          {day.date?.toFormat('EEE', {locale: 'ru-RU'})}
-                        </span>
-                      </Checkbox>
-                    </CardHeader>
-                    <CardBody>
-                      <DayInfo day={day} changeDates={changeDates} />
-                    </CardBody>
-                  </Card>
-                </AnimatedBorder>
+                  className="rounded-2xl">
+                  <AnimatedBorder
+                    isDisabled={
+                      today.toFormat('yyyy-MM-dd') !==
+                      day.date?.toFormat('yyyy-MM-dd')
+                    }>
+                    <Card className={`scrollbar-hide h-full overflow-hidden`}>
+                      <CardHeader className="w-full">
+                        <Checkbox
+                          className="w-full"
+                          size="lg"
+                          isSelected={
+                            !!selectedDates.find(
+                              date =>
+                                date.toFormat('yyyy-MM-dd') ===
+                                day.date?.toFormat('yyyy-MM-dd'),
+                            )
+                          }
+                          onValueChange={isSelected =>
+                            changeDates(day.date, isSelected)
+                          }>
+                          <span className="text-2xl font-bold">
+                            {day.date?.toFormat('dd.MM')},{' '}
+                            {day.date?.toFormat('EEE', {locale: 'ru-RU'})}
+                          </span>
+                        </Checkbox>
+                      </CardHeader>
+                      <CardBody>
+                        <DayInfo day={day} changeDates={changeDates} />
+                      </CardBody>
+                    </Card>
+                  </AnimatedBorder>
+                </Skeleton>
               ))}
-            </>
+            </Fragment>
           ))}
         </div>
       ) : (
