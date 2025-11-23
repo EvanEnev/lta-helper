@@ -7,10 +7,12 @@ export default function Loader({
   loading: isLoading,
   isExiting = false,
   children,
+  isDisabled = false,
 }: {
   loading: boolean
   isExiting: boolean
   children: React.ReactNode[] | React.ReactNode
+  isDisabled?: boolean
 }) {
   const ANIMATION_DURATIONS = {
     spin: 1, // Скорость вращения спиннера
@@ -58,6 +60,10 @@ export default function Loader({
   const shouldShowOverlay =
     isLoading || isExiting || animationStage !== 'complete'
   const isExitingState = isExiting || animationStage === 'exiting'
+
+  if (isDisabled) {
+    return children
+  }
 
   return (
     <>

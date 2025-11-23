@@ -10,13 +10,12 @@ import {
 } from 'react'
 import React from 'react'
 import {usePathname, useRouter} from 'next/navigation'
-import {useAtom, useSetAtom} from 'jotai'
-import {daysAtom, telegramAtom} from '@/src/utils/global/atoms'
+import {useSetAtom} from 'jotai'
+import {daysAtom} from '@/src/utils/global/atoms'
 import AuthContext from '@/src/components/global/contexts/AuthContext'
 import {DateTime} from 'luxon'
 import {Day, LTWorker} from '@/src/utils/types'
 import {TelegramAuthData} from '@telegram-auth/react'
-import Loader from '@/src/components/global/Loader'
 import {authClient} from '@/lib/auth/authClient'
 
 const requiredFields = ['name', 'email', 'phoneNumber', 'firstName', 'lastName']
@@ -44,7 +43,6 @@ export default function AuthProvider({children}: {children: ReactNode}) {
   const headerRef = useRef<HTMLElement>(null)
   const path = usePathname()
 
-  const [telegram, setTelegram] = useAtom(telegramAtom)
   const setDays = useSetAtom(daysAtom)
 
   const getData = useCallback(async () => {
@@ -58,6 +56,10 @@ export default function AuthProvider({children}: {children: ReactNode}) {
 
     setWorker(userData.worker)
     setWorkingDays(workingDays || [])
+    sessionStorage.setItem(
+      'worker',
+      JSON.stringify({worker: userData.worker, workingDays}),
+    )
   }, [])
 
   const autoLogin = useCallback(() => {
@@ -75,8 +77,6 @@ export default function AuthProvider({children}: {children: ReactNode}) {
       setLoading(false)
       return
     }
-
-    setTelegram(appTelegram)
 
     try {
       fetch('/api/auth/telegram', {
@@ -99,7 +99,7 @@ export default function AuthProvider({children}: {children: ReactNode}) {
       console.error(err)
       setLoading(false)
     }
-  }, [getData, router, setTelegram])
+  }, [getData, router])
 
   const login = useCallback(
     async (telegramData: string | TelegramAuthData) => {
@@ -135,6 +135,25 @@ export default function AuthProvider({children}: {children: ReactNode}) {
   )
 
   useEffect(() => {
+    const savedWorker = sessionStorage.getItem('worker')
+
+    if (savedWorker) {
+      const storageWorker: {worker: LTWorker; workingDays: Day[]} =
+        JSON.parse(savedWorker)
+
+      setWorker(storageWorker.worker)
+      setWorkingDays(
+        storageWorker.workingDays.map(day => ({
+          ...day,
+          // @ts-ignore
+          date: DateTime.fromISO(day.date),
+        })),
+      )
+
+      setLoading(false)
+      return
+    }
+
     authClient.getSession().then(async session => {
       if (session.data?.user) {
         const response = await fetch('/api/getData')
@@ -149,6 +168,11 @@ export default function AuthProvider({children}: {children: ReactNode}) {
 
           setWorker(userData.worker)
           setWorkingDays(workingDays)
+          sessionStorage.setItem(
+            'worker',
+            JSON.stringify({worker: userData.worker, workingDays}),
+          )
+
           setLoading(false)
         } else {
           console.error('Autologin failed')
@@ -174,27 +198,27 @@ export default function AuthProvider({children}: {children: ReactNode}) {
   }, [path, router, setDays, worker, workingDays])
 
   return (
-    <Loader loading={isLoading} isExiting={isExiting}>
-      {isLoading ? (
-        ''
-      ) : (
-        <AuthContext.Provider
-          value={{
-            worker,
-            workingDays,
-            login,
-            isLoading,
-            headerRef,
-            setExiting,
-            toastOffset,
-            setToastOffset,
-            pageSettings,
-            setPageSettings,
-          }}>
-          {children}
-        </AuthContext.Provider>
-      )}
-    </Loader>
+    // <Loader loading={isLoading} isExiting={isExiting}>
+    //   {isLoading ? (
+    //     ''
+    //   ) : (
+    <AuthContext.Provider
+      value={{
+        worker,
+        workingDays,
+        login,
+        isLoading,
+        headerRef,
+        setExiting,
+        toastOffset,
+        setToastOffset,
+        pageSettings,
+        setPageSettings,
+      }}>
+      {children}
+    </AuthContext.Provider>
+    // )}
+    // </Loader>
   )
 }
 
