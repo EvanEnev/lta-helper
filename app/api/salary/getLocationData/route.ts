@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
   w.id,
   w.rank,
   l.name AS location,
+  created_at::text as "createdAt",
   start_time,
   end_time,
   bonuses,
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
   fines,
   overwork_start,
   overwork_end,
-  overwork,
+  s.overwork,
   value,
   date,
   one_games,
@@ -58,7 +59,10 @@ export async function POST(req: NextRequest) {
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
-  WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12${user.id === 42 || user.id === 12 ? ' or s.location_id = 17' : ''})` : ''}`
+  left join lt_arena.ranks r on r.name ilike w.rank
+  WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12${user.id === 42 || user.id === 12 ? ' or s.location_id = 17' : ''})` : ''}
+  order by r.sorting_weight desc, w.name
+  `
 
   const result = await db.query(query)
   const rows = result.rows
@@ -70,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     const isHardTime =
       parseInt(row.end_time.slice(0, -6)) -
-        parseInt(row.start_time.slice(0, -6)) ===
+        parseInt(row.start_time.slice(0, -6)) <=
       8
 
     let gamesCount = 1
@@ -82,6 +86,7 @@ export async function POST(req: NextRequest) {
     return {
       worker: row.worker,
       workerId: row.id,
+      createdAt: row.createdAt,
       workingHours,
       location: row.location,
       value: row.value,
@@ -148,6 +153,7 @@ export async function POST(req: NextRequest) {
         worker: row.name,
         workingHours: workingHours,
         location: location.name,
+        createdAt: null,
         value: 0,
         comment: '',
         bonuses: '',

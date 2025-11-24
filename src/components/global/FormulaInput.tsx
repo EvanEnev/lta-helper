@@ -1,5 +1,5 @@
 import {Input} from '@heroui/react'
-import {useCallback, useState} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {evaluate} from 'mathjs'
 
 interface FormulaInputProps {
@@ -18,6 +18,7 @@ interface FormulaInputProps {
   }) => void
   value?: string
   className?: string
+  description?: string
 }
 
 export default function FormulaInput({
@@ -28,9 +29,11 @@ export default function FormulaInput({
   isReadOnly = false,
   value: initialValue = '',
   className = '',
+  description = '',
 }: FormulaInputProps) {
   const [hasError, setHasError] = useState<boolean>(false)
   const [value, setValue] = useState<string>(initialValue)
+
   const onChange = useCallback(
     (value: string) => {
       let newValue = null
@@ -51,6 +54,10 @@ export default function FormulaInput({
     [callback],
   )
 
+  useEffect(() => {
+    setValue(initialValue)
+  }, [initialValue])
+
   return (
     <Input
       isReadOnly={isReadOnly}
@@ -61,6 +68,7 @@ export default function FormulaInput({
       aria-label={ariaLabel}
       value={value}
       onValueChange={onChange}
+      description={description}
     />
   )
 }

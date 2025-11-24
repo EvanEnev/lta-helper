@@ -55,9 +55,5 @@
     "tailwindcss": "^4.1.17",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "@types/react": "19.1.4",
-    "@types/react-dom": "19.1.5"
   }
 }

@@ -61,6 +61,7 @@ export interface WorkerSalary {
   worker: string
   location: string
   workingHours: string
+  createdAt: string | null
   bonuses: string
   fines: string
   comment: string
