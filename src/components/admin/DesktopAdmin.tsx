@@ -17,12 +17,21 @@ import {
   semanticColors,
 } from '@heroui/react'
 import WorkData from './WorkData'
-import {AddCircle, MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
+import {
+  AddCircle,
+  CheckCircle,
+  Eye,
+  MinusCircle,
+  Plain,
+  RestartCircle,
+} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import {useCallback, useState} from 'react'
 import convertTZ from '@/lib/functions/convertTZ'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import isDark from '@/lib/functions/isDark'
+import {useTheme} from 'next-themes'
 
 interface DesktopAdminProps {
   faceId: LTFaceIdData[]
@@ -60,6 +69,7 @@ export default function DesktopAdmin({
   gamesPayments,
 }: DesktopAdminProps) {
   const {worker} = useAuth()
+  const {theme = 'dark'} = useTheme()
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
 
   const checkDateValid = useCallback(
@@ -104,50 +114,91 @@ export default function DesktopAdmin({
 
   return (
     <main className="flex min-h-full gap-4 p-4">
-      <div className="grid h-full w-full grid-cols-[repeat(auto-fit,minmax(500px,max-content))] gap-4 overflow-auto">
+      <div className="grid h-full w-full grid-cols-[repeat(auto-fit,minmax(300px,max-content))] gap-4 overflow-auto">
         {salaryData.map((data, index) => {
+          const location = locations.find(l => l.name === data.location)
+
+          const textColorClass =
+            theme === 'dark'
+              ? isDark(location?.color || '#000000')
+                ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
+                : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
+              : isDark(location?.color || '#ffffff')
+                ? 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
+                : 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
+
           return (
             <Card
               key={index}
               className={data.deleted ? 'bg-danger/50 min-w-fit' : 'min-w-fit'}>
-              <CardHeader className={`gap-4`}>
-                {index + 1}.
-                <Button
-                  variant="faded"
-                  size="lg"
-                  onPress={() =>
-                    setSalaryData((prev: WorkerSalary[]) =>
-                      data.deleted
-                        ? prev.map((data, dataIndex) =>
-                            dataIndex === index
-                              ? {...data, deleted: false}
-                              : data,
-                          )
-                        : prev.map((data, dataIndex) =>
-                            dataIndex === index
-                              ? {...data, deleted: true}
-                              : data,
-                          ),
-                    )
-                  }
-                  startContent={
-                    data.deleted ? (
-                      <RestartCircle
-                        //@ts-ignore
-                        color={semanticColors.dark.success.DEFAULT}
-                        size={24}
-                      />
-                    ) : (
-                      <MinusCircle
-                        //@ts-ignore
-                        color={semanticColors.dark.danger.DEFAULT}
-                        size={24}
-                      />
-                    )
-                  }
-                  className="w-full">
-                  {data.deleted ? 'Вернуть' : 'Удалить'}
-                </Button>
+              <CardHeader
+                className={`${textColorClass} flex-col items-start gap-2`}
+                style={{
+                  backgroundColor: location?.color || '',
+                  transition: 'background-color 0.3s ease-in-out',
+                }}>
+                <div className="flex w-full shrink-0 items-center justify-start gap-2">
+                  {index + 1}.
+                  <Button
+                    variant="faded"
+                    onPress={() =>
+                      setSalaryData((prev: WorkerSalary[]) =>
+                        data.deleted
+                          ? prev.map((data, dataIndex) =>
+                              dataIndex === index
+                                ? {...data, deleted: false}
+                                : data,
+                            )
+                          : prev.map((data, dataIndex) =>
+                              dataIndex === index
+                                ? {...data, deleted: true}
+                                : data,
+                            ),
+                      )
+                    }
+                    startContent={
+                      data.deleted ? (
+                        <RestartCircle
+                          //@ts-ignore
+                          color={semanticColors.dark.success.DEFAULT}
+                          size={24}
+                        />
+                      ) : (
+                        <MinusCircle
+                          //@ts-ignore
+                          color={semanticColors.dark.danger.DEFAULT}
+                          size={24}
+                        />
+                      )
+                    }
+                    className="w-full flex-1">
+                    {data.deleted ? 'Вернуть' : 'Удалить'}
+                  </Button>
+                  {data.deleted && (
+                    <Button
+                      className="w-fit flex-1"
+                      variant="faded"
+                      onPress={() =>
+                        setSalaryData((prev: WorkerSalary[]) =>
+                          prev.filter((_, i) => i !== index),
+                        )
+                      }
+                      startContent={<Eye size={24} />}>
+                      Скрыть
+                    </Button>
+                  )}
+                </div>
+                <div
+                  className="text-small flex items-center gap-2"
+                  style={{visibility: data.createdAt ? undefined : 'hidden'}}>
+                  <CheckCircle
+                    iconStyle="Bold"
+                    // @ts-ignore
+                    color={semanticColors[theme].success.DEFAULT}
+                    size={20}
+                  />
+                  <p>{data.createdAt || 'a'}</p>
+                </div>
               </CardHeader>
               <CardBody>
                 <WorkData
@@ -166,6 +217,27 @@ export default function DesktopAdmin({
             </Card>
           )
         })}
+        <Card
+          onPress={() =>
+            setSalaryData((prev: WorkerSalary[]) => [
+              ...prev,
+              {
+                worker: '',
+                workingHours: prev[prev.length - 1]?.workingHours || '',
+                location: prev[prev.length - 1]?.location || '',
+                bonuses: '',
+                comment: '',
+                isHardTime: false,
+                gamesCount: 1,
+              },
+            ])
+          }
+          isPressable
+          className="border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 w-[300px] border-2 border-dashed bg-transparent transition-colors duration-300 ease-in-out hover:cursor-pointer">
+          <CardBody className="flex h-full w-full items-center justify-center border-0">
+            <AddCircle size={48} />
+          </CardBody>
+        </Card>
       </div>
       <Card className="glass sticky top-2 z-1000 h-fit w-[22vw]">
         <CardBody className="gap-4">

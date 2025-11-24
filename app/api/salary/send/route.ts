@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
                         )`
                             : 'NULL'
                         },
-                        array[${data.workTypes}]
+                        ${data.workTypes?.length ? `array[${data.workTypes}]` : 'NULL'}
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET

@@ -30,6 +30,7 @@ interface AdminPageProps {
 const defaultSalaryData: WorkerSalary = {
   worker: '',
   workingHours: '',
+  createdAt: null,
   location: '',
   bonuses: '',
   fines: '',
@@ -86,7 +87,7 @@ export default function AdminPage({
       })
     }
 
-    if (salaryData.some(d => !d.workTypes?.length)) {
+    if (salaryData.some(d => d.location !== 'Другое' && !d.workTypes?.length)) {
       return addToast({
         title: 'Ошибка!',
         description: 'Не указаны типы работ',

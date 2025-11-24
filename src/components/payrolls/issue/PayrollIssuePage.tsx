@@ -14,7 +14,7 @@ import {
   Button,
   NumberInput,
 } from '@heroui/react'
-import {DateTime, Interval} from 'luxon'
+import {DateTime} from 'luxon'
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useAuth} from '@/src/components/global/providers/authProvider'
 import RankIcon from '@/src/components/global/RankIcon'
@@ -95,15 +95,21 @@ export default function PayrollIssuePage({
         {payroll?.issue_confirmed && (
           <Alert title="Выдача подтверждена" color="success" />
         )}
-        <p>
-          Ведомость: {Interval.fromISO(payroll?.dates).toFormat('dd.MM.yyyy')}{' '}
-          (до {DateTime.fromISO(payroll?.take_by).toFormat('dd.MM.yyyy')})
-        </p>
+        {payroll?.taken && (
+          <Alert title={`Выдано ${payroll.taken}`} color="success" />
+        )}
+        <h1 className="text-xl font-bold">
+          Можно получить до{' '}
+          <span className="underline">
+            {DateTime.fromISO(payroll?.take_by).toFormat('dd.MM.yyyy')}
+          </span>
+        </h1>
         <NumberInput
+          isDisabled={!!payroll?.taken}
           maxValue={(payrolls[0]?.value || 0) < 0 ? 0 : payrolls[0]?.value || 0}
           minValue={(payrolls[0]?.value || 0) < 0 ? payrolls[0]?.value || 0 : 0}
           label={`Сумма к выдаче (макс.: ${(payrolls[0]?.value || 0) < 0 ? 0 : payrolls[0]?.value || 0})`}
-          value={(payroll?.value || 0)}
+          value={payroll?.value || 0}
           onValueChange={value =>
             setPayroll(d => {
               return {...d, value}
@@ -111,6 +117,7 @@ export default function PayrollIssuePage({
           }
         />
         <Autocomplete
+          isDisabled={!!payroll?.taken}
           label="Заберёт"
           onSelectionChange={key => setSelectedWorker(key?.toString() || null)}
           selectedKey={selectedWorker || ''}>
@@ -123,8 +130,8 @@ export default function PayrollIssuePage({
             </AutocompleteItem>
           ))}
         </Autocomplete>
-        <div className="flex flex-col gap-2">
-          <p>Забираю за:</p>
+        <fieldset className="flex flex-col gap-2 rounded-2xl border-2 p-2">
+          <legend className="px-1">Забираю за</legend>
           {!takeByWorkers.length && <i>Пусто...</i>}
           <Accordion variant="splitted" itemClasses={{titleWrapper: 'p-0'}}>
             {takeByWorkers.map((data, index) => {
@@ -135,6 +142,7 @@ export default function PayrollIssuePage({
                   key={index}
                   title={`${data.name} ${workerData?.value || data.to_take}`}>
                   <NumberInput
+                    isDisabled={!!payroll?.taken}
                     maxValue={data.to_take}
                     onValueChange={value => {
                       if (workerData) {
@@ -157,12 +165,12 @@ export default function PayrollIssuePage({
               )
             })}
           </Accordion>
-        </div>
+        </fieldset>
       </div>
       <Button
         onPress={sendConfirm}
         isLoading={isLoading}
-        isDisabled={!payrolls[0]?.id || payrolls[0]?.taken !== null}
+        isDisabled={!payrolls[0]?.id || !!payrolls[0]?.taken}
         className="sticky bottom-4 my-2 h-14 w-full"
         color="primary"
         startContent={<CheckCircle iconStyle="Bold" size={24} />}>
