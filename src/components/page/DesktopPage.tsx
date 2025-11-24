@@ -13,7 +13,11 @@ export default function DesktopPage({salaryData}: {salaryData: ShortSalary}) {
       <div className="flex justify-between gap-4 p-4">
         <Skeleton isLoaded={!!worker.rank} className="rounded-2xl">
           <div className="flex h-fit items-center gap-4 text-3xl">
-            <RankIcon rank={worker?.rank || ''} className="w-[14rem]" />{' '}
+            <RankIcon
+              style={{filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.6))'}}
+              rank={worker?.rank || ''}
+              className="w-[14rem]"
+            />{' '}
             {worker?.rank || ''}
           </div>
         </Skeleton>

@@ -5,11 +5,13 @@ export default function RankIcon({
   className = '',
   width = 40,
   height = 40,
+  style = {},
 }: {
   rank: string
   className?: string
   width?: number
   height?: number
+  style?: React.CSSProperties
 }) {
   let rank = ''
 
@@ -49,6 +51,7 @@ export default function RankIcon({
   return (
     rank && (
       <Image
+        style={style}
         src={`/icons/${rank}Icon.svg`}
         alt={workerRank}
         width={width}
