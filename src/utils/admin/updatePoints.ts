@@ -1,193 +1,193 @@
-import {SheetData} from '@/app/api/salary/send/route'
-import {GoogleSpreadsheetRow} from 'google-spreadsheet'
-import db from '@/lib/database'
-import google from '@/lib/google'
-import {google as rawGoogle} from 'googleapis'
-import {DateTime, Interval} from 'luxon'
-
-export default async function updatePoints({
-  name,
-  rank,
-  date,
-  comment,
-  hasGames,
-  location,
-  sheetData,
-}: {
-  name: string
-  rank: string
-  date: DateTime
-  comment: string
-  hasGames: boolean
-  location: string
-  sheetData: SheetData
-}) {
-  let rows
-  let sheet
-
-  switch (rank.toLowerCase()) {
-    case 'платиновый':
-      rows = sheetData.rows.platinumPointsRows
-      sheet = sheetData.sheets.platinumPointsSheet
-      break
-    case 'золотой':
-      rows = sheetData.rows.goldPointsRows
-      sheet = sheetData.sheets.goldPointsSheet
-      break
-    default:
-      rows = sheetData.rows.pointsRows
-      sheet = sheetData.sheets.pointsSheet
-      break
-  }
-
-  const row = rows.find(
-    (row: GoogleSpreadsheetRow) =>
-      Reflect.get(row, '_rawData')[1]?.split('-')[0]?.trim() === name.trim(),
-  )
-
-  if (!row) return false
-
-  const rawData = Reflect.get(row, '_rawData')
-
-  let currentRow: GoogleSpreadsheetRow = row
-  let rowIndex = rows.findIndex(
-    (row: GoogleSpreadsheetRow) => row.rowNumber === currentRow.rowNumber,
-  )
-
-  while (currentRow && Reflect.get(currentRow, '_rawData')[3] !== 'Штрафы') {
-    rowIndex++
-    currentRow = rows[rowIndex]
-  }
-
-  const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
-
-  const datesFormat = 'dd.MM.yy'
-
-  const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
-    const splitValue = headerValue?.split('-')
-    if (!splitValue.length || splitValue.length < 2) return false
-
-    const startDate = DateTime.fromFormat(splitValue[0], datesFormat)
-    const endDate = DateTime.fromFormat(splitValue[1], datesFormat)
-
-    const interval = Interval.fromDateTimes(startDate, endDate)
-
-    return interval.contains(date)
-  })
-
-  if (dateIndex === -1) return false
-
-  await sheet.loadCells({
-    startRowIndex: row.rowNumber - 1,
-    endRowIndex: row.rowNumber,
-    startColumnIndex: dateIndex,
-    endColumnIndex: dateIndex + 2,
-  })
-
-  const commentCell = sheet.getCell(row.rowNumber - 1, dateIndex)
-  const numberCell = sheet.getCell(row.rowNumber - 1, dateIndex + 1)
-
-  const currentPoints = parseInt(rawData[4])
-
-  const query = `SELECT
-  r.max_shift_points as max,
-  l.short_name as location
-  FROM lt_arena.ranks r
-  LEFT JOIN lt_arena.locations l ON LOWER(l.name) = '${location.toLowerCase()}'
-  WHERE LOWER(r.name) = '${rank.toLowerCase()}'`
-
-  const result = await db.query(query)
-  const data = result.rows[0]
-  const maxPoints: number = data?.max || 0
-
-  const oldValue = commentCell.stringValue || ''
-  const text = `${date.toFormat('dd.MM')} ${data.location}`
-
-  const newText = oldValue ? `${oldValue}, ${text}` : text
-
-  if (commentCell.stringValue?.toLowerCase().includes(text.toLowerCase()))
-    return false
-
-  let pointsToAdd = 1
-  const splitComment = comment.toLowerCase().split('\n')
-  if (
-    rank.toLowerCase() === 'серебряный' &&
-    splitComment.some(
-      line =>
-        line.includes('ст') ||
-        line.includes('ст. смены') ||
-        line.includes('старший смены') ||
-        line.includes('ст. смены') ||
-        line.includes('ст смены'),
-    )
-  ) {
-    pointsToAdd = 2
-  }
-
-  if (rank.toLowerCase() === 'каменный' && hasGames) {
-    pointsToAdd = 2
-  }
-
-  if (currentPoints + fines + 1 > maxPoints) {
-    const googleAuth = google.auth
-
-    const sheets = rawGoogle.sheets({version: 'v4', auth: googleAuth})
-
-    const textFormatRuns = Reflect.get(commentCell, '_rawData')?.textFormatRuns
-    let startIndex = newText.indexOf(oldValue ? `, ${text}` : text)
-
-    if (textFormatRuns?.length) {
-      startIndex =
-        textFormatRuns.findLast((format: any) => !!format?.startIndex)
-          ?.startIndex || 0
-    }
-
-    const requests = [
-      {
-        updateCells: {
-          rows: [
-            {
-              values: [
-                {
-                  userEnteredValue: {
-                    stringValue: newText,
-                  },
-                  textFormatRuns: [
-                    {
-                      format: {
-                        foregroundColor: {
-                          red: 0.7176471,
-                          green: 0.7176471,
-                          blue: 0.7176471,
-                        },
-                      },
-                      startIndex,
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-          fields: 'userEnteredValue,textFormatRuns',
-          start: {
-            sheetId: sheet.sheetId,
-            rowIndex: commentCell.rowIndex,
-            columnIndex: commentCell.columnIndex,
-          },
-        },
-      },
-    ]
-
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: sheet._spreadsheet.spreadsheetId,
-      requestBody: {
-        requests,
-      },
-    })
-  } else {
-    numberCell.numberValue = (numberCell.numberValue || 0) + pointsToAdd
-    commentCell.stringValue = newText
-  }
-
-  return true
-}
+// import {SheetData} from '@/app/api/salary/send/route'
+// import {GoogleSpreadsheetRow} from 'google-spreadsheet'
+// import db from '@/lib/database'
+// import google from '@/lib/google'
+// import {google as rawGoogle} from 'googleapis'
+// import {DateTime, Interval} from 'luxon'
+//
+// export default async function updatePoints({
+//   name,
+//   rank,
+//   date,
+//   comment,
+//   hasGames,
+//   location,
+//   sheetData,
+// }: {
+//   name: string
+//   rank: string
+//   date: DateTime
+//   comment: string
+//   hasGames: boolean
+//   location: string
+//   sheetData: SheetData
+// }) {
+//   let rows
+//   let sheet
+//
+//   switch (rank.toLowerCase()) {
+//     case 'платиновый':
+//       rows = sheetData.rows.platinumPointsRows
+//       sheet = sheetData.sheets.platinumPointsSheet
+//       break
+//     case 'золотой':
+//       rows = sheetData.rows.goldPointsRows
+//       sheet = sheetData.sheets.goldPointsSheet
+//       break
+//     default:
+//       rows = sheetData.rows.pointsRows
+//       sheet = sheetData.sheets.pointsSheet
+//       break
+//   }
+//
+//   const row = rows.find(
+//     (row: GoogleSpreadsheetRow) =>
+//       Reflect.get(row, '_rawData')[1]?.split('-')[0]?.trim() === name.trim(),
+//   )
+//
+//   if (!row) return false
+//
+//   const rawData = Reflect.get(row, '_rawData')
+//
+//   let currentRow: GoogleSpreadsheetRow = row
+//   let rowIndex = rows.findIndex(
+//     (row: GoogleSpreadsheetRow) => row.rowNumber === currentRow.rowNumber,
+//   )
+//
+//   while (currentRow && Reflect.get(currentRow, '_rawData')[3] !== 'Штрафы') {
+//     rowIndex++
+//     currentRow = rows[rowIndex]
+//   }
+//
+//   const fines = parseInt(Reflect.get(currentRow, '_rawData')[4]) || 0
+//
+//   const datesFormat = 'dd.MM.yy'
+//
+//   const dateIndex = sheet.headerValues.findLastIndex((headerValue: string) => {
+//     const splitValue = headerValue?.split('-')
+//     if (!splitValue.length || splitValue.length < 2) return false
+//
+//     const startDate = DateTime.fromFormat(splitValue[0], datesFormat)
+//     const endDate = DateTime.fromFormat(splitValue[1], datesFormat)
+//
+//     const interval = Interval.fromDateTimes(startDate, endDate)
+//
+//     return interval.contains(date)
+//   })
+//
+//   if (dateIndex === -1) return false
+//
+//   await sheet.loadCells({
+//     startRowIndex: row.rowNumber - 1,
+//     endRowIndex: row.rowNumber,
+//     startColumnIndex: dateIndex,
+//     endColumnIndex: dateIndex + 2,
+//   })
+//
+//   const commentCell = sheet.getCell(row.rowNumber - 1, dateIndex)
+//   const numberCell = sheet.getCell(row.rowNumber - 1, dateIndex + 1)
+//
+//   const currentPoints = parseInt(rawData[4])
+//
+//   const query = `SELECT
+//   r.max_shift_points as max,
+//   l.short_name as location
+//   FROM lt_arena.ranks r
+//   LEFT JOIN lt_arena.locations l ON LOWER(l.name) = '${location.toLowerCase()}'
+//   WHERE LOWER(r.name) = '${rank.toLowerCase()}'`
+//
+//   const result = await db.query(query)
+//   const data = result.rows[0]
+//   const maxPoints: number = data?.max || 0
+//
+//   const oldValue = commentCell.stringValue || ''
+//   const text = `${date.toFormat('dd.MM')} ${data.location}`
+//
+//   const newText = oldValue ? `${oldValue}, ${text}` : text
+//
+//   if (commentCell.stringValue?.toLowerCase().includes(text.toLowerCase()))
+//     return false
+//
+//   let pointsToAdd = 1
+//   const splitComment = comment.toLowerCase().split('\n')
+//   if (
+//     rank.toLowerCase() === 'серебряный' &&
+//     splitComment.some(
+//       line =>
+//         line.includes('ст') ||
+//         line.includes('ст. смены') ||
+//         line.includes('старший смены') ||
+//         line.includes('ст. смены') ||
+//         line.includes('ст смены'),
+//     )
+//   ) {
+//     pointsToAdd = 2
+//   }
+//
+//   if (rank.toLowerCase() === 'каменный' && hasGames) {
+//     pointsToAdd = 2
+//   }
+//
+//   if (currentPoints + fines + 1 > maxPoints) {
+//     const googleAuth = google.auth
+//
+//     const sheets = rawGoogle.sheets({version: 'v4', auth: googleAuth})
+//
+//     const textFormatRuns = Reflect.get(commentCell, '_rawData')?.textFormatRuns
+//     let startIndex = newText.indexOf(oldValue ? `, ${text}` : text)
+//
+//     if (textFormatRuns?.length) {
+//       startIndex =
+//         textFormatRuns.findLast((format: any) => !!format?.startIndex)
+//           ?.startIndex || 0
+//     }
+//
+//     const requests = [
+//       {
+//         updateCells: {
+//           rows: [
+//             {
+//               values: [
+//                 {
+//                   userEnteredValue: {
+//                     stringValue: newText,
+//                   },
+//                   textFormatRuns: [
+//                     {
+//                       format: {
+//                         foregroundColor: {
+//                           red: 0.7176471,
+//                           green: 0.7176471,
+//                           blue: 0.7176471,
+//                         },
+//                       },
+//                       startIndex,
+//                     },
+//                   ],
+//                 },
+//               ],
+//             },
+//           ],
+//           fields: 'userEnteredValue,textFormatRuns',
+//           start: {
+//             sheetId: sheet.sheetId,
+//             rowIndex: commentCell.rowIndex,
+//             columnIndex: commentCell.columnIndex,
+//           },
+//         },
+//       },
+//     ]
+//
+//     await sheets.spreadsheets.batchUpdate({
+//       spreadsheetId: sheet._spreadsheet.spreadsheetId,
+//       requestBody: {
+//         requests,
+//       },
+//     })
+//   } else {
+//     numberCell.numberValue = (numberCell.numberValue || 0) + pointsToAdd
+//     commentCell.stringValue = newText
+//   }
+//
+//   return true
+// }
