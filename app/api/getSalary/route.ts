@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
   fines,
   overwork,
   w.name,
+  w.balance,
   w.rank,
   w.first_name,
   s.one_games,

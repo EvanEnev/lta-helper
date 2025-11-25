@@ -7,15 +7,13 @@ import {
   Input,
   RangeValue,
   useDisclosure,
-} from '@heroui/react'
-import {AddCircle, Ruble} from 'solar-icon-set'
-import {
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
-} from '@heroui/modal'
+} from '@heroui/react'
+import {AddCircle, Ruble} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {Fragment, useEffect, useMemo, useState} from 'react'
 import {parseDate} from '@internationalized/date'

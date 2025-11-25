@@ -17,7 +17,7 @@ if (dev) {
   hostname = 'lt-test.bubenev.su'
 }
 
-const app = next({dev, hostname, port, turbopack: dev})
+const app = next({dev, hostname, port})
 const handler = app.getRequestHandler()
 
 app.prepare().then(async () => {

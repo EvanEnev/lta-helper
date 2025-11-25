@@ -1,34 +1,44 @@
-FROM node:22-alpine AS builder
+ARG CODE_VERSION=22-alpine
+
+# ==========================
+# Builder
+# ==========================
+FROM node:${CODE_VERSION} AS builder
 WORKDIR /app
 
-# Копируем конфигурационные файлы
-COPY package*.json ./
-COPY postcss.config.js ./
-COPY next.config.mjs ./
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Устанавливаем все зависимости (включая dev)
-RUN npm install --force
+# Только зависимости
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
 
-# Копируем исходники
+# Исходники
 COPY . .
 
-# Собираем приложение
-RUN npm run build
+# Собираем Next.js
+RUN pnpm build
 
-FROM node:18-alpine AS runner
+
+# ==========================
+# Runner
+# ==========================
+FROM node:${CODE_VERSION} AS runner
 WORKDIR /app
 
-# Копируем только необходимые файлы
-COPY --from=builder /app/package*.json ./
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+COPY package.json pnpm-lock.yaml .npmrc ./
+
+RUN pnpm install --frozen-lockfile --prod
+
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/lib ./lib
 COPY --from=builder /app/server.ts ./server.ts
 
-# Устанавливаем только production зависимости
-RUN npm install --force
-
-ENV NODE_ENV=production
 COPY .env .env.production
 
-CMD ["npm", "start"]
+CMD ["pnpm", "start"]

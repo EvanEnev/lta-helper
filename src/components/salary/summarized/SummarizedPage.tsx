@@ -79,92 +79,114 @@ export default function SummarizedPage({
       {
         header: 'ЗП',
         key: 'salary',
-          accessorFn: ((row: any) => {
-              let value = 0
+        accessorFn: (row: any) => {
+          let value = 0
 
-              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
-                  value += d.salary
-              })
+          row.salaryData
+            .filter((d: any) => selectedLocations.includes(d.location))
+            .forEach((d: any) => {
+              value += d.salary
+            })
 
-              return value
-          }),
+          return value
+        },
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Переработка',
         key: 'overwork',
-          accessorFn: ((row: any) => {
-              let value = 0
+        accessorFn: (row: any) => {
+          let value = 0
 
-              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
-                  value += d.overwork
-              })
+          row.salaryData
+            .filter((d: any) => selectedLocations.includes(d.location))
+            .forEach((d: any) => {
+              value += d.overwork
+            })
 
-              return value
-          }),
+          return value
+        },
+        cell: ({getValue}: {getValue: () => any}) => render(getValue()),
+      },
+      {
+        header: 'Остаток',
+        key: 'balance',
+        accessorFn: (row: any) => {
+          return row.balance
+        },
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Итог',
         key: 'together',
-          accessorFn: ((row: any) => {
-              let value = 0
+        accessorFn: (row: any) => {
+          let value = 0
 
-              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
-                  value += d.salary + d.overwork
-              })
+          row.salaryData
+            .filter((d: any) => selectedLocations.includes(d.location))
+            .forEach((d: any) => {
+              value += d.salary + d.overwork
+            })
 
-              return value
-          }),
+          return value + (row.balance || 0)
+        },
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Бонусы',
         key: 'bonuses',
-                    accessorFn: ((row: any) => {
-              let value = 0
+        accessorFn: (row: any) => {
+          let value = 0
 
-              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
-                  value += d.bonuses
-              })
+          row.salaryData
+            .filter((d: any) => selectedLocations.includes(d.location))
+            .forEach((d: any) => {
+              value += d.bonuses
+            })
 
-              return value
-          }),
+          return value
+        },
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Штрафы',
         key: 'fines',
-                    accessorFn: ((row: any) => {
-              let value = 0
+        accessorFn: (row: any) => {
+          let value = 0
 
-              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
-                  value += d.fines
-              })
+          row.salaryData
+            .filter((d: any) => selectedLocations.includes(d.location))
+            .forEach((d: any) => {
+              value += d.fines
+            })
 
-              return value
-          }),
+          return value
+        },
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
       {
         header: 'Бонусы + Штрафы',
         key: 'bonusesfines',
-          accessorFn: ((row: any) => {
-              let value = 0
+        accessorFn: (row: any) => {
+          let value = 0
 
-              row.salaryData.filter((d: any) => selectedLocations.includes(d.location)).forEach((d: any) => {
-                  value += d.bonuses + d.fines
-              })
+          row.salaryData
+            .filter((d: any) => selectedLocations.includes(d.location))
+            .forEach((d: any) => {
+              value += d.bonuses + d.fines
+            })
 
-              return value
-          }),
+          return value
+        },
         cell: ({getValue}: {getValue: () => any}) => render(getValue()),
       },
     ]
   }, [selectedLocations])
 
   const columns = useMemo(() => {
-    return initialColumns.filter(c => !hiddenColumns?.includes(c.accessorKey || c.key || ''))
+    return initialColumns.filter(
+      c => !hiddenColumns?.includes(c.accessorKey || c.key || ''),
+    )
   }, [hiddenColumns, initialColumns])
 
   useEffect(() => {
@@ -187,20 +209,28 @@ export default function SummarizedPage({
           const grouped: object = groupBy(data.data, 'name')
           Object.entries(grouped).forEach(([key, value]) => {
             const newUser: {
-                user: {name: string, rank: string},
+              user: {name: string; rank: string}
+              salary: number
+              balance: number
+              bonuses: number
+              fines: number
+              together: number
+              overwork: number
+              bonusesfines: number
+              name: string
+              rank: string
+              locations: string[]
+              salaryData: {
+                location: string
                 salary: number
+                overwork: number
                 bonuses: number
                 fines: number
-                together: number
-                overwork: number
-                bonusesfines: number
-                name: string
-                rank: string
-                locations: string[]
-                salaryData: {location: string, salary: number, overwork: number, bonuses: number, fines: number}[]
+              }[]
             } = {
               user: {name: '', rank: ''},
               salary: 0,
+              balance: 0,
               bonuses: 0,
               fines: 0,
               together: 0,
@@ -209,7 +239,7 @@ export default function SummarizedPage({
               name: '',
               rank: '',
               locations: [],
-              salaryData: []
+              salaryData: [],
             }
 
             newUser.name = key
@@ -218,27 +248,30 @@ export default function SummarizedPage({
               name: `${key} - ${value[0].first_name}`,
               rank: value[0].rank,
             }
+            newUser.balance = value[0].balance || 0
 
             value.forEach((value: any) => {
+              // @ts-ignore
+              if (!newUser.locations.includes(value.location_name)) {
                 // @ts-ignore
-                if (!newUser.locations.includes(value.location_name)) {
-                    // @ts-ignore
-                    newUser.locations.push(value.location_name)
-                }
+                newUser.locations.push(value.location_name)
+              }
 
               const salary = value.value || 0
               let overwork = value.overwork || 0
 
-                const dataIndex = newUser.salaryData.findIndex(d => d.location === value.location_name)
+              const dataIndex = newUser.salaryData.findIndex(
+                d => d.location === value.location_name,
+              )
 
-                overwork +=
+              overwork +=
                 (value.one_games?.value || 0) +
                 (value.two_games?.value || 0) +
                 (value.three_games?.value || 0) +
                 (value.actor_games?.value || 0)
 
-                let bonusesValue = 0
-                let fines = 0
+              let bonusesValue = 0
+              let fines = 0
 
               if (bonuses) {
                 if (
@@ -252,29 +285,36 @@ export default function SummarizedPage({
                   value.bonuses = value.bonuses.slice(1)
                 }
 
-                  bonusesValue = evaluate(value.bonuses || '0')
+                bonusesValue = evaluate(value.bonuses || '0')
                 fines = evaluate(value.fines || '0')
               }
 
-                if (dataIndex === -1) {
-                    newUser.salaryData.push({location: value.location_name, salary, overwork, bonuses: bonusesValue, fines})
-                } else {
-                    newUser.salaryData[dataIndex].salary += salary
-                    newUser.salaryData[dataIndex].overwork += overwork
-                    newUser.salaryData[dataIndex].bonuses += bonusesValue
-                    newUser.salaryData[dataIndex].fines += fines
-                }
+              if (dataIndex === -1) {
+                newUser.salaryData.push({
+                  location: value.location_name,
+                  salary,
+                  overwork,
+                  bonuses: bonusesValue,
+                  fines,
+                })
+              } else {
+                newUser.salaryData[dataIndex].salary += salary
+                newUser.salaryData[dataIndex].overwork += overwork
+                newUser.salaryData[dataIndex].bonuses += bonusesValue
+                newUser.salaryData[dataIndex].fines += fines
+              }
 
-                newUser.salary += salary
-                newUser.overwork += overwork
-                newUser.bonuses += bonusesValue
-                newUser.fines += fines
+              newUser.salary += salary
+              newUser.overwork += overwork
+              newUser.bonuses += bonusesValue
+              newUser.fines += fines
             })
 
             newUser.together = newUser.salary + newUser.overwork
 
             newUser.bonusesfines = newUser.bonuses + newUser.fines
 
+            console.debug(newUser)
             newData.push(newUser)
           })
 
@@ -302,15 +342,16 @@ export default function SummarizedPage({
     let fines = 0
 
     data.forEach((value: any) => {
-        // @ts-ignore
-        const obj = value.salaryData.filter(d => selectedLocations.includes(d.location))
-        obj.forEach((value: any) => {
-            allSalary += value.salary + value.overwork
-            bonuses += value.bonuses
-            fines += value.fines
-            summary += value.salary + value.overwork + value.bonuses + value.fines
-        })
-
+      // @ts-ignore
+      const obj = value.salaryData.filter(d =>
+        selectedLocations.includes(d.location),
+      )
+      obj.forEach((value: any) => {
+        allSalary += value.salary + value.overwork
+        bonuses += value.bonuses
+        fines += value.fines
+        summary += value.salary + value.overwork + value.bonuses + value.fines
+      })
     })
 
     return {salary: allSalary, bonuses, summary, fines}
