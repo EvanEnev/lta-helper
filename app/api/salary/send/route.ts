@@ -1,76 +1,76 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {WorkerSalary} from '@/src/utils/types'
 import {DateTime} from 'luxon'
-import google, {GoogleDocument} from '@/lib/google'
-import {
-  GoogleSpreadsheetRow,
-  GoogleSpreadsheetWorksheet,
-} from 'google-spreadsheet'
+// import google, {GoogleDocument} from '@/lib/google'
+// import {
+//   GoogleSpreadsheetRow,
+//   GoogleSpreadsheetWorksheet,
+// } from 'google-spreadsheet'
 import db from '@/lib/database'
 import convertTZ from '@/lib/functions/convertTZ'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getRanks from '@/lib/functions/getRanks'
 import getSalaryData from '@/lib/functions/getSalaryData'
-import updatePoints from '@/src/utils/admin/updatePoints'
+// import updatePoints from '@/src/utils/admin/updatePoints'
 import logger from '@/Logger'
 import getGamePayments from '@/lib/functions/getGamesPayments'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 
-export interface SheetData {
-  sheets: {
-    pointsSheet: GoogleSpreadsheetWorksheet
-    goldPointsSheet: GoogleSpreadsheetWorksheet
-    platinumPointsSheet: GoogleSpreadsheetWorksheet
-  }
-  rows: {
-    pointsRows: GoogleSpreadsheetRow[]
-    goldPointsRows: GoogleSpreadsheetRow[]
-    platinumPointsRows: GoogleSpreadsheetRow[]
-  }
-}
+// export interface SheetData {
+//   sheets: {
+//     pointsSheet: GoogleSpreadsheetWorksheet
+//     goldPointsSheet: GoogleSpreadsheetWorksheet
+//     platinumPointsSheet: GoogleSpreadsheetWorksheet
+//   }
+//   rows: {
+//     pointsRows: GoogleSpreadsheetRow[]
+//     goldPointsRows: GoogleSpreadsheetRow[]
+//     platinumPointsRows: GoogleSpreadsheetRow[]
+//   }
+// }
 
-const loadData = async (google: GoogleDocument): Promise<SheetData> => {
-  await Promise.all([
-    google.actors.loadInfo(),
-    google.workers.loadInfo(),
-    google.schedule.loadInfo(),
-  ])
-
-  const pointsSheet = google.schedule.sheetsByTitle['Баллы онлайн']
-  const goldPointsSheet = google.schedule.sheetsByTitle['Баллы онлайн (ЗОЛОТО)']
-  const platinumPointsSheet =
-    google.schedule.sheetsByTitle['Баллы онлайн (ПЛАТИНА) ']
-
-  await Promise.all([
-    pointsSheet.loadHeaderRow(),
-    goldPointsSheet.loadHeaderRow(),
-    platinumPointsSheet.loadHeaderRow(),
-  ])
-
-  const [
-    pointsRows,
-    goldPointsRows,
-    platinumPointsRows,
-  ]: GoogleSpreadsheetRow[][] = await Promise.all([
-    pointsSheet.getRows(),
-    goldPointsSheet.getRows(),
-    platinumPointsSheet.getRows(),
-  ])
-
-  return {
-    sheets: {
-      pointsSheet,
-      goldPointsSheet,
-      platinumPointsSheet,
-    },
-    rows: {
-      pointsRows,
-      goldPointsRows,
-      platinumPointsRows,
-    },
-  }
-}
+// const loadData = async (google: GoogleDocument): Promise<SheetData> => {
+//   await Promise.all([
+//     google.actors.loadInfo(),
+//     google.workers.loadInfo(),
+//     google.schedule.loadInfo(),
+//   ])
+//
+//   const pointsSheet = google.schedule.sheetsByTitle['Баллы онлайн']
+//   const goldPointsSheet = google.schedule.sheetsByTitle['Баллы онлайн (ЗОЛОТО)']
+//   const platinumPointsSheet =
+//     google.schedule.sheetsByTitle['Баллы онлайн (ПЛАТИНА) ']
+//
+//   // await Promise.all([
+//   //   pointsSheet.loadHeaderRow(),
+//   //   goldPointsSheet.loadHeaderRow(),
+//   //   platinumPointsSheet.loadHeaderRow(),
+//   // ])
+//
+//   const [
+//     pointsRows,
+//     goldPointsRows,
+//     platinumPointsRows,
+//   ]: GoogleSpreadsheetRow[][] = await Promise.all([
+//     pointsSheet.getRows(),
+//     goldPointsSheet.getRows(),
+//     platinumPointsSheet.getRows(),
+//   ])
+//
+//   return {
+//     sheets: {
+//       pointsSheet,
+//       goldPointsSheet,
+//       platinumPointsSheet,
+//     },
+//     rows: {
+//       pointsRows,
+//       goldPointsRows,
+//       platinumPointsRows,
+//     },
+//   }
+// }
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -102,8 +102,8 @@ export async function POST(req: NextRequest) {
 
   date = convertTZ(date, 'Europe/Moscow')
 
-  const sheetData = await loadData(google)
-  const {pointsSheet, goldPointsSheet, platinumPointsSheet} = sheetData.sheets
+  // const sheetData = await loadData(google)
+  // const {pointsSheet, goldPointsSheet, platinumPointsSheet} = sheetData.sheets
 
   if (!checkPermissions(['set_salary'], user)) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
@@ -174,19 +174,19 @@ export async function POST(req: NextRequest) {
 
     if (!salary) continue
 
-    if (!data.comment?.toLowerCase().includes('под игру')) {
-      promises.push(
-        updatePoints({
-          name: data.worker,
-          rank,
-          sheetData,
-          hasGames: !!data.hasGames,
-          comment: data.comment,
-          location: data.location,
-          date,
-        }),
-      )
-    }
+    // if (!data.comment?.toLowerCase().includes('под игру')) {
+    //   promises.push(
+    //     updatePoints({
+    //       name: data.worker,
+    //       rank,
+    //       sheetData,
+    //       hasGames: !!data.hasGames,
+    //       comment: data.comment,
+    //       location: data.location,
+    //       date,
+    //     }),
+    //   )
+    // }
 
     if (data.withoutDate) {
       const query = `SELECT date FROM lt_arena.salary WHERE
@@ -292,13 +292,14 @@ export async function POST(req: NextRequest) {
   if (queries.length) {
     const queriesPromises = queries.map(query => db.query(query))
     try {
-      await Promise.all([...promises, ...queriesPromises]).then(async () => {
-        await Promise.all([
-          pointsSheet.saveUpdatedCells(),
-          goldPointsSheet.saveUpdatedCells(),
-          platinumPointsSheet.saveUpdatedCells(),
-        ])
-      })
+      await Promise.all([...promises, ...queriesPromises])
+      //   .then(async () => {
+      //   await Promise.all([
+      //     pointsSheet.saveUpdatedCells(),
+      //     goldPointsSheet.saveUpdatedCells(),
+      //     platinumPointsSheet.saveUpdatedCells(),
+      //   ])
+      // })
     } catch (e: any) {
       logger.error('sendWorkDays', {data: loggerData, error: e})
       return NextResponse.json({message: e.message || ''}, {status: 500})
