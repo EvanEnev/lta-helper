@@ -153,6 +153,8 @@ export default function WorkData({
     [data, index, setData],
   )
 
+  const isTyped = useMemo(() => data.location === 'Другое', [data.location])
+
   const salary = useMemo(() => {
     const rank = ranks.find(d => d.name === worker?.rank)
     if (!rank) return null
@@ -183,8 +185,8 @@ export default function WorkData({
         number: data.actorGames?.number || 0,
       },
       override: {
-        value: data.value,
-        overwork: data.location === 'Другое' ? 0 : data.overwork,
+        value: isTyped ? (data.value ? data.value : 0) : data.value,
+        overwork: isTyped ? 0 : data.overwork,
         oneGames: data.oneGames?.value,
         twoGames: data.twoGames?.value,
         threeGames: data.threeGames?.value,
@@ -192,6 +194,7 @@ export default function WorkData({
       },
     })
   }, [
+    isTyped,
     ranks,
     gamesPayments,
     user,
@@ -227,7 +230,6 @@ export default function WorkData({
     return groupBy(newWorkers, 'rank')
   }, [workers])
 
-  const isTyped = useMemo(() => data.location === 'Другое', [data.location])
   const accordionTitle = useMemo(() => {
     const keys = ['oneGames', 'twoGames', 'threeGames', 'actorGames']
 

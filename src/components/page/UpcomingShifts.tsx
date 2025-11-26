@@ -39,6 +39,7 @@ export default function UpcomingShifts({className = ''}: {className?: string}) {
 
             return (
               <Skeleton
+                isLoaded={!!dayData?.locationName}
                 key={index}
                 className="text-foreground glass flex flex-col gap-4 rounded-xl border-1 p-4">
                 <Location locationName={dayData?.locationName || ''} />

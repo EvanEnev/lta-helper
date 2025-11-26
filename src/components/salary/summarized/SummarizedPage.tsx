@@ -314,7 +314,6 @@ export default function SummarizedPage({
 
             newUser.bonusesfines = newUser.bonuses + newUser.fines
 
-            console.debug(newUser)
             newData.push(newUser)
           })
 
