@@ -73,6 +73,7 @@ export interface WorkerSalary {
   deleted?: number
   type?: string
   withoutDate?: boolean
+  sorting_weight: number
   oneGames: {id: LTGamePayment['id']; value: number; number: number} | null
   twoGames: {id: LTGamePayment['id']; value: number; number: number} | null
   threeGames: {id: LTGamePayment['id']; value: number; number: number} | null

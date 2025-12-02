@@ -55,7 +55,8 @@ export async function POST(req: NextRequest) {
   two_games,
   three_games,
   actor_games,
-  work_types
+  work_types,
+  r.sorting_weight
   FROM lt_arena.salary s
   LEFT JOIN lt_arena.locations l ON s.location_id = l.id
   LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
   const result = await db.query(query)
   const rows = result.rows
 
-  const data: WorkerSalary[] = rows.map(row => {
+  let data: WorkerSalary[] = rows.map(row => {
     const workingHours = row.overwork_end
       ? `${row.start_time.slice(0, -6)}-${row.overwork_end.slice(0, -6)}`
       : `${row.start_time.slice(0, -6)}-${row.end_time.slice(0, -6)}`
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
       threeGames: row.three_games,
       actorGames: row.actor_games,
       workTypes: row.work_types,
+      sorting_weight: row.sorting_weight || 0,
     }
   })
 
@@ -107,6 +109,7 @@ export async function POST(req: NextRequest) {
                      w.id as "workerId",
                      w.name,
                      w.rank,
+                     r.sorting_weight,
                      json_agg(
                        json_build_object(
                          'location', get_location(fd.location_id),
@@ -114,9 +117,10 @@ export async function POST(req: NextRequest) {
                        )
                      ) as data
                    from lt_arena.face_id fd
-                   left join lt_arena.workers w on w.id = fd.worker_id 
+                   left join lt_arena.workers w on w.id = fd.worker_id
+                   left join lt_arena.ranks r on r.name ilike w.rank
                    where date::date = '${date.toFormat('yyyy-MM-dd')}' and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 || user.id === 12 ? ' or fd.location_id = 17' : ''})
-                   group by w.id`
+                   group by w.id, r.sorting_weight`
 
   const faceIdResult = await db.query(faceIdQuery)
   const faceIdRows = faceIdResult.rows
@@ -165,8 +169,19 @@ export async function POST(req: NextRequest) {
         threeGames: null,
         actorGames: null,
         workTypes: workTypes,
+        sorting_weight: row.sorting_weight || 0,
       })
     }
+  })
+
+  data = data.sort((a, b) => {
+    if (a.sorting_weight === b.sorting_weight) {
+      return a.worker.localeCompare(b.worker)
+    }
+
+    return (
+      b.sorting_weight - a.sorting_weight || a.worker.localeCompare(b.worker)
+    )
   })
 
   return NextResponse.json({data, faceId: faceIdRows})
