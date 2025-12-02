@@ -42,6 +42,7 @@ const defaultSalaryData: WorkerSalary = {
   threeGames: null,
   actorGames: null,
   workTypes: [],
+  sorting_weight: 0,
 }
 
 export default function AdminPage({
