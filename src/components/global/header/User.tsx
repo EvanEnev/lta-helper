@@ -55,6 +55,7 @@ export default function User() {
               {},
               {
                 onSuccess: () => {
+                  sessionStorage.removeItem('worker')
                   router.push('/login')
                 },
               },
