@@ -88,7 +88,6 @@ export default function PayrollIssuePage({
     workersData,
   ])
 
-  console.debug(payroll)
   return (
     <main className="p-4">
       <div className="flex flex-col gap-2">
