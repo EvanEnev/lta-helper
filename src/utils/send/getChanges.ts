@@ -5,7 +5,6 @@ import {
 import {Day} from '../types'
 import {CellBGColorStyle, Change} from './types'
 import getCellValue from './getCellValue'
-import getComments from './getComments'
 import getLocations from '@/lib/functions/getLocations'
 import db from '@/lib/database'
 
