@@ -16,16 +16,25 @@ function BonusesAndFines({
   bonuses,
   fines,
   salary,
+  balance,
+  showAll = false,
 }: {
   bonuses: number
   fines: number
   salary: number
+  balance?: number
+  showAll?: boolean
 }) {
   return (
     <>
-      <p className="text-foreground-500">Бонусы: {bonuses}</p>
-      <p className="text-foreground-500">Штрафы: {fines}</p>
+      {showAll && (
+        <>
+          <p className="text-foreground-500">Бонусы: {bonuses}</p>
+          <p className="text-foreground-500">Штрафы: {fines}</p>
+        </>
+      )}
       <p className="text-foreground-500">ЗП: {salary}</p>
+      {balance && <p className="text-foreground-500">Остаток: {balance}</p>}
     </>
   )
 }
@@ -56,7 +65,8 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
               Можно получить с {data.previousSalaryTakeDate}
             </p>
             <div className="flex items-center gap-1">
-              {data.previousSalary +
+              {(data.balance || 0) +
+                data.previousSalary +
                 (worker.rank === 'Актёр'
                   ? data.currentBonuses
                   : !isCurrentWithBonuses
@@ -69,8 +79,9 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
                     : 0)}{' '}
               <Ruble iconStyle="Bold" />
             </div>
-            {(!isCurrentWithBonuses || worker.rank === 'Актёр') && (
+            {
               <BonusesAndFines
+                showAll={!isCurrentWithBonuses || worker.rank === 'Актёр'}
                 bonuses={
                   worker.rank === 'Актёр'
                     ? data.currentBonuses
@@ -86,8 +97,9 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
                       : 0
                 }
                 salary={data.previousSalary}
+                balance={data.balance || 0}
               />
-            )}
+            }
           </Skeleton>
         </div>
         <Divider />
@@ -120,17 +132,14 @@ export default function UpcomingSalary({data}: {data: ShortSalary}) {
                     : 0)}{' '}
               <Ruble iconStyle="Bold" />
             </div>
-            {(isCurrentWithBonuses || worker.rank === 'Актёр') && (
-              <BonusesAndFines
-                bonuses={
-                  worker.rank === 'Актёр' ? data.previousBonuses : data.bonuses
-                }
-                fines={
-                  worker.rank === 'Актёр' ? data.previousFines : data.fines
-                }
-                salary={data.currentSalary}
-              />
-            )}
+            <BonusesAndFines
+              showAll={isCurrentWithBonuses || worker.rank === 'Актёр'}
+              bonuses={
+                worker.rank === 'Актёр' ? data.previousBonuses : data.bonuses
+              }
+              fines={worker.rank === 'Актёр' ? data.previousFines : data.fines}
+              salary={data.currentSalary}
+            />
           </Skeleton>
         </div>
       </CardBody>

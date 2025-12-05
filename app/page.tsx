@@ -19,6 +19,7 @@ export interface ShortSalary {
   previousBonuses: number
   currentFines: number
   previousFines: number
+  balance: number | null
 }
 
 export default async function Home() {
@@ -144,6 +145,12 @@ export default async function Home() {
   const currentFines = evaluate(currentBonusesData.fines || '0')
   const previousFines = evaluate(previousBonusesData.fines || '0')
 
+  const balanceQuery = `select balance from lt_arena.workers where id = ${worker?.id}`
+
+  const balanceResult = await db.query(balanceQuery)
+
+  const balance = balanceResult.rows[0]?.balance
+
   const salaryData: ShortSalary = {
     currentDates: `${current[0].toFormat('dd.MM')}-${current[1].toFormat('dd.MM')}`,
     currentSalary,
@@ -157,6 +164,7 @@ export default async function Home() {
     previousBonuses,
     currentFines,
     previousFines,
+    balance,
   }
 
   return <MainPage salaryData={salaryData} />
