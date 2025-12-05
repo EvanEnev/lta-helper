@@ -5,8 +5,13 @@ import SendButton from './SendButton'
 import {Day, LTLocation} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {useAtom, useAtomValue} from 'jotai'
-import {daysAtom, selectedDayAtom} from '@/src/utils/global/atoms'
+import {
+  daysAtom,
+  selectedDatesAtom,
+  selectedDayAtom,
+} from '@/src/utils/global/atoms'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {DateTime} from 'luxon'
 
 interface MobileScheduleProps {
   locations: LTLocation[]
@@ -17,6 +22,7 @@ export default function MobileSchedule({locations}: MobileScheduleProps) {
   const selectedDay = useAtomValue(selectedDayAtom)
   const [initialDays, setInitialDays] = useState(workingDays)
   const [days, setDays] = useAtom(daysAtom)
+  const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
 
   const day: Day = useMemo(
     () =>
@@ -64,6 +70,20 @@ export default function MobileSchedule({locations}: MobileScheduleProps) {
   useEffect(() => {
     setExiting(false)
   }, [setExiting])
+
+  useEffect(() => {
+    if (selectedDates.length) return
+
+    const date = days.find(
+      day =>
+        day.date?.toFormat('yyyy-MM-dd') ===
+        DateTime.now().toFormat('yyyy-MM-dd'),
+    )
+
+    if (!date?.date) return
+
+    setSelectedDates([date.date])
+  }, [days])
 
   return (
     <div className="flex max-h-[50%] w-full flex-wrap gap-4">
