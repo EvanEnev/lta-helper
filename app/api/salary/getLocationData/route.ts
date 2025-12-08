@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
                    from lt_arena.face_id fd
                    left join lt_arena.workers w on w.id = fd.worker_id
                    left join lt_arena.ranks r on r.name ilike w.rank
-                   where date::date = '${date.toFormat('yyyy-MM-dd')}' and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 || user.id === 12 ? ' or fd.location_id = 17' : ''})
+                   where (date between '${date.toFormat('yyyy-MM-dd')}'::date + interval '5 hours' and '${date.toFormat('yyyy-MM-dd')}'::date + interval '29 hours') and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 || user.id === 12 ? ' or fd.location_id = 17' : ''})
                    group by w.id, r.sorting_weight`
 
   const faceIdResult = await db.query(faceIdQuery)
