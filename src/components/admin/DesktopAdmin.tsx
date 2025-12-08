@@ -7,15 +7,8 @@ import {
   LTWorkType,
   WorkerSalary,
 } from '@/src/utils/types'
-import {
-  Button,
-  CalendarDate,
-  Card,
-  CardBody,
-  CardHeader,
-  DatePicker,
-  semanticColors,
-} from '@heroui/react'
+import {CalendarDate, DatePicker, semanticColors} from '@heroui/react'
+import {Button, Card} from '@heroui/react-beta'
 import WorkData from './WorkData'
 import {
   AddCircle,
@@ -114,33 +107,33 @@ export default function DesktopAdmin({
 
   return (
     <main className="flex min-h-full gap-4 p-4">
-      <div className="grid h-full w-full grid-cols-[repeat(auto-fit,minmax(300px,max-content))] gap-4 overflow-auto">
+      <div className="flex h-full w-full flex-wrap gap-2 overflow-auto">
         {salaryData.map((data, index) => {
           const location = locations.find(l => l.name === data.location)
 
           const textColorClass =
             theme === 'dark'
               ? isDark(location?.color || '#000000')
-                ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
-                : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
+                ? 'text-default-100'
+                : 'text-foreground'
               : isDark(location?.color || '#ffffff')
-                ? 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
-                : 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
+                ? 'text-foreground'
+                : 'text-default-100'
 
           return (
             <Card
               key={index}
               className={data.deleted ? 'bg-danger/50 min-w-fit' : 'min-w-fit'}>
-              <CardHeader
-                className={`${textColorClass} flex-col items-start gap-2`}
+              <Card.Header
+                className="flex-col items-start justify-center gap-2 rounded-2xl p-2"
                 style={{
                   backgroundColor: location?.color || '',
                   transition: 'background-color 0.3s ease-in-out',
                 }}>
                 <div className="flex w-full shrink-0 items-center justify-start gap-2">
-                  {index + 1}.
+                  <p className={textColorClass}>{index + 1}.</p>
                   <Button
-                    variant="faded"
+                    variant="tertiary"
                     onPress={() =>
                       setSalaryData((prev: WorkerSalary[]) =>
                         data.deleted
@@ -156,34 +149,32 @@ export default function DesktopAdmin({
                             ),
                       )
                     }
-                    startContent={
-                      data.deleted ? (
-                        <RestartCircle
-                          //@ts-ignore
-                          color={semanticColors.dark.success.DEFAULT}
-                          size={24}
-                        />
-                      ) : (
-                        <MinusCircle
-                          //@ts-ignore
-                          color={semanticColors.dark.danger.DEFAULT}
-                          size={24}
-                        />
-                      )
-                    }
                     className="w-full flex-1">
+                    {data.deleted ? (
+                      <RestartCircle
+                        //@ts-ignore
+                        color={semanticColors.dark.success.DEFAULT}
+                        size={24}
+                      />
+                    ) : (
+                      <MinusCircle
+                        //@ts-ignore
+                        color={semanticColors.dark.danger.DEFAULT}
+                        size={24}
+                      />
+                    )}
                     {data.deleted ? 'Вернуть' : 'Удалить'}
                   </Button>
                   {data.deleted && (
                     <Button
                       className="w-fit flex-1"
-                      variant="faded"
+                      variant="tertiary"
                       onPress={() =>
                         setSalaryData((prev: WorkerSalary[]) =>
                           prev.filter((_, i) => i !== index),
                         )
-                      }
-                      startContent={<Eye size={24} />}>
+                      }>
+                      <Eye size={24} />
                       Скрыть
                     </Button>
                   )}
@@ -199,8 +190,8 @@ export default function DesktopAdmin({
                   />
                   <p>{data.createdAt || 'a'}</p>
                 </div>
-              </CardHeader>
-              <CardBody>
+              </Card.Header>
+              <Card.Content>
                 <WorkData
                   faceId={faceId}
                   gamesPayments={gamesPayments}
@@ -213,12 +204,12 @@ export default function DesktopAdmin({
                   worker={worker}
                   index={index}
                 />
-              </CardBody>
+              </Card.Content>
             </Card>
           )
         })}
         <Card
-          onPress={() =>
+          onClick={() =>
             setSalaryData((prev: WorkerSalary[]) => [
               ...prev,
               {
@@ -232,15 +223,14 @@ export default function DesktopAdmin({
               },
             ])
           }
-          isPressable
           className="border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 w-[300px] border-2 border-dashed bg-transparent transition-colors duration-300 ease-in-out hover:cursor-pointer">
-          <CardBody className="flex h-full w-full items-center justify-center border-0">
+          <Card.Content className="flex h-full w-full items-center justify-center border-0">
             <AddCircle size={48} />
-          </CardBody>
+          </Card.Content>
         </Card>
       </div>
-      <Card className="glass sticky top-2 z-1000 h-fit w-[22vw]">
-        <CardBody className="gap-4">
+      <Card className="sticky top-2 z-1000 h-fit w-[22vw]">
+        <Card.Content className="gap-4">
           <DatePicker
             variant="bordered"
             aria-label="Дата"
@@ -265,7 +255,10 @@ export default function DesktopAdmin({
             defaultValue={today('Europe/Moscow')}
           />
           <Button
-            className="h-min p-2"
+            className="h-14 w-full py-2"
+            size="lg"
+            variant="tertiary"
+            isIconOnly
             onPress={() =>
               setSalaryData((prev: WorkerSalary[]) => [
                 ...prev,
@@ -280,19 +273,20 @@ export default function DesktopAdmin({
                 },
               ])
             }>
-            <AddCircle size={48} />
+            <AddCircle size={24} />
+            Добавить
           </Button>
           <Button
             isDisabled={isDateInvalid}
             size="lg"
-            color="primary"
+            variant="primary"
             className="h-16 w-full"
             onPress={sendData}
-            startContent={<Plain size={24} />}
-            isLoading={isLoading}>
+            isPending={isLoading}>
+            <Plain size={24} />
             Отправить
           </Button>
-        </CardBody>
+        </Card.Content>
       </Card>
     </main>
   )

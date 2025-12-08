@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import "@heroui/styles-beta";
+
 @plugin '../lib/hero.ts';
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @source '../node_modules/.pnpm/**/node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
@@ -123,4 +125,13 @@ html {
 
 .delay-2 {
     animation-delay: 1.4s;
+}
+
+@layer components {
+    @media (min-width: 40rem) {
+        .button svg:not([data-slot="spinner"] svg) {
+            width: inherit;
+            height: inherit;
+        }
+    }
 }
