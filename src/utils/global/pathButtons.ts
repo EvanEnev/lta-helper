@@ -9,19 +9,17 @@ import {
 } from 'solar-icon-set'
 import {ElementType} from 'react'
 
-interface PathButton {
+interface ButtonBase {
   name: string
   href: string
   permission?: string
   isDisabled?: boolean
   icon?: ElementType
-  children?: {
-    name: string
-    href: string
-    permission?: string
-    isDisabled?: boolean
-    icon?: ElementType
-  }[]
+  className?: string
+}
+
+interface PathButton extends ButtonBase {
+  children?: ButtonBase[]
 }
 
 const buttons: PathButton[] = [
