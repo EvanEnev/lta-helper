@@ -270,3 +270,34 @@ export interface LTFaceIdData {
     date: string
   }[]
 }
+
+export interface LTPaymentType {
+  id: number
+  name: string
+  value: number
+  percent: number
+  ranks: LTRank[]
+}
+
+export interface LTPayment {
+  id: number
+  worker?: LTWorker
+  date: string
+  value?: number
+  type?: LTPaymentType['name']
+  editMode?: boolean
+  create?: boolean
+  delete?: boolean
+  comment?: string | null
+}
+
+export interface LTPaymentChangeData {
+  id: number
+  date: string
+  value: number | null
+  worker: LTWorker['name']
+  type: LTPaymentType['id'] | null
+  comment: string | null
+  create: boolean
+  delete: boolean
+}
