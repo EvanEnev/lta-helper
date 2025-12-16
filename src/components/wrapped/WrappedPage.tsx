@@ -1,14 +1,16 @@
+'use client'
+
+import React, {useState, useEffect, useRef, Fragment} from 'react'
+import {motion, AnimatePresence} from 'framer-motion'
+import {Separator} from '@heroui/react-beta'
+import RankIcon from '@/src/components/global/RankIcon'
 import {
   WrappedLocations,
   WrappedSchedule,
   WrappedShifts,
   WrapperWorkers,
 } from '@/src/utils/types'
-import {Card, Separator} from '@heroui/react-beta'
-import RankIcon from '@/src/components/global/RankIcon'
-import Location from '@/src/components/global/Location'
-import {Fragment, ReactElement} from 'react'
-import {AddCircle, MinusCircle, QuestionCircle} from 'solar-icon-set'
+import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface WrappedPageProps {
   workersData: WrapperWorkers[]
@@ -17,147 +19,226 @@ interface WrappedPageProps {
   scheduleData: WrappedSchedule
 }
 
-const scheduleLegend: {
-  name: string
-  key: keyof WrappedSchedule
-  icon: ReactElement
-  color?: string
-}[] = [
-  {
-    name: 'Могу',
-    key: 'plus',
-    icon: <AddCircle iconStyle="Bold" />,
-    color: 'bg-success/30',
-  },
-  {
-    name: 'Не могу',
-    key: 'minus',
-    icon: <MinusCircle iconStyle="Bold" />,
-    color: 'bg-danger/30',
-  },
-  {
-    name: 'С ограничением',
-    key: 'limitations',
-    icon: <QuestionCircle iconStyle="Bold" />,
-    color: 'bg-warning/30',
-  },
-]
-
-export default function WrappedPage({
+export default function FullPageScroll({
   workersData,
   locationsData,
   shiftsData,
   scheduleData,
 }: WrappedPageProps) {
-  return (
-    <main className="flex flex-col gap-4 p-4">
-      <div className="flex w-full flex-col gap-4 sm:flex-row">
-        <Card className="w-full sm:w-[15rem]">
-          <Card.Header className="wrap-break-word">Всего смен</Card.Header>
-          <Card.Content className="flex flex-col justify-around gap-2">
-            {shiftsData.count}
-          </Card.Content>
-        </Card>
-        <Card className="w-full sm:w-[15rem]">
-          <Card.Header className="wrap-break-word">Возможности</Card.Header>
-          <Card.Content className="flex flex-col justify-around gap-2">
-            {scheduleLegend.map((data, index) => (
-              <div
-                key={index}
-                className={`flex justify-between gap-2 ${data.color} rounded-xl p-2`}>
-                <div className="flex items-center gap-2">
-                  {data.icon}
-                  <p>{data.name}</p>
-                </div>
-                <p>{scheduleData[data.key]}</p>
-              </div>
-            ))}
-          </Card.Content>
-        </Card>
-      </div>
-      <div className="flex w-full flex-col gap-4 sm:flex-row">
-        <Card className="w-full sm:w-[15rem]">
-          <Card.Header className="wrap-break-word">
-            Топ 10 любимых сотрудников
-          </Card.Header>
-          <Card.Content className="flex flex-col justify-around gap-2">
-            <div className="flex items-center justify-around gap-2">
-              <p className="text-foreground-500">Позывной</p>
-              <p className="text-foreground-500">Пересечений</p>
-            </div>
-            <Separator />
-            {workersData
-              .filter((_, i) => i < 10)
-              .map((data, index) => (
-                <Fragment key={index}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <RankIcon rank={data.rank} />
-                      <p>{data.worker}</p>
-                    </div>
-                    <p>{data.count}</p>
-                  </div>
-                  {index !==
-                    workersData.filter((_, i) => i < 10).length - 1 && (
-                    <Separator />
-                  )}
-                </Fragment>
-              ))}
-          </Card.Content>
-        </Card>
-        <Card className="w-full sm:w-[15rem]">
-          <Card.Header className="wrap-break-word">
-            Топ 10 любимых администраторов
-          </Card.Header>
-          <Card.Content className="flex flex-col justify-around gap-2">
-            <div className="flex items-center justify-around gap-2">
-              <p className="text-foreground-500">Позывной</p>
-              <p className="text-foreground-500">Пересечений</p>
-            </div>
-            <Separator />
-            {workersData
-              .filter(d => ['Платиновый', 'Золотой'].includes(d.rank))
-              .filter((_, i) => i < 10)
-              .map((data, index) => (
-                <Fragment key={index}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <RankIcon rank={data.rank} />
-                      <p>{data.worker}</p>
-                    </div>
-                    <p>{data.count}</p>
-                  </div>
-                  {index !==
-                    workersData
-                      .filter(d => ['Платиновый', 'Золотой'].includes(d.rank))
-                      .filter((_, i) => i < 10).length -
-                      1 && <Separator />}
-                </Fragment>
-              ))}
-          </Card.Content>
-        </Card>
-        <Card className="w-full sm:w-[15rem]">
-          <Card.Header className="wrap-break-word">
-            Топ любимых локаций
-          </Card.Header>
-          <Card.Content className="flex flex-col gap-2">
-            <div className="flex items-center justify-around gap-2">
-              <p className="text-foreground-500">Название</p>
-              <p className="text-foreground-500">Смен</p>
-            </div>
-            <Separator />
-            {locationsData.map((data, index) => (
+  const {headerRef} = useAuth()
+  const [currentSection, setCurrentSection] = useState(0)
+  const [direction, setDirection] = useState(0)
+  const [isScrolling, setIsScrolling] = useState(false)
+  const touchStartY = useRef(0)
+  const scrollTimeout = useRef(null)
+
+  useEffect(() => {
+    if (headerRef.current) {
+      headerRef.current?.classList.add('hidden')
+    }
+  }, [])
+  const sections = [
+    {
+      id: 1,
+      title: 'Это бы прекрасный год',
+      description: 'Посмотрим его итоги',
+      className: 'bg-gradient-to-br from-purple-600 to-blue-600',
+    },
+    {
+      id: 2,
+      title: 'Топ 10 любимых сотрудников',
+      className: 'bg-gradient-to-br from-blue-600 to-cyan-500',
+      content: (
+        <div className="glass flex flex-col justify-around gap-2 bg-black/30 p-4">
+          <div className="flex items-center justify-around gap-2">
+            <p className="text-foreground-500">Позывной</p>
+            <p className="text-foreground-500">Пересечений</p>
+          </div>
+          <Separator />
+          {workersData
+            .filter((_, i) => i < 10)
+            .map((data, index) => (
               <Fragment key={index}>
-                <div className="flex items-center justify-between gap-8">
-                  <Location locationName={data.location} />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <RankIcon rank={data.rank} />
+                    <p>{data.worker}</p>
+                  </div>
                   <p>{data.count}</p>
                 </div>
-                {index !== locationsData.length - 1 && <Separator />}
+                {index !== workersData.filter((_, i) => i < 10).length - 1 && (
+                  <Separator />
+                )}
               </Fragment>
             ))}
-          </Card.Content>
-        </Card>
+        </div>
+      ),
+    },
+    {
+      id: 3,
+      title: 'Services',
+      className: 'bg-gradient-to-br from-cyan-500 to-teal-500',
+    },
+    {
+      id: 4,
+      title: 'Portfolio',
+      className: 'bg-gradient-to-br from-teal-500 to-green-500',
+    },
+    {
+      id: 5,
+      title: 'Contact',
+      className: 'bg-gradient-to-br from-green-500 to-emerald-600',
+    },
+  ]
+
+  const scrollToSection = (index, dir) => {
+    if (index >= 0 && index < sections.length && !isScrolling) {
+      setDirection(dir)
+      setCurrentSection(index)
+      setIsScrolling(true)
+      setTimeout(() => setIsScrolling(false), 1000)
+    }
+  }
+
+  useEffect(() => {
+    const handleWheel = e => {
+      e.preventDefault()
+
+      if (isScrolling) return
+
+      clearTimeout(scrollTimeout.current)
+      scrollTimeout.current = setTimeout(() => {
+        if (e.deltaY > 0) {
+          scrollToSection(currentSection + 1, 1)
+        } else {
+          scrollToSection(currentSection - 1, -1)
+        }
+      }, 50)
+    }
+
+    const handleKeyDown = e => {
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault()
+        scrollToSection(currentSection + 1, 1)
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault()
+        scrollToSection(currentSection - 1, -1)
+      }
+    }
+
+    const handleTouchStart = e => {
+      touchStartY.current = e.touches[0].clientY
+    }
+
+    const handleTouchEnd = e => {
+      const touchEndY = e.changedTouches[0].clientY
+      const diff = touchStartY.current - touchEndY
+
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) {
+          scrollToSection(currentSection + 1, 1)
+        } else {
+          scrollToSection(currentSection - 1, -1)
+        }
+      }
+    }
+
+    window.addEventListener('wheel', handleWheel, {passive: false})
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('touchstart', handleTouchStart)
+    window.addEventListener('touchend', handleTouchEnd)
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchend', handleTouchEnd)
+      clearTimeout(scrollTimeout.current)
+    }
+  }, [currentSection, isScrolling])
+
+  const slideVariants = {
+    enter: direction => ({
+      y: direction > 0 ? '100%' : '-100%',
+      opacity: 1,
+    }),
+    center: {
+      y: 0,
+      opacity: 1,
+    },
+    exit: direction => ({
+      y: direction > 0 ? '-100%' : '100%',
+      opacity: 1,
+    }),
+  }
+
+  return (
+    <div
+      className={`relative h-screen w-full overflow-hidden ${sections[currentSection].bg}`}>
+      {/* Navigation Dots */}
+      <div className="fixed top-1/2 right-8 z-50 flex -translate-y-1/2 flex-col gap-4">
+        {sections.map((section, index) => (
+          <button
+            key={section.id}
+            onClick={() =>
+              scrollToSection(index, index > currentSection ? 1 : -1)
+            }
+            className={`h-3 w-3 rounded-full transition-all duration-300 ${
+              currentSection === index
+                ? 'scale-125 bg-white'
+                : 'bg-white/40 hover:bg-white/60'
+            }`}
+            aria-label={`Go to ${section.title}`}
+          />
+        ))}
       </div>
-    </main>
+
+      {/* Sections */}
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <motion.div
+          key={currentSection}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96]}}
+          className={`absolute inset-0 flex flex-col items-center justify-center ${sections[currentSection].className}`}>
+          <motion.div
+            initial={{scale: 0.8, opacity: 0}}
+            animate={{scale: 1, opacity: 1}}
+            transition={{delay: 0.3, duration: 0.6}}
+            className="px-8 text-center">
+            <motion.h1
+              className="mb-6 text-6xl font-bold md:text-8xl"
+              initial={{y: 20, opacity: 0}}
+              animate={{y: 0, opacity: 1}}
+              transition={{delay: 0.5, duration: 0.6}}>
+              {sections[currentSection].title}
+            </motion.h1>
+            <motion.p
+              className="mx-auto max-w-2xl text-xl opacity-90 md:text-2xl"
+              initial={{y: 20, opacity: 0}}
+              animate={{y: 0, opacity: 1}}
+              transition={{delay: 0.7, duration: 0.6}}>
+              {sections[currentSection].description}
+            </motion.p>
+            {sections[currentSection].content}
+          </motion.div>
+
+          {/* Scroll Indicator */}
+          {currentSection < sections.length - 1 && (
+            <motion.div
+              initial={{opacity: 0}}
+              animate={{opacity: 1, y: [0, 10, 0]}}
+              transition={{
+                opacity: {delay: 1, duration: 0.5},
+                y: {delay: 1.5, duration: 1.5, repeat: Infinity},
+              }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2"></motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
+    </div>
   )
 }
