@@ -32,16 +32,11 @@ ID: \`${worker?.telegramId || 'нет'}\`
 
   const botToken = process.env.BOT_TOKEN
 
-  const res = await fetch(
-    `https://api.telegram.org/bot${botToken}/sendDocument`,
-    {
-      method: 'POST',
-      body: form,
-      headers: {accept: 'application/json'},
-    },
-  )
-
-  console.debug(res, text)
+  await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+    method: 'POST',
+    body: form,
+    headers: {accept: 'application/json'},
+  })
 
   return NextResponse.json({}, {status: 200})
 }
