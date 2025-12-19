@@ -125,7 +125,7 @@ export default function CellBody({
           </>
         )}
         <CellChip className="text-foreground text-small col-span-2 flex justify-between">
-          {data.value.toString()} <Ruble iconStyle="Bold" />
+          {data.value?.toString()} <Ruble iconStyle="Bold" />
         </CellChip>
         {!data.type && (
           <>

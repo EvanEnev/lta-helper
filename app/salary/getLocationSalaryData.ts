@@ -12,6 +12,7 @@ interface GetLocationSalaryDataProps {
   allLocations?: boolean
   filters?: Filter[]
 }
+
 export default async function getLocationSalaryData({
   locationId,
   date,
@@ -39,6 +40,7 @@ export default async function getLocationSalaryData({
   let workersRows = []
   let faceIdRows = []
   let salaryResult = {rows: []}
+  let paymentsRows = []
 
   if (canView) {
     let queryAddon = ''
@@ -93,6 +95,16 @@ export default async function getLocationSalaryData({
                          WHERE date BETWEEN '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}' AND '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'
                                  ${queryAddon}`
 
+    const paymentsQuery = `select
+    worker_id,
+    pt.name,
+    p.value,
+    date,
+    comment,
+    act_id
+    from lt_arena.payments p
+    left join lt_arena.payments_types pt on pt.id = p.payment_type`
+
     const workersQuery = `
     SELECT
     w.id, w.name, first_name as "firstName", rank, telegram_id as "telegramId", is_former as "isFormer"
@@ -101,12 +113,19 @@ export default async function getLocationSalaryData({
     ${!(canViewFull || canViewLocation) ? `where w.name ilike '${worker?.name}'` : ''}
     order by w.is_former desc, r.sorting_weight desc, w.name`
 
-    const results = await db.query(`${salaryQuery};\n${workersQuery}`)
+    const results = await db.query(
+      `${salaryQuery};\n${workersQuery};\n${paymentsQuery}`,
+    )
 
     // @ts-ignore
     const workersResult = results[1]
     // @ts-ignore
     salaryResult = results[0]
+    // @ts-ignore
+    const paymentsResult = results[2]
+    paymentsRows = paymentsResult.rows
+
+    console.debug(paymentsRows)
 
     workersRows = workersResult.rows
 
@@ -152,11 +171,33 @@ export default async function getLocationSalaryData({
           s.worker_name === worker.name,
       )
 
-      if (!salary) {
-        rowWithDates[`day${day}`] = ''
+      const payment = paymentsRows.find(
+        (p: any) =>
+          p.worker_id === worker.id &&
+          p.date.toFormat('yyyy-MM-dd') === date.toFormat('yyyy-MM-dd'),
+      )
+
+      let obj: string | SalaryData = ''
+
+      if (!(salary || payment)) {
+        obj = ''
       } else {
-        rowWithDates[`day${day}`] = {...salary, date: date.toISO() || ''}
+        // @ts-ignore
+        obj = {
+          ...salary,
+          // @ts-ignore
+          payment: payment
+            ? {...payment, date: payment?.date.toISO() || ''}
+            : null,
+          date: date.toISO() || '',
+        }
       }
+
+      if (payment !== undefined) {
+        console.debug(payment, obj)
+      }
+
+      rowWithDates[`day${day}`] = obj
     }
 
     return rowWithDates
