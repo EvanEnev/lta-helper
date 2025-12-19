@@ -66,7 +66,7 @@ export default async function PayrollsCreate({
    string_agg(s.fines, '+') as fines
    from lt_arena.salary s
    left join lt_arena.workers w on w.id = s.worker_id
-   where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}'
+   where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}' and w.rank != 'Актёр'
    group by w.name, w.rank, w.is_former, w.id
   `
 
@@ -109,13 +109,6 @@ export default async function PayrollsCreate({
         }
 
         data.push(newData)
-      } else {
-        const newData = {...data[index]}
-
-        newData.bonuses += '+' + (row.bonuses || '0')
-        newData.fines += '+' + (row.fines || '0')
-
-        data[index] = newData
       }
     })
   }
