@@ -70,7 +70,26 @@ export default async function PayrollsCreate({
    group by w.name, w.rank, w.is_former, w.id
   `
 
+  const paymentsQuery = `select
+  worker_id,
+  sum(value)
+  from lt_arena.payments
+  where date between '${dates.start}' and '${dates.end}'
+  group by worker_id`
+
+  const paymentsResult = await db.query(paymentsQuery)
+  const payments = paymentsResult.rows
+
   let data = (await db.query(query)).rows
+
+  payments.forEach(payment => {
+    const index = data.findIndex(d => d.id === payment.worker_id)
+    if (index !== -1) return
+
+    const newData = {...data[index]}
+    newData.value -= payment.value
+    data[index] = newData
+  })
 
   if (bonuses) {
     const bonusesResult = await db.query(bonusesQuery)
