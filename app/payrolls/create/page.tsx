@@ -84,10 +84,10 @@ export default async function PayrollsCreate({
 
   payments.forEach(payment => {
     const index = data.findIndex(d => d.id === payment.worker_id)
-    if (index !== -1) return
+    if (index === -1) return
 
     const newData = {...data[index]}
-    newData.value -= payment.value
+    newData.externalPayment = Number(payment.sum)
     data[index] = newData
   })
 

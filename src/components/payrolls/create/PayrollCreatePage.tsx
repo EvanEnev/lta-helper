@@ -83,15 +83,19 @@ export default function PayrollCreatePage({
   const themeColors = semanticColors[theme || 'dark']
   const [payrollData, setPayrollData] = useState<LTPayrollData[]>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.workersData ||
-      data.map(d => ({
-        workerId: d.id,
-        external_payment: 0,
-        location: -1,
-        value: d.value || 0,
-        fines: d.fines || 0,
-        bonuses: d.bonuses || 0,
-      })),
+      data.map(d => {
+        return {
+          workerId: d.id,
+          // @ts-ignore
+          external_payment: d.externalPayment || 0,
+          location: -1,
+          value: d.value || 0,
+          fines: d.fines || 0,
+          bonuses: d.bonuses || 0,
+        }
+      }),
   )
+  console.debug(payrollData)
   const [takeBy, setTakeBy] = useState<string>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
       DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
