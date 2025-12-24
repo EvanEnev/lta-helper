@@ -34,6 +34,7 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-responsive": "^10.0.1",
+    "react-snowfall": "^2.4.0",
     "react-text-mask": "^5.5.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",

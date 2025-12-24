@@ -5,6 +5,7 @@ import Header from '@/src/components/global/header/Header'
 import AuthProvider from '@/src/components/global/providers/authProvider'
 import {Provider} from 'jotai'
 import {ThemeProvider as NextThemesProvider} from 'next-themes'
+import {Snowfall} from 'react-snowfall'
 
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
@@ -13,6 +14,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
         locale="ru-RU"
         className="background relative min-h-[100dvh] w-full min-w-fit">
         <NextThemesProvider attribute="class" defaultTheme="dark">
+          <Snowfall snowflakeCount={80} />
           <div className="sm:flex sm:gap-2">
             <Header />
             <Provider>
