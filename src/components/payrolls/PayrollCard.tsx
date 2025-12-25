@@ -29,7 +29,10 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)
   const takeBy = DateTime.fromISO(data.takeBy)
-  const today = useMemo(() => DateTime.now(), [])
+  const today = useMemo(
+    () => DateTime.now().set({hour: 0, minute: 0, second: 0}),
+    [],
+  )
 
   // @ts-ignore
   const themeColors = semanticColors[theme || 'dark']
@@ -62,7 +65,7 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
         )}
         <div>
           <span>Можно забрать до: </span>
-          <Code color={takeBy > today ? 'success' : 'danger'}>
+          <Code color={takeBy >= today ? 'success' : 'danger'}>
             {takeBy.toFormat('dd.MM.yyyy')}
           </Code>
         </div>

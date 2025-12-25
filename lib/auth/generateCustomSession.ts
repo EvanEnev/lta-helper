@@ -2,6 +2,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import {InferSession, InferUser} from 'better-auth'
 import db from '@/lib/database'
 import {LTWorker} from '@/src/utils/types'
+import {cookies} from 'next/headers'
 
 export default async function generateCustomSession({
   user,
@@ -10,7 +11,10 @@ export default async function generateCustomSession({
   user: InferUser<any>
   session: InferSession<any>
 }) {
-  const telegramId = Number(user.email.split('@')[0])
+  const cookieStore = await cookies()
+  const telegramId =
+    Number(cookieStore.get('impersonate')?.value || 'a') ||
+    Number(user.email.split('@')[0])
 
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
 
@@ -74,5 +78,12 @@ export default async function generateCustomSession({
     worker.locationId = workerResult?.today_location
   }
 
-  return {user: {...user, ...worker}, session}
+  const trueIdQuery = `select id from lt_arena.workers where telegram_id = ${Number(user.email.split('@')[0])}`
+  const trueIdResult = await db.query(trueIdQuery)
+  const trueId = trueIdResult.rows[0]?.id
+
+  return {
+    user: {...user, ...worker, trueId},
+    session,
+  }
 }

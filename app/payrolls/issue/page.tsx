@@ -23,7 +23,7 @@ export default async function PayrollIssue() {
     left join lt_arena.locations l on l.id = wp.location_id
     left join lt_arena.workers w on w.id = ${worker?.id}
     left join lt_arena.workers w2 on w2.id = wp.to_take_by
-    where p.take_by > NOW()
+    where p.take_by >= NOW()::date
     order by p.take_by desc
   `
 
