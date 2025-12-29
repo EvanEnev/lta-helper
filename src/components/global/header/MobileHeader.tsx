@@ -78,7 +78,7 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                             variant="ghost"
                             key={index}
                             as={Link}
-                            className="h-16 w-full"
+                            className={`h-16 w-full ${child.className}`}
                             startContent={
                               child.icon ? <child.icon size={24} /> : ''
                             }
@@ -107,7 +107,7 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                     }
                   }}
                   variant={path === button.href ? 'shadow' : 'ghost'}
-                  className="h-16 w-full p-2"
+                  className={`h-16 w-full p-2 ${button.className}`}
                   size="lg"
                   title={button.name}
                   aria-label={button.name}

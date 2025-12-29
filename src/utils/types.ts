@@ -293,3 +293,14 @@ export interface WrappedSchedule {
   count: number
   [key: string]: number
 }
+
+export interface WrappedDeals {
+  count: number
+  actor: number
+  worker: number
+}
+
+export interface WrappedDealsType {
+  name: string
+  count: number
+}

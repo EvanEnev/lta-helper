@@ -3,12 +3,14 @@ import {headers} from 'next/headers'
 import {NextResponse} from 'next/server'
 import db from '@/lib/database'
 import {
+  WrappedDeals,
+  WrappedDealsType,
   WrappedLocations,
   WrappedSchedule,
   WrappedShifts,
   WrapperWorkers,
 } from '@/src/utils/types'
-import WrappedPage from '@/src/components/wrapped/WrappedPage'
+import WrappedPage from '@/src/components/wrapped/WrappedPage-old'
 
 export default async function Wrapped() {
   const {user: worker} = (await auth.api.getSession({
@@ -74,15 +76,27 @@ export default async function Wrapped() {
 from lt_arena.schedule s1
 where s1.worker_id = ${worker.id} and extract(year from date::date) = ${year}`
 
+  const dealsQuery = `select count(*) as count, count(case when t1.type = 'actor' then 1 end) as actor, count(case when t1.type = 'worker' then 1 end) as worker
+from lt_arena.deals t1
+where t1.worker_id = ${worker.id} and extract(year from t1.date::date) = ${year}`
+
+  const dealsGamesTypesQuery = `select game_type as name, count(*) from lt_arena.deals where worker_id = ${worker.id}  and extract(year from date::date) = ${year} group by game_type  order by count desc`
+
   const workersDataResult = await db.query(workersDataQuery)
   const locationsResult = await db.query(locationsQuery)
   const shiftsResult = await db.query(shiftsQuery)
   const scheduleResult = await db.query(scheduleQuery)
+  const dealsResult = await db.query(dealsQuery)
+  const dealsGamesTypesResult = await db.query(dealsGamesTypesQuery)
 
   const workersData: WrapperWorkers[] = workersDataResult.rows
   const locationsData: WrappedLocations[] = locationsResult.rows
   const shiftsData: WrappedShifts = shiftsResult.rows[0]
   const scheduleData: WrappedSchedule = scheduleResult.rows[0]
+  const dealsData: WrappedDeals = dealsResult.rows[0]
+  const dealsGamesTypes: WrappedDealsType[] = dealsGamesTypesResult.rows
+
+  console.debug(dealsData, dealsGamesTypes)
 
   return (
     <WrappedPage
@@ -90,6 +104,8 @@ where s1.worker_id = ${worker.id} and extract(year from date::date) = ${year}`
       locationsData={locationsData}
       shiftsData={shiftsData}
       scheduleData={scheduleData}
+      dealsData={dealsData}
+      dealsGamesTypes={dealsGamesTypes}
     />
   )
 }

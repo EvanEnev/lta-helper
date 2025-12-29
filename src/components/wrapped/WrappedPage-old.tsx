@@ -1,4 +1,6 @@
 import {
+  WrappedDeals,
+  WrappedDealsType,
   WrappedLocations,
   WrappedSchedule,
   WrappedShifts,
@@ -15,6 +17,8 @@ interface WrappedPageProps {
   locationsData: WrappedLocations[]
   shiftsData: WrappedShifts
   scheduleData: WrappedSchedule
+  dealsData: WrappedDeals
+  dealsGamesTypes: WrappedDealsType[]
 }
 
 const scheduleLegend: {
@@ -48,14 +52,40 @@ export default function WrappedPage({
   locationsData,
   shiftsData,
   scheduleData,
+  dealsData,
+  dealsGamesTypes,
 }: WrappedPageProps) {
   return (
     <main className="flex flex-col gap-4 p-4">
       <div className="flex w-full flex-col gap-4 sm:flex-row">
         <Card className="w-full sm:w-[15rem]">
-          <Card.Header className="wrap-break-word">Всего смен</Card.Header>
+          <Card.Header
+            style={{visibility: 'hidden'}}
+            className="wrap-break-word">
+            1
+          </Card.Header>
           <Card.Content className="flex flex-col justify-around gap-2">
-            {shiftsData.count}
+            <div
+              className={`bg-content2 flex justify-between gap-2 rounded-xl p-2`}>
+              <div className="flex items-center gap-2">
+                <p>Всего смен</p>
+              </div>
+              <p>{shiftsData.count}</p>
+            </div>
+            <div
+              className={`bg-content2 flex justify-between gap-2 rounded-xl p-2`}>
+              <div className="flex items-center gap-2">
+                <p>Игр инструктором</p>
+              </div>
+              <p>{dealsData.worker}</p>
+            </div>
+            <div
+              className={`bg-content2 flex justify-between gap-2 rounded-xl p-2`}>
+              <div className="flex items-center gap-2">
+                <p>Игр актёром</p>
+              </div>
+              <p>{dealsData.actor}</p>
+            </div>
           </Card.Content>
         </Card>
         <Card className="w-full sm:w-[15rem]">
@@ -72,6 +102,39 @@ export default function WrappedPage({
                 <p>{scheduleData[data.key]}</p>
               </div>
             ))}
+          </Card.Content>
+        </Card>
+        <Card className="w-full sm:w-[15rem]">
+          <Card.Header className="wrap-break-word">Игры</Card.Header>
+          <Card.Content className="flex flex-col justify-around gap-2">
+            <div
+              className={`bg-content2 flex justify-between gap-2 rounded-xl p-2`}>
+              <div className="flex items-center gap-2">
+                <p>Всего</p>
+              </div>
+              <p>{dealsData.count}</p>
+            </div>
+            <div
+              className={`bg-content2 flex justify-between gap-2 rounded-xl p-2`}>
+              <div className="flex items-center gap-2">
+                <p>ЛТ</p>
+              </div>
+              <p>
+                {dealsGamesTypes.find(d => d.name === 'Классический – ЛТ')
+                  ?.count || 0}
+              </p>
+            </div>
+            <div
+              className={`bg-content2 flex justify-between gap-2 rounded-xl p-2`}>
+              <div className="flex items-center gap-2">
+                <p>Сюжетные</p>
+              </div>
+              <p>
+                {dealsGamesTypes
+                  .filter(d => d.name !== 'Классический – ЛТ')
+                  .reduce((acc, cur) => acc + Number(cur.count), 0) || 0}
+              </p>
+            </div>
           </Card.Content>
         </Card>
       </div>
@@ -150,6 +213,27 @@ export default function WrappedPage({
               <Fragment key={index}>
                 <div className="flex items-center justify-between gap-8">
                   <Location locationName={data.location} />
+                  <p>{data.count}</p>
+                </div>
+                {index !== locationsData.length - 1 && <Separator />}
+              </Fragment>
+            ))}
+          </Card.Content>
+        </Card>
+        <Card className="w-full sm:w-[15rem]">
+          <Card.Header className="wrap-break-word">
+            Топ любимых программ
+          </Card.Header>
+          <Card.Content className="flex flex-col gap-2">
+            <div className="flex items-center justify-around gap-2">
+              <p className="text-foreground-500">Название</p>
+              <p className="text-foreground-500">Проведено</p>
+            </div>
+            <Separator />
+            {dealsGamesTypes.map((data, index) => (
+              <Fragment key={index}>
+                <div className="flex items-center justify-between gap-8">
+                  <p>{data.name}</p>
                   <p>{data.count}</p>
                 </div>
                 {index !== locationsData.length - 1 && <Separator />}
