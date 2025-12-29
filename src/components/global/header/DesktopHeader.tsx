@@ -65,7 +65,7 @@ export default function DesktopHeader() {
                       onMouseEnter={() => setRawHover(index)}
                       onMouseLeave={() => setRawHover(null)}
                       variant={path === button.href ? 'shadow' : 'ghost'}
-                      className="h-16 w-full flex-col p-2 text-xs"
+                      className={`h-16 w-full flex-col p-2 text-xs ${button.className}`}
                       size="lg"
                       title={button.name}
                       aria-label={button.name}
@@ -122,7 +122,7 @@ export default function DesktopHeader() {
                   }
                 }}
                 variant={path === button.href ? 'shadow' : 'ghost'}
-                className="h-16 w-full flex-col p-2 text-xs"
+                className={`h-16 w-full flex-col p-2 text-xs ${button.className}`}
                 size="lg"
                 title={button.name}
                 aria-label={button.name}

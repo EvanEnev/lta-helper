@@ -270,3 +270,37 @@ export interface LTFaceIdData {
     date: string
   }[]
 }
+
+export interface WrapperWorkers {
+  worker: LTWorker['name']
+  rank: LTRank['name']
+  count: number
+}
+
+export interface WrappedLocations {
+  location: LTLocation['name']
+  count: number
+}
+
+export interface WrappedShifts {
+  count: number
+}
+
+export interface WrappedSchedule {
+  plus: number
+  minus: number
+  limitations: number
+  count: number
+  [key: string]: number
+}
+
+export interface WrappedDeals {
+  count: number
+  actor: number
+  worker: number
+}
+
+export interface WrappedDealsType {
+  name: string
+  count: number
+}
