@@ -1,6 +1,5 @@
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
-import {NextResponse} from 'next/server'
 import db from '@/lib/database'
 import {
   WrappedDeals,
@@ -15,11 +14,7 @@ import WrappedPage from '@/src/components/wrapped/WrappedPage-old'
 export default async function Wrapped() {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: null}
-
-  if (!worker) {
-    return NextResponse.redirect('/login')
-  }
+  })) || {user: {id: -1}}
 
   const year = 2025
 
