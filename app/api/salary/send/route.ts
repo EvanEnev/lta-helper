@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    const workerQuery = `SELECT r.name FROM workers w left join ranks r on r.id = w.rank_id WHERE w.name ilike '${data.worker}'`
+    const workerQuery = `SELECT r.name as rank FROM workers w left join ranks r on r.id = w.rank_id WHERE w.name ilike '${data.worker}'`
     const workerResult = await db.query(workerQuery)
 
     const rank: string = workerResult.rows[0].rank?.trim()
@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    console.debug(salary)
     queries.push(`INSERT INTO salary.list
                   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
                   VALUES
