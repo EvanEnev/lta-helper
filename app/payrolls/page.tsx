@@ -11,10 +11,10 @@ export default async function Payrolls() {
   dates,
   take_by as "takeBy",
   created_at as "createdAt",
-  get_worker(created_by) as "createdBy",
+  functions.get_worker(created_by) as "createdBy",
   bonuses,
-  (select count(*) from lt_arena.workers_payrolls where payroll_id = p.id) as "workersCount"
-  from lt_arena.payrolls p
+  (select count(*) from relations.workers_payrolls where payroll_id = p.id) as "workersCount"
+  from payrolls.list p
   order by lower(dates) desc
   `
 

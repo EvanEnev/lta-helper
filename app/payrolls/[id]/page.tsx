@@ -23,16 +23,16 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
   created_at as "createdAt",
   w.name as "createdBy",
   bonuses,
-  (select count(*) from lt_arena.workers_payrolls where payroll_id = p.id) as "workersCount"
-  from lt_arena.payrolls p
-  left join lt_arena.workers w on w.id = p.created_by
+  (select count(*) from relations.workers_payrolls where payroll_id = p.id) as "workersCount"
+  from payrolls.list p
+  left join workers w on w.id = p.created_by
   where p.id = ${id}`
 
   let workersPayrollDataQuery = `select
     json_build_object(
         'name', w.name,
         'id', w.id,
-        'rank', w.rank
+        'rank', r.name
     ) as worker,
     wp.value as value,
     wp.bonuses,
@@ -40,30 +40,32 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
     l.id as location_id,
     json_build_object(
         'name', w2.name,
-        'rank', w2.rank
+        'rank', r2.name
     ) as to_take_by,
     wp.to_take,
     wp.taken,
     wp.external_payment,
     json_build_object(
         'name', w3.name,
-        'rank', w3.rank
+        'rank', r3.name
     ) as taken_by,
     wp.taken_at::text
-from lt_arena.workers_payrolls wp
-left join lt_arena.workers w on wp.worker_id = w.id
-left join lt_arena.payrolls p on wp.payroll_id = p.id
-left join lt_arena.locations l on wp.location_id = l.id
-left join lt_arena.workers w2 on wp.to_take_by = w2.id
-left join lt_arena.workers w3 on wp.taken_by = w3.id
-left join lt_arena.ranks r on w.rank = r.name
+from relations.workers_payrolls wp
+left join workers w on wp.worker_id = w.id
+left join payrolls.list p on wp.payroll_id = p.id
+left join locations l on wp.location_id = l.id
+left join workers w2 on wp.to_take_by = w2.id
+left join workers w3 on wp.taken_by = w3.id
+left join ranks r on w.rank_id = r.id
+left join ranks r2 on w2.rank_id = r2.id
+left join ranks r3 on w3.rank_id = r3.id
 where p.id = ${id}`
 
   let moneyOnLocationsQuery = `
     select l.short_name as location, l.id as location_id, coalesce(lm.value, 0) as value
-    from (select distinct(location_id) from lt_arena.workers_payrolls where payroll_id = ${id}) lp
-           left join lt_arena.locations l on l.id = lp.location_id
-           left join lt_arena.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = ${id}`
+    from (select distinct(location_id) from relations.workers_payrolls where payroll_id = ${id}) lp
+           left join locations l on l.id = lp.location_id
+           left join payrolls.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = ${id}`
 
   if (!checkPermissions(['view_payrolls'], worker)) {
     workersPayrollDataQuery += `\nand p.id = -1`

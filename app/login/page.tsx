@@ -2,13 +2,18 @@
 
 import {LoginButton} from '@telegram-auth/react'
 import {useAuth} from '@/src/components/global/providers/authProvider'
+import {redirect, useSearchParams} from "next/navigation";
 
 export default function Register() {
   const {login} = useAuth()
+  const  params = useSearchParams()
 
   const handler = async (data: any) => {
     if (!data) return
     await login(data)
+    let path = params.get('redirect') || '/'
+
+    redirect(path)
   }
 
   return (

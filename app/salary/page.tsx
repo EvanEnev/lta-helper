@@ -21,7 +21,7 @@ export default async function Salary() {
 
   const {data, faceId} = await getLocationSalaryData({date})
 
-  const datesQuery = `select distinct date_trunc('month', date)::date as date from lt_arena.salary order by date desc`
+  const datesQuery = `select distinct date_trunc('month', date)::date as date from salary.list order by date desc`
 
   const datesResult = await db.query(datesQuery)
 

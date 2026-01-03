@@ -3,7 +3,7 @@ import {DateTime, Interval} from 'luxon'
 
 export default async function getDefaultDays() {
   const datesResult = await db.query(
-    'SELECT start_date, end_date FROM lt_arena.dates WHERE id = 2',
+    'SELECT start_date, end_date FROM config.dates WHERE id = 2',
   )
 
   const {start_date, end_date}: {start_date: DateTime; end_date: DateTime} =

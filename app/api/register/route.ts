@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
   const telegramId: number = user.telegramId
 
   const query = `INSERT
-                 INTO lt_arena.workers
-                     (name, telegram_id, first_name, last_name, middle_name, email, phone_number, rank)
+                 INTO workers
+                     (name, telegram_id, first_name, last_name, middle_name, email, phone_number, rank_id)
                  VALUES ('${capitalize(data.name.trim())}',
                          ${telegramId},
                         '${firstName}',
@@ -70,14 +70,14 @@ export async function POST(req: NextRequest) {
                         '${middleName}',
                          '${data.email}',
                          '${data.phone}',
-                         '${capitalize(rank) || 'Актёр'}'
+                         (select id from ranks where unaccent(name) ilike unaccent('${capitalize(rank) || 'Актёр'}'))
                         )
                 ON CONFLICT(telegram_id, name) DO UPDATE
                 SET first_name = EXCLUDED.first_name,
                     last_name = EXCLUDED.last_name,
                     middle_name = EXCLUDED.middle_name,
                     phone_number = EXCLUDED.phone_number,
-                    rank = EXCLUDED.rank,
+                    rank_id = EXCLUDED.rank_id,
                     email = EXCLUDED.email
                  `
   await db.query(query)

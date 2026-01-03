@@ -117,16 +117,16 @@ export async function POST(req: NextRequest) {
   for (const data of salaryData) {
     if (data.deleted) {
       queries.push(
-        `DELETE FROM lt_arena.salary
-       WHERE worker_id = (SELECT id from lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
-         AND location_id = (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
+        `DELETE FROM salary.list
+       WHERE worker_id = (SELECT id from workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
+         AND location_id = (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
          AND date = '${date.toFormat('yyyy-MM-dd')}'`,
       )
 
       continue
     }
 
-    const workerQuery = `SELECT rank FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}'`
+    const workerQuery = `SELECT r.name FROM workers w left join ranks r on r.id = w.rank_id WHERE w.name ilike '${data.worker}'`
     const workerResult = await db.query(workerQuery)
 
     const rank: string = workerResult.rows[0].rank?.trim()
@@ -189,8 +189,8 @@ export async function POST(req: NextRequest) {
     // }
 
     if (data.withoutDate) {
-      const query = `SELECT date FROM lt_arena.salary WHERE
-                                   worker_id = (SELECT id FROM lt_arena.workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
+      const query = `SELECT date FROM salary.list WHERE
+                                   worker_id = (SELECT id FROM workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
                                    AND date BETWEEN '${date.startOf('month').toFormat('yyyy-MM-dd')}'
                                      AND '${date.endOf('month').toFormat('yyyy-MM-dd')}'`
       const result = await db.query(query)
@@ -208,17 +208,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    queries.push(`INSERT INTO lt_arena.salary
+    queries.push(`INSERT INTO salary.list
                   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
                   VALUES
                     (
-                        (SELECT id FROM lt_arena.workers WHERE name ilike '${data.worker}'),
+                        (SELECT id FROM workers WHERE name ilike '${data.worker}'),
                         '${date.toFormat('yyyy-MM-dd')}',
                         ${salary.value || 0},
                         '${salary.bonuses}',
                         '${salary.fines}',
                         '${data.comment}',
-                        (SELECT id FROM lt_arena.locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
+                        (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
                         ${salary.created_by},
                         '${salary.start_time || '00'}',
                         '${salary.end_time || '00'}',

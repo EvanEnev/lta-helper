@@ -42,7 +42,7 @@ export default async function updateWorkersPayrolls({
 
   loggerData.data = data
 
-  const query = `update lt_arena.workers_payrolls
+  const query = `update relations.workers_payrolls
                 set value = ${data.value},
                     bonuses = ${data.bonuses || null},
                     location_id = ${data.location_id},

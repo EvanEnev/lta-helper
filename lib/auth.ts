@@ -10,6 +10,7 @@ export const auth = betterAuth({
     password: process.env.DATABASE_PASSWORD,
     host: process.env.DATABASE_URL,
     port: parseInt(process.env.DATABASE_PORT!),
+    database: process.env.DATABASE_NAME,
     options: '-c search_path=auth',
   }),
   user: {

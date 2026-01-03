@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   const queries = body.workers.map(
     (data: {id: number; value: number; selectedWorker: string | null}) => {
       return `
-        update lt_arena.workers_payrolls
+        update relations.workers_payrolls
         set
           issue_confirmed=true,
           to_take = ${data.value}${

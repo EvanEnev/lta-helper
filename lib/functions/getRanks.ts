@@ -9,7 +9,7 @@ export default async function getRanks(): Promise<LTRank[]> {
   max_points,
   max_shift_points,
   weight
-  FROM lt_arena.ranks`
+  FROM ranks`
 
   const result = await db.query(query)
 

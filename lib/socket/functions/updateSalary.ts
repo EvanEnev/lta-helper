@@ -8,11 +8,11 @@ export default async function updateSalary({data, client}: SocketUpdateProps) {
   const date = DateTime.fromISO(data.date)
 
   if (data.delete) {
-    const query = `DELETE FROM lt_arena.salary
+    const query = `DELETE FROM salary.list
                 WHERE
                     date = '${date.toFormat('yyyy-MM-dd')}'
                     AND worker_id = ${data.worker_id}
-                    AND location_id = (SELECT id FROM lt_arena.locations WHERE name = '${data.location.name}')
+                    AND location_id = (SELECT id FROM locations WHERE name = '${data.location.name}')
                 `
 
     loggerData.query = query
@@ -27,7 +27,7 @@ export default async function updateSalary({data, client}: SocketUpdateProps) {
   const overworkEnd =
     data.overwork_end === null ? 'NULL' : `'${data.overwork_end}'`
 
-  const query = `UPDATE lt_arena.salary
+  const query = `UPDATE salary.list
                 SET
                   value = ${data.value},
                     bonuses = '${data.bonuses}',

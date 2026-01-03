@@ -25,10 +25,10 @@ export default async function Wrapped() {
 
   const workersDataQuery = `select 
                                 w.name as worker,
-                                w.rank,
+                                r.name as rank,
                                 count(*) as count
-                            from lt_arena.salary s1
-                                join lt_arena.salary s2
+                            from salary.list s1
+                                join salary.list s2
                                 on s1.date = s2.date 
                                 and s1.worker_id != s2.worker_id
                                 and s1.worker_id = ${worker.id}
@@ -53,34 +53,35 @@ export default async function Wrapped() {
                                      and s1.overwork_end > s2.overwork_start)
                                 )
                                 and s1.location_id = s2.location_id
-                            left join lt_arena.workers w on w.id = s2.worker_id
+                            left join workers w on w.id = s2.worker_id
+                            left join ranks r on r.id = w.rank_id
                             where s1.location_id != 15 and extract(year from s1.date::date) = ${year}
-                            group by w.name, w.rank
+                            group by w.name, r.name
                             order by count desc, w.name`
 
   const locationsQuery = `select l.name as location,
                                   count(*) as count
-                          from lt_arena.salary
-                                 left join lt_arena.locations l on salary.location_id = l.id
+                          from salary.list s
+                                 left join locations l on s.location_id = l.id
                           where worker_id = ${worker.id} and location_id != 15 and extract(year from date::date) = ${year}
                           group by location_id, l.name
                           order by count desc`
 
-  const shiftsQuery = `select count(*) as count from lt_arena.salary where worker_id = ${worker.id} and location_id != 15 and extract(year from date::date) = ${year}`
+  const shiftsQuery = `select count(*) as count from salary.list where worker_id = ${worker.id} and location_id != 15 and extract(year from date::date) = ${year}`
 
   const scheduleQuery = `select 
     count(case when s1.value not in ('-', '+/-') then 1 end) as plus,
     count(case when s1.value = '-' then 1 end) as minus,
     count(case when s1.value = '+/-' then 1 end) as limitations,
     count(*) as count
-from lt_arena.schedule s1
+from schedule.list s1
 where s1.worker_id = ${worker.id} and extract(year from date::date) = ${year}`
 
   const dealsQuery = `select count(*) as count, count(case when t1.type = 'actor' then 1 end) as actor, count(case when t1.type = 'worker' then 1 end) as worker
-from lt_arena.deals t1
+from deals t1
 where t1.worker_id = ${worker.id} and extract(year from t1.date::date) = ${year}`
 
-  const dealsGamesTypesQuery = `select game_type as name, count(*) from lt_arena.deals where worker_id = ${worker.id}  and extract(year from date::date) = ${year} group by game_type  order by count desc`
+  const dealsGamesTypesQuery = `select game_type as name, count(*) from deals where worker_id = ${worker.id}  and extract(year from date::date) = ${year} group by game_type  order by count desc`
 
   const workersDataResult = await db.query(workersDataQuery)
   const locationsResult = await db.query(locationsQuery)

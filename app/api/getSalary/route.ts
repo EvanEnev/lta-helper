@@ -25,19 +25,20 @@ export async function POST(req: NextRequest) {
   value,
   bonuses,
   fines,
-  overwork,
+  s.overwork,
   w.name,
   w.balance,
-  w.rank,
+  r.name as rank,
   w.first_name,
   s.one_games,
   s.two_games,
   s.three_games,
   s.actor_games,
   l.name as location_name
-  FROM lt_arena.salary s
-  LEFT JOIN lt_arena.workers w ON w.id = s.worker_id
-  LEFT JOIN lt_arena.locations l ON l.id = s.location_id
+  FROM salary.list s
+  LEFT JOIN workers w ON w.id = s.worker_id
+  LEFT JOIN locations l ON l.id = s.location_id
+  left join ranks r on r.id = w.rank_id 
   WHERE s.date BETWEEN '${startString}' AND '${endString}'`
 
   const result = await db.query(query)

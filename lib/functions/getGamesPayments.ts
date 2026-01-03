@@ -9,7 +9,7 @@ export default async function getGamesPayments(): Promise<LTGamePayment[]> {
   value,
   rank,
   key
-  from lt_arena.games_payments
+  from salary.games_payments
   order by id`
 
   const result = await db.query(query)

@@ -81,7 +81,7 @@ export default async function Home() {
     sum(coalesce((two_games ->> 'value')::int, 0)) +
     sum(coalesce((three_games ->> 'value')::int, 0)) +
     sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
-  FROM lt_arena.salary
+  FROM salary.list
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${current[0].toFormat('yyyy-MM-dd')}' AND '${current[1].toFormat('yyyy-MM-dd')}'`
 
@@ -91,7 +91,7 @@ export default async function Home() {
                 sum(coalesce((two_games ->> 'value')::int, 0)) +
                 sum(coalesce((three_games ->> 'value')::int, 0)) +
                 sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
-  FROM lt_arena.salary
+  FROM salary.list
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${previous[0].toFormat('yyyy-MM-dd')}' AND '${previous[1].toFormat('yyyy-MM-dd')}'`
 
@@ -108,7 +108,7 @@ export default async function Home() {
 
   let bonusesQuery = `
     SELECT string_agg(bonuses, '+') as bonuses,string_agg(fines, '+') as fines
-    FROM lt_arena.salary
+    FROM salary.list
     WHERE worker_id = ${worker?.id}`
 
   let addon
@@ -145,7 +145,7 @@ export default async function Home() {
   const currentFines = evaluate(currentBonusesData.fines || '0')
   const previousFines = evaluate(previousBonusesData.fines || '0')
 
-  const balanceQuery = `select balance from lt_arena.workers where id = ${worker?.id}`
+  const balanceQuery = `select balance from workers where id = ${worker?.id}`
 
   const balanceResult = await db.query(balanceQuery)
 

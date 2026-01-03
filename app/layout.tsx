@@ -35,7 +35,7 @@ export default async function RootLayout({
   let users = []
   // @ts-ignore
   if (worker.trueId === 9) {
-    const query = `select w.name, w.telegram_id from lt_arena.workers w left join lt_arena.ranks r on r.name ilike w.rank order by r.sorting_weight desc, w.name`
+    const query = `select w.name, w.telegram_id from workers w left join ranks r on r.id = w.rank_id order by r.sorting_weight desc, w.name`
     const result = await db.query(query)
 
     users = result.rows

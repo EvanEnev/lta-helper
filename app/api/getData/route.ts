@@ -26,9 +26,9 @@ export async function GET() {
   s.date,
   s.value,
   s.comment
-  FROM lt_arena.schedule s
-  LEFT JOIN lt_arena.workers w ON telegram_id = ${telegramId}
-  LEFT JOIN lt_arena.dates dates ON dates.id = 2
+  FROM schedule.list s
+  LEFT JOIN workers w ON telegram_id = ${telegramId}
+  LEFT JOIN config.dates dates ON dates.id = 2
   WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 
   const dataResult = await db.query(dataQuery)
@@ -38,19 +38,20 @@ export async function GET() {
   const locationsQuery = `SELECT
   l.name AS location,
   w.name AS worker,
-  w.rank,
+  r.name as rank,
   start_time,
   end_time,
   ls.date,
   ls.comment AS location_comment
-  FROM lt_arena.locations_schedule ls
-  LEFT JOIN lt_arena.locations l ON l.id = ls.location_id
-  LEFT JOIN lt_arena.workers w ON w.id = ls.worker_id
-  LEFT JOIN lt_arena.dates dates ON dates.id = 2
+  FROM schedule.locations_schedule ls
+  LEFT JOIN locations l ON l.id = ls.location_id
+  LEFT JOIN workers w ON w.id = ls.worker_id
+  LEFT JOIN config.dates dates ON dates.id = 2
+  left join ranks r on r.id = w.rank_id
   WHERE
   (ls.date BETWEEN dates.start_date AND dates.end_date)
   AND ls.location_id IN (SELECT
-  location_id FROM lt_arena.locations_schedule
+  location_id FROM schedule.locations_schedule
   WHERE worker_id = ${worker.id}
   AND date = ls.date)`
 

@@ -34,38 +34,40 @@ export default async function PayrollsCreate({
     sum(coalesce((three_games ->> 'value')::integer, 0)) +
     sum(coalesce((actor_games ->> 'value')::integer, 0)) as value,
     case
-        when w.rank = 'Актёр' then (select string_agg(bonuses, '+') from lt_arena.salary where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
-        when w.rank != 'Актёр' and ${bonuses} then (select string_agg(bonuses, '+') from lt_arena.salary where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')  
+        when w.rank = 'Актёр' then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
+        when w.rank != 'Актёр' and ${bonuses} then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')  
       else '0'
     end as bonuses,
     case
-      when w.rank = 'Актёр' then (select string_agg(fines, '+') from lt_arena.salary where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
-      when w.rank != 'Актёр' and ${bonuses} then (select string_agg(fines, '+') from lt_arena.salary where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')
+      when w.rank = 'Актёр' then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
+      when w.rank != 'Актёр' and ${bonuses} then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')
       else '0'
       end as fines
-    from lt_arena.salary
-    left join lt_arena.workers w on w.id = worker_id
+    from salary.list
+    left join workers w on w.id = worker_id
     where date between '${dates.start}' and '${dates.end}'
     group by w.name, w.rank, w.is_former, w.id`
 
   const balancesQuery = `select
-  name,
-  id,
-  rank,
-  is_former,
+  w.name,
+  w.id,
+  r.name as "rank",
+  w.is_former,
   balance
-  from lt_arena.workers
+  from workers w
+  left join ranks r on r.id = w.rank_id
   where balance is not null and balance != 0`
 
   const bonusesQuery = `select
    w.name,
    w.id,
-   w.rank,
+   r.name as "rank",
    w.is_former,
    string_agg(s.bonuses, '+') as bonuses,
    string_agg(s.fines, '+') as fines
-   from lt_arena.salary s
-   left join lt_arena.workers w on w.id = s.worker_id
+   from salary.list s
+   left join workers w on w.id = s.worker_id
+   left join ranks r on r.id = w.rank_id
    where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}' and w.rank != 'Актёр'
    group by w.name, w.rank, w.is_former, w.id
   `
@@ -73,7 +75,7 @@ export default async function PayrollsCreate({
   const paymentsQuery = `select
   worker_id,
   sum(value)
-  from lt_arena.payments
+  from payments.list
   where date between '${dates.start}' and '${dates.end}'
   group by worker_id`
 

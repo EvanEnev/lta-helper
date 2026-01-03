@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const updateQuery = `UPDATE lt_arena.workers SET photo_url = '${user.photo_url}' WHERE telegram_id = ${user.id}`
+  const updateQuery = `UPDATE workers SET photo_url = '${user.photo_url}' WHERE telegram_id = ${user.id}`
 
   await db.query(updateQuery)
 

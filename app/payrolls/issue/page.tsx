@@ -18,11 +18,11 @@ export default async function PayrollIssue() {
     wp.external_payment,
     w2.name as to_take_by,
     wp.taken
-    from lt_arena.payrolls p
-    left join lt_arena.workers_payrolls wp on wp.worker_id = ${worker?.id} and wp.payroll_id = p.id
-    left join lt_arena.locations l on l.id = wp.location_id
-    left join lt_arena.workers w on w.id = ${worker?.id}
-    left join lt_arena.workers w2 on w2.id = wp.to_take_by
+    from payrolls.list p
+    left join relations.workers_payrolls wp on wp.worker_id = ${worker?.id} and wp.payroll_id = p.id
+    left join locations l on l.id = wp.location_id
+    left join workers w on w.id = ${worker?.id}
+    left join workers w2 on w2.id = wp.to_take_by
     where p.take_by >= NOW()::date
     order by p.take_by desc
   `
@@ -37,10 +37,10 @@ export default async function PayrollIssue() {
 
   const workersQuery = `select
   w.name,
-  w.rank,
+  r.name as rank,
   w.id
-  from lt_arena.workers w
-  left join lt_arena.ranks r on r.name = w.rank
+  from workers w
+  left join ranks r on r.id = w.rank_id
   order by r.sorting_weight desc, w.name`
 
   const takeByQuery = `select
@@ -49,8 +49,8 @@ export default async function PayrollIssue() {
   w.id,
   wp.payroll_id,
   wp.location_id
-  from lt_arena.workers_payrolls wp
-  left join lt_arena.workers w on w.id = wp.worker_id
+  from relations.workers_payrolls wp
+  left join workers w on w.id = wp.worker_id
   where wp.to_take_by = ${worker?.id} and (wp.taken = 0 or wp.taken is null)
   `
 
