@@ -1,6 +1,7 @@
 'use server'
 
 import webpush from 'web-push'
+import type {PushSubscription} from 'web-push'
 
 webpush.setVapidDetails(
   'mailto:evanenev@duck.com',
