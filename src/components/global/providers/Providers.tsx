@@ -5,6 +5,8 @@ import Header from '@/src/components/global/header/Header'
 import {Provider} from 'jotai'
 import {ThemeProvider as NextThemesProvider} from 'next-themes'
 import {Snowfall} from 'react-snowfall'
+import PushNotificationManager from '@/src/components/pwa/PushNotificationManager'
+import InstallPrompt from '@/src/components/pwa/InstallPromt'
 
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
@@ -17,6 +19,8 @@ export default function Providers({children}: {children: React.ReactNode}) {
           <Provider>
             <Header />
             <div className="w-full">
+              <PushNotificationManager />
+              <InstallPrompt />
               <ToastProvider />
               {children}
             </div>

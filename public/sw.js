@@ -1,19 +1,22 @@
-// public/sw.js
-const CACHE_NAME = 'app-v1'
-const STATIC_ASSETS = ['/', '/manifest.json']
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS)),
-  )
+self.addEventListener('push', function (event) {
+  if (event.data) {
+    const data = event.data.json()
+    const options = {
+      body: data.body,
+      icon: data.icon || '/icon.png',
+      badge: '/badge.png',
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: '2',
+      },
+    }
+    event.waitUntil(self.registration.showNotification(data.title, options))
+  }
 })
 
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return
-
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request)
-    }),
-  )
+self.addEventListener('notificationclick', function (event) {
+  console.log('Notification click received.')
+  event.notification.close()
+  event.waitUntil(clients.openWindow('<https://your-website.com>'))
 })
