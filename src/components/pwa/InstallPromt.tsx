@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react'
 import PushNotificationManager from '@/src/components/pwa/PushNotificationManager'
+import {Button} from '@heroui/react-beta'
 
 export default function InstallPrompt() {
   const [isIOS, setIsIOS] = useState(false)
@@ -20,7 +21,7 @@ export default function InstallPrompt() {
   return (
     <div>
       <h3>Install App</h3>
-      <button>Add to Home Screen</button>
+      <Button>Add to Home Screen</Button>
       {isIOS && (
         <p>
           To install this app on your iOS device, tap the share button

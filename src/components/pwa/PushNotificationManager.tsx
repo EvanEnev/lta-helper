@@ -6,6 +6,7 @@ function urlBase64ToUint8Array(base64String: string) {
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
 
   const rawData = window.atob(base64)
+  console.debug(base64, rawData)
   const outputArray = new Uint8Array(rawData.length)
 
   for (let i = 0; i < rawData.length; ++i) {
@@ -38,6 +39,7 @@ export default function PushNotificationManager() {
   }
 
   async function subscribeToPush() {
+    console.debug(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
     const registration = await navigator.serviceWorker.ready
     const sub = await registration.pushManager.subscribe({
       userVisibleOnly: true,
