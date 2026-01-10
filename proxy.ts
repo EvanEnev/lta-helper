@@ -114,7 +114,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|.*\\.svg|_next/image|.*\\.png$).*)'],
+  matcher: [
+    '/((?!api|_next/static|.*\\.svg|_next/image|manifest\\.webmanifest|.*\\.png$).*)',
+  ],
 }
 
 function urlParseHashParams(locationHash: string) {
