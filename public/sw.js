@@ -16,7 +16,7 @@ self.addEventListener('push', function (event) {
 })
 
 self.addEventListener('notificationclick', function (event) {
-  console.log('Notification click received.')
+  const url = event.notification.data?.url || '/'
   event.notification.close()
-  event.waitUntil(clients.openWindow('<https://your-website.com>'))
+  event.waitUntil(clients.openWindow(url))
 })

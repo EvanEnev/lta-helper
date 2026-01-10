@@ -13,11 +13,14 @@ interface NotificationData {
   title: string
   message: string
   icon: string
+  data?: {
+    url?: string
+  }
 }
 
 export async function sendNotification(
   subs: PushSubscription[],
-  {title, message: body, icon = '/icon.png'}: NotificationData,
+  {title, message: body, icon = '/icon.png', data}: NotificationData,
 ): Promise<void> {
   if (!subs.length) {
     return
@@ -31,6 +34,7 @@ export async function sendNotification(
           title,
           body,
           icon,
+          data,
         }),
       )
     } catch (error) {
