@@ -19,10 +19,11 @@ import CellChip from '@/src/components/salary/CellChip'
 import RankIcon from '@/src/components/global/RankIcon'
 import {LTLocation, LTRank} from '@/src/utils/types'
 import salarySort from '@/lib/functions/salarySort'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import Excel from '@/public/icons/Excel'
 import {Interval} from 'luxon'
+import {useAtomValue} from 'jotai'
+import {headerSizesAtom} from '@/src/utils/global/atoms'
 
 export default function SummarizedPage({
   ranks,
@@ -32,7 +33,7 @@ export default function SummarizedPage({
   locations: LTLocation[]
 }) {
   const isMobile = useIsMobile()
-  const {pageSettings, headerRef} = useAuth()
+  const headerSizes = useAtomValue(headerSizesAtom)
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
   const [bonuses, setBonuses] = useState<boolean>(false)
   const [initialData, setInitialData] = useState([])
@@ -422,7 +423,7 @@ export default function SummarizedPage({
           <thead
             className="[&>tr]:first:shadow-small sticky z-1000 w-full"
             style={{
-              top: `${isMobile ? `${headerRef.current?.offsetHeight || 0}px` : 0}`,
+              top: `${isMobile ? `${headerSizes.height || 0}px` : 0}`,
             }}>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id} className="rounded-2xl">
@@ -430,7 +431,7 @@ export default function SummarizedPage({
                   <Fragment key={header.id}>
                     <th
                       key={header.id}
-                      className={`bg-default-100 test-start h-[2rem] w-full min-w-[5rem] px-2 py-3 align-middle text-xs font-medium tracking-wider uppercase first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}>
+                      className={`bg-default-100 test-start h-8 w-full min-w-20 px-2 py-3 align-middle text-xs font-medium tracking-wider uppercase first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}>
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext(),
@@ -439,7 +440,7 @@ export default function SummarizedPage({
                     {index !== headerGroup.headers.length - 1 && (
                       <th className="bg-default-100 w-px py-2">
                         <Divider
-                          className="mx-auto h-[2rem]"
+                          className="mx-auto h-8"
                           orientation="vertical"
                         />
                       </th>
@@ -460,7 +461,7 @@ export default function SummarizedPage({
                     <Fragment key={cell.id}>
                       <td
                         id={`sum${cell.id}`}
-                        className={`mx-auto ${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} text-medium min-w-[5rem] p-2 text-center ${index === 1 ? 'rounded-br-2xl' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}>
+                        className={`mx-auto ${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} text-medium min-w-20 p-2 text-center ${index === 1 ? 'rounded-br-2xl' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -468,7 +469,7 @@ export default function SummarizedPage({
                       </td>
                       <td className="py-2">
                         <Divider
-                          className="mx-auto h-[2rem]"
+                          className="mx-auto h-8"
                           orientation="vertical"
                           hidden={index === row.getVisibleCells().length - 1}
                         />
@@ -504,10 +505,9 @@ export default function SummarizedPage({
       <div
         className="sticky z-1000 flex h-fit w-[20%] flex-col gap-2"
         style={{
-          top: `${isMobile ? `${headerRef.current?.offsetHeight || 0}px` : 0}`,
+          top: `${isMobile ? `${headerSizes.height || 0}px` : 0}`,
         }}>
         <div className="glass flex flex-col gap-2 p-2">
-          {pageSettings.map(component => component.components)}
           <DateRangePicker
             className="w-full"
             variant="bordered"

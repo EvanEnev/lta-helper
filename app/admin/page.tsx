@@ -10,9 +10,9 @@ import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 
 export default async function Admin() {
-  const {user: worker} = (await auth.api.getSession({
-    headers: await headers(),
-  })) || {user: null}
+    const worker = (await auth.api.getSession({
+        headers: await headers(),
+    }))!.user
 
   const workTypesQuery = `select
   id,
@@ -45,6 +45,7 @@ export default async function Admin() {
 
   return (
     <AdminPage
+      worker={worker}
       workers={workers}
       canEdit={canEdit}
       locations={locations}

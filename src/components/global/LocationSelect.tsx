@@ -1,9 +1,9 @@
 import {addToast, Autocomplete, AutocompleteItem} from '@heroui/react'
 import {useCallback, useEffect, useState} from 'react'
-import {LTLocation} from '@/src/utils/types'
+import {LTLocation, LTWorker} from '@/src/utils/types'
 import LocationIcon from '@/src/components/global/LocationIcon'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import {useSession} from '@/lib/auth/authClient'
 
 interface LocationSelectProps {
   callback: (location: LTLocation | null) => void
@@ -41,11 +41,11 @@ export default function LocationSelect({
   locations: definedLocations = [],
   useShortNames = false,
 }: LocationSelectProps) {
+  const worker = useSession().data?.user as LTWorker | undefined
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
   const [selectedLocation, setSelectedLocation] =
     useState<LTLocation['id']>(locationId)
 
-  const {worker} = useAuth()
   async function getLocations() {
     if (definedLocations.length) return
 
@@ -66,7 +66,7 @@ export default function LocationSelect({
           ]
         }
 
-        if (!checkPermissions(['view_full_salary'], worker)) {
+        if (worker && !checkPermissions(['view_full_salary'], worker)) {
           sortedLocations = sortedLocations.filter(d => {
             if ((worker.id === 42 || worker.id === 12) && d.id === 17) {
               return true

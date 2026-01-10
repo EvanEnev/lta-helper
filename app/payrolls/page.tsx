@@ -2,10 +2,16 @@ import {LTPayroll} from '@/src/utils/types'
 import db from '@/lib/database'
 import PayrollsPage from '@/src/components/payrolls/PayrollsPage'
 import getLocations from '@/lib/functions/getLocations'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Payrolls() {
+  const worker = (await auth.api.getSession({
+    headers: await headers(),
+  }))!.user
+
   const query = `select
   id,
   dates,
@@ -29,5 +35,5 @@ export default async function Payrolls() {
 
   const locations = await getLocations()
 
-  return <PayrollsPage data={data} locations={locations} />
+  return <PayrollsPage worker={worker} data={data} locations={locations} />
 }

@@ -16,10 +16,10 @@ import {
 import {useEffect, useMemo, useState} from 'react'
 import {DateTime} from 'luxon'
 import {addToast} from '@heroui/react'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface AdminPageProps {
-  workers: LTWorker[]
+  worker: LTWorker
+    workers: LTWorker[]
   canEdit: boolean
   locations: LTLocation[]
   ranks: LTRank[]
@@ -52,8 +52,8 @@ export default function AdminPage({
   locations,
   workTypes,
   gamesPayments,
+    worker
 }: AdminPageProps) {
-  const {worker} = useAuth()
   const isMobile = useIsMobile()
   const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
     defaultSalaryData,
@@ -172,6 +172,7 @@ export default function AdminPage({
   return isMobile ? (
     <MobileAdmin
       {...{
+          worker,
         faceId,
         gamesPayments,
         workTypes,
@@ -191,6 +192,7 @@ export default function AdminPage({
   ) : (
     <DesktopAdmin
       {...{
+          worker,
         faceId,
         gamesPayments,
         workTypes,

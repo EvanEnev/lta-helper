@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from 'react'
-import React from 'react'
 import {usePathname, useRouter} from 'next/navigation'
 import {useSetAtom} from 'jotai'
 import {daysAtom} from '@/src/utils/global/atoms'
@@ -22,14 +21,6 @@ const requiredFields = ['name', 'email', 'phoneNumber', 'firstName', 'lastName']
 
 export default function AuthProvider({children}: {children: ReactNode}) {
   const router = useRouter()
-  const [isExiting, setExiting] = useState(false)
-  const [toastOffset, setToastOffset] = useState(0)
-  const [pageSettings, setPageSettings] = useState<
-    {
-      label: string
-      components: ReactNode[]
-    }[]
-  >([])
   const [worker, setWorker] = useState<LTWorker>({
     name: '',
     id: 0,
@@ -192,34 +183,28 @@ export default function AuthProvider({children}: {children: ReactNode}) {
       if (requiredFields.some(key => !(worker as any)[key])) {
         return router.push('/register')
       } else if (path === '/login') {
-        router.push('/')
+        // router.push('/')
       }
     }
   }, [path, router, setDays, worker, workingDays])
 
-  return (
-    // <Loader loading={isLoading} isExiting={isExiting}>
-    //   {isLoading ? (
-    //     ''
-    //   ) : (
-    <AuthContext.Provider
-      value={{
-        worker,
-        workingDays,
-        login,
-        isLoading,
-        headerRef,
-        setExiting,
-        toastOffset,
-        setToastOffset,
-        pageSettings,
-        setPageSettings,
-      }}>
-      {children}
-    </AuthContext.Provider>
-    // )}
-    // </Loader>
-  )
+  // return (
+  //   // <Loader loading={isLoading} isExiting={isExiting}>
+  //   //   {isLoading ? (
+  //   //     ''
+  //   //   ) : (
+  //   <AuthContext.Provider
+  //     value={{
+  //       worker,
+  //       workingDays,
+  //       login,
+  //       isLoading,
+  //     }}>
+  //     {children}
+  //   </AuthContext.Provider>
+  //   // )}
+  //   // </Loader>
+  // )
 }
 
 export const useAuth = () => useContext(AuthContext)

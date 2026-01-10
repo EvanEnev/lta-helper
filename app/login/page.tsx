@@ -1,12 +1,26 @@
 'use client'
 
-import {LoginButton} from '@telegram-auth/react'
-import {useAuth} from '@/src/components/global/providers/authProvider'
-import {redirect, useSearchParams} from "next/navigation";
+import {LoginButton, TelegramAuthData} from '@telegram-auth/react'
+import {redirect, useSearchParams} from 'next/navigation'
+import {useCallback} from 'react'
 
 export default function Register() {
-  const {login} = useAuth()
-  const  params = useSearchParams()
+  const params = useSearchParams()
+
+  const login = useCallback(async (telegramData: string | TelegramAuthData) => {
+    if (typeof telegramData !== 'string' && !Object.keys(telegramData).length) {
+      return
+    }
+
+    try {
+      await fetch('/api/auth/telegram', {
+        method: 'POST',
+        body: JSON.stringify({credentials: telegramData, initiator: 'login'}),
+      })
+    } catch (err) {
+      console.error(err)
+    }
+  }, [])
 
   const handler = async (data: any) => {
     if (!data) return

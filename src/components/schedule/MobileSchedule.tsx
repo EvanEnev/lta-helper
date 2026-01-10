@@ -2,7 +2,7 @@ import {Divider} from '@heroui/react'
 import DayButton from './DayButton'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
-import {Day, LTLocation} from '@/src/utils/types'
+import {Day, LTLocation, LTWorker} from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {useAtom, useAtomValue} from 'jotai'
 import {
@@ -10,15 +10,19 @@ import {
   selectedDatesAtom,
   selectedDayAtom,
 } from '@/src/utils/global/atoms'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {DateTime} from 'luxon'
 
 interface MobileScheduleProps {
   locations: LTLocation[]
+  worker: LTWorker
+  workingDays: Day[]
 }
 
-export default function MobileSchedule({locations}: MobileScheduleProps) {
-  const {workingDays, setExiting} = useAuth()
+export default function MobileSchedule({
+  locations,
+  worker,
+  workingDays,
+}: MobileScheduleProps) {
   const selectedDay = useAtomValue(selectedDayAtom)
   const [initialDays, setInitialDays] = useState(workingDays)
   const [days, setDays] = useAtom(daysAtom)
@@ -68,10 +72,6 @@ export default function MobileSchedule({locations}: MobileScheduleProps) {
   }, [days, initialDays])
 
   useEffect(() => {
-    setExiting(false)
-  }, [setExiting])
-
-  useEffect(() => {
     if (selectedDates.length) return
 
     const date = days.find(
@@ -107,8 +107,9 @@ export default function MobileSchedule({locations}: MobileScheduleProps) {
         <i className="opacity-50">Дат пока нет..</i>
       )}
       <Divider />
-      <DayInfo day={day} />
+      <DayInfo worker={worker} day={day} />
       <SendButton
+        worker={worker}
         days={days.filter(day => {
           const initialDay = initialDays.find(
             initDay =>

@@ -2,11 +2,12 @@
 
 import {ToastProvider} from '@heroui/react'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import {useAuth} from '@/src/components/global/providers/authProvider'
+import {useAtomValue} from 'jotai'
+import {toastOffsetAtom} from '@/src/utils/global/atoms'
 
 export default function CToastProvider() {
   const isMobile = useIsMobile()
-  const {toastOffset} = useAuth()
+  const toastOffset = useAtomValue(toastOffsetAtom)
 
   return (
     <ToastProvider

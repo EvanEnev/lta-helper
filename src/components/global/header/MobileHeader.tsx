@@ -13,19 +13,27 @@ import {
 import {usePathname} from 'next/navigation'
 import {HamburgerMenu} from 'solar-icon-set'
 import buttons from '@/src/utils/global/pathButtons'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import User from '@/src/components/global/header/User'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import {LTWorker} from '@/src/utils/types'
+import {Ref} from 'react'
 
-export default function MobileHeader({scrolled}: {scrolled: boolean}) {
+interface MobileHeaderProps {
+  scrolled: boolean
+  worker?: LTWorker
+  ref: Ref<HTMLElement | null>
+}
+
+export default function MobileHeader({
+  scrolled,
+  ref,
+  worker,
+}: MobileHeaderProps) {
   const path = usePathname()
   const {isOpen, onOpen, onClose, onOpenChange} = useDisclosure()
-  const {headerRef, setExiting, worker} = useAuth()
 
   return (
-    <header
-      ref={headerRef}
-      className={`sticky top-0 left-0 z-1000 flex w-[100dvw] p-2`}>
+    <header ref={ref} className={`sticky top-0 left-0 z-1000 flex w-dvw p-2`}>
       <Drawer
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -82,12 +90,7 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                             startContent={
                               child.icon ? <child.icon size={24} /> : ''
                             }
-                            href={path === child.href ? '#' : child.href}
-                            onPress={() => {
-                              if (path !== child.href) {
-                                setExiting(true)
-                              }
-                            }}>
+                            href={path === child.href ? '#' : child.href}>
                             {child.name}
                           </Button>
                         ))}
@@ -101,11 +104,6 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
                   key={index}
                   as={Link}
                   href={path === button.href ? '#' : button.href}
-                  onPress={() => {
-                    if (path !== button.href) {
-                      setExiting(true)
-                    }
-                  }}
                   variant={path === button.href ? 'shadow' : 'ghost'}
                   className={`h-16 w-full p-2 ${button.className}`}
                   size="lg"
@@ -139,7 +137,7 @@ export default function MobileHeader({scrolled}: {scrolled: boolean}) {
           {buttons.find(obj => obj.href === path)?.name}
         </span>
         <div className="flex flex-1 items-center justify-center gap-2 text-2xl">
-          <User />
+          <User worker={worker} />
         </div>
       </div>
     </header>

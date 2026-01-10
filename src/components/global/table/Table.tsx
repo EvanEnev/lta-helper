@@ -9,8 +9,9 @@ import {
 import {Dispatch, SetStateAction, useCallback} from 'react'
 import TableHeader from '@/src/components/global/table/TableHeader'
 import TableRow from '@/src/components/global/table/TableRow'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import useIsMobile from '@/src/hooks/useIsMobile'
+import {useAtomValue} from 'jotai'
+import {headerSizesAtom} from '@/src/utils/global/atoms'
 
 interface TableProps {
   data: any
@@ -32,7 +33,7 @@ export default function Table({
   setColumnFiltersAction = () => [],
 }: TableProps) {
   const isMobile = useIsMobile()
-  const {headerRef} = useAuth()
+  const headerSizes = useAtomValue(headerSizesAtom)
 
   const table = useReactTable({
     data,
@@ -55,11 +56,10 @@ export default function Table({
       }
 
       return (
-        leftOffset +
-        (isMobile || ignoreHeader ? 0 : headerRef.current?.offsetWidth || 0)
+        leftOffset + (isMobile || ignoreHeader ? 0 : headerSizes.width || 0)
       )
     },
-    [table, isMobile, ignoreHeader, headerRef],
+    [table, isMobile, ignoreHeader, headerSizes.width],
   )
 
   return (

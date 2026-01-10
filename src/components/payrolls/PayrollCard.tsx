@@ -1,4 +1,4 @@
-import {LTPayroll} from '@/src/utils/types'
+import {LTPayroll, LTWorker} from '@/src/utils/types'
 import {DateTime, Interval} from 'luxon'
 import {
   Button,
@@ -13,7 +13,6 @@ import Link from 'next/link'
 import {ChatLine, CheckCircle, CloseCircle} from 'solar-icon-set'
 import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import DeleteButton from '@/src/components/global/DeleteButton'
 import {useCallback, useMemo} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
@@ -21,10 +20,10 @@ import fetchHandler from '@/src/utils/global/fetchHandler'
 interface PayrollCardProps {
   data: LTPayroll
   onDelete: (payrollId: LTPayroll['id']) => void
+    worker: LTWorker
 }
 
-export default function PayrollCard({data, onDelete}: PayrollCardProps) {
-  const {worker} = useAuth()
+export default function PayrollCard({data, onDelete, worker}: PayrollCardProps) {
   const {theme} = useTheme()
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)

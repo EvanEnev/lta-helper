@@ -10,9 +10,9 @@ import {headers} from 'next/headers'
 import getLocations from '@/lib/functions/getLocations'
 
 export default async function Salary() {
-  const {user: worker} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: null}
+  }))!.user
 
   const canViewFull = checkPermissions(['view_full_salary'], worker)
   const canEdit = checkPermissions(['edit_salary'], worker)
@@ -34,6 +34,7 @@ export default async function Salary() {
   return (
     <main className="h-fit">
       <SalaryPage
+          worker={worker}
         locations={locations}
         faceIdData={faceId}
         gamesPayments={gamesPayments}

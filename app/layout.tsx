@@ -46,7 +46,7 @@ export default async function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-title" content="LTA Helper" />
         <Script
-          src="https://telegram.org/js/telegram-web-app.js"
+          src="https://telegram.org/js/telegram-web-app.js?59"
           strategy="afterInteractive"
         />
       </head>

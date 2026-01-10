@@ -12,9 +12,9 @@ interface PayrollDetailsProps {
 export default async function PayrollDetails({params}: PayrollDetailsProps) {
   const {id} = await params
 
-  const {user: worker} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: null}
+  }))!.user
 
   const payrollDataQuery = `select
   p.id,
@@ -87,8 +87,8 @@ where p.id = ${id}`
     moneyOnLocationsQuery += `\nwhere lm.payroll_id = -1`
   }
 
-    moneyOnLocationsQuery += `\norder by l.name`
-    workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
+  moneyOnLocationsQuery += `\norder by l.name`
+  workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
 
   const result = await db.query(workersPayrollDataQuery)
   const data = result.rows
@@ -108,6 +108,7 @@ where p.id = ${id}`
 
   return (
     <PayrollsDetailsPage
+      worker={worker}
       payroll={payrollData}
       locations={locations}
       locationsData={moneyOnLocations}

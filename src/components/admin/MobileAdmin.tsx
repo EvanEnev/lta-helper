@@ -7,7 +7,7 @@ import {
   Selection,
 } from '@heroui/react'
 import WorkData from './WorkData'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useState} from 'react'
 import {
   LTFaceIdData,
   LTGamePayment,
@@ -21,9 +21,9 @@ import {MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import convertTZ from '@/lib/functions/convertTZ'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 
 interface MobileAdminProps {
+    worker: LTWorker
   faceId: LTFaceIdData[]
   days: {
     current: DateTime
@@ -44,6 +44,7 @@ interface MobileAdminProps {
 }
 
 export default function MobileAdmin({
+    worker,
   faceId,
   days,
   setDate,
@@ -58,7 +59,6 @@ export default function MobileAdmin({
   workTypes,
   gamesPayments,
 }: MobileAdminProps) {
-  const {setExiting, worker} = useAuth()
   const [key, setKey] = useState(0)
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set(['0']))
 
@@ -135,10 +135,6 @@ export default function MobileAdmin({
           ),
     )
   }
-
-  useEffect(() => {
-    setExiting(false)
-  }, [setExiting])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start gap-4 p-4">

@@ -22,7 +22,6 @@ import {DateTime} from 'luxon'
 import {today} from '@internationalized/date'
 import {useCallback, useState} from 'react'
 import convertTZ from '@/lib/functions/convertTZ'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import isDark from '@/lib/functions/isDark'
 import {useTheme} from 'next-themes'
 
@@ -44,6 +43,7 @@ interface DesktopAdminProps {
   ranks: LTRank[]
   workTypes: LTWorkType[]
   gamesPayments: LTGamePayment[]
+  worker: LTWorker
 }
 
 export default function DesktopAdmin({
@@ -60,8 +60,8 @@ export default function DesktopAdmin({
   ranks,
   workTypes,
   gamesPayments,
+  worker,
 }: DesktopAdminProps) {
-  const {worker} = useAuth()
   const {theme = 'dark'} = useTheme()
   const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
 

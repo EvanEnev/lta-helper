@@ -1,4 +1,9 @@
-import {LTLocation, LTPayroll, LTWorkerPayrollData} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTPayroll,
+  LTWorker,
+  LTWorkerPayrollData,
+} from '@/src/utils/types'
 import RankIcon from '@/src/components/global/RankIcon'
 import {Button, Code, Divider, NumberInput} from '@heroui/react'
 import {DateTime} from 'luxon'
@@ -8,10 +13,11 @@ import {RefObject, useCallback, useState} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {Socket} from 'socket.io-client'
 import {DefaultEventsMap} from 'socket.io'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {authClient} from '@/lib/auth/authClient'
 import separateNumber from '@/lib/functions/separateNumber'
 import useIsMobile from '@/src/hooks/useIsMobile'
+import {useAtomValue} from 'jotai'
+import {headerSizesAtom} from '@/src/utils/global/atoms'
 
 interface PayrollsDetailsRowProps {
   data: LTWorkerPayrollData
@@ -20,6 +26,7 @@ interface PayrollsDetailsRowProps {
   canEdit: boolean
   socketRef: RefObject<Socket<DefaultEventsMap, DefaultEventsMap> | null>
   payrollId: LTPayroll['id']
+  worker: LTWorker
 }
 
 export default function PayrollsDetailsRow({
@@ -29,8 +36,9 @@ export default function PayrollsDetailsRow({
   canEdit,
   payrollId,
   socketRef,
+  worker,
 }: PayrollsDetailsRowProps) {
-  const {worker, headerRef} = useAuth()
+  const headerSizes = useAtomValue(headerSizesAtom)
   const isMobile = useIsMobile()
   const [loading, setLoading] = useState(false)
 
@@ -82,7 +90,7 @@ export default function PayrollsDetailsRow({
         <legend
           className="sticky left-2 flex translate-y-1 items-center justify-start gap-2"
           style={{
-            left: isMobile ? '0.5rem' : headerRef.current?.offsetWidth,
+            left: isMobile ? '0.5rem' : headerSizes.width || 0,
           }}>
           <RankIcon rank={data.worker.rank} />
           <p className="mx-auto">{data.worker.name}</p>
@@ -98,7 +106,7 @@ export default function PayrollsDetailsRow({
             }}
             isWheelDisabled
             endContent={<Ruble iconStyle="Bold" />}
-            className="min-w-[9rem] flex-1"
+            className="min-w-36 flex-1"
             value={data.value || 0}
           />
           <Divider orientation="vertical" />
@@ -112,7 +120,7 @@ export default function PayrollsDetailsRow({
               updateCallback('bonuses', value)
             }}
             endContent={<Ruble iconStyle="Bold" />}
-            className="min-w-[9rem] flex-1"
+            className="min-w-36 flex-1"
             value={data.bonuses || 0}
           />
           <Divider orientation="vertical" />
@@ -127,13 +135,13 @@ export default function PayrollsDetailsRow({
               updateCallback('external_payment', value)
             }}
             endContent={<Ruble iconStyle="Bold" />}
-            className="min-w-[9rem] flex-1"
+            className="min-w-36 flex-1"
             value={data.external_payment || 0}
           />
           <Divider orientation="vertical" />
           <LocationSelect
             isReadOnly={!canEdit}
-            className="min-w-[9rem] flex-1"
+            className="min-w-36 flex-1"
             callback={location => {
               updateCallback('location_id', location?.id || null)
             }}
@@ -149,7 +157,7 @@ export default function PayrollsDetailsRow({
             labelPlacement="outside"
             classNames={{stepperButton: 'hidden'}}
             endContent={<Ruble iconStyle="Bold" />}
-            className="min-w-[9rem] flex-1"
+            className="min-w-36 flex-1"
             value={
               data.value + (data.bonuses || 0) - (data.external_payment || 0)
             }
@@ -162,7 +170,7 @@ export default function PayrollsDetailsRow({
             labelPlacement="outside"
             classNames={{stepperButton: 'hidden'}}
             endContent={<Ruble iconStyle="Bold" />}
-            className="min-w-[9rem] flex-1"
+            className="min-w-36 flex-1"
             value={
               data.value +
               (data.bonuses || 0) -
@@ -176,7 +184,7 @@ export default function PayrollsDetailsRow({
             <>
               <Button
                 isLoading={loading}
-                className="h-full min-w-[9rem]"
+                className="h-full min-w-36"
                 onPress={issuePayroll}
                 color={
                   data.issue_confirmed
@@ -196,7 +204,7 @@ export default function PayrollsDetailsRow({
               <Divider orientation="vertical" />
               {data.taken ? (
                 <>
-                  <div className="min-w-[9rem]">
+                  <div className="min-w-36">
                     <p>Выдано:</p>
                     <Code className="w-full" color="success">
                       {separateNumber(data.taken)}
@@ -226,7 +234,7 @@ export default function PayrollsDetailsRow({
                 </>
               ) : (
                 <>
-                  <div className="min-w-[9rem]">
+                  <div className="min-w-36">
                     <p>К выдаче:</p>
                     {data.to_take ? (
                       <Code className="text-medium w-full" color="primary">

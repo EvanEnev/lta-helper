@@ -43,9 +43,11 @@ export async function POST(req: NextRequest) {
 
   let user
 
+    console.debug(data)
   try {
     user = await validator.validate(data)
   } catch (e) {
+      console.error(e)
     return NextResponse.json(
       {message: 'Ошибка валидации', color: 'danger'},
       {status: 500},

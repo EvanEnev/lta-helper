@@ -5,6 +5,7 @@ import {evaluate} from 'mathjs'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
 import {QueryResult} from 'pg'
+import getWorkingDays from '@/lib/functions/getWorkingDays'
 
 export interface ShortSalary {
   currentDates: string
@@ -25,7 +26,7 @@ export interface ShortSalary {
 export default async function Home() {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: {id: -1, rank: ''}}
+  })) || {user: {id: -1, rank: '', telegramId: -1}}
 
   const date = convertTZ(new Date(), 'Europe/Moscow')
 
@@ -167,5 +168,14 @@ export default async function Home() {
     balance,
   }
 
-  return <MainPage salaryData={salaryData} />
+  const workingDays = await getWorkingDays({telegramId: worker.telegramId})
+  return (
+    <MainPage
+      // @ts-ignore
+      worker={worker}
+      // @ts-ignore
+      workingDays={workingDays}
+      salaryData={salaryData}
+    />
+  )
 }

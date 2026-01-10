@@ -4,9 +4,9 @@ import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 
 export default async function PayrollIssue() {
-  const {user: worker} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: null}
+  }))!.user
 
   const query = `select
     p.id,
@@ -62,6 +62,7 @@ export default async function PayrollIssue() {
 
   return (
     <PayrollIssuePage
+      worker={worker}
       payrolls={data}
       workers={workers}
       takeByData={takeByData}
