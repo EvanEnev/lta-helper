@@ -25,7 +25,7 @@ export default function Header() {
 
     const update = () => {
       const rect = ref.current!.getBoundingClientRect()
-      setHeaderSizes({width: rect.width, height: rect.height})
+      setHeaderSizes({width: rect.width, height: 0})
     }
 
     update()

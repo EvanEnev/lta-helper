@@ -1,22 +1,23 @@
 import {
   Accordion,
   AccordionItem,
-  Button,
   Drawer,
   DrawerBody,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
-  Link,
+  semanticColors,
   useDisclosure,
 } from '@heroui/react'
+import {Button, Separator, Link} from '@heroui/react-beta'
 import {usePathname} from 'next/navigation'
-import {HamburgerMenu} from 'solar-icon-set'
-import buttons from '@/src/utils/global/pathButtons'
+import {HamburgerMenu, Home} from 'solar-icon-set'
+import buttonsRaw from '@/src/utils/global/pathButtons'
 import User from '@/src/components/global/header/User'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {LTWorker} from '@/src/utils/types'
-import {Ref} from 'react'
+import {Fragment, Ref} from 'react'
+import {useTheme} from 'next-themes'
 
 interface MobileHeaderProps {
   scrolled: boolean
@@ -24,29 +25,58 @@ interface MobileHeaderProps {
   ref: Ref<HTMLElement | null>
 }
 
+const buttonsPaths = ['/', '/schedule', '/salary']
+
 export default function MobileHeader({
   scrolled,
   ref,
   worker,
 }: MobileHeaderProps) {
   const path = usePathname()
+  const {theme} = useTheme()
   const {isOpen, onOpen, onClose, onOpenChange} = useDisclosure()
 
+  const buttons = buttonsRaw.filter(
+    button =>
+      buttonsPaths.includes(button.href) &&
+      (button.permission
+        ? checkPermissions([button.permission], worker)
+        : true),
+  )
+
+  buttonsRaw
+    .filter(button => button.children?.length)
+    .forEach(button => {
+      for (const child of button.children!) {
+        if (
+          buttonsPaths.includes(child.href) &&
+          (child.permission
+            ? checkPermissions([child.permission], worker)
+            : true)
+        ) {
+          buttons.push(child)
+        }
+      }
+    })
+
   return (
-    <header ref={ref} className={`sticky top-0 left-0 z-1000 flex w-dvw p-2`}>
+    <header
+      ref={ref}
+      className={`bg-content2 fixed bottom-0 left-0 z-100000 flex h-20 w-dvw flex-wrap items-center justify-around gap-1 shadow-2xl`}>
       <Drawer
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        className="z-10000 max-w-[70%]"
+        className="z-10000 h-[80%] max-h-[80%] pb-20"
         classNames={{backdrop: 'z-10000', wrapper: 'z-10000'}}
-        placement="left"
+        placement="bottom"
+        size="full"
         backdrop="blur">
         <DrawerContent className="z-10000">
           <DrawerHeader>
-            {buttons.find(obj => obj.href === path)?.name}
+            {buttonsRaw.find(obj => obj.href === path)?.name}
           </DrawerHeader>
           <DrawerBody>
-            {buttons.map((button, index) => {
+            {buttonsRaw.map((button, index) => {
               if (
                 button.permission &&
                 !checkPermissions([button.permission], worker)
@@ -63,7 +93,7 @@ export default function MobileHeader({
                     variant="splitted">
                     <AccordionItem
                       classNames={{content: 'flex flex-col gap-2'}}
-                      title="Деньги"
+                      title={button.name}
                       startContent={
                         button.icon ? <button.icon size={24} /> : ''
                       }
@@ -82,17 +112,17 @@ export default function MobileHeader({
                             ),
                         )
                         .map((child, index) => (
-                          <Button
-                            variant="ghost"
+                          <Link
+                            className="w-full"
                             key={index}
-                            as={Link}
-                            className={`h-16 w-full ${child.className}`}
-                            startContent={
-                              child.icon ? <child.icon size={24} /> : ''
-                            }
                             href={path === child.href ? '#' : child.href}>
-                            {child.name}
-                          </Button>
+                            <Button
+                              variant="tertiary"
+                              className={`h-16 w-full ${path === child.href ? 'shadow-primary shadow-sm' : ''} ${child.className}`}>
+                              {child.icon ? <child.icon size={24} /> : ''}
+                              {child.name}
+                            </Button>
+                          </Link>
                         ))}
                     </AccordionItem>
                   </Accordion>
@@ -100,19 +130,17 @@ export default function MobileHeader({
               }
 
               return (
-                <Button
-                  key={index}
-                  as={Link}
+                <Link
+                  className="w-full"
                   href={path === button.href ? '#' : button.href}
-                  variant={path === button.href ? 'shadow' : 'ghost'}
-                  className={`h-16 w-full p-2 ${button.className}`}
-                  size="lg"
-                  title={button.name}
-                  aria-label={button.name}
-                  aria-placeholder={button.name}
-                  startContent={button.icon ? <button.icon size={24} /> : ''}>
-                  {button.name}
-                </Button>
+                  key={index}>
+                  <Button
+                    variant="tertiary"
+                    className={`h-16 w-full p-2 ${path === button.href ? 'shadow-primary shadow-sm' : ''} ${button.className}`}
+                    size="lg">
+                    {button.icon ? <button.icon size={24} /> : ''} {button.name}
+                  </Button>
+                </Link>
               )
             })}
           </DrawerBody>
@@ -120,26 +148,65 @@ export default function MobileHeader({
             <Button
               onPress={onClose}
               className="h-16 w-full"
-              color="danger"
-              variant="ghost">
+              variant="danger-soft">
               Закрыть
             </Button>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
-      <div
-        className={`flex h-full w-full flex-wrap items-center justify-between gap-1 px-2 py-4 ${scrolled ? 'scrolled' : ''}`}>
-        <Button className="flex-1" variant="ghost" onPress={onOpen} isIconOnly>
-          <HamburgerMenu size={24} />
-        </Button>
 
-        <span className="flex-1 text-center text-2xl font-bold">
-          {buttons.find(obj => obj.href === path)?.name}
-        </span>
-        <div className="flex flex-1 items-center justify-center gap-2 text-2xl">
-          <User worker={worker} />
-        </div>
-      </div>
+      {buttons.map((button, index) => (
+        <Fragment key={index}>
+          <Link
+            key={index}
+            href={button.href}
+            className={`flex-col items-center justify-center gap-1 ${button.className} ${path === button.href ? 'drop-shadow-primary drop-shadow-2xl' : ''}`}
+            slot="header">
+            {button.icon && (
+              <button.icon
+                className="items-center justify-center"
+                color={
+                  path === button.href
+                    ? // @ts-ignore
+                      semanticColors[theme || 'dark'].primary['500']
+                    : undefined
+                }
+                iconStyle={path === button.href ? 'Bold' : 'Outline'}
+                size={24}
+              />
+            )}
+            <Separator
+              className={`${path === button.href ? 'bg-primary' : 'bg-content2-foreground'}`}
+            />
+          </Link>
+          {index !== buttons.length - 1 && (
+            <Separator
+              orientation="vertical"
+              className="bg-content2-foreground h-[50%]"
+            />
+          )}
+        </Fragment>
+      ))}
+      <Separator
+        orientation="vertical"
+        className="bg-content2-foreground h-[50%]"
+      />
+      <Button
+        className="flex flex-col gap-1"
+        slot="header"
+        variant="ghost"
+        onPress={onOpen}
+        isIconOnly>
+        <HamburgerMenu className="items-center justify-center" size={24} />
+        <Separator className="bg-content2-foreground" />
+      </Button>
+
+      {/*<span className="text-center text-2xl font-bold">*/}
+      {/*  {buttons.find(obj => obj.href === path)?.name}*/}
+      {/*</span>*/}
+      {/*<div className="flex items-center justify-center gap-2 text-2xl">*/}
+      {/*  <User worker={worker} />*/}
+      {/*</div>*/}
     </header>
   )
 }

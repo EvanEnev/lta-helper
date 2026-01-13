@@ -128,10 +128,17 @@ html {
 }
 
 @layer components {
+    .button[slot="header"] svg {
+        width: inherit!important;
+        height: inherit!important;
+    }
+
     @media (min-width: 40rem) {
         .button svg:not([data-slot="spinner"] svg) {
             width: inherit;
             height: inherit;
         }
     }
+
+
 }

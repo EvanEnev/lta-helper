@@ -36,7 +36,6 @@ const buttons: PathButton[] = [
   },
   {name: 'Главная', href: '/', icon: Home},
   {name: 'График работы', href: '/schedule', icon: ClockCircle},
-
   {
     name: 'Деньги',
     href: '#',

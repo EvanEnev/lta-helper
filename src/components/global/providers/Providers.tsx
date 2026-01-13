@@ -15,7 +15,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
       <NextThemesProvider attribute="class" defaultTheme="dark">
         <PushNotificationProvider>
           <Snowfall snowflakeCount={80} />
-          <div className="sm:flex sm:gap-2">
+          <div className="pb-20 sm:flex sm:gap-2 sm:pb-0">
             <Provider>
               <Header />
               <div className="w-full">
