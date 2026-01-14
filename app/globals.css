@@ -36,6 +36,27 @@
     }
 }
 
+.scrolled-prepare {
+    will-change: transform;
+    transition:
+            transform 0.1s ease-in-out;
+}
+
+.scrolled-prepare::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    border-radius: 1rem;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: scale(1);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: -1;
+    pointer-events: none;
+}
+
 header > div {
     will-change: transform;
     transition:
