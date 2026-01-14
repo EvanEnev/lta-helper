@@ -36,7 +36,6 @@ import {
 import {DateTime, Interval} from 'luxon'
 import {useTheme} from 'next-themes'
 import fetchHandler from '@/src/utils/global/fetchHandler'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {evaluate} from 'mathjs'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
 import {useRouter} from 'next/navigation'
@@ -69,29 +68,28 @@ export default function PayrollCreatePage({
   moneyOnLocations: initialMoney,
   locations,
 }: PayrollCreatePageProps) {
-  const {setExiting} = useAuth()
   const router = useRouter()
   const [data, setData] = useState(initialData)
   const headerRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    setExiting(false)
-  }, [setExiting])
 
   const {theme} = useTheme()
   // @ts-ignore
   const themeColors = semanticColors[theme || 'dark']
   const [payrollData, setPayrollData] = useState<LTPayrollData[]>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.workersData ||
-      data.map(d => ({
-        workerId: d.id,
-        external_payment: 0,
-        location: -1,
-        value: d.value || 0,
-        fines: d.fines || 0,
-        bonuses: d.bonuses || 0,
-      })),
+      data.map(d => {
+        return {
+          workerId: d.id,
+          // @ts-ignore
+          external_payment: d.externalPayment || 0,
+          location: -1,
+          value: d.value || 0,
+          fines: d.fines || 0,
+          bonuses: d.bonuses || 0,
+        }
+      }),
   )
+  console.debug(payrollData)
   const [takeBy, setTakeBy] = useState<string>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
       DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
@@ -312,7 +310,7 @@ export default function PayrollCreatePage({
             className="bg-content2 sticky z-1000 flex items-center gap-2 rounded-xl p-2"
             style={{top: `${headerRef?.current?.offsetHeight}px`}}>
             <Button
-              className="max-w-[1.75rem] min-w-[1.75rem]"
+              className="max-w-7 min-w-7"
               onPress={() => {
                 setLastSelectedRow(null)
                 setSelectedRows([])
@@ -320,17 +318,17 @@ export default function PayrollCreatePage({
               startContent={<CloseSquare iconStyle="Bold" />}
               isIconOnly
             />
-            <p className="min-w-[8rem] flex-1 text-center">Сотрудник</p>
+            <p className="min-w-32 flex-1 text-center">Сотрудник</p>
             <Divider orientation="vertical" />
-            <p className="min-w-[8rem] flex-1 text-center">Сумма</p>
+            <p className="min-w-32 flex-1 text-center">Сумма</p>
             <Divider orientation="vertical" />
-            <p className="min-w-[8rem] flex-1 text-center">Бонусы</p>
+            <p className="min-w-32 flex-1 text-center">Бонусы</p>
             <Divider orientation="vertical" />
-            <p className="min-w-[8rem] flex-1 text-center">Штрафы</p>
+            <p className="min-w-32 flex-1 text-center">Штрафы</p>
             <Divider orientation="vertical" />
-            <p className="min-w-[8rem] flex-1 text-center">Внешняя выплата</p>
+            <p className="min-w-32 flex-1 text-center">Внешняя выплата</p>
             <Divider orientation="vertical" />
-            <p className="min-w-[8rem] flex-1 text-center">Итог</p>
+            <p className="min-w-32 flex-1 text-center">Итог</p>
             <Divider orientation="vertical" />
             <p className="flex-1 text-center">Локация</p>
           </div>
@@ -383,7 +381,7 @@ export default function PayrollCreatePage({
                     callback={handleUpdate}
                   />
                   <Divider orientation="vertical" />
-                  <div className="bg-content2 flex h-full min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-2xl">
+                  <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
                     <p>{separateNumber(summary)}</p>
                     <Ruble iconStyle="Bold" />
                   </div>

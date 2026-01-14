@@ -22,6 +22,7 @@ import EditDrawer from '@/src/components/salary/EditDrawer'
 import {useTheme} from 'next-themes'
 import LocationIcon from '@/src/components/global/LocationIcon'
 import {DateTime} from 'luxon'
+import PaymentData from '@/src/components/salary/PaymentData'
 
 interface CellProps {
   data?: SalaryData
@@ -53,6 +54,7 @@ export default memo(function Cell({
     setCellData(data)
   }, [data])
 
+  // console.debug(cellData)
   const handleCellEdit = useCallback(
     (data: SalaryData) => {
       if (!data) return
@@ -132,18 +134,18 @@ export default memo(function Cell({
 
   const textColorClass =
     theme === 'dark'
-      ? isDark(cellData.location.color)
+      ? isDark(cellData.location?.color)
         ? 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
         : 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
-      : isDark(cellData.location.color)
+      : isDark(cellData.location?.color)
         ? 'text-foreground [&>div>hr[role=separator]]:bg-foreground'
         : 'text-default-100 [&>div>hr[role=separator]]:bg-default-100'
 
   return (
     <Skeleton isLoaded={!!cellData.location} className="rounded-2xl">
       <Card
-        style={{backgroundColor: cellData.location.color}}
-        className={`${canViewFull ? '' : 'min-h-[15rem]'} max-h-full w-fit min-w-[20rem]`}>
+        style={{backgroundColor: cellData.location?.color}}
+        className={`${canViewFull ? '' : 'min-h-[15rem]'} mb-2 max-h-full w-fit min-w-[20rem]`}>
         <CardHeader
           className={`grid-rows-auto grid grid-flow-row grid-cols-2 items-start gap-2 ${textColorClass}`}>
           <div className="col-span-full flex w-fit items-center gap-1">
@@ -152,14 +154,14 @@ export default memo(function Cell({
                 <p className="whitespace-nowrap">
                   {cellData.created_by}{' '}
                   {DateTime.fromFormat(
-                    cellData.created_at,
+                    cellData.created_at || '',
                     'yyyy-MM-dd HH:mm:ss',
                   ).toFormat('dd.MM yyyy')}
                 </p>
               }>
               <div className="text-large flex items-center gap-2">
-                <LocationIcon locationName={cellData.location.name} />
-                <p>{cellData.location.name}</p>
+                <LocationIcon locationName={cellData.location?.name} />
+                <p>{cellData.location?.name}</p>
               </div>
             </Tooltip>
           </div>
@@ -195,6 +197,10 @@ export default memo(function Cell({
           />
         </CardFooter>
       </Card>
+      {
+        // @ts-ignore
+        cellData.payment && <PaymentData data={cellData.payment} />
+      }
     </Skeleton>
   )
 })

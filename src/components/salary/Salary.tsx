@@ -1,16 +1,15 @@
 'use client'
 
 import {
-  LTFaceIdData,
-  LTGamePayment,
-  LTLocation,
-  UserSalary,
+    LTFaceIdData,
+    LTGamePayment,
+    LTLocation, LTWorker,
+    UserSalary,
 } from '@/src/utils/types'
 import Table from '@/src/components/salary/Table'
-import {useEffect} from 'react'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function Salary({
+    worker,
   data,
   canViewFull,
   canEdit,
@@ -19,6 +18,7 @@ export default function Salary({
   faceIdData,
   locations,
 }: {
+    worker: LTWorker
   data: UserSalary[]
   canViewFull: boolean
   canEdit: boolean
@@ -27,14 +27,9 @@ export default function Salary({
   faceIdData: LTFaceIdData[]
   locations: LTLocation[]
 }) {
-  const {setExiting} = useAuth()
-
-  useEffect(() => {
-    setExiting(false)
-  }, [setExiting])
-
   return (
     <Table
+        worker={worker}
       locations={locations}
       faceIdData={faceIdData}
       dates={dates}

@@ -4,9 +4,9 @@ import {
   LTLocation,
   LTMoneyOnLocationsData,
   LTPayroll,
+  LTWorker,
   LTWorkerPayrollData,
 } from '@/src/utils/types'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import PayrollsDetailsRow from '@/src/components/payrolls/details/PayrollsDetailsRow'
@@ -18,6 +18,7 @@ interface PayrollsDetailsPageProps {
   locationsData: LTMoneyOnLocationsData[]
   locations: LTLocation[]
   payroll: LTPayroll
+  worker: LTWorker
 }
 
 export default function PayrollsDetailsPage({
@@ -25,15 +26,11 @@ export default function PayrollsDetailsPage({
   locationsData,
   locations,
   payroll,
+  worker,
 }: PayrollsDetailsPageProps) {
   const [data, setData] = useState<LTWorkerPayrollData[]>(initialData)
   const unfilteredData = useRef(initialData)
   const socketRef = useRef<Socket | null>(null)
-  const {worker, setExiting} = useAuth()
-
-  useEffect(() => {
-    setExiting(false)
-  }, [setExiting])
 
   const canIssue = useMemo(
     () => checkPermissions(['issue_payrolls'], worker),
@@ -78,7 +75,7 @@ export default function PayrollsDetailsPage({
       socket.off('workers_payrolls:update')
       socket.disconnect()
     }
-  }, [checkTarget, worker.id])
+  }, [checkTarget, worker?.id])
 
   const locationSelectCallback = useCallback((location: LTLocation | null) => {
     if (!location) return setData(unfilteredData.current)
@@ -94,6 +91,7 @@ export default function PayrollsDetailsPage({
             {data.map((item, index) => {
               return (
                 <PayrollsDetailsRow
+                  worker={worker}
                   socketRef={socketRef}
                   payrollId={payroll.id}
                   key={index}

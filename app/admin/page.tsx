@@ -10,25 +10,25 @@ import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 
 export default async function Admin() {
-  const {user: worker} = (await auth.api.getSession({
-    headers: await headers(),
-  })) || {user: null}
+    const worker = (await auth.api.getSession({
+        headers: await headers(),
+    }))!.user
 
   const workTypesQuery = `select
   id,
   name
-  from lt_arena.work_types order by name`
+  from salary.types order by name`
 
   const workTypesResult = await db.query(workTypesQuery)
 
   const workersQuery = `SELECT
   w.name,
   w.id,
-  w.rank,
+  r.name as rank,
   r.id as "rankId",
   w.is_former as "isFormer"
-  FROM lt_arena.workers w
-  left join lt_arena.ranks r on r.name = w.rank`
+  FROM workers w
+  left join ranks r on r.id = w.rank_id`
 
   const workersResult = await db.query(workersQuery)
 
@@ -45,6 +45,7 @@ export default async function Admin() {
 
   return (
     <AdminPage
+      worker={worker}
       workers={workers}
       canEdit={canEdit}
       locations={locations}

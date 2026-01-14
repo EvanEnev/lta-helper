@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const data: LTPayrollCreateData = {...body}
 
   const createPayrollQuery = `
-  insert into lt_arena.payrolls
+  insert into payrolls.list
   (dates, take_by, bonuses, created_by) values
   ('[${data.dates.start},${data.dates.end}]', '${data.takeBy}', ${data.withBonuses || 'NULL'}, ${worker.id})
   returning id`
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const payrollId: number = payrollCreateResult.rows[0].id
 
   const createWorkersPayrollQuery = `
-  insert into lt_arena.workers_payrolls
+  insert into relations.workers_payrolls
   (worker_id, payroll_id, value, location_id, bonuses, external_payment) values
   ${data.workersData
     .filter(d => d.location !== -1)
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     .join(',\n')}`
 
   const createMoneyOnLocationsQuery = `
-    insert into lt_arena.locations_money
+    insert into payrolls.locations_money
     (location_id, payroll_id, value) values
     ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}`
 

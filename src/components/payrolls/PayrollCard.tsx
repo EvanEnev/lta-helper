@@ -1,4 +1,4 @@
-import {LTPayroll} from '@/src/utils/types'
+import {LTPayroll, LTWorker} from '@/src/utils/types'
 import {DateTime, Interval} from 'luxon'
 import {
   Button,
@@ -13,7 +13,6 @@ import Link from 'next/link'
 import {ChatLine, CheckCircle, CloseCircle} from 'solar-icon-set'
 import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import DeleteButton from '@/src/components/global/DeleteButton'
 import {useCallback, useMemo} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
@@ -21,15 +20,18 @@ import fetchHandler from '@/src/utils/global/fetchHandler'
 interface PayrollCardProps {
   data: LTPayroll
   onDelete: (payrollId: LTPayroll['id']) => void
+    worker: LTWorker
 }
 
-export default function PayrollCard({data, onDelete}: PayrollCardProps) {
-  const {worker} = useAuth()
+export default function PayrollCard({data, onDelete, worker}: PayrollCardProps) {
   const {theme} = useTheme()
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)
   const takeBy = DateTime.fromISO(data.takeBy)
-  const today = useMemo(() => DateTime.now(), [])
+  const today = useMemo(
+    () => DateTime.now().set({hour: 0, minute: 0, second: 0}),
+    [],
+  )
 
   // @ts-ignore
   const themeColors = semanticColors[theme || 'dark']
@@ -62,7 +64,7 @@ export default function PayrollCard({data, onDelete}: PayrollCardProps) {
         )}
         <div>
           <span>Можно забрать до: </span>
-          <Code color={takeBy > today ? 'success' : 'danger'}>
+          <Code color={takeBy >= today ? 'success' : 'danger'}>
             {takeBy.toFormat('dd.MM.yyyy')}
           </Code>
         </div>

@@ -542,7 +542,7 @@ export default function WorkData({
         className="col-2 row-span-2"
         value={data.comment}
         onChange={value => updateData('comment', value)}>
-        <Label>Комментария</Label>
+        <Label>Комментарий</Label>
         <TextArea />
       </TextField>
     </div>

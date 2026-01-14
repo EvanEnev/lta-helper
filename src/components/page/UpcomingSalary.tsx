@@ -10,7 +10,7 @@ import {
 } from '@heroui/react'
 import Link from 'next/link'
 import {Ruble} from 'solar-icon-set'
-import {useAuth} from '@/src/components/global/providers/authProvider'
+import {LTWorker} from '@/src/utils/types'
 
 function BonusesAndFines({
   bonuses,
@@ -39,8 +39,11 @@ function BonusesAndFines({
   )
 }
 
-export default function UpcomingSalary({data}: {data: ShortSalary}) {
-  const {worker} = useAuth()
+interface UpcomingSalaryProps {
+  data: ShortSalary
+  worker: LTWorker
+}
+export default function UpcomingSalary({data, worker}: UpcomingSalaryProps) {
   const isCurrentWithBonuses = data.currentSalaryTakeDate.startsWith('20')
 
   return (

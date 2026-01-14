@@ -8,13 +8,17 @@ import {
 } from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import buttons from '@/src/utils/global/pathButtons'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import User from '@/src/components/global/header/User'
-import {useEffect, useState} from 'react'
+import {Ref, useEffect, useState} from 'react'
+import {LTWorker} from '@/src/utils/types'
 
-export default function DesktopHeader() {
-  const {headerRef, setExiting, worker} = useAuth()
+interface DesktopHeaderProps {
+  worker?: LTWorker
+  ref: Ref<HTMLElement | null>
+}
+
+export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
   const path = usePathname()
   const [permanentHovers, setPermanentHovers] = useState<number[]>([])
   const [rawHover, setRawHover] = useState<number | null>(null)
@@ -31,11 +35,11 @@ export default function DesktopHeader() {
 
   return (
     <header
-      ref={headerRef}
-      className="sticky top-0 left-0 z-10000 flex h-[100dvh] w-fit flex-col p-2">
+      ref={ref}
+      className="sticky top-0 left-0 z-10000 flex h-dvh w-fit flex-col p-2">
       <div className="header-inner items-between glass flex h-full w-full justify-between px-2 py-4">
         <div className="items-between flex flex-col justify-start gap-4">
-          <User />
+          <User worker={worker} />
           {buttons.map((button, index) => {
             if (
               button.permission &&
@@ -65,7 +69,7 @@ export default function DesktopHeader() {
                       onMouseEnter={() => setRawHover(index)}
                       onMouseLeave={() => setRawHover(null)}
                       variant={path === button.href ? 'shadow' : 'ghost'}
-                      className="h-16 w-full flex-col p-2 text-xs"
+                      className={`h-16 w-full flex-col p-2 text-xs ${button.className}`}
                       size="lg"
                       title={button.name}
                       aria-label={button.name}
@@ -99,11 +103,6 @@ export default function DesktopHeader() {
                             child.icon ? <child.icon size={24} /> : ''
                           }
                           href={path === child.href ? '#' : child.href}
-                          onPress={() => {
-                            if (path !== child.href) {
-                              setExiting(true)
-                            }
-                          }}
                         />
                       ))}
                   </DropdownMenu>
@@ -116,13 +115,8 @@ export default function DesktopHeader() {
                 key={index}
                 as={Link}
                 href={path === button.href ? '#' : button.href}
-                onPress={() => {
-                  if (path !== button.href) {
-                    setExiting(true)
-                  }
-                }}
                 variant={path === button.href ? 'shadow' : 'ghost'}
-                className="h-16 w-full flex-col p-2 text-xs"
+                className={`h-16 w-full flex-col p-2 text-xs ${button.className}`}
                 size="lg"
                 title={button.name}
                 aria-label={button.name}

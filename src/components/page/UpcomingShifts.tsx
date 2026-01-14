@@ -2,14 +2,20 @@ import {Card, CardBody, CardHeader, Skeleton} from '@heroui/react'
 import {CalendarMinimalistic, ClockCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {useMemo, useCallback} from 'react'
 import Location from '@/src/components/global/Location'
+import {Day} from "@/src/utils/types";
 
-export default function UpcomingShifts({className = ''}: {className?: string}) {
-  const {workingDays: days} = useAuth()
+interface UpcomingShiftsProps {
+className?: string
+workingDays: Day[]
+}
 
-  const currentDate = convertTZ(new Date(), 'Europe/Moscow')
+export default function UpcomingShifts({className = '', workingDays}: UpcomingShiftsProps) {
+    // @ts-ignore
+  const days = useMemo(() => workingDays.map(d => ({...d, date: DateTime.fromISO(d.date)})), [workingDays])
+
+    const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
   const getDatesDiff = useCallback(
     (date?: DateTime) => {

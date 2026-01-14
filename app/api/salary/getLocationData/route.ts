@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   let locationId = user.locationId
 
   const adminsQuery = `SELECT location_id
-    FROM lt_arena.admins
+    FROM config.admins
     WHERE date = '${date.toFormat('dd.MM')}'
     AND worker_id = ${user.id}`
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   const query = `SELECT
   w.name AS worker,
   w.id,
-  w.rank,
+  r.name as rank,
   l.name AS location,
   created_at::text as "createdAt",
   start_time,
@@ -57,10 +57,10 @@ export async function POST(req: NextRequest) {
   actor_games,
   work_types,
   r.sorting_weight
-  FROM lt_arena.salary s
-  LEFT JOIN lt_arena.locations l ON s.location_id = l.id
-  LEFT JOIN lt_arena.workers w ON s.worker_id = w.id
-  left join lt_arena.ranks r on r.name ilike w.rank
+  FROM salary.list s
+  LEFT JOIN locations l ON s.location_id = l.id
+  LEFT JOIN workers w ON s.worker_id = w.id
+  left join ranks r on r.id = w.rank_id
   WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12${user.id === 42 || user.id === 12 ? ' or s.location_id = 17' : ''})` : ''}
   order by r.sorting_weight desc, w.name
   `
@@ -108,19 +108,19 @@ export async function POST(req: NextRequest) {
   const faceIdQuery = `select
                      w.id as "workerId",
                      w.name,
-                     w.rank,
+                     r.name as rank,
                      r.sorting_weight,
                      json_agg(
                        json_build_object(
-                         'location', get_location(fd.location_id),
+                         'location', functions.get_location(fd.location_id),
                          'date', date::text
                        )
                      ) as data
-                   from lt_arena.face_id fd
-                   left join lt_arena.workers w on w.id = fd.worker_id
-                   left join lt_arena.ranks r on r.name ilike w.rank
+                   from face_id fd
+                   left join workers w on w.id = fd.worker_id
+                   left join ranks r on r.id = w.rank_id
                    where (date between '${date.toFormat('yyyy-MM-dd')}'::date + interval '5 hours' and '${date.toFormat('yyyy-MM-dd')}'::date + interval '29 hours') and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 || user.id === 12 ? ' or fd.location_id = 17' : ''})
-                   group by w.id, r.sorting_weight`
+                   group by w.id, r.sorting_weight, r.name`
 
   const faceIdResult = await db.query(faceIdQuery)
   const faceIdRows = faceIdResult.rows

@@ -1,4 +1,4 @@
-import {Day, LocationData} from '@/src/utils/types'
+import {Day, LocationData, LTWorker} from '@/src/utils/types'
 import {
   Accordion,
   AccordionItem,
@@ -20,7 +20,6 @@ import {
   selectedDatesAtom,
   selectedDayAtom,
 } from '@/src/utils/global/atoms'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {DateTime} from 'luxon'
 import RankIcon from '@/src/components/global/RankIcon'
 import sortByRank from '@/lib/functions/sortByRank'
@@ -30,14 +29,15 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 export default function DayInfo({
   day,
   changeDates,
+  worker,
 }: {
   day: Day
   changeDates?: (date: DateTime | undefined, isSelected: boolean) => void
+  worker: LTWorker
 }) {
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
   const selectedDates = useAtomValue(selectedDatesAtom)
   const [days, setDays] = useAtom(daysAtom)
-  const {worker} = useAuth()
 
   const locationData: LocationData[] = useMemo(() => {
     return day.locationData || []

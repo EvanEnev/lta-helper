@@ -5,6 +5,7 @@ import {evaluate} from 'mathjs'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
 import {QueryResult} from 'pg'
+import getWorkingDays from '@/lib/functions/getWorkingDays'
 
 export interface ShortSalary {
   currentDates: string
@@ -25,7 +26,7 @@ export interface ShortSalary {
 export default async function Home() {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: {id: -1, rank: ''}}
+  })) || {user: {id: -1, rank: '', telegramId: -1}}
 
   const date = convertTZ(new Date(), 'Europe/Moscow')
 
@@ -81,7 +82,7 @@ export default async function Home() {
     sum(coalesce((two_games ->> 'value')::int, 0)) +
     sum(coalesce((three_games ->> 'value')::int, 0)) +
     sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
-  FROM lt_arena.salary
+  FROM salary.list
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${current[0].toFormat('yyyy-MM-dd')}' AND '${current[1].toFormat('yyyy-MM-dd')}'`
 
@@ -91,7 +92,7 @@ export default async function Home() {
                 sum(coalesce((two_games ->> 'value')::int, 0)) +
                 sum(coalesce((three_games ->> 'value')::int, 0)) +
                 sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
-  FROM lt_arena.salary
+  FROM salary.list
   WHERE worker_id = ${worker?.id}
   AND date BETWEEN '${previous[0].toFormat('yyyy-MM-dd')}' AND '${previous[1].toFormat('yyyy-MM-dd')}'`
 
@@ -108,7 +109,7 @@ export default async function Home() {
 
   let bonusesQuery = `
     SELECT string_agg(bonuses, '+') as bonuses,string_agg(fines, '+') as fines
-    FROM lt_arena.salary
+    FROM salary.list
     WHERE worker_id = ${worker?.id}`
 
   let addon
@@ -145,7 +146,7 @@ export default async function Home() {
   const currentFines = evaluate(currentBonusesData.fines || '0')
   const previousFines = evaluate(previousBonusesData.fines || '0')
 
-  const balanceQuery = `select balance from lt_arena.workers where id = ${worker?.id}`
+  const balanceQuery = `select balance from workers where id = ${worker?.id}`
 
   const balanceResult = await db.query(balanceQuery)
 
@@ -167,5 +168,14 @@ export default async function Home() {
     balance,
   }
 
-  return <MainPage salaryData={salaryData} />
+  const workingDays = await getWorkingDays({telegramId: worker.telegramId})
+  return (
+    <MainPage
+      // @ts-ignore
+      worker={worker}
+      // @ts-ignore
+      workingDays={workingDays}
+      salaryData={salaryData}
+    />
+  )
 }

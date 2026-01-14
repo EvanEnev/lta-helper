@@ -4,6 +4,7 @@ import {
   LTFaceIdData,
   LTGamePayment,
   LTLocation,
+  LTWorker,
   SalaryData,
   SalaryUser,
   UserSalary,
@@ -14,7 +15,6 @@ import Cell from './Cell'
 import WorkerCell from '@/src/components/salary/WorkerCell'
 import {io, Socket} from 'socket.io-client'
 import {DateTime, Interval} from 'luxon'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {
   Button,
   Checkbox,
@@ -32,6 +32,8 @@ import CTable from '@/src/components/global/table/Table'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {Filter} from 'solar-icon-set'
+import {useAtomValue} from 'jotai'
+import {headerSizesAtom} from '@/src/utils/global/atoms'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -41,6 +43,7 @@ declare module '@tanstack/react-table' {
 }
 
 export default memo(function Table({
+  worker,
   data: initialData,
   canViewFull,
   canEdit,
@@ -49,6 +52,7 @@ export default memo(function Table({
   faceIdData: initialFaceId,
   locations,
 }: {
+  worker: LTWorker
   data: UserSalary[]
   canViewFull: boolean
   canEdit: boolean
@@ -62,7 +66,7 @@ export default memo(function Table({
   const [isReviewMode, setReviewMode] = useState<boolean>(false)
   const socketRef = useRef<Socket | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const {worker, headerRef, pageSettings} = useAuth()
+  const headerSizes = useAtomValue(headerSizesAtom)
   const [data, setData] = useState<UserSalary[]>(initialData)
   const [date, setDate] = useState<string>(
     DateTime.fromISO(dates[dates.length - 1]).toFormat('yyyy-MM-dd'),
@@ -374,14 +378,14 @@ export default memo(function Table({
       <div
         ref={wrapperRef}
         style={{
-          left: `${isMobile ? 0 : headerRef.current?.offsetWidth || 0}px`,
-          top: `${isMobile ? `${headerRef.current?.offsetHeight || 0}px` : 0}`,
+          left: `${isMobile ? 0 : headerSizes.width || 0}px`,
+          top: `${isMobile ? `${headerSizes.height || 0}px` : 0}`,
         }}
-        className={`scrolled sticky top-2 left-0 z-1000 mb-4 flex w-[100dvw] flex-wrap items-center gap-2 p-4 text-xl font-bold`}>
+        className={`scrolled sticky top-2 z-1000 mb-4 flex w-dvw flex-wrap items-center gap-2 p-4 text-xl font-bold`}>
         <MonthSelect
           type="select"
           labelPlacement="inside"
-          className="w-fit min-w-[10rem]"
+          className="w-fit min-w-40"
           dates={dates}
           date={date}
           callback={(date: string) => updateData('date', date)}
@@ -394,7 +398,7 @@ export default memo(function Table({
                   <Filter />
                 </Button>
               </DropdownTrigger>
-              <DropdownMenu className="min-w-[10rem]">
+              <DropdownMenu className="min-w-40">
                 <DropdownItem key="location">
                   <LocationSelect
                     labelPlacement="inside"
@@ -464,14 +468,13 @@ export default memo(function Table({
             <Spinner color="default" /> Загрузка
           </>
         )}
-        {pageSettings.map(component => component.components.map(c => c))}
       </div>
       <CTable
         columnFilters={columnFilters}
         setColumnFiltersAction={setColumnFiltersAction}
         headerOffset={
           (wrapperRef.current?.offsetHeight || 0) +
-          (isMobile ? headerRef.current?.offsetHeight || 0 : 0)
+          (isMobile ? headerSizes.height || 0 : 0)
         }
         data={data}
         columns={columns}

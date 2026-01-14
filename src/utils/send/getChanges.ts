@@ -37,7 +37,7 @@ export default async function getChanges({
 
   await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
-  const commentsQuery = `select date, comment from lt_arena.schedule where worker_id = (select id from lt_arena.workers where name ilike '${workerName}') order by date`
+  const commentsQuery = `select date, comment from schedule.list where worker_id = (select id from workers where name ilike '${workerName}') order by date`
 
   const comments = (await db.query(commentsQuery)).rows
   const locations = await getLocations()
@@ -97,13 +97,13 @@ export default async function getChanges({
 
     const formattedDate = day.date?.toFormat('yyyy-MM-dd')
 
-    const query = `INSERT INTO lt_arena.schedule (worker_id, date, value, comment)
+    const query = `INSERT INTO schedule.list (worker_id, date, value, comment)
         SELECT w.id AS worker_id,
           '${formattedDate}' AS date,
           '${day?.value}' AS value,
           '${day?.comment || ''}' AS comment
-        FROM lt_arena.workers w
-        LEFT JOIN lt_arena.locations l ON LOWER(l.name)='${
+        FROM workers w
+        LEFT JOIN locations l ON LOWER(l.name)='${
           day.location?.toLowerCase() || 0
         }'
           WHERE LOWER(w.name)='${workerName.toLowerCase()}'
@@ -111,9 +111,9 @@ export default async function getChanges({
           DO UPDATE SET
           value=EXCLUDED.value,
           comment=EXCLUDED.comment
-          WHERE lt_arena.schedule.date=EXCLUDED.date
-          AND lt_arena.schedule.worker_id=EXCLUDED.worker_id
-          AND lt_arena.schedule.date = EXCLUDED.date`
+          WHERE schedule.list.date=EXCLUDED.date
+          AND schedule.list.worker_id=EXCLUDED.worker_id
+          AND schedule.list.date = EXCLUDED.date`
 
     queries.push(query)
   }

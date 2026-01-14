@@ -15,8 +15,7 @@ import {
   NumberInput,
 } from '@heroui/react'
 import {DateTime} from 'luxon'
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import {useAuth} from '@/src/components/global/providers/authProvider'
+import {useCallback, useMemo, useState} from 'react'
 import RankIcon from '@/src/components/global/RankIcon'
 import {CheckCircle} from 'solar-icon-set'
 import fetchHandler from '@/src/utils/global/fetchHandler'
@@ -25,19 +24,15 @@ interface PayrollIssuePageProps {
   payrolls: LTPayrollIssueData[]
   workers: LTWorker[]
   takeByData: LTTakeByPayrollData[]
+  worker: LTWorker
 }
 
 export default function PayrollIssuePage({
   payrolls,
   workers,
   takeByData,
+  worker,
 }: PayrollIssuePageProps) {
-  const {worker, setExiting} = useAuth()
-
-  useEffect(() => {
-    setExiting(false)
-  }, [setExiting])
-
   const [selectedWorker, setSelectedWorker] = useState<LTWorker['name'] | null>(
     null,
   )

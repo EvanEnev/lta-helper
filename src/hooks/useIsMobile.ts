@@ -1,11 +1,11 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {useEffect, useLayoutEffect, useState} from 'react'
 
 export default function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(/mobile/i.test(navigator.userAgent))
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const media = window.matchMedia('(max-width: 640px)')
 
     const listener = () => {

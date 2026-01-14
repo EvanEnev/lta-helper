@@ -26,6 +26,7 @@ const db = new Pool({
   password: process.env.DATABASE_PASSWORD,
   host: process.env.DATABASE_URL,
   port: parseInt(process.env.DATABASE_PORT!),
+  database: process.env.DATABASE_NAME,
 })
 
 export default db

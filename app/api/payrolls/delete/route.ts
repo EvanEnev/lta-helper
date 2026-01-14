@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   const deletePayrollQuery = `
-  delete from lt_arena.payrolls where id = ${body.payroll_id}`
+  delete from payrolls.list where id = ${body.payroll_id}`
 
   await db.query(deletePayrollQuery)
 

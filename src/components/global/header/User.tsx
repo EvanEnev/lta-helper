@@ -6,15 +6,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@heroui/react'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import {useTheme} from 'next-themes'
 import {authClient} from '@/lib/auth/authClient'
 import {useRouter} from 'next/navigation'
 import {Moon, Sun2} from 'solar-icon-set'
+import {LTWorker} from '@/src/utils/types'
 
-export default function User() {
+interface UserProps {
+  worker?: LTWorker
+}
+
+export default function User({worker}: UserProps) {
   const router = useRouter()
-  const {worker} = useAuth()
   const {theme, setTheme} = useTheme()
 
   return (
@@ -24,11 +27,11 @@ export default function User() {
           aria-label="Профиль"
           className="flex h-fit items-center p-2 text-3xl"
           variant="ghost">
-          <Avatar src={worker.photoUrl || undefined} size="lg" />
+          <Avatar src={worker?.photoUrl || undefined} size="lg" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex flex-col gap-1 py-4 text-2xl">
-        {worker.name}
+        {worker?.name || ''}
         <Divider />
         Тема
         <div className="flex gap-2">

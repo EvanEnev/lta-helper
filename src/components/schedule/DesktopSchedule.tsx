@@ -10,17 +10,23 @@ import {
 } from '@heroui/react'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
-import {Day} from '@/src/utils/types'
+import {Day, LTWorker} from '@/src/utils/types'
 import {Fragment, useEffect, useMemo, useState} from 'react'
 import {Pen2} from 'solar-icon-set'
 import {useAtom} from 'jotai'
 import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
 import {DateTime} from 'luxon'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 import AnimatedBorder from '@/src/components/global/AnimatedBorder'
 
-export default function DesktopSchedule() {
-  const {workingDays} = useAuth()
+interface DesktopScheduleProps {
+  worker: LTWorker
+  workingDays: Day[]
+}
+
+export default function DesktopSchedule({
+  worker,
+  workingDays,
+}: DesktopScheduleProps) {
   const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
   const [initialDays, setInitialDays] = useState(workingDays)
   const [days, setDays] = useAtom(daysAtom)
@@ -112,7 +118,11 @@ export default function DesktopSchedule() {
                         </Checkbox>
                       </CardHeader>
                       <CardBody>
-                        <DayInfo day={day} changeDates={changeDates} />
+                        <DayInfo
+                          worker={worker}
+                          day={day}
+                          changeDates={changeDates}
+                        />
                       </CardBody>
                     </Card>
                   </AnimatedBorder>
@@ -181,6 +191,7 @@ export default function DesktopSchedule() {
         </CardBody>
         <CardFooter>
           <SendButton
+            worker={worker}
             days={days.filter(day => {
               const initialDay = initialDays.find(
                 initDay =>

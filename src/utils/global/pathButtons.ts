@@ -6,28 +6,36 @@ import {
   BillList,
   CashOut,
   Wallet,
+  ConfettiMinimalistic,
 } from 'solar-icon-set'
 import {ElementType} from 'react'
 
-interface PathButton {
+interface ButtonBase {
   name: string
   href: string
   permission?: string
   isDisabled?: boolean
   icon?: ElementType
-  children?: {
-    name: string
-    href: string
-    permission?: string
-    isDisabled?: boolean
-    icon?: ElementType
-  }[]
+  className?: string
+}
+
+interface PathButton extends ButtonBase {
+  children?: ButtonBase[]
 }
 
 const buttons: PathButton[] = [
+  {
+    name: 'Итоги года',
+    href: '/wrapped',
+    className: `relative rounded-xl overflow-hidden
+            before:content-['']
+            before:absolute before:inset-0
+            before:shadow-[inset_0_0_20px_rgba(168,85,247,0.6)]
+            before:pointer-events-none`,
+    icon: ConfettiMinimalistic,
+  },
   {name: 'Главная', href: '/', icon: Home},
   {name: 'График работы', href: '/schedule', icon: ClockCircle},
-
   {
     name: 'Деньги',
     href: '#',

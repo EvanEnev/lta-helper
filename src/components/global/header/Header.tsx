@@ -4,20 +4,42 @@ import useIsMobile from '@/src/hooks/useIsMobile'
 import {usePathname} from 'next/navigation'
 import MobileHeader from './MobileHeader'
 import DesktopHeader from './DesktopHeader'
-import {useAuth} from '@/src/components/global/providers/authProvider'
-import {useEffect, useState} from 'react'
+import {useEffect, useLayoutEffect, useRef, useState} from 'react'
+import {LTWorker} from '@/src/utils/types'
+import {useSession} from '@/lib/auth/authClient'
+import {useSetAtom} from 'jotai'
+import {headerSizesAtom, toastOffsetAtom} from '@/src/utils/global/atoms'
 
 export default function Header() {
-  const {headerRef, setToastOffset} = useAuth()
+  const ref = useRef<HTMLElement | null>(null)
+  const setHeaderSizes = useSetAtom(headerSizesAtom)
+  const worker = useSession().data?.user as LTWorker | undefined
+  const setToastOffset = useSetAtom(toastOffsetAtom)
   const isMobile = useIsMobile()
   const path = usePathname()
 
   const [scrolled, setScrolled] = useState(false)
 
+  useLayoutEffect(() => {
+    if (!ref.current) return
+
+    const update = () => {
+      const rect = ref.current!.getBoundingClientRect()
+      setHeaderSizes({width: rect.width, height: 0})
+    }
+
+    update()
+
+    const ro = new ResizeObserver(update)
+    ro.observe(ref.current)
+
+    return () => ro.disconnect()
+  }, [setHeaderSizes])
+
   useEffect(() => {
     const updateHeaderHeight = () => {
-      if (headerRef.current) {
-        const height = headerRef.current.offsetHeight
+      if (ref.current) {
+        const height = ref.current.offsetHeight
         document.documentElement.style.setProperty(
           '--header-height',
           `${height}px`,
@@ -30,8 +52,8 @@ export default function Header() {
     window.addEventListener('resize', updateHeaderHeight)
 
     const observer = new ResizeObserver(updateHeaderHeight)
-    if (headerRef.current) {
-      observer.observe(headerRef.current)
+    if (ref.current) {
+      observer.observe(ref.current)
     }
 
     return () => {
@@ -60,5 +82,9 @@ export default function Header() {
   if (path === '/login') return ''
   if (path === '/register') return ''
 
-  return isMobile ? <MobileHeader scrolled={scrolled} /> : <DesktopHeader />
+  return isMobile ? (
+    <MobileHeader ref={ref} worker={worker} scrolled={scrolled} />
+  ) : (
+    <DesktopHeader ref={ref} worker={worker} />
+  )
 }

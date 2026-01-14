@@ -2,22 +2,22 @@ import {addToast, Button} from '@heroui/react'
 import {useState} from 'react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Plain} from 'solar-icon-set'
-import {Day} from '@/src/utils/types'
+import {Day, LTWorker} from '@/src/utils/types'
 import {selectedDayAtom} from '@/src/utils/global/atoms'
 import {useAtom} from 'jotai'
-import {useAuth} from '@/src/components/global/providers/authProvider'
 
 export default function SendButton({
+    worker,
   className = '',
   days,
 }: {
+    worker: LTWorker
   className?: string
   days: Day[]
 }) {
   const isMobile = useIsMobile()
   const [isLoading, setLoading] = useState<boolean>(false)
   const [selectedDay, setSelectedDay] = useAtom(selectedDayAtom)
-  const {worker} = useAuth()
   const handler = async () => {
     setLoading(true)
 

@@ -31,13 +31,13 @@ export async function POST(req: NextRequest) {
   const queries = body.workers.map(
     (data: {id: number; value: number; selectedWorker: string | null}) => {
       return `
-        update lt_arena.workers_payrolls
+        update relations.workers_payrolls
         set
           issue_confirmed=true,
           to_take = ${data.value}${
             data.selectedWorker
               ? `,
-          to_take_by = (select id from lt_arena.workers where name ilike '${data.selectedWorker}')`
+          to_take_by = (select id from workers where name ilike '${data.selectedWorker}')`
               : ''
           }
         where worker_id = ${data.id} and payroll_id = ${body.payroll_id}
