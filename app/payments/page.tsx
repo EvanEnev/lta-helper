@@ -42,7 +42,7 @@ left join ranks r on r.id = w.rank_id
 
   const workersQuery = `select w.name
 from workers w
-    left join ranks r on r.name ilike w.rank
+    left join ranks r on r.id = w.rank_id
     order by r.sorting_weight desc, w.name`
 
   const workersResult = await db.query(workersQuery)
