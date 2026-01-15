@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
 
   const action = data.manifest.action_cipher
 
-  if (action === 'billing.payment_succeeded') {
+  if (action === 'billing_tcb.payment_succeeded') {
     const task_id = data.details.task_id
 
     const res = await fetch(`https://api.konsol.pro/v2/acts/${task_id}`, {
