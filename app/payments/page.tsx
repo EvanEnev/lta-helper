@@ -25,7 +25,7 @@ export default async function Payments() {
                            date::text
 from payments.list
 left join workers w on w.id = worker_id
-left join ranks r on r.name ilike w.rank
+left join ranks r on r.id = w.rank_id
 `
 
   if (!checkPermissions(['view_all_payments'], worker)) {
