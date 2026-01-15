@@ -300,6 +300,8 @@ export interface LTPaymentChangeData {
   comment: string | null
   create: boolean
   delete: boolean
+}
+
 export interface WrapperWorkers {
   worker: LTWorker['name']
   rank: LTRank['name']
@@ -332,4 +334,20 @@ export interface WrappedDeals {
 export interface WrappedDealsType {
   name: string
   count: number
+}
+
+export interface LTWorkerData {
+  name: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+  email: string
+  photoUrl: string
+  location: LTLocation | null
+  rank: {
+    id: number
+    name: string
+    weight: number
+    sorting_weight: number
+  }
 }
