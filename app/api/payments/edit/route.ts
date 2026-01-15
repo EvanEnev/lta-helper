@@ -27,11 +27,11 @@ export async function POST(req: NextRequest) {
   let query: string
 
   if (body.create) {
-    query = `insert into lt_arena.payments
+    query = `insert into payments.list
   (worker_id, payment_type, value, date, comment)
   values
     (
-     (select id from lt_arena.workers where name ilike '${body.worker}' limit 1),
+     (select id from workers where name ilike '${body.worker}' limit 1),
      ${body.type},
      ${body.value},
      '${body.date}',
@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
     )
     returning id`
   } else if (body.delete) {
-    query = `delete from lt_arena.payments where id = ${body.id}`
+    query = `delete from payments.list where id = ${body.id}`
   } else {
-    query = `update lt_arena.payments
+    query = `update payments.list
              set payment_type = ${body.type},
                  value = ${body.value},
                  date = '${body.date}',
