@@ -30,8 +30,8 @@ export default async function generateTableByDays({
                    ls.type,
                    l.name as location
                  from generate_series('${interval.start!.toFormat('yyyy-MM-dd')}'::date, '${interval.end!.toFormat('yyyy-MM-dd')}'::date, interval '1 day') d
-                        left join get_locations_salary(d::date) ls on true
-                        left join lt_arena.locations l on l.id = ls.location_id`
+                        left join functions.get_locations_salary(d::date) ls on true
+                        left join locations l on l.id = ls.location_id`
 
   const dataResult = await db.query(query)
 
@@ -136,44 +136,47 @@ export default async function generateTableByDays({
     ...rows.sort((a, b) => (a[0] as string).localeCompare(b[0] as string)),
   ])
 
-    const rows2: (number | string)[][] = []
+  const rows2: (number | string)[][] = []
 
-    locations.forEach(location => {
-        days.forEach(day => {
-            const row: (string | number)[] = [location.name, day!.toFormat('dd.MM.yyyy')]
-            const locData = data
-                .filter(
-                    d => d.date.toFormat('yyyy-MM-dd') === day?.toFormat('yyyy-MM-dd'),
-                )
-                ?.find(d => d.location === location.name)
-
-            if (!locData) return row.push(0)
-
-            const summary = evaluate(
-                `${locData.value || 0} + ${locData.bonuses || 0} + ${locData.fines || 0}`,
-            )
-
-            row.push(summary)
-            rows2.push(row)
-        })
-    })
-
-    worksheet2.addRows(rows2)
-
-    worksheet2.columns?.forEach(function (column) {
-        const lengths = column.values?.map(v => v?.toString().length)
-        column.width = Math.max(
-            ...(lengths?.filter(v => typeof v === 'number') || [10]),
+  locations.forEach(location => {
+    days.forEach(day => {
+      const row: (string | number)[] = [
+        location.name,
+        day!.toFormat('dd.MM.yyyy'),
+      ]
+      const locData = data
+        .filter(
+          d => d.date.toFormat('yyyy-MM-dd') === day?.toFormat('yyyy-MM-dd'),
         )
-    })
+        ?.find(d => d.location === location.name)
 
-    worksheet2.columns?.forEach(column => {
-        column.eachCell!(cell => {
-            if (!Number.isNaN(Number(cell.value))) {
-                cell.numFmt = '0'
-            }
-        })
+      if (!locData) return row.push(0)
+
+      const summary = evaluate(
+        `${locData.value || 0} + ${locData.bonuses || 0} + ${locData.fines || 0}`,
+      )
+
+      row.push(summary)
+      rows2.push(row)
     })
+  })
+
+  worksheet2.addRows(rows2)
+
+  worksheet2.columns?.forEach(function (column) {
+    const lengths = column.values?.map(v => v?.toString().length)
+    column.width = Math.max(
+      ...(lengths?.filter(v => typeof v === 'number') || [10]),
+    )
+  })
+
+  worksheet2.columns?.forEach(column => {
+    column.eachCell!(cell => {
+      if (!Number.isNaN(Number(cell.value))) {
+        cell.numFmt = '0'
+      }
+    })
+  })
 
   worksheet.columns.forEach(function (column) {
     const lengths = column.values?.map(v => v?.toString().length)
