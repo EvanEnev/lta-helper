@@ -29,7 +29,7 @@ left join ranks r on r.id = w.rank_id
 `
 
   if (!checkPermissions(['view_all_payments'], worker)) {
-    paymentsQuery += `where lt_arena.payments.worker_id = ${worker?.id}\n`
+    paymentsQuery += `where payments.list.worker_id = ${worker?.id}\n`
   }
 
   paymentsQuery += `order by date desc, r.sorting_weight desc, w.name`
