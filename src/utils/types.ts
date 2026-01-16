@@ -337,17 +337,23 @@ export interface WrappedDealsType {
 }
 
 export interface LTWorkerData {
+  id: number
   name: string
-  firstName: string
-  lastName: string
-  phoneNumber: string
-  email: string
-  photoUrl: string
-  location: LTLocation | null
+  firstName: string | null
+  lastName: string | null
+  middleName: string | null
+  telegramId: number
+  email: string | null
+  isFormer: boolean
+  isFired: boolean
+  photoUrl: string | null
+  phoneNumber: string | null
+  role: string | null
+  location: LTLocation
   rank: {
     id: number
     name: string
     weight: number
-    sorting_weight: number
+    sortingWeight: number
   }
 }
