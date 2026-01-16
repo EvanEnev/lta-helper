@@ -7,6 +7,7 @@ import {
   CashOut,
   Wallet,
   ConfettiMinimalistic,
+  UsersGroupRounded,
 } from 'solar-icon-set'
 import {ElementType} from 'react'
 
@@ -36,6 +37,7 @@ const buttons: PathButton[] = [
   },
   {name: 'Главная', href: '/', icon: Home},
   {name: 'График работы', href: '/schedule', icon: ClockCircle},
+  {name: 'Сотрудники', href: '/workers', icon: UsersGroupRounded},
   {
     name: 'Деньги',
     href: '#',
