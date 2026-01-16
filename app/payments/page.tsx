@@ -15,17 +15,17 @@ export default async function Payments() {
     return redirect('/login')
   }
 
-  const paymentsTypesQuery = `select id, name, ranks, percent, value from lt_arena.payments_types`
+  const paymentsTypesQuery = `select id, name, ranks, percent, value from payments.types`
   let paymentsQuery = `select
-                           lt_arena.payments.id,
-                           get_worker(worker_id) as worker,
-                           (select name from lt_arena.payments_types where id = payment_type) as type,
+                           payments.list.id,
+                           functions.get_worker(worker_id) as worker,
+                           (select name from payments.types where id = payment_type) as type,
                            value,
                            comment,
                            date::text
-from lt_arena.payments
-left join lt_arena.workers w on w.id = worker_id
-left join lt_arena.ranks r on r.name ilike w.rank
+from payments.list
+left join workers w on w.id = worker_id
+left join ranks r on r.id = w.rank_id
 `
 
   if (!checkPermissions(['view_all_payments'], worker)) {
@@ -41,8 +41,8 @@ left join lt_arena.ranks r on r.name ilike w.rank
   const payments: LTPayment[] = paymentsResult.rows
 
   const workersQuery = `select w.name
-from lt_arena.workers w
-    left join lt_arena.ranks r on r.name ilike w.rank
+from workers w
+    left join ranks r on r.id = w.rank_id
     order by r.sorting_weight desc, w.name`
 
   const workersResult = await db.query(workersQuery)
