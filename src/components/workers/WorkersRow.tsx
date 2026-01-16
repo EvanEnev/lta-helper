@@ -78,12 +78,13 @@ export default function WorkersRow({
             <Clipboard iconStyle="Bold" />
           </Button>
         </div>
-        <div className="border-primary flex items-center gap-2 rounded-2xl border-2 p-1">
+        <a
+          className="transition-background border-primary hover:bg-primary flex items-center gap-2 rounded-2xl border-2 p-1"
+          target="_blank"
+          href={`tg://user?id=${data.telegramId}`}>
           <Icon icon="ic:baseline-telegram" width={24} height={24} />
-          <a target="_blank" href={`tg://user?id=${data.telegramId}`}>
-            Открыть в Telegram
-          </a>
-        </div>
+          Открыть в Telegram
+        </a>
       </div>
     </div>
   )

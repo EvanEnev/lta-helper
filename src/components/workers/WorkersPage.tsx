@@ -16,7 +16,6 @@ export default function WorkersPage({worker, workers}: WorkerPageProps) {
 
     const ranks = Array.from(ranksSet).map(d => JSON.parse(d))
 
-    console.debug(ranks)
     const ranksWeights = workers.map(d => d.rank.sortingWeight)
     const maxWeight = Math.max(...ranksWeights)
     const minWeight = Math.min(...ranksWeights)
