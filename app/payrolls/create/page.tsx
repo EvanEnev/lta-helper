@@ -69,7 +69,7 @@ export default async function PayrollsCreate({
    from salary.list s
    left join workers w on w.id = s.worker_id
    left join ranks r on r.id = w.rank_id
-   where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}' and w.rank != 'Актёр'
+   where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}' and r.name != 'Актёр'
    group by w.name, w.is_former, w.id, r.name
   `
 
