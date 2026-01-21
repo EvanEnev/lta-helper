@@ -25,28 +25,29 @@ export default async function PayrollsCreate({
   const query = `select
     w.name,
     w.id,
-    w.rank,
+    r.name as rank,
     w.is_former,
     sum(value) +
-    sum(coalesce(overwork, 0)) +
+    sum(coalesce(salary.list.overwork, 0)) +
     sum(coalesce((one_games ->> 'value')::integer, 0)) +
     sum(coalesce((two_games ->> 'value')::integer, 0)) +
     sum(coalesce((three_games ->> 'value')::integer, 0)) +
     sum(coalesce((actor_games ->> 'value')::integer, 0)) as value,
     case
-        when w.rank = 'Актёр' then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
-        when w.rank != 'Актёр' and ${bonuses} then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')  
+        when r.name = 'Актёр' then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
+        when r.name != 'Актёр' and ${bonuses} then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')  
       else '0'
     end as bonuses,
     case
-      when w.rank = 'Актёр' then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
-      when w.rank != 'Актёр' and ${bonuses} then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')
+      when r.name = 'Актёр' then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
+      when r.name != 'Актёр' and ${bonuses} then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')
       else '0'
       end as fines
     from salary.list
     left join workers w on w.id = worker_id
+    left join ranks r on r.id = w.rank_id
     where date between '${dates.start}' and '${dates.end}'
-    group by w.name, w.rank, w.is_former, w.id`
+    group by w.name, r.sorting_weight, w.is_former, w.id, r.name`
 
   const balancesQuery = `select
   w.name,
