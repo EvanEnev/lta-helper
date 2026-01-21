@@ -88,9 +88,11 @@ export default function SalaryPage({
   const today = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
 
   const dates: string[] = useMemo(() => {
+    console.debug(date)
     const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd')
     const month = datetime.toFormat('MM')
 
+    console.debug(datetime, month)
     const dates = []
     for (let i = 0; i < datetime.daysInMonth!; i++) {
       dates.push(`${i + 1 < 10 ? `0${i + 1}` : `${i + 1}`}.${month}`)
@@ -145,7 +147,7 @@ export default function SalaryPage({
           filtered = filtered.filter((row: UserSalary) => row.dates.length)
         }
 
-        setDate(filtered)
+        setData(filtered)
 
         setInitialData(data.data)
       }
