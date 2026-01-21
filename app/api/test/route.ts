@@ -1,51 +1,51 @@
 import {NextResponse} from 'next/server'
-import {DateTime} from 'luxon'
-import db from '@/lib/database'
-import unaccent from '@/src/utils/global/unaccent'
+// import {DateTime} from 'luxon'
+// import db from '@/lib/database'
+// import unaccent from '@/src/utils/global/unaccent'
 
 export async function GET() {
-  const dealsQuery = `select worker_id, deal_id, game_type, date, type from lt_arena.deals`
-
-  const dealsResult = await db.query(dealsQuery)
-  const deals = dealsResult.rows
-
-  const queries = []
-  const total = deals.length
-
-  for (const data of deals) {
-    const index = deals.indexOf(data)
-    console.debug(`${index + 1}/${total}`)
-
-    const body = {
-      ID: data.deal_id,
-    }
-
-    const response = await fetch(
-      'https://crm.lt-arena.ru/rest/3061/3vb2kcwt0hpt13qp/crm.deal.get',
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(body),
-      },
-    )
-
-    const deal = await response.json()
-
-    if (!deal.result.UF_CRM_1581496630760) {
-      console.debug(data)
-      return
-    }
-
-    const json = JSON.parse(deal.result.UF_CRM_1581496630760)
-
-    if (Number(json.ID) !== data.deal_id) {
-      const query = `delete from lt_arena.deals where deal_id = ${data.deal_id} and worker_id = ${data.worker_id} and date = '${data.date.toFormat('yyyy-MM-dd')}' and type = '${data.type}' and game_type = '${data.game_type}'`
-
-      queries.push(query)
-    }
-  }
-
-  await db.query(queries.join(';'))
+  // const dealsQuery = `select worker_id, deal_id, game_type, date, type from lt_arena.deals`
+  //
+  // const dealsResult = await db.query(dealsQuery)
+  // const deals = dealsResult.rows
+  //
+  // const queries = []
+  // const total = deals.length
+  //
+  // for (const data of deals) {
+  //   const index = deals.indexOf(data)
+  //   console.debug(`${index + 1}/${total}`)
+  //
+  //   const body = {
+  //     ID: data.deal_id,
+  //   }
+  //
+  //   const response = await fetch(
+  //     'https://crm.lt-arena.ru/rest/3061/3vb2kcwt0hpt13qp/crm.deal.get',
+  //     {
+  //       method: 'POST',
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: JSON.stringify(body),
+  //     },
+  //   )
+  //
+  //   const deal = await response.json()
+  //
+  //   if (!deal.result.UF_CRM_1581496630760) {
+  //     console.debug(data)
+  //     return
+  //   }
+  //
+  //   const json = JSON.parse(deal.result.UF_CRM_1581496630760)
+  //
+  //   if (Number(json.ID) !== data.deal_id) {
+  //     const query = `delete from lt_arena.deals where deal_id = ${data.deal_id} and worker_id = ${data.worker_id} and date = '${data.date.toFormat('yyyy-MM-dd')}' and type = '${data.type}' and game_type = '${data.game_type}'`
+  //
+  //     queries.push(query)
+  //   }
+  // }
+  //
+  // await db.query(queries.join(';'))
 
   // const workersResponse = await fetch(
   //   'https://crm.lt-arena.ru/rest/3061/3vb2kcwt0hpt13qp/crm.deal.userfield.get',
