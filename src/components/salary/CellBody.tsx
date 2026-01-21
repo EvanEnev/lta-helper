@@ -1,5 +1,7 @@
 import {LTFaceIdData, SalaryData} from '@/src/utils/types'
-import {Divider, TimeInput, Tooltip} from '@heroui/react'
+import {Divider, Tooltip} from '@heroui/react'
+import {TimeField, DateInputGroup} from '@heroui/react-beta'
+import {parseTime} from '@internationalized/date'
 import {memo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {DateTime} from 'luxon'
@@ -16,14 +18,8 @@ export default function CellBody({
   data: SalaryData
   faceId?: LTFaceIdData['data']
   isReviewMode: boolean
-  time: {
-    start: {hour: string; minute: string}
-    end: {hour: string; minute: string}
-  }
-  overworkTime: {
-    start: {hour: string; minute: string}
-    end: {hour: string; minute: string}
-  }
+  time: string
+  overworkTime: string | null
 }) {
   // @ts-ignore
   faceId = faceId
@@ -47,7 +43,7 @@ export default function CellBody({
       return (
         <>
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-            Проведение игр
+            Проведение
           </CellChip>
           <CellChip className="text-foreground text-small col-span-full flex justify-between">
             {(data.oneGames?.value || 0) +
@@ -56,7 +52,7 @@ export default function CellBody({
             <Ruble iconStyle="Bold" />
           </CellChip>
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-            Актёрские игры
+            Актёрские
           </CellChip>
           <CellChip className="text-foreground text-small col-span-full flex justify-between">
             {data.actorGames?.value || 0} <Ruble iconStyle="Bold" />
@@ -108,20 +104,36 @@ export default function CellBody({
         </CellChip>
         {!data.type && (
           <>
-            <TimeInput
-              aria-label="Начало смены"
-              className={data.type ? 'hidden' : ''}
+            <TimeField
               // @ts-ignore
-              value={time.start}
+              value={parseTime(
+                time.split('-')[0].startsWith('24')
+                  ? '00:' + time.split('-')[0].split(':')[1]
+                  : time.split('-')[0],
+              )}
               isReadOnly
-            />
-            <TimeInput
-              aria-label="Конец смены"
-              className={data.type ? 'hidden' : ''}
+              name="workStart">
+              <DateInputGroup>
+                <DateInputGroup.Input>
+                  {segment => <DateInputGroup.Segment segment={segment} />}
+                </DateInputGroup.Input>
+              </DateInputGroup>
+            </TimeField>
+            <TimeField
               // @ts-ignore
-              value={time.end}
+              value={parseTime(
+                time.split('-')[1].startsWith('24')
+                  ? '00:' + time.split('-')[1].split(':')[1]
+                  : time.split('-')[1],
+              )}
               isReadOnly
-            />
+              name="workEnd">
+              <DateInputGroup>
+                <DateInputGroup.Input>
+                  {segment => <DateInputGroup.Segment segment={segment} />}
+                </DateInputGroup.Input>
+              </DateInputGroup>
+            </TimeField>
           </>
         )}
         <CellChip className="text-foreground text-small col-span-2 flex justify-between">
@@ -132,21 +144,47 @@ export default function CellBody({
             <CellChip className="col-span-full border-2 bg-transparent text-inherit">
               Переработка
             </CellChip>
-            <TimeInput
-              aria-label="Начало переработки"
-              isReadOnly
+            <TimeField
               // @ts-ignore
-              value={overworkTime.start}
-            />
-            <TimeInput
-              aria-label="Конец переработки"
+              value={
+                overworkTime
+                  ? parseTime(
+                      overworkTime.split('-')[0].startsWith('24')
+                        ? '00:' + overworkTime.split('-')[0].split(':')[1]
+                        : overworkTime.split('-')[0],
+                    )
+                  : null
+              }
               isReadOnly
+              name="overworkStart">
+              <DateInputGroup>
+                <DateInputGroup.Input>
+                  {segment => <DateInputGroup.Segment segment={segment} />}
+                </DateInputGroup.Input>
+              </DateInputGroup>
+            </TimeField>
+            <TimeField
               // @ts-ignore
-              value={overworkTime.end}
-            />
+              value={
+                overworkTime
+                  ? parseTime(
+                      overworkTime.split('-')[1].startsWith('24')
+                        ? '00:' + overworkTime.split('-')[1].split(':')[1]
+                        : overworkTime.split('-')[1],
+                    )
+                  : null
+              }
+              isReadOnly
+              name="overworkEnd">
+              <DateInputGroup>
+                <DateInputGroup.Input>
+                  {segment => <DateInputGroup.Segment segment={segment} />}
+                </DateInputGroup.Input>
+              </DateInputGroup>
+            </TimeField>
             <CellChip
               className={`text-foreground text-small col-span-2 flex justify-between`}>
-              {data.overwork?.toString() || ''}{' '}
+              {data.overworkValue?.toString() || ''}{' '}
               <Ruble iconStyle="Bold" className="ml-auto" />
             </CellChip>
           </>
@@ -157,20 +195,19 @@ export default function CellBody({
       )}
       {!data.type && (
         <div className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2">
+          {/*@ts-ignore*/}
           <Games />
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Вход
           </CellChip>
           <CellChip className="col-span-full">
-            {// @ts-ignore
-            faceId[0]?.date.toFormat('dd.MM.yyyy HH:mm:ss')}
+            {data.faceId && data.faceId[0]?.timestamp}
           </CellChip>
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Выход
           </CellChip>
           <CellChip className="col-span-full">
-            {// @ts-ignore
-            faceId[faceId.length - 1]?.date.toFormat('dd.MM.yyyy HH:mm:ss')}
+            {data.faceId && data.faceId[faceId.length - 1]?.timestamp}
           </CellChip>
         </div>
       )}

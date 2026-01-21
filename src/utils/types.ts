@@ -80,23 +80,48 @@ export interface WorkerSalary {
   actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
   workTypes: LTWorkType['id'][]
 }
+//
+// export interface SalaryData {
+//   date: string
+//   start_time: string
+//   end_time: string
+//   overwork_start: string | null
+//   overwork_end: string | null
+//   overwork: number | null
+//   value: number
+//   bonuses: string | null
+//   fines: string
+//   comment: string | null
+//   created_at: string
+//   worker_name: string
+//   worker_id: number
+//   created_by: string
+//   updated_by?: number
+//   location: LTLocation
+//   type?: string
+//   oneGames: {id: LTGamePayment['id']; value: number; number: number} | null
+//   twoGames: {id: LTGamePayment['id']; value: number; number: number} | null
+//   threeGames: {id: LTGamePayment['id']; value: number; number: number} | null
+//   actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
+//   workTypes: LTWorkType['id'][]
+//   faceId: LTFaceIdData[]
+// }
 
 export interface SalaryData {
+  id: number
   date: string
-  start_time: string
-  end_time: string
-  overwork_start: string | null
-  overwork_end: string | null
-  overwork: number | null
+  startTime: string
+  endTime: string
+  overworkStart: string | null
+  overworkEnd: string | null
+  overworkValue: number | null
   value: number
   bonuses: string | null
   fines: string
   comment: string | null
-  created_at: string
-  worker_name: string
-  worker_id: number
-  created_by: string
-  updated_by?: number
+  createdAt: string
+  createdBy: string
+  updatedBy?: number
   location: LTLocation
   type?: string
   oneGames: {id: LTGamePayment['id']; value: number; number: number} | null
@@ -104,6 +129,10 @@ export interface SalaryData {
   threeGames: {id: LTGamePayment['id']; value: number; number: number} | null
   actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
   workTypes: LTWorkType['id'][]
+  faceId: {
+    timestamp: string
+    location: LTLocation
+  }[]
 }
 
 export interface SalaryUser {
@@ -115,9 +144,14 @@ export interface SalaryUser {
 }
 
 export interface UserSalary {
-  user: SalaryUser
-  dates: (SalaryData | null)[]
-  [key: string]: string | SalaryData | SalaryUser | (SalaryData | null)[]
+  worker: {
+    id: LTWorker['id']
+    name: LTWorker['name']
+    rank: LTRank['name']
+    firstName: LTWorker['firstName'] | null
+    isFormer: LTWorker['isFormer']
+  }
+  dates: SalaryData[]
 }
 
 export interface LTLocation {

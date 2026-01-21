@@ -12,9 +12,9 @@ import {
   DrawerHeader,
   NumberInput,
   Textarea,
-  TimeInput,
   useDisclosure,
 } from '@heroui/react'
+import {DateInputGroup, TimeField} from '@heroui/react-beta'
 import {
   BillCheck,
   BillCross,
@@ -26,16 +26,11 @@ import {
   Ruble,
   SortByTime,
 } from 'solar-icon-set'
-import {
-  LTFaceIdData,
-  LTGamePayment,
-  LTLocation,
-  SalaryData,
-} from '@/src/utils/types'
+import {LTGamePayment, LTLocation, SalaryData} from '@/src/utils/types'
 import Location from '@/src/components/global/Location'
 import {DateTime} from 'luxon'
 import {useCallback, useMemo} from 'react'
-import {parseDate} from '@internationalized/date'
+import {parseDate, parseTime} from '@internationalized/date'
 import DeleteButton from '@/src/components/global/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import LocationSelect from '@/src/components/global/LocationSelect'
@@ -48,16 +43,10 @@ interface EditDrawerProps {
   handleDelete: any
   gamesPayments: LTGamePayment[]
   isReadOnly: boolean
-  faceId?: LTFaceIdData['data']
   locations: LTLocation[]
-  time: {
-    start: {hour: string; minute: string}
-    end: {hour: string; minute: string}
-  }
-  overworkTime: {
-    start: {hour: string; minute: string}
-    end: {hour: string; minute: string}
-  }
+  time: {start: string; end: string}
+  overworkTime: {start: string | null; end: string | null}
+  workerId: number
 }
 
 export default function EditDrawer({
@@ -66,15 +55,18 @@ export default function EditDrawer({
   handleDelete,
   gamesPayments,
   isReadOnly,
-  faceId = [],
   locations,
   time,
   overworkTime,
+  workerId,
 }: EditDrawerProps) {
   const {isOpen, onOpen, onOpenChange} = useDisclosure()
   const isMobile = useIsMobile()
 
-  const salaryDate = useMemo(() => DateTime.fromISO(data.date), [data.date])
+  const salaryDate = useMemo(
+    () => DateTime.fromFormat(data.date, 'dd.MM.yyyy'),
+    [data.date],
+  )
 
   const update = useCallback(
     (
@@ -89,15 +81,15 @@ export default function EditDrawer({
         | {number: number | null; value: number | null; id: number | null},
       type:
         | 'delete'
-        | 'newLocation'
-        | 'newDate'
-        | 'start_time'
-        | 'end_time'
+        | 'location'
+        | 'date'
+        | 'startTime'
+        | 'endTime'
         | 'value'
         | 'bonuses'
         | 'fines'
-        | 'overwork_start'
-        | 'overwork_end'
+        | 'overworkStart'
+        | 'overworkEnd'
         | 'overwork'
         | 'comment'
         | 'actorGames'
@@ -112,9 +104,7 @@ export default function EditDrawer({
       }
 
       if (
-        ['start_time', 'end_time', 'overwork_start', 'overwork_end'].includes(
-          type,
-        )
+        ['startTime', 'endTime', 'overworkStart', 'overworkEnd'].includes(type)
       ) {
         value = value as {hour: number; minute: number}
 
@@ -132,7 +122,7 @@ export default function EditDrawer({
         }
       }
 
-      if (type === 'newDate') {
+      if (type === 'date') {
         const newValue = value as DateValue | null
         if (!(newValue?.day && newValue?.year && newValue?.month)) {
           return
@@ -142,15 +132,15 @@ export default function EditDrawer({
           .setZone('Europe/Moscow')
           .set({day: newValue.day, month: newValue.month, year: newValue.year})
 
-        value = newDate.toFormat('yyyy-MM-dd')
+        value = newDate.toFormat('dd.MM.yyyy')
       }
 
       // @ts-ignore
       newData[type] = value
 
-      handleEdit(newData)
+      handleEdit(newData, workerId)
     },
-    [data, handleDelete, handleEdit],
+    [data, handleDelete, handleEdit, workerId],
   )
 
   return (
@@ -177,14 +167,10 @@ export default function EditDrawer({
                 style={{backgroundColor: data.location.color}}>
                 <div className="flex items-center gap-2">
                   <Location locationName={data.location.name || ''} />
-                  <p>{DateTime.fromISO(data.date).toFormat('dd.MM, yyyy')}</p>
+                  <p>{data.date}</p>
                 </div>
                 <p className="text-foreground-500 text-s">
-                  Проставлена: {data.created_by}{' '}
-                  {DateTime.fromFormat(
-                    data.created_at,
-                    'yyyy-MM-dd HH:mm:ss',
-                  ).toFormat('dd.MM yyyy')}
+                  Проставлена: {data.createdBy} {data.createdAt}
                 </p>
               </DrawerHeader>
               <DrawerBody className="grid grid-flow-row auto-rows-min grid-cols-2 gap-2">
@@ -192,22 +178,30 @@ export default function EditDrawer({
                   <ClockCircle size={22} />
                   <p>Смена</p>
                 </div>
-                <TimeInput
-                  isReadOnly={isReadOnly}
-                  label="Начало"
+                <TimeField
                   // @ts-ignore
-                  value={time.start}
+                  value={parseTime(time.start)}
+                  onChange={value => update(value, 'startTime')}
+                  isReadOnly
+                  name="workStart">
+                  <DateInputGroup>
+                    <DateInputGroup.Input>
+                      {segment => <DateInputGroup.Segment segment={segment} />}
+                    </DateInputGroup.Input>
+                  </DateInputGroup>
+                </TimeField>
+                <TimeField
                   // @ts-ignore
-                  onChange={value => update(value, 'start_time')}
-                />
-                <TimeInput
-                  isReadOnly={isReadOnly}
-                  label="Конец"
-                  // @ts-ignore
-                  value={time.end}
-                  // @ts-ignore
-                  onChange={value => update(value, 'end_time')}
-                />
+                  value={parseTime(time.end)}
+                  onChange={value => update(value, 'endTime')}
+                  isReadOnly
+                  name="workStart">
+                  <DateInputGroup>
+                    <DateInputGroup.Input>
+                      {segment => <DateInputGroup.Segment segment={segment} />}
+                    </DateInputGroup.Input>
+                  </DateInputGroup>
+                </TimeField>
                 <NumberInput
                   isReadOnly={isReadOnly}
                   isWheelDisabled
@@ -225,30 +219,39 @@ export default function EditDrawer({
                   <p>Переработка</p>
                 </div>
                 {/*// @ts-ignore*/}
-                <TimeInput
-                  isReadOnly={isReadOnly}
-                  label="Начало"
+                <TimeField
                   // @ts-ignore
-                  value={overworkTime.start}
+                  value={
+                    overworkTime.start ? parseTime(overworkTime.start) : null
+                  }
+                  onChange={value => update(value, 'overworkStart')}
+                  isReadOnly
+                  name="workStart">
+                  <DateInputGroup>
+                    <DateInputGroup.Input>
+                      {segment => <DateInputGroup.Segment segment={segment} />}
+                    </DateInputGroup.Input>
+                  </DateInputGroup>
+                </TimeField>
+                <TimeField
                   // @ts-ignore
-                  onChange={value => update(value, 'overwork_start')}
-                />
-                {/*// @ts-ignore*/}
-                <TimeInput
-                  isReadOnly={isReadOnly}
-                  label="Конец"
-                  // @ts-ignore
-                  value={overworkTime.end}
-                  // @ts-ignore
-                  onChange={value => update(value, 'overwork_end')}
-                />
+                  value={overworkTime.end ? parseTime(overworkTime.end) : null}
+                  onChange={value => update(value, 'overworkEnd')}
+                  isReadOnly
+                  name="workStart">
+                  <DateInputGroup>
+                    <DateInputGroup.Input>
+                      {segment => <DateInputGroup.Segment segment={segment} />}
+                    </DateInputGroup.Input>
+                  </DateInputGroup>
+                </TimeField>
                 <NumberInput
                   isReadOnly={isReadOnly}
                   isWheelDisabled
                   classNames={{stepperButton: 'hidden'}}
                   label="Сумма"
                   className="text-foreground col-span-2 w-full justify-self-end text-end text-xs"
-                  value={data.overwork ? Number(data.overwork) : 0}
+                  value={data.overworkValue ? Number(data.overworkValue) : 0}
                   minValue={0}
                   onValueChange={value => update(value.toString(), 'overwork')}
                   endContent={<Ruble iconStyle="Bold" />}
@@ -491,20 +494,12 @@ export default function EditDrawer({
                   <SortByTime iconStyle="Bold" className="mr-1 align-middle" />
                   FaceID
                 </p>
-                {faceId.map(data => (
+                {data.faceId?.map(data => (
                   <>
                     <CellChip>
                       <Location locationName={data.location.name} />
                     </CellChip>
-                    <CellChip>
-                      {
-                        //@ts-ignore
-                        DateTime.fromFormat(
-                          data.date,
-                          'yyyy-MM-dd HH:mm:ss',
-                        ).toFormat('dd.MM.yyyy HH:mm:ss')
-                      }
-                    </CellChip>
+                    <CellChip>{data.timestamp}</CellChip>
                   </>
                 ))}
                 {!isReadOnly && (
@@ -513,7 +508,7 @@ export default function EditDrawer({
                     <DatePicker
                       label="Дата смены"
                       className="col-span-2"
-                      onChange={value => update(value, 'newDate')}
+                      onChange={value => update(value, 'date')}
                       // @ts-ignore
                       value={parseDate(salaryDate.toFormat('yyyy-MM-dd'))}
                     />
@@ -526,7 +521,7 @@ export default function EditDrawer({
                         locations={locations}
                         labelPlacement="inside"
                         callback={(location: any) =>
-                          update(location, 'newLocation')
+                          update(location, 'location')
                         }
                         locationId={data.location.id}
                       />

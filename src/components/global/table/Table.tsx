@@ -4,6 +4,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   Header,
+  TableMeta,
   useReactTable,
 } from '@tanstack/react-table'
 import {Dispatch, SetStateAction, useCallback} from 'react'
@@ -21,6 +22,7 @@ interface TableProps {
   ignoreHeader?: boolean
   columnFilters?: any[]
   setColumnFiltersAction?: Dispatch<SetStateAction<never[]>>
+  meta?: TableMeta<any>
 }
 
 export default function Table({
@@ -31,6 +33,7 @@ export default function Table({
   ignoreHeader = false,
   columnFilters = [],
   setColumnFiltersAction = () => [],
+  meta = {},
 }: TableProps) {
   const isMobile = useIsMobile()
   const headerSizes = useAtomValue(headerSizesAtom)
@@ -42,6 +45,7 @@ export default function Table({
     state: {
       columnFilters,
     },
+    meta,
     // @ts-ignore
     onColumnFiltersChange: setColumnFiltersAction,
     getFilteredRowModel: getFilteredRowModel(),

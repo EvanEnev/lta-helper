@@ -1,7 +1,6 @@
 import db from '@/lib/database'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import SalaryPage from '@/src/components/salary/Salary'
-import getLocationSalaryData from '@/app/salary/getLocationSalaryData'
+import SalaryPage from '@/src/components/salary/SalaryPage'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import getGamesPayments from '@/lib/functions/getGamesPayments'
@@ -17,10 +16,6 @@ export default async function Salary() {
   const canViewFull = checkPermissions(['view_full_salary'], worker)
   const canEdit = checkPermissions(['edit_salary'], worker)
 
-  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('yyyy-MM-dd')
-
-  const {data, faceId} = await getLocationSalaryData({date})
-
   const datesQuery = `select distinct date_trunc('month', date)::date as date from salary.list order by date desc`
 
   const datesResult = await db.query(datesQuery)
@@ -31,18 +26,23 @@ export default async function Salary() {
   const gamesPayments = await getGamesPayments()
   const locations = await getLocations()
 
+  const workTypesQuery = `select
+  id,
+  name
+  from salary.types order by name`
+
+  const workTypesResult = await db.query(workTypesQuery)
+  const workTypes = workTypesResult.rows
+
   return (
-    <main className="h-fit">
-      <SalaryPage
-          worker={worker}
-        locations={locations}
-        faceIdData={faceId}
-        gamesPayments={gamesPayments}
-        dates={dates}
-        data={data}
-        canEdit={canEdit}
-        canViewFull={canViewFull}
-      />
-    </main>
+    <SalaryPage
+      worker={worker}
+      locations={locations}
+      gamesPayments={gamesPayments}
+      dates={dates}
+      canEdit={canEdit}
+      canViewFull={canViewFull}
+      workTypes={workTypes}
+    />
   )
 }
