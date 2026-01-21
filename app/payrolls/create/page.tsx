@@ -70,7 +70,7 @@ export default async function PayrollsCreate({
    left join workers w on w.id = s.worker_id
    left join ranks r on r.id = w.rank_id
    where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}' and w.rank != 'Актёр'
-   group by w.name, w.rank, w.is_former, w.id
+   group by w.name, w.is_former, w.id, r.name
   `
 
   const paymentsQuery = `select
@@ -161,7 +161,6 @@ export default async function PayrollsCreate({
 
   const sortedData = salarySort(data)
 
-  console.debug(1)
   return (
     <PayrollCreatePage
       bonuses={bonuses || false}
