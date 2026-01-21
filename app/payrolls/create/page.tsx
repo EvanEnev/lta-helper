@@ -161,6 +161,7 @@ export default async function PayrollsCreate({
 
   const sortedData = salarySort(data)
 
+  console.debug(1)
   return (
     <PayrollCreatePage
       bonuses={bonuses || false}
