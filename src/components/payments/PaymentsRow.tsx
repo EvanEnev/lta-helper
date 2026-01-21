@@ -57,12 +57,14 @@ export default function PaymentsRow({
     <div className="bg-content1 flex w-full items-center gap-2 rounded-xl p-2">
       <DatePicker
         onChange={v =>
+          // @ts-ignore
           setPayment(prev => ({...prev, date: parseDatePicker(v)}))
         }
         label="Дата"
         labelPlacement="outside"
         className="w-fit"
         isReadOnly={!editMode}
+        // @ts-ignore
         value={parseDate(payment.date)}
       />
       <div className="flex flex-col gap-1">
