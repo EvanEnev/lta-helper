@@ -2,7 +2,12 @@ import {NextRequest, NextResponse} from 'next/server'
 import db from '@/lib/database'
 
 export async function POST(req: NextRequest) {
-  const data = await req.json()
+  let data
+  try {
+    data = await req.json()
+  } catch {
+    return NextResponse.json({ok: true}, {status: 200})
+  }
 
   const action = data.manifest.action_cipher
 
