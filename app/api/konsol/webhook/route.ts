@@ -43,7 +43,13 @@ export async function POST(req: NextRequest) {
        ${task_id}
        )`
 
-    await db.query(query)
+    try {
+      await db.query(query)
+    } catch (e) {
+      console.error(e)
+      console.debug(taskData, query)
+      return NextResponse.json({ok: true}, {status: 200})
+    }
   }
 
   console.debug('WEBHOOK')
