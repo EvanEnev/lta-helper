@@ -295,7 +295,7 @@ export default async function getLocationSalaryData({
              s.created_at, s.created_by,
              s.location_id,
              s.type,
-             s.one_games, s.two_games, s.three_games,
+             s.one_games, s.two_games, s.three_games, s.actor_games,
              s.work_types
            FROM salary.list s
                   CROSS JOIN params p
@@ -334,7 +334,7 @@ export default async function getLocationSalaryData({
         s.created_at, s.created_by,
         s.location_id,
         s.type,
-        s.one_games, s.two_games, s.three_games,
+        s.one_games, s.two_games, s.three_games, s.actor_games,
         s.work_types,
 
         -- payments
@@ -373,6 +373,7 @@ export default async function getLocationSalaryData({
             'oneGames', sp.one_games,
             'twoGames', sp.two_games,
             'threeGames', sp.three_games,
+            'actorGames', sp.actor_games,
             'workTypes', sp.work_types,
             'faceId', f.data,
             'payments', sp.payments
