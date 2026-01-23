@@ -1,4 +1,11 @@
-import {addToast, Autocomplete, AutocompleteItem} from '@heroui/react'
+import {addToast} from '@heroui/react'
+import {
+  Autocomplete,
+  Label,
+  SearchField,
+  ListBox,
+  useFilter,
+} from '@heroui/react-beta'
 import {useCallback, useEffect, useState} from 'react'
 import {LTLocation, LTWorker} from '@/src/utils/types'
 import LocationIcon from '@/src/components/global/LocationIcon'
@@ -45,6 +52,7 @@ export default function LocationSelect({
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
   const [selectedLocation, setSelectedLocation] =
     useState<LTLocation['id']>(locationId)
+  const {contains} = useFilter({sensitivity: 'base'})
 
   async function getLocations() {
     if (definedLocations.length) return
@@ -115,41 +123,44 @@ export default function LocationSelect({
   return (
     <Autocomplete
       isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
-      required
-      placeholder="Не выбрано"
-      startContent={
-        <LocationIcon
-          className="h-6"
-          locationName={
-            locations.find(d => d.id === Number(selectedLocation))?.name || ''
-          }
-        />
-      }
+      variant="secondary"
+      selectionMode="single"
       className={className}
-      inputProps={{
-        classNames: {
-          inputWrapper: 'h-full',
-          input: 'whitespace-normal break-normal truncate',
-        },
-      }}
-      clearButtonProps={{hidden: !isClearable}}
-      label={showLabel ? 'Локация' : ''}
-      labelPlacement={labelPlacement}
-      onSelectionChange={onChange}
-      selectedKey={selectedLocation?.toString()}
-      aria-label="Выбор локации">
-      {locations.map(location => (
-        <AutocompleteItem
-          startContent={
-            <LocationIcon
-              locationName={useShortNames ? location.shortName : location.name}
-            />
-          }
-          key={location.id.toString()}>
-          {useShortNames ? location.shortName : location.name}
-        </AutocompleteItem>
-      ))}
+      onChange={onChange}>
+      {showLabel ? <Label>Локация</Label> : null}
+      <Autocomplete.Trigger>
+        <Autocomplete.Value className="flex items-center gap-2" />
+        {isClearable && <Autocomplete.ClearButton />}
+        <Autocomplete.Indicator />
+      </Autocomplete.Trigger>
+      <Autocomplete.Popover>
+        <Autocomplete.Filter filter={contains}>
+          <SearchField>
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input />
+            </SearchField.Group>
+          </SearchField>
+          <ListBox>
+            {locations.map(location => (
+              <ListBox.Item
+                className="flex items-center gap-2"
+                key={location.id}
+                id={location.id}
+                textValue={location.name}>
+                <LocationIcon
+                  className="h-6"
+                  locationName={
+                    useShortNames ? location.shortName : location.name
+                  }
+                />
+                <p>{useShortNames ? location.shortName : location.name}</p>
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </Autocomplete.Filter>
+      </Autocomplete.Popover>
     </Autocomplete>
   )
 }

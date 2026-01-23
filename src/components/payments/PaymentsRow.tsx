@@ -131,6 +131,7 @@ export default function PaymentsRow({
         </div>
       )}
       <NumberField
+        variant="secondary"
         isReadOnly={!editMode}
         value={payment.value}
         onChange={v => setPayment(prev => ({...prev, value: v}))}
@@ -145,6 +146,7 @@ export default function PaymentsRow({
         </NumberField.Group>
       </NumberField>
       <TextField
+        variant="secondary"
         value={payment.comment || ''}
         onChange={v => setPayment(prev => ({...prev, comment: v}))}
         isReadOnly={!editMode}>

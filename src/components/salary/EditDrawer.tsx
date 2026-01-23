@@ -90,7 +90,7 @@ export default function EditDrawer({
         | 'fines'
         | 'overworkStart'
         | 'overworkEnd'
-        | 'overwork'
+        | 'overworkValue'
         | 'comment'
         | 'actorGames'
         | 'oneGames'
@@ -184,7 +184,9 @@ export default function EditDrawer({
                   onChange={value => update(value, 'startTime')}
                   isReadOnly
                   name="workStart">
-                  <DateInputGroup>
+                  <DateInputGroup
+                    variant="secondary"
+                    className="items-center justify-center">
                     <DateInputGroup.Input>
                       {segment => <DateInputGroup.Segment segment={segment} />}
                     </DateInputGroup.Input>
@@ -196,7 +198,9 @@ export default function EditDrawer({
                   onChange={value => update(value, 'endTime')}
                   isReadOnly
                   name="workStart">
-                  <DateInputGroup>
+                  <DateInputGroup
+                    variant="secondary"
+                    className="items-center justify-center">
                     <DateInputGroup.Input>
                       {segment => <DateInputGroup.Segment segment={segment} />}
                     </DateInputGroup.Input>
@@ -227,7 +231,9 @@ export default function EditDrawer({
                   onChange={value => update(value, 'overworkStart')}
                   isReadOnly
                   name="workStart">
-                  <DateInputGroup>
+                  <DateInputGroup
+                    variant="secondary"
+                    className="items-center justify-center">
                     <DateInputGroup.Input>
                       {segment => <DateInputGroup.Segment segment={segment} />}
                     </DateInputGroup.Input>
@@ -239,7 +245,9 @@ export default function EditDrawer({
                   onChange={value => update(value, 'overworkEnd')}
                   isReadOnly
                   name="workStart">
-                  <DateInputGroup>
+                  <DateInputGroup
+                    variant="secondary"
+                    className="items-center justify-center">
                     <DateInputGroup.Input>
                       {segment => <DateInputGroup.Segment segment={segment} />}
                     </DateInputGroup.Input>
@@ -253,7 +261,9 @@ export default function EditDrawer({
                   className="text-foreground col-span-2 w-full justify-self-end text-end text-xs"
                   value={data.overworkValue ? Number(data.overworkValue) : 0}
                   minValue={0}
-                  onValueChange={value => update(value.toString(), 'overwork')}
+                  onValueChange={value =>
+                    update(value.toString(), 'overworkValue')
+                  }
                   endContent={<Ruble iconStyle="Bold" />}
                 />
                 <Divider className="col-span-full" />

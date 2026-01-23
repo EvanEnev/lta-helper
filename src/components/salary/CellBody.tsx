@@ -113,7 +113,9 @@ export default function CellBody({
               )}
               isReadOnly
               name="workStart">
-              <DateInputGroup>
+              <DateInputGroup
+                variant="secondary"
+                className="items-center justify-center">
                 <DateInputGroup.Input>
                   {segment => <DateInputGroup.Segment segment={segment} />}
                 </DateInputGroup.Input>
@@ -128,7 +130,9 @@ export default function CellBody({
               )}
               isReadOnly
               name="workEnd">
-              <DateInputGroup>
+              <DateInputGroup
+                variant="secondary"
+                className="items-center justify-center">
                 <DateInputGroup.Input>
                   {segment => <DateInputGroup.Segment segment={segment} />}
                 </DateInputGroup.Input>
@@ -157,7 +161,9 @@ export default function CellBody({
               }
               isReadOnly
               name="overworkStart">
-              <DateInputGroup>
+              <DateInputGroup
+                variant="secondary"
+                className="items-center justify-center">
                 <DateInputGroup.Input>
                   {segment => <DateInputGroup.Segment segment={segment} />}
                 </DateInputGroup.Input>
@@ -176,7 +182,7 @@ export default function CellBody({
               }
               isReadOnly
               name="overworkEnd">
-              <DateInputGroup>
+              <DateInputGroup variant="secondary">
                 <DateInputGroup.Input>
                   {segment => <DateInputGroup.Segment segment={segment} />}
                 </DateInputGroup.Input>

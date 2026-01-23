@@ -3,8 +3,6 @@ import {AddCircle} from 'solar-icon-set'
 import {LTPayment, LTPaymentType} from '@/src/utils/types'
 import {Dispatch, SetStateAction, useCallback, useEffect, useState} from 'react'
 import {DateRangePicker, DateValue, RangeValue} from '@heroui/react'
-import {useAuth} from '@/src/components/global/providers/authProvider'
-import useIsMobile from '@/src/hooks/useIsMobile'
 import {PaymentsFilter} from '@/src/components/payments/PaymentsPage'
 import {DateTime} from 'luxon'
 
@@ -23,8 +21,6 @@ export default function PaymentsHeader({
   setPayments,
   canEdit,
 }: PaymentsHeaderProps) {
-  const {headerRef} = useAuth()
-  const isMobile = useIsMobile()
   const [date, setDate] = useState<string | null>(null)
   const [name, setName] = useState<string | null>(null)
   const [type, setType] = useState<string | null>(null)
@@ -56,9 +52,6 @@ export default function PaymentsHeader({
 
   return (
     <div
-      style={{
-        top: isMobile ? `${headerRef.current?.offsetHeight || 0}px` : undefined,
-      }}
       className={`${scrolled ? 'scrolled' : ''} scrolled-prepare sticky top-4 left-4 z-1000 flex max-w-[90vw] flex-wrap gap-2 p-2`}>
       {canEdit && (
         <Button

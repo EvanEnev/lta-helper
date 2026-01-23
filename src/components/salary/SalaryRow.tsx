@@ -53,7 +53,6 @@ export default function SalaryRow({
         <p>{worker.firstName}</p>
         {worker.isFormer && <p className="text-xs">Бывший сотрудник</p>}
       </div>
-      {/*<div className="flex gap-2">*/}
       {days.map(day => {
         const data = dates.find(d => d.date.slice(0, -5) === day)
         if (!data) {
@@ -80,7 +79,6 @@ export default function SalaryRow({
           />
         )
       })}
-      {/*</div>*/}
     </>
   )
 }

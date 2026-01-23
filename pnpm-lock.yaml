@@ -101,6 +101,9 @@ importers:
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
+      use-mask-input:
+        specifier: ^3.6.0
+        version: 3.6.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       web-push:
         specifier: ^3.6.7
         version: 3.6.7
@@ -4851,6 +4854,13 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  use-mask-input@3.6.0:
+    resolution: {integrity: sha512-Kl6phBqMkumOxSVOYRAQZpJYfkzSIcaLt3gIEIKM4GnPXuW77niVGu11haYOEmPqIZ0UaHhhHhDDzdemjpbSgQ==}
+    engines: {node: '>=16', npm: '>=7'}
+    peerDependencies:
+      react: '>=17'
+      react-dom: '>=17'
 
   use-sync-external-store@1.6.0:
     resolution: {integrity: sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==}
@@ -10870,6 +10880,11 @@ snapshots:
       use-isomorphic-layout-effect: 1.2.1(@types/react@19.2.6)(react@19.2.0)
     optionalDependencies:
       '@types/react': 19.2.6
+
+  use-mask-input@3.6.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
 
   use-sync-external-store@1.6.0(react@19.2.0):
     dependencies:

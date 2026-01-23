@@ -42,8 +42,8 @@ export default async function getLocationSalaryData({
   // let salaryResult = {rows: []}
   // let paymentsRows = []
 
-  let workerId = null
-  let locationId = null
+  let workerId: number | null = worker?.id || -1
+  let locationId: number | null = null
 
   if (canView) {
     let queryAddon = ''
@@ -53,10 +53,12 @@ export default async function getLocationSalaryData({
     }
 
     if (canViewLocation && !allLocations) {
+      workerId = null
       locationId = selectedLocationId || worker?.locationId || 2
     }
 
     if (canViewFull && !allLocations) {
+      workerId = null
       locationId = selectedLocationId || worker?.locationId || 2
     }
 

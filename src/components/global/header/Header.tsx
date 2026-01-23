@@ -25,7 +25,7 @@ export default function Header() {
 
     const update = () => {
       const rect = ref.current!.getBoundingClientRect()
-      setHeaderSizes({width: rect.width, height: 0})
+      setHeaderSizes({width: isMobile ? 0 : rect.width, height: 0})
     }
 
     update()
@@ -34,7 +34,7 @@ export default function Header() {
     ro.observe(ref.current)
 
     return () => ro.disconnect()
-  }, [setHeaderSizes])
+  }, [isMobile, setHeaderSizes])
 
   useEffect(() => {
     const updateHeaderHeight = () => {

@@ -41,6 +41,7 @@
     "socket.io-client": "^4.8.1",
     "solar-icon-set": "^1.0.0",
     "tsx": "^4.20.6",
+    "use-mask-input": "^3.6.0",
     "web-push": "^3.6.7",
     "winston": "^3.18.3",
     "winston-transport": "^4.9.0"
