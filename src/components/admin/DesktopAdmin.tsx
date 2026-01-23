@@ -237,6 +237,7 @@ export default function DesktopAdmin({
             isInvalid={isDateInvalid}
             errorMessage="Дата вне диапазона"
             isDateUnavailable={date =>
+              //@ts-ignore
               date.compare(today('Europe/Moscow').subtract({days: 1})) === 0 &&
               days.today.hour > 3 &&
               !canEdit
@@ -247,9 +248,11 @@ export default function DesktopAdmin({
             classNames={{inputWrapper: 'h-16'}}
             // @ts-ignore
             onChange={(date: CalendarDate) => updateDate(date)}
+            //@ts-ignore
             minValue={
               canEdit ? null : today('Europe/Moscow').subtract({days: 1})
             }
+            //@ts-ignore
             maxValue={canEdit ? null : today('Europe/Moscow')}
             // @ts-ignore
             defaultValue={today('Europe/Moscow')}

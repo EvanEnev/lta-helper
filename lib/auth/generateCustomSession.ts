@@ -34,6 +34,8 @@ export default async function generateCustomSession({
                    w.phone_number,
                    w.email,
                    w.photo_url,
+                   w.is_fired,
+                   w.is_former,
                    admins.location_id as today_location
                  FROM workers w
                         LEFT JOIN ranks r ON r.id = w.rank_id
@@ -70,7 +72,8 @@ export default async function generateCustomSession({
     photoUrl: workerResult.photo_url,
     locationId: workerResult.location_id,
     location: workerResult.location,
-    permissions,
+    permissions:
+      workerResult.is_fired || workerResult.is_former ? [] : permissions,
     email: workerResult.email,
   }
 

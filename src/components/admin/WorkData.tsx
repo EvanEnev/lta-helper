@@ -34,6 +34,7 @@ import LocationSelect from '@/src/components/global/LocationSelect'
 import FormulaInput from '@/src/components/global/FormulaInput'
 import {DateTime} from 'luxon'
 import {AltArrowDown, Gamepad} from 'solar-icon-set'
+import {withMask} from 'use-mask-input'
 
 type WorkDataProps = {
   faceId: LTFaceIdData[]
@@ -248,7 +249,7 @@ export default function WorkData({
     )
 
     return `Игры ${summary ? `(${summary})` : ''}`
-  }, [data.oneGames, data.twoGames, data.threeGames, data.actorGames])
+  }, [data, salary])
 
   const filteredGamesTypes = useMemo(() => {
     if (worker?.rank === 'Актёр') {
@@ -316,6 +317,7 @@ export default function WorkData({
         locationId={location?.id || -1}
       />
       <Select
+        variant="secondary"
         isRequired
         selectionMode={isTyped ? 'single' : 'multiple'}
         value={selectedKeys}
@@ -357,6 +359,9 @@ export default function WorkData({
         <TextField isRequired className="">
           <Label htmlFor="workingHours">Время работы</Label>
           <Input
+            placeholder="__-__"
+            ref={withMask('99-99', {inputmode: 'numeric', placeholder: '_'})}
+            variant="secondary"
             id="workingHours"
             required
             value={data.workingHours}
@@ -367,6 +372,7 @@ export default function WorkData({
       )}
       <div className="flex w-full justify-between gap-2">
         <NumberField
+          variant="secondary"
           isWheelDisabled
           className="h-full w-fit min-w-0"
           minValue={0}
@@ -380,13 +386,16 @@ export default function WorkData({
             mode={
               salary?.start_time && salary?.end_time ? 'visible' : 'hidden'
             }>
-            <Description>
-              {salary?.start_time}-{salary?.end_time}
-            </Description>
+            {!isTyped && (
+              <Description>
+                {salary?.start_time}-{salary?.end_time}
+              </Description>
+            )}
           </Activity>
         </NumberField>
         {!isTyped && (
           <NumberField
+            variant="secondary"
             isWheelDisabled
             className="h-full w-fit min-w-0"
             minValue={0}
@@ -427,6 +436,7 @@ export default function WorkData({
       </div>
       {!isTyped && worker?.rank !== 'Актёр' && (
         <Checkbox
+          variant="secondary"
           onChange={value => updateData('isHardTime', value)}
           className="col-1 [&_[data-slot='checkbox-default-indicator--checkmark']]:size-4">
           <Checkbox.Control className="size-5">
@@ -439,6 +449,7 @@ export default function WorkData({
       )}
       {!isTyped && worker?.rank === 'Железный' && (
         <Checkbox
+          variant="secondary"
           onChange={value => updateData('hasGames', value)}
           className="col-1 [&_[data-slot='checkbox-default-indicator--checkmark']]:size-4">
           <Checkbox.Control className="size-5">
@@ -451,6 +462,7 @@ export default function WorkData({
       )}
       {data.type && data.location === 'Другое' && (
         <Checkbox
+          variant="secondary"
           onChange={value => updateData('withoutDate', value)}
           className="col-1 [&_[data-slot='checkbox-default-indicator--checkmark']]:size-4">
           <Checkbox.Control className="size-5">
@@ -478,6 +490,7 @@ export default function WorkData({
                   return (
                     <div className="flex gap-2" key={index}>
                       <NumberField
+                        variant="secondary"
                         className="col-1 w-fit"
                         minValue={0}
                         isWheelDisabled
@@ -502,6 +515,7 @@ export default function WorkData({
                         </NumberField.Group>
                       </NumberField>
                       <NumberField
+                        variant="secondary"
                         isWheelDisabled
                         minValue={0}
                         className="h-full w-fit"
@@ -539,6 +553,7 @@ export default function WorkData({
         </Accordion>
       )}
       <TextField
+        variant="secondary"
         className="col-2 row-span-2"
         value={data.comment}
         onChange={value => updateData('comment', value)}>

@@ -431,6 +431,7 @@ export default function SummarizedPage({
                   <Fragment key={header.id}>
                     <th
                       key={header.id}
+                      // @ts-ignore
                       className={`bg-default-100 test-start h-8 w-full min-w-20 px-2 py-3 align-middle text-xs font-medium tracking-wider uppercase first:rounded-s-lg last:rounded-e-lg ${header.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100' : ''}`}>
                       {flexRender(
                         header.column.columnDef.header,
@@ -461,6 +462,7 @@ export default function SummarizedPage({
                     <Fragment key={cell.id}>
                       <td
                         id={`sum${cell.id}`}
+                        // @ts-ignore
                         className={`mx-auto ${index === 0 && rowIndex === 0 && 'rounded-t-2xl'} text-medium min-w-20 p-2 text-center ${index === 1 ? 'rounded-br-2xl' : ''} ${cell.column.columnDef.meta?.frozen ? 'bg-content2 sticky z-100 shadow-sm' : ''}`}>
                         {flexRender(
                           cell.column.columnDef.cell,

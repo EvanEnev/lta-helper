@@ -15,12 +15,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Неправильная локация'}, {status: 500})
   }
 
-  const {data, faceId} = await getLocationSalaryData({
+  const data = await getLocationSalaryData({
     locationId,
     date,
     allLocations: body.allLocations || false,
     filters: body.filters || [],
   })
 
-  return NextResponse.json({data, faceId})
+  return NextResponse.json({data})
 }

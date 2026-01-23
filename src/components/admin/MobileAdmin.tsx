@@ -23,7 +23,7 @@ import {today} from '@internationalized/date'
 import convertTZ from '@/lib/functions/convertTZ'
 
 interface MobileAdminProps {
-    worker: LTWorker
+  worker: LTWorker
   faceId: LTFaceIdData[]
   days: {
     current: DateTime
@@ -44,7 +44,7 @@ interface MobileAdminProps {
 }
 
 export default function MobileAdmin({
-    worker,
+  worker,
   faceId,
   days,
   setDate,
@@ -143,6 +143,7 @@ export default function MobileAdmin({
           isInvalid={isDateInvalid}
           errorMessage="Дата вне диапазона"
           isDateUnavailable={date =>
+            //@ts-ignore
             date.compare(today('Europe/Moscow').subtract({days: 1})) === 0 &&
             days.today.hour > 3 &&
             !canEdit
@@ -153,7 +154,9 @@ export default function MobileAdmin({
           classNames={{inputWrapper: 'h-16'}}
           // @ts-ignore
           onChange={(date: CalendarDate) => updateDate(date)}
+          //@ts-ignore
           minValue={today('Europe/Moscow').subtract({days: 1})}
+          //@ts-ignore
           maxValue={today('Europe/Moscow')}
           // @ts-ignore
           defaultValue={today('Europe/Moscow')}

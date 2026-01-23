@@ -30,8 +30,8 @@ export default async function generateTableByMonths({
                    ls.type,
                    l.name as location
                  from generate_series('${interval.start!.toFormat('yyyy-MM-dd')}'::date, '${interval.end!.toFormat('yyyy-MM-dd')}'::date, interval '1 day') d
-                        left join get_locations_salary(d::date) ls on true
-                        left join lt_arena.locations l on l.id = ls.location_id`
+                        left join functions.get_locations_salary(d::date) ls on true
+                        left join locations l on l.id = ls.location_id`
 
   const dataResult = await db.query(query)
 
