@@ -390,4 +390,26 @@ export interface LTWorkerData {
     weight: number
     sortingWeight: number
   }
+  rankData: RankRequirement[]
+}
+
+export interface RankRequirement {
+  id: number
+  name: string
+  description: string
+  limit: number | null
+  type: 'check' | 'number'
+  category: string | null
+  done: boolean
+  value: number | null
+}
+
+export interface RankDescription {
+  rank: {
+    id: number
+    name: string
+    weight: number
+    sortingWeight: number
+  }
+  data: RankRequirement[]
 }

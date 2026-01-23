@@ -6,6 +6,7 @@ import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
 import {QueryResult} from 'pg'
 import getWorkingDays from '@/lib/functions/getWorkingDays'
+import {RankDescription, RankRequirement} from '@/src/utils/types'
 
 export interface ShortSalary {
   currentDates: string
@@ -24,9 +25,9 @@ export interface ShortSalary {
 }
 
 export default async function Home() {
-  const {user: worker} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: {id: -1, rank: '', telegramId: -1}}
+  }))!.user
 
   const date = convertTZ(new Date(), 'Europe/Moscow')
 
@@ -168,10 +169,33 @@ export default async function Home() {
     balance,
   }
 
+  const ranksQuery = `
+    select
+      functions.get_rank(r.id) as rank,
+      case when rr.rank_id is not null then jsonb_agg(jsonb_build_object(
+        'id',rr.id,
+        'name', rr.name,
+        'description', description,
+        'limit', "limit",
+        'type',type,
+        'category', category,
+        'value', wr.value,
+        'done', (case when rr.type = 'number' then (coalesce(wr.value >= "limit", false)) else (wr.id is not null) end)
+        )) else '[]'::jsonb end as data
+    from ranks r
+           left join ranks.requirements rr on rr.rank_id = r.id
+           left join relations.workers_requirements wr on rr.id = wr.requirement_id and worker_id = ${worker.id}
+    where r.id not in (13, 14)
+    group by r.id, r.sorting_weight, rr.rank_id
+    order by r.sorting_weight desc`
+
+  const ranksResult = await db.query(ranksQuery)
+  const ranksData: RankDescription[] = ranksResult.rows
+
   const workingDays = await getWorkingDays({telegramId: worker.telegramId})
   return (
     <MainPage
-      // @ts-ignore
+      ranksData={ranksData}
       worker={worker}
       // @ts-ignore
       workingDays={workingDays}
