@@ -114,18 +114,20 @@ export default function LocationSelect({
 
   const onChange = useCallback(
     (locationId: any) => {
+      if (isDisabled || isReadOnly) return
       setSelectedLocation(locationId)
       callback(locations.find(location => location?.id == locationId) || null)
     },
-    [callback, locations],
+    [callback, isDisabled, isReadOnly, locations],
   )
 
   return (
     <Autocomplete
-      isDisabled={isDisabled}
+      isDisabled={isDisabled || isReadOnly}
       variant="secondary"
       selectionMode="single"
       className={className}
+      value={selectedLocation}
       onChange={onChange}>
       {showLabel ? <Label>Локация</Label> : null}
       <Autocomplete.Trigger>
