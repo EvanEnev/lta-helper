@@ -4,11 +4,15 @@ import {DateTime} from 'luxon'
 
 export async function POST(req: NextRequest) {
   let data
+
   try {
     data = await req.json()
   } catch {
     return NextResponse.json({ok: true}, {status: 200})
   }
+
+  console.debug('WEBHOOK')
+  console.debug(data)
 
   const action = data.manifest.action_cipher
 
@@ -83,7 +87,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  console.debug('WEBHOOK')
-  console.debug(data)
   return NextResponse.json({ok: true}, {status: 200})
 }
