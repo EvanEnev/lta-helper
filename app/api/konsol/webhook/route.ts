@@ -1,5 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server'
 import db from '@/lib/database'
+import {DateTime} from 'luxon'
 
 export async function POST(req: NextRequest) {
   let data
@@ -11,24 +12,37 @@ export async function POST(req: NextRequest) {
 
   const action = data.manifest.action_cipher
 
-  if (action === 'billing_tcb.payment_succeeded') {
-    const task_id = data.details.task_id
+  if (action === 'workflow.finalize_tasks') {
+    const id = data.details.id
 
-    const res = await fetch(`https://api.konsol.pro/v2/acts/${task_id}`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+    const today = DateTime.now().setZone('Europe/Moscow').toFormat('yyyy-MM-dd')
+
+    const res = await fetch(
+      `https://api.konsol.pro/v2/acts?created_at_from=${today}`,
+      {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+        },
       },
-    })
+    )
 
-    let taskData
+    let tasks
 
     try {
-      taskData = await res.json()
+      tasks = await res.json()
     } catch (e) {
       return NextResponse.json({ok: true}, {status: 200})
     }
+
+    const taskData = tasks.find((task: any) =>
+      task.workflow_tasks.find((d: any) => d.id === id),
+    )
+
+    console.debug(`taskData: ${JSON.stringify(taskData)}`)
+
+    if (!taskData) return NextResponse.json({ok: true}, {status: 200})
 
     const value = taskData.amount.slice(0, -2)
     const date = taskData.start_date
@@ -45,7 +59,7 @@ export async function POST(req: NextRequest) {
        ${value},
        '${date}',
        '${comment}',
-       ${task_id}
+       ${taskData.id}
        )`
 
     try {
@@ -53,6 +67,18 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error(e)
       console.debug(taskData, query)
+      return NextResponse.json({ok: true}, {status: 200})
+    }
+  } else if (action === 'billing_tcb.payment_succeeded') {
+    const id = data.details.task_id
+
+    const query = `update payments.list set paid = true where act_id = ${id}`
+
+    try {
+      await db.query(query)
+    } catch (e) {
+      console.error(e)
+      console.debug(id, query)
       return NextResponse.json({ok: true}, {status: 200})
     }
   }
