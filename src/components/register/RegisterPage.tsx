@@ -1,10 +1,18 @@
 'use client'
 
-import {addToast, Button, Form, Input} from '@heroui/react'
-import MaskedInput from 'react-text-mask'
-import {FormEvent, useEffect, useState} from 'react'
+import {addToast} from '@heroui/react'
+import {
+  Button,
+  FieldError,
+  Form,
+  Input,
+  Label,
+  TextField,
+} from '@heroui/react-beta'
+import {FormEvent} from 'react'
 import {useRouter} from 'next/navigation'
 import {LTWorker} from '@/src/utils/types'
+import {withMask} from 'use-mask-input'
 
 interface RegisterPageProps {
   worker: LTWorker
@@ -13,50 +21,14 @@ interface RegisterPageProps {
 export default function RegisterPage({worker}: RegisterPageProps) {
   const router = useRouter()
 
-  const [email, setEmail] = useState<string>(worker?.email || '')
-  const [emailErrors, setEmailErrors] = useState<string[]>([])
-
-  const [phoneNumber, setPhoneNumber] = useState<string>(
-    worker?.phoneNumber || '',
-  )
-  const [phoneNumberError, setPhoneNumberError] = useState<string>()
-
-  const [isLoading, setLoading] = useState<boolean>(false)
-
-  useEffect(() => {
-    // console.log(emailErrors, email !== undefined && !emailRegexp.test(email))
-
-    const errors: string[] = []
-
-    if (email === '') {
-      errors.push('Поле обязательно')
-    }
-
-    // if (email && !emailRegexp.test(email)) {
-    //   errors.push('Это не почта Google')
-    // }
-
-    setEmailErrors(errors)
-
-    if (phoneNumber !== undefined && phoneNumber.includes('_')) {
-      setPhoneNumberError('Поле обязательно')
-    } else {
-      setPhoneNumberError('')
-    }
-  }, [email, phoneNumber])
-
   const handler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const data = Object.fromEntries(new FormData(e.currentTarget))
-
-    setLoading(true)
 
     const result = await fetch('/api/register', {
       method: 'POST',
       body: JSON.stringify({data: data}),
     })
-
-    setLoading(false)
 
     let message = ''
 
@@ -93,97 +65,51 @@ export default function RegisterPage({worker}: RegisterPageProps) {
       <h1 className="text-5xl font-bold">Регистрация</h1>
       <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4 sm:w-1/2">
         <Form className="w-full" onSubmit={handler}>
-          <Input
-            label="Позывной"
-            size="lg"
-            defaultValue={worker.name || ''}
-            name="name"
+          <TextField isRequired defaultValue={worker.name || ''}>
+            <Label>Позывной</Label>
+            <Input name="name" />
+            <FieldError>Поле обязательно</FieldError>
+          </TextField>
+          <TextField isRequired defaultValue={worker.lastName || ''}>
+            <Label>Фамилия</Label>
+            <Input name="last_name" />
+            <FieldError>Поле обязательно</FieldError>
+          </TextField>
+          <TextField isRequired defaultValue={worker.firstName || ''}>
+            <Label>Имя</Label>
+            <Input name="first_name" />
+            <FieldError>Поле обязательно</FieldError>
+          </TextField>
+          <TextField defaultValue={worker.middleName || ''}>
+            <Label>Отчество</Label>
+            <Input name="middle_name" />
+          </TextField>
+          <TextField
+            type="tel"
             isRequired
-            errorMessage="Поле обязательно"
-          />
-          <Input
-            label="Фамилия"
-            defaultValue={worker.lastName || ''}
-            size="lg"
-            isRequired
-            name="last_name"
-            errorMessage="Поле обязательно"
-          />
-          <Input
-            label="Имя"
-            defaultValue={worker.firstName || ''}
-            size="lg"
-            isRequired
-            name="first_name"
-            errorMessage="Поле обязательно"
-          />
-          <Input
-            label="Отчество"
-            defaultValue={worker.middleName || ''}
-            size="lg"
-            name="middle_name"
-            errorMessage="Поле обязательно"
-          />
-          <MaskedInput
-            mask={[
-              '+',
-              '7',
-              ' ',
-              /[1-9]/,
-              /\d/,
-              /\d/,
-              ' ',
-              /\d/,
-              /\d/,
-              /\d/,
-              '-',
-              /\d/,
-              /\d/,
-              '-',
-              /\d/,
-              /\d/,
-            ]}
-            value={phoneNumber || ''}
-            onChange={e => setPhoneNumber(e.target.value)}
-            render={(ref: any, props) => (
-              <Input
-                ref={ref}
-                {...props}
-                label="Номер телефона"
-                size="lg"
-                isRequired
-                isInvalid={!!phoneNumberError}
-                name="phone"
-                type="tel"
-                value={phoneNumber}
-                onValueChange={setPhoneNumber}
-                errorMessage={() => <span>{phoneNumberError}</span>}
-              />
-            )}
-          />
+            defaultValue={worker.phoneNumber || ''}>
+            <Label>Номер телефона</Label>
+            <Input
+              placeholder="+7 ___ ___-__-__"
+              ref={withMask('+7 999 999-99-99', {
+                inputmode: 'numeric',
+                placeholder: '_',
+              })}
+              name="phone"
+            />
+            <FieldError>Поле обязательно</FieldError>
+          </TextField>
+          <TextField type="email" isRequired defaultValue={worker.email || ''}>
+            <Label>Google почта</Label>
+            <Input name="email" />
+            <FieldError>Неверная почта</FieldError>
+          </TextField>
 
-          <Input
-            label="Google-почта"
-            size="lg"
-            isRequired
-            isInvalid={emailErrors.length > 0}
-            type="email"
-            name="email"
-            value={email}
-            onValueChange={setEmail}
-            errorMessage={() =>
-              emailErrors.map((error, index) => {
-                return <p key={index}>{error}</p>
-              })
-            }
-          />
           <Button
-            className="h-16 w-full"
-            variant="shadow"
-            color="primary"
+            className="mt-8 h-16 w-full"
+            variant="primary"
             size="lg"
-            type="submit"
-            isLoading={isLoading}>
+            type="submit">
             Отправить
           </Button>
         </Form>
