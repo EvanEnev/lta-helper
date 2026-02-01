@@ -4,7 +4,11 @@ import {Server as SocketIOServer} from 'socket.io'
 let client: Client
 
 export async function initListener(io: SocketIOServer) {
-  const listeners = ['salary:update', 'workers_payrolls:update']
+  const listeners = [
+    'salary:update',
+    'workers_payrolls:update',
+    'workers_requirements:update',
+  ]
 
   client = new Client({
     user: process.env.DATABASE_USER,

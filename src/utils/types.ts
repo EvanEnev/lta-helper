@@ -384,6 +384,8 @@ export interface LTWorkerData {
   phoneNumber: string | null
   role: string | null
   location: LTLocation
+  generations: LTGeneration[]
+  quests: LTQuest[]
   rank: {
     id: number
     name: string
@@ -398,10 +400,12 @@ export interface RankRequirement {
   name: string
   description: string
   limit: number | null
-  type: 'check' | 'number'
+  type: 'check' | 'number' | 'select'
+  selectLabel: string | null
   category: string | null
   done: boolean
   value: number | null
+  immutable: boolean
 }
 
 export interface RankDescription {
@@ -412,4 +416,23 @@ export interface RankDescription {
     sortingWeight: number
   }
   data: RankRequirement[]
+}
+
+export interface RankUpdateData {
+  id: RankRequirement['id']
+  workerId: LTWorker['id']
+  value: number | null
+  delete: boolean
+  oldWorkerId?: LTWorker['id']
+  oldId?: RankRequirement['id']
+}
+
+export interface LTGeneration {
+  id: number
+  name: string
+}
+
+export interface LTQuest {
+  id: number
+  name: string
 }
