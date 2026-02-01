@@ -28,7 +28,7 @@ export default function MainPage({
 
   return isMobile ? (
     <MobilePage
-      ranksData={ranksData}
+      // ranksData={ranksData}
       worker={worker}
       workingDays={workingDays}
       salaryData={salaryData}
