@@ -89,23 +89,28 @@ export default function WorkersPage({
   const updateCallback = useCallback(
     ({
       requirementId,
+      workerId,
       value,
       toDelete,
+      meta,
     }: {
       requirementId: number
+      workerId: number
       value: number | null
       toDelete: boolean
+      meta: RankUpdateData['meta']
     }) => {
       const body: RankUpdateData = {
-        workerId: worker.id,
+        workerId,
         id: requirementId,
         value,
         delete: toDelete,
+        meta,
       }
 
       socketRef.current?.emit('update:workers_requirements', body)
     },
-    [worker.id],
+    [],
   )
 
   return (

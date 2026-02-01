@@ -406,6 +406,11 @@ export interface RankRequirement {
   done: boolean
   value: number | null
   immutable: boolean
+  meta: {
+    isChoice?: boolean
+    generationId?: number
+    questId?: number
+  } | null
 }
 
 export interface RankDescription {
@@ -425,6 +430,7 @@ export interface RankUpdateData {
   delete: boolean
   oldWorkerId?: LTWorker['id']
   oldId?: RankRequirement['id']
+  meta: RankRequirement['meta']
 }
 
 export interface LTGeneration {

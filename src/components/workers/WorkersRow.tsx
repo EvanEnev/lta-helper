@@ -1,4 +1,9 @@
-import {LTWorker, LTWorkerData, RankRequirement} from '@/src/utils/types'
+import {
+  LTWorker,
+  LTWorkerData,
+  RankRequirement,
+  RankUpdateData,
+} from '@/src/utils/types'
 import {
   Avatar,
   Button,
@@ -23,8 +28,10 @@ interface WorkersRowProps {
   canEdit: boolean
   updateCallback: (data: {
     requirementId: number
+    workerId: number
     value: number | null
     toDelete: boolean
+    meta: RankUpdateData['meta']
   }) => void
 }
 
@@ -55,15 +62,20 @@ export default function WorkersRow({
 
   const done = useMemo(() => {
     const withoutCategories = data.rankData
-      .filter(d => !d.category)
+      .filter(d => !d.category && !d.meta?.isChoice)
       .every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!))
+
+    const choices = data.rankData.filter(d => d.meta?.isChoice)
 
     return (
       withoutCategories &&
-      // @ts-ignore
-      Object.values(groupedCategories).some((c: RankRequirement[]) =>
-        c.every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!)),
-      )
+      (Object.values(groupedCategories).length
+        ? // @ts-ignore
+          Object.values(groupedCategories).some((c: RankRequirement[]) =>
+            c.every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!)),
+          )
+        : true) &&
+      choices.some(d => (d.type === 'check' ? d.done : d.value! >= d.limit!))
     )
   }, [data.rankData, groupedCategories])
 
@@ -82,6 +94,7 @@ export default function WorkersRow({
         <div className="flex flex-col items-center gap-2">
           <RankIcon rank={data.rank.name} />
           <p>{data.rank.name}</p>
+          {data.isFormer && <i>Бывший</i>}
         </div>
         <Activity mode={canEdit ? 'visible' : 'hidden'}>
           <div className="flex flex-col gap-2">
@@ -174,8 +187,10 @@ export default function WorkersRow({
                                 onChange={v =>
                                   updateCallback({
                                     requirementId: req.id,
+                                    workerId: data.id,
                                     value: null,
                                     toDelete: !v,
+                                    meta: req.meta,
                                   })
                                 }
                                 variant="secondary">
@@ -195,8 +210,10 @@ export default function WorkersRow({
                                   onChange={v =>
                                     updateCallback({
                                       requirementId: req.id,
+                                      workerId: data.id,
                                       value: v,
                                       toDelete: !v,
+                                      meta: req.meta,
                                     })
                                   }>
                                   <NumberField.Group>
@@ -224,17 +241,22 @@ export default function WorkersRow({
                   {categories.length !== 0 && (
                     <div
                       style={{
-                        gridTemplateColumns: `repeat(${categories.length * 2 - 1}, minmax(0, 1fr))`,
+                        gridTemplateColumns: `${new Array(categories.length)
+                          .fill(0)
+                          .map(_ => '1fr')
+                          .join(' auto ')}`,
                       }}
                       className="grid auto-rows-min gap-2">
                       {Object.keys(groupedCategories).map((key, index) => {
-                        const data = groupedCategories[key]
+                        const groupData = groupedCategories[key]
 
                         return (
                           <Fragment key={key}>
                             <div className="flex flex-col gap-2">
-                              <p className="col-span-full">{key}</p>
-                              {data.map(
+                              <p className="col-span-full mb-2 font-bold">
+                                {key}
+                              </p>
+                              {groupData.map(
                                 (req: RankRequirement, index: number) => (
                                   <Fragment key={req.id}>
                                     <div className="flex gap-2">
@@ -246,8 +268,10 @@ export default function WorkersRow({
                                           onChange={v =>
                                             updateCallback({
                                               requirementId: req.id,
+                                              workerId: data.id,
                                               value: null,
                                               toDelete: !v,
+                                              meta: req.meta,
                                             })
                                           }
                                           variant="secondary">
@@ -267,8 +291,10 @@ export default function WorkersRow({
                                             onChange={v =>
                                               updateCallback({
                                                 requirementId: req.id,
+                                                workerId: data.id,
                                                 value: v,
                                                 toDelete: !v,
+                                                meta: req.meta,
                                               })
                                             }>
                                             <NumberField.Group>
@@ -287,7 +313,7 @@ export default function WorkersRow({
                                         </>
                                       )}
                                     </div>
-                                    {index !== data.length - 1 && (
+                                    {index !== groupData.length - 1 && (
                                       <Separator className="bg-content1-foreground/50" />
                                     )}
                                   </Fragment>
@@ -313,6 +339,7 @@ export default function WorkersRow({
         </>
       )}
       <div>{data.quests.map(d => d.name).join(', ')}</div>
+      <div>{data.generations.map(d => d.name).join(', ')}</div>
     </div>
   )
 }

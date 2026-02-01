@@ -34,10 +34,17 @@ select
         'limit', "limit",
         'type', type,
         'category', category,
-        'selectLabel', select_label,
+        'meta', meta,
         'value', wr.value,
         'immutable', coalesce(rr.immutable, false),
-        'done', (case when rr.type = 'number' then (coalesce(wr.value >= "limit", false)) else (wr.id is not null) end)
+        'done', (
+          case
+            when meta ? 'questId' then exists((select id from relations.workers_quests where worker_id = w.id and quest_id = (meta->>'questId')::int))
+            when meta ? 'generationId' then exists((select id from relations.workers_generations where worker_id = w.id and generation_id = (meta->>'generationId')::int))
+            when rr.type = 'number' then (coalesce(wr.value >= "limit", false))
+            else (wr.id is not null)
+            end
+          )
         ) order by rr.name, rr.category is not null, rr.name) else '[]'::jsonb end as "rankData"
     from workers w
            left join ranks.requirements rr on rr.rank_id = w.rank_id
