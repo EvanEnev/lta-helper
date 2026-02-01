@@ -2,7 +2,7 @@ import {DefaultEventsMap, Server} from 'socket.io'
 import {initListener} from './dbListener'
 import updateSalary from './functions/updateSalary'
 import updateWorkersPayrolls from './functions/updateWorkersPayrolls'
-import updateRankRequrement from '@/lib/socket/functions/updateRankRequrement'
+import updateRankRequrement from './functions/updateRankRequrement'
 
 export default async function socket(
   io: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
