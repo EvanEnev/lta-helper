@@ -109,7 +109,7 @@ export default function WorkData({
       {location: LTLocation; date: string} | null,
     ] = [faceIdResult[0] || null, null]
 
-    if (faceIdResult?.length && faceIdResult?.length > 2) {
+    if (faceIdResult?.length && faceIdResult?.length >= 2) {
       faceIdData[1] = faceIdResult[faceIdResult?.length - 1] || null
     }
 

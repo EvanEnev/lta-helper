@@ -159,9 +159,11 @@ export interface LTLocation {
   shortName: string
   color: string
   id: number
+  konsol_id: number | null
 }
 
 export interface LTRank {
+  id: number
   name: string
   salary: number
   overwork: number
@@ -295,6 +297,7 @@ export interface LTGamePayment {
   value: number
   key: string
   rank: number
+  konsol_id: number | null
 }
 
 export interface LTFaceIdData {

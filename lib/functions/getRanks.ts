@@ -3,6 +3,7 @@ import {LTRank} from '@/src/utils/types'
 
 export default async function getRanks(): Promise<LTRank[]> {
   const query = `SELECT
+  id,
   name,
   salary,
   overwork,

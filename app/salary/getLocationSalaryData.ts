@@ -393,6 +393,7 @@ export default async function getLocationSalaryData({
     order by coalesce(w.is_former, false), r.sorting_weight DESC, w.name, w.first_name
 `
 
+    console.debug(query)
     const results = await db.query(query)
     data = results.rows
   }

@@ -8,7 +8,8 @@ export default async function getGamesPayments(): Promise<LTGamePayment[]> {
   description,
   value,
   rank,
-  key
+  key,
+  konsol_id
   from salary.games_payments
   order by id`
 

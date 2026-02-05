@@ -6,7 +6,8 @@ export default async function getLocations(): Promise<LTLocation[]> {
   name,
   short_name as "shortName",
   color,
-  id
+  id,
+  konsol_id
   FROM locations
   order by name`
 
