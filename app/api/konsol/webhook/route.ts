@@ -109,14 +109,14 @@ export async function POST(req: NextRequest) {
 
       query = `insert into payments.list (worker_id, payment_type, value, date, comment, act_id, paid)
     values
-      ((select id from workers where unaccent(first_name) ilike unaccent('${firstName}' and unaccent(last_name) ilike unaccent('${lastName}'))),
+      ((select id from workers where unaccent(first_name) ilike unaccent('${firstName}') and unaccent(last_name) ilike unaccent('${lastName}')),
        ${type},
        ${value},
        '${date}',
        '${comment}',
        ${taskData.id},
        true
-       )`
+      )`
     }
 
     console.debug(id, query)
