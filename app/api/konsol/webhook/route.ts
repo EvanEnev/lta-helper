@@ -76,13 +76,55 @@ export async function POST(req: NextRequest) {
   } else if (action === 'billing_tcb.payment_succeeded') {
     const id = data.details.task_id
 
-    const query = `update payments.list set paid = true where act_id = ${id}`
+    const existingDataQuery = `select id from payments.list where act_id = ${id}`
+    const existingRows = await db.query(existingDataQuery)
+
+    let query = `update payments.list set paid = true where act_id = ${id}`
+
+    if (!existingRows.rows.length) {
+      const res = await fetch(`https://api.konsol.pro/v2/acts/${id}`, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+        },
+      })
+
+      let taskData
+
+      try {
+        taskData = await res.json()
+      } catch (e) {
+        console.error(e, id)
+        return NextResponse.json({ok: true}, {status: 200})
+      }
+
+      const value = taskData.amount
+      const date = taskData.start_date
+      const firstName = taskData.contractor.first_name
+      const lastName = taskData.contractor.last_name
+
+      const comment = `Выплата по акту №${taskData.number}`
+      const type = 2
+
+      query = `insert into payments.list (worker_id, payment_type, value, date, comment, act_id, paid)
+    values
+      ((select id from workers where unaccent(first_name) ilike unaccent('${firstName}' and unaccent(last_name) ilike unaccent('${lastName}'))),
+       ${type},
+       ${value},
+       '${date}',
+       '${comment}',
+       ${taskData.id},
+       true
+       )`
+    }
+
+    console.debug(id, query)
 
     try {
       await db.query(query)
     } catch (e) {
       console.error(e)
-      console.debug(id, query)
       return NextResponse.json({ok: true}, {status: 200})
     }
   }
