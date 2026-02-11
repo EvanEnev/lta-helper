@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   const adminsQuery = `SELECT location_id
     FROM config.admins
-    WHERE date = '${date.toFormat('dd.MM')}'
+    WHERE date = '${date.toFormat('yyyy-MM-dd')}'
     AND worker_id = ${user.id}`
 
   const adminsResult = await db.query(adminsQuery)
@@ -150,7 +150,11 @@ export async function POST(req: NextRequest) {
           date = date.plus({hours: 1})
         }
 
-        workingHours = `${date.hour}-${date.plus({hours: row.rank === 'Актёр' ? 4 : 9}).hour}`
+        workingHours = `${date.hour > 9 ? date.hour : `${0}${date.hour}`}-${
+          date.plus({hours: row.rank === 'Актёр' ? 4 : 9}).hour
+            ? date.plus({hours: row.rank === 'Актёр' ? 4 : 9}).hour
+            : `${0}${date.plus({hours: row.rank === 'Актёр' ? 4 : 9}).hour}`
+        }`
       }
 
       data.push({

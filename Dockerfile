@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Собираем Next.js
-RUN pnpm build
+RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
 
 
 # ==========================
