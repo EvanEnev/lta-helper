@@ -16,7 +16,7 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function PushNotificationProvider({
   children,
 }: {
-  children: ReactNode[]
+  children: ReactNode | ReactNode[]
 }) {
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
