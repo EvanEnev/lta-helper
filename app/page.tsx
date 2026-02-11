@@ -1,11 +1,19 @@
 import MainPage from '@/src/components/page/MainPage'
 import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
-import {evaluate} from 'mathjs'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
-import {QueryResult} from 'pg'
 import getWorkingDays from '@/lib/functions/getWorkingDays'
+
+interface SalaryData {
+  sum: number
+  value: number
+  fines: number
+  bonuses: number
+  balance: number
+  overwork: number
+  games: number
+}
 
 export interface ShortSalary {
   currentDates: string
@@ -14,19 +22,19 @@ export interface ShortSalary {
   previousDates: string
   previousSalary: number
   previousSalaryTakeDate: string
-  bonuses: number
-  fines: number
   currentBonuses: number
   previousBonuses: number
   currentFines: number
   previousFines: number
-  balance: number | null
+  balance: number
+  currentSum: number
+  previousSum: number
 }
 
 export default async function Home() {
-  const {user: worker} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: {id: -1, rank: '', telegramId: -1}}
+  }))!.user
 
   const date = convertTZ(new Date(), 'Europe/Moscow')
 
@@ -76,102 +84,77 @@ export default async function Home() {
       .toFormat('dd.MM')
   }
 
-  const currentSalaryQuery = `
-  SELECT (sum(value))::int as value, (sum(coalesce(overwork, 0)) +
-    sum(coalesce((one_games ->> 'value')::int, 0)) +
-    sum(coalesce((two_games ->> 'value')::int, 0)) +
-    sum(coalesce((three_games ->> 'value')::int, 0)) +
-    sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
-  FROM salary.list
-  WHERE worker_id = ${worker?.id}
-  AND date BETWEEN '${current[0].toFormat('yyyy-MM-dd')}' AND '${current[1].toFormat('yyyy-MM-dd')}'`
+  let currentDates: [string | null, string | null] = [null, null]
+  let previousDates: [string | null, string | null] = [null, null]
 
-  const previousSalaryQuery = `
-  SELECT sum(value)::int as value, (sum(coalesce(overwork, 0)) +
-                sum(coalesce((one_games ->> 'value')::int, 0)) +
-                sum(coalesce((two_games ->> 'value')::int, 0)) +
-                sum(coalesce((three_games ->> 'value')::int, 0)) +
-                sum(coalesce((actor_games ->> 'value')::int, 0)))::int as overwork
-  FROM salary.list
-  WHERE worker_id = ${worker?.id}
-  AND date BETWEEN '${previous[0].toFormat('yyyy-MM-dd')}' AND '${previous[1].toFormat('yyyy-MM-dd')}'`
+  if (worker.rank === 'Актёр') {
+    currentDates = [
+      `'${current[0].startOf('month').toFormat('yyyy-MM-dd')}'::date`,
+      `('${current[0].startOf('month').toFormat('yyyy-MM-dd')}'::date + interval '14 days')::date`,
+    ]
 
-  // @ts-ignore
-  const results: [QueryResult<any>, QueryResult<any>] = await db.query(
-    `${currentSalaryQuery}; ${previousSalaryQuery}`,
-  )
-
-  let currentSalary = results[0].rows[0].value + results[0].rows[0].overwork
-  let previousSalary = results[1].rows[0].value + results[1].rows[0].overwork
-
-  let bonuses = 0
-  let fines = 0
-
-  let bonusesQuery = `
-    SELECT string_agg(bonuses, '+') as bonuses,string_agg(fines, '+') as fines
-    FROM salary.list
-    WHERE worker_id = ${worker?.id}`
-
-  let addon
-  let currentAddon = ` and date between '${current[0].startOf('month').toFormat('yyyy-MM-dd')}' and '${current[0].startOf('month').toFormat('yyyy-MM-dd')}'::date + interval '14 days'`
-  let previousAddon = ` and date between '${previous[0].startOf('month').toFormat('yyyy-MM-dd')}'::date + interval '14 days' and '${previous[0].endOf('month').toFormat('yyyy-MM-dd')}'`
-  if (currentSalaryTakeDate.startsWith('20')) {
-    const month = current[0].minus({month: 1})
-
-    addon = ` and extract(month from date) = ${month.month}`
+    previousDates = [
+      `('${previous[0].startOf('month').toFormat('yyyy-MM-dd')}'::date + interval '14 days')::date`,
+      `'${previous[0].endOf('month').toFormat('yyyy-MM-dd')}'::date`,
+    ]
   } else {
-    const month = previous[0].minus({month: 1})
+    if (currentSalaryTakeDate.startsWith('20')) {
+      const month = current[0].minus({month: 1})
 
-    addon = ` and extract(month from date) = ${month.month}`
+      currentDates = [
+        `'${month.startOf('month').toFormat('yyyy-MM-dd')}'::date`,
+        `'${month.endOf('month').toFormat('yyyy-MM-dd')}'::date`,
+      ]
+    } else {
+      const month = previous[0].minus({month: 1})
+
+      previousDates = [
+        `'${month.startOf('month').toFormat('yyyy-MM-dd')}'::date`,
+        `'${month.endOf('month').toFormat('yyyy-MM-dd')}'::date`,
+      ]
+    }
   }
 
-  const currentBonusesQuery = bonusesQuery + currentAddon
-  const previousBonusesQuery = bonusesQuery + previousAddon
+  const currentQuery = `
+    select * from functions.get_salary(${worker?.id}, '${current[0].toFormat('yyyy-MM-dd')}', '${current[1].toFormat('yyyy-MM-dd')}', ${currentDates[0]}, ${currentDates[1]})
+  `
 
-  bonusesQuery += addon
+  const previousQuery = `
+  select * from functions.get_salary(${worker?.id}, '${previous[0].toFormat('yyyy-MM-dd')}', '${previous[1].toFormat('yyyy-MM-dd')}', ${previousDates[0]},  ${previousDates[1]})
+  `
 
-  const bonusesResult = await db.query(bonusesQuery)
-  const currentBonusesResult = await db.query(currentBonusesQuery)
-  const previousBonusesResult = await db.query(previousBonusesQuery)
-  const bonusesData = bonusesResult.rows[0]
-  const currentBonusesData = currentBonusesResult.rows[0]
-  const previousBonusesData = previousBonusesResult.rows[0]
+  const currentSalaryResult = await db.query(currentQuery)
+  const previousSalaryResult = await db.query(previousQuery)
 
-  fines += evaluate(bonusesData.fines || '0')
-  bonuses += evaluate(bonusesData.bonuses || '0')
-
-  const currentBonuses = evaluate(currentBonusesData.bonuses || '0')
-  const previousBonuses = evaluate(previousBonusesData.bonuses || '0')
-
-  const currentFines = evaluate(currentBonusesData.fines || '0')
-  const previousFines = evaluate(previousBonusesData.fines || '0')
-
-  const balanceQuery = `select balance from workers where id = ${worker?.id}`
-
-  const balanceResult = await db.query(balanceQuery)
-
-  const balance = balanceResult.rows[0]?.balance
+  const currentSalaryData: SalaryData = currentSalaryResult.rows[0]
+  const previousSalaryData: SalaryData = previousSalaryResult.rows[0]
 
   const salaryData: ShortSalary = {
     currentDates: `${current[0].toFormat('dd.MM')}-${current[1].toFormat('dd.MM')}`,
-    currentSalary,
+    currentSalary:
+      currentSalaryData.value +
+      currentSalaryData.overwork +
+      currentSalaryData.games,
     previousDates: `${previous[0].toFormat('dd.MM')}-${previous[1].toFormat('dd.MM')}`,
-    previousSalary,
+    previousSalary:
+      previousSalaryData.value +
+      previousSalaryData.overwork +
+      previousSalaryData.games,
     currentSalaryTakeDate,
     previousSalaryTakeDate,
-    bonuses,
-    fines,
-    currentBonuses,
-    previousBonuses,
-    currentFines,
-    previousFines,
-    balance,
+    currentBonuses: currentSalaryData.bonuses,
+    previousBonuses: previousSalaryData.bonuses,
+    currentFines: currentSalaryData.fines,
+    previousFines: previousSalaryData.fines,
+    balance: currentSalaryData.balance,
+    currentSum: currentSalaryData.sum,
+    previousSum: previousSalaryData.sum,
   }
 
   const workingDays = await getWorkingDays({telegramId: worker.telegramId})
+
   return (
     <MainPage
-      // @ts-ignore
       worker={worker}
       // @ts-ignore
       workingDays={workingDays}
