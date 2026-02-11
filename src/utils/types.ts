@@ -79,6 +79,8 @@ export interface WorkerSalary {
   threeGames: {id: LTGamePayment['id']; value: number; number: number} | null
   actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
   workTypes: LTWorkType['id'][]
+  isConfirmed: boolean
+  taskId: number | null
 }
 //
 // export interface SalaryData {

@@ -19,7 +19,7 @@ import {addToast} from '@heroui/react'
 
 interface AdminPageProps {
   worker: LTWorker
-    workers: LTWorker[]
+  workers: LTWorker[]
   canEdit: boolean
   locations: LTLocation[]
   ranks: LTRank[]
@@ -52,7 +52,7 @@ export default function AdminPage({
   locations,
   workTypes,
   gamesPayments,
-    worker
+  worker,
 }: AdminPageProps) {
   const isMobile = useIsMobile()
   const [salaryData, setSalaryData] = useState<WorkerSalary[]>([
@@ -76,6 +76,34 @@ export default function AdminPage({
       today: currentDate,
     }
   }, [])
+
+  useEffect(() => {
+    if (worker.locationId) {
+      fetch('/api/salary/getLocationData', {
+        method: 'POST',
+        body: JSON.stringify({date: date?.toISO()}),
+      }).then(async res => {
+        const data: {data: WorkerSalary[]; faceId: LTFaceIdData[]} =
+          await res.json()
+
+        if (data.faceId.length) {
+          setFaceIdData(data.faceId)
+        }
+
+        if (data.data.length) {
+          setSalaryData(
+            data.data.map(v => ({
+              ...v,
+              value: v.value || undefined,
+              overwork: v.overwork || undefined,
+            })),
+          )
+        } else {
+          setSalaryData([defaultSalaryData])
+        }
+      })
+    }
+  }, [date, worker.locationId])
 
   const sendData = async () => {
     const workers = salaryData.map(d => d.worker)
@@ -141,38 +169,10 @@ export default function AdminPage({
     setLoading(false)
   }
 
-  useEffect(() => {
-    if (worker.locationId) {
-      fetch('/api/salary/getLocationData', {
-        method: 'POST',
-        body: JSON.stringify({date: date?.toISO()}),
-      }).then(async res => {
-        const data: {data: WorkerSalary[]; faceId: LTFaceIdData[]} =
-          await res.json()
-
-        if (data.faceId.length) {
-          setFaceIdData(data.faceId)
-        }
-
-        if (data.data.length) {
-          setSalaryData(
-            data.data.map(v => ({
-              ...v,
-              value: v.value || undefined,
-              overwork: v.overwork || undefined,
-            })),
-          )
-        } else {
-          setSalaryData([defaultSalaryData])
-        }
-      })
-    }
-  }, [date, worker.locationId])
-
   return isMobile ? (
     <MobileAdmin
       {...{
-          worker,
+        worker,
         faceId,
         gamesPayments,
         workTypes,
@@ -192,7 +192,7 @@ export default function AdminPage({
   ) : (
     <DesktopAdmin
       {...{
-          worker,
+        worker,
         faceId,
         gamesPayments,
         workTypes,

@@ -71,6 +71,10 @@ export async function POST(req: NextRequest) {
   const promises: Promise<boolean>[] = []
   const queries = []
 
+  const isConfirmed =
+    DateTime.now().setZone('Europe/Moscow').toFormat('yyyy-MM-dd') ===
+    date.toFormat('yyyy-MM-dd')
+
   for (const data of salaryData) {
     if (data.deleted) {
       queries.push(
@@ -277,7 +281,8 @@ export async function POST(req: NextRequest) {
                       two_games=excluded.two_games,
                       three_games=excluded.three_games,
                       actor_games=excluded.actor_games,
-                      work_types=excluded.work_types
+                      work_types=excluded.work_types,
+                      is_confirmed=${isConfirmed}
     `)
   }
 

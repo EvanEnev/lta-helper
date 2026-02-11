@@ -76,6 +76,18 @@ export default async function Home() {
       .toFormat('dd.MM')
   }
 
+  ;`select
+      s.sum,
+      s.value,
+      s.fines,
+      s.bonuses
+from functions.get_salary(
+       ${worker?.id},
+       '${current[0].toFormat('yyyy-MM-dd')}',
+       '${current[1].toFormat('yyyy-MM-dd')}',
+        
+     ) s`
+
   const currentSalaryQuery = `
   SELECT (sum(value))::int as value, (sum(coalesce(overwork, 0)) +
     sum(coalesce((one_games ->> 'value')::int, 0)) +
@@ -130,6 +142,7 @@ export default async function Home() {
 
   bonusesQuery += addon
 
+  console.debug(bonusesQuery)
   const bonusesResult = await db.query(bonusesQuery)
   const currentBonusesResult = await db.query(currentBonusesQuery)
   const previousBonusesResult = await db.query(previousBonusesQuery)
