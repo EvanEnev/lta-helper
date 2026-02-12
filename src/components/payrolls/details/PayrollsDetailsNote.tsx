@@ -12,13 +12,11 @@ import separateNumber from '@/lib/functions/separateNumber'
 
 interface PayrollsDetailsNoteProps {
   locationsData: LTMoneyOnLocationsData[]
-  locationSelectCallback: (location: LTLocation | null) => void
   data: LTWorkerPayrollData[]
 }
 
 export default function PayrollsDetailsNote({
   locationsData,
-  locationSelectCallback,
   data,
 }: PayrollsDetailsNoteProps) {
   const summaryBalance = useMemo(() => {
@@ -44,13 +42,6 @@ export default function PayrollsDetailsNote({
           Назад
         </Button>
       </div>
-      <LocationSelect
-        isClearable
-        callback={location => {
-          locationSelectCallback(location)
-        }}
-        locationId={-1}
-      />
       <div className="glass grid w-fit auto-rows-auto grid-cols-4 gap-2 rounded-2xl p-2">
         <p className="text-center">Локация</p>
         <Code color="primary" className="text-center">

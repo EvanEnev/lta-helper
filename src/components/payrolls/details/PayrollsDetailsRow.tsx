@@ -9,7 +9,7 @@ import {Button, Code, Divider, NumberInput} from '@heroui/react'
 import {DateTime} from 'luxon'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import {Ruble} from 'solar-icon-set'
-import {RefObject, useCallback, useState} from 'react'
+import {memo, RefObject, useCallback, useState} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {Socket} from 'socket.io-client'
 import {DefaultEventsMap} from 'socket.io'
@@ -29,7 +29,7 @@ interface PayrollsDetailsRowProps {
   worker: LTWorker
 }
 
-export default function PayrollsDetailsRow({
+function PayrollsDetailsRow({
   data,
   canIssue,
   locations,
@@ -38,6 +38,8 @@ export default function PayrollsDetailsRow({
   socketRef,
   worker,
 }: PayrollsDetailsRowProps) {
+  console.log('row render', worker.id)
+
   const headerSizes = useAtomValue(headerSizesAtom)
   const isMobile = useIsMobile()
   const [loading, setLoading] = useState(false)
@@ -267,3 +269,5 @@ export default function PayrollsDetailsRow({
     </>
   )
 }
+
+export default memo(PayrollsDetailsRow)
