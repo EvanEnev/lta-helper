@@ -41,6 +41,8 @@ export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
         <div className="items-between flex flex-col justify-start gap-4">
           <User worker={worker} />
           {buttons.map((button, index) => {
+            if (button.hide) return ''
+
             if (
               button.permission &&
               !checkPermissions([button.permission], worker)

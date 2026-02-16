@@ -15,7 +15,8 @@ interface ButtonBase {
   name: string
   href: string
   permission?: string
-  isDisabled?: boolean
+  isDisabled?: boolean // Админы видят
+  hide?: boolean // Не видит никто
   icon?: ElementType
   className?: string
 }
@@ -34,6 +35,7 @@ const buttons: PathButton[] = [
             before:shadow-[inset_0_0_20px_rgba(168,85,247,0.6)]
             before:pointer-events-none`,
     icon: ConfettiMinimalistic,
+    hide: true,
   },
   {name: 'Главная', href: '/', icon: Home},
   {name: 'График работы', href: '/schedule', icon: ClockCircle},

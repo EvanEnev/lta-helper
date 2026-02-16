@@ -11,9 +11,8 @@ import {
 } from '@heroui/react'
 import {Button, Separator, Link} from '@heroui/react-beta'
 import {usePathname} from 'next/navigation'
-import {HamburgerMenu, Home} from 'solar-icon-set'
+import {HamburgerMenu} from 'solar-icon-set'
 import buttonsRaw from '@/src/utils/global/pathButtons'
-import User from '@/src/components/global/header/User'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {LTWorker} from '@/src/utils/types'
 import {Fragment, Ref} from 'react'
@@ -77,6 +76,8 @@ export default function MobileHeader({
           </DrawerHeader>
           <DrawerBody>
             {buttonsRaw.map((button, index) => {
+              if (button.hide) return ''
+
               if (
                 button.permission &&
                 !checkPermissions([button.permission], worker)
