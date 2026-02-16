@@ -2,12 +2,11 @@ import {
   Accordion,
   AccordionItem,
   Button,
-  CalendarDate,
-  DatePicker,
+  DateValue,
   Selection,
 } from '@heroui/react'
 import WorkData from './WorkData'
-import {useCallback, useState} from 'react'
+import {useState} from 'react'
 import {
   LTFaceIdData,
   LTGamePayment,
@@ -19,8 +18,7 @@ import {
 } from '@/src/utils/types'
 import {MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
-import {today} from '@internationalized/date'
-import convertTZ from '@/lib/functions/convertTZ'
+import AdminDatePicker from '@/src/components/admin/AdminDatePicker'
 
 interface MobileAdminProps {
   worker: LTWorker
@@ -62,46 +60,16 @@ export default function MobileAdmin({
   const [key, setKey] = useState(0)
   const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set(['0']))
 
-  const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
+  const updateDate = (date: DateValue | null) => {
+    if (!date) return
 
-  const checkDateValid = useCallback(
-    (date: DateTime) => {
-      const now = convertTZ(new Date(), 'Europe/Moscow').set({
-        hour: 0,
-      })
-
-      let isInvalid = false
-
-      const diff = Math.floor(now.diff(date).as('days'))
-
-      if (!canEdit && diff >= 1) {
-        if (date > now) {
-          isInvalid = true
-        } else if (diff === 1 && date < now && now.hour > 3) {
-          isInvalid = true
-        } else if (diff >= 2) {
-          isInvalid = true
-        }
-      }
-
-      setIsDateInvalid(isInvalid)
-      return isInvalid
-    },
-    [canEdit],
-  )
-
-  const updateDate = (date: CalendarDate) => {
     const datetime = DateTime.fromObject({
       day: date.day,
       month: date.month,
       year: date.year,
     })
 
-    const isInvalid = checkDateValid(datetime)
-
-    if (!isInvalid) {
-      setDate(datetime)
-    }
+    setDate(datetime)
   }
 
   const addSalaryData = () => {
@@ -139,30 +107,8 @@ export default function MobileAdmin({
   return (
     <main className="flex min-h-screen flex-col items-center justify-start gap-4 p-4">
       <div className="flex gap-4">
-        <DatePicker
-          isInvalid={isDateInvalid}
-          errorMessage="Дата вне диапазона"
-          isDateUnavailable={date =>
-            //@ts-ignore
-            date.compare(today('Europe/Moscow').subtract({days: 1})) === 0 &&
-            days.today.hour > 3 &&
-            !canEdit
-          }
-          selectorButtonPlacement="start"
-          firstDayOfWeek="mon"
-          className="h-16 w-full"
-          classNames={{inputWrapper: 'h-16'}}
-          // @ts-ignore
-          onChange={(date: CalendarDate) => updateDate(date)}
-          //@ts-ignore
-          minValue={today('Europe/Moscow').subtract({days: 1})}
-          //@ts-ignore
-          maxValue={today('Europe/Moscow')}
-          // @ts-ignore
-          defaultValue={today('Europe/Moscow')}
-        />
+        <AdminDatePicker callback={updateDate} canEdit={canEdit} />
       </div>
-
       <Accordion
         variant="splitted"
         className="p-0"
@@ -219,7 +165,6 @@ export default function MobileAdmin({
         Добавить
       </Button>
       <Button
-        isDisabled={isDateInvalid}
         size="lg"
         color="primary"
         className="h-16 w-full"

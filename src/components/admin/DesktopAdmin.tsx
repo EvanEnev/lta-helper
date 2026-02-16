@@ -7,7 +7,7 @@ import {
   LTWorkType,
   WorkerSalary,
 } from '@/src/utils/types'
-import {CalendarDate, DatePicker, semanticColors} from '@heroui/react'
+import {DateValue, semanticColors} from '@heroui/react'
 import {Button, Card} from '@heroui/react-beta'
 import WorkData from './WorkData'
 import {
@@ -19,11 +19,9 @@ import {
   RestartCircle,
 } from 'solar-icon-set'
 import {DateTime} from 'luxon'
-import {today} from '@internationalized/date'
-import {useCallback, useState} from 'react'
-import convertTZ from '@/lib/functions/convertTZ'
 import isDark from '@/lib/functions/isDark'
 import {useTheme} from 'next-themes'
+import AdminDatePicker from '@/src/components/admin/AdminDatePicker'
 
 interface DesktopAdminProps {
   faceId: LTFaceIdData[]
@@ -63,46 +61,17 @@ export default function DesktopAdmin({
   worker,
 }: DesktopAdminProps) {
   const {theme = 'dark'} = useTheme()
-  const [isDateInvalid, setIsDateInvalid] = useState<boolean>(false)
 
-  const checkDateValid = useCallback(
-    (date: DateTime) => {
-      const now = convertTZ(new Date(), 'Europe/Moscow').set({
-        hour: 0,
-      })
+  const updateDate = (date: DateValue | null) => {
+    if (!date) return
 
-      let isInvalid = false
-
-      const diff = Math.floor(now.diff(date).as('days'))
-
-      if (!canEdit && diff >= 1) {
-        if (date > now) {
-          isInvalid = true
-        } else if (diff === 1 && date < now && now.hour > 3) {
-          isInvalid = true
-        } else if (diff >= 2) {
-          isInvalid = true
-        }
-      }
-
-      setIsDateInvalid(isInvalid)
-      return isInvalid
-    },
-    [canEdit],
-  )
-
-  const updateDate = (date: CalendarDate) => {
     const datetime = DateTime.fromObject({
       day: date.day,
       month: date.month,
       year: date.year,
     })
 
-    const isInvalid = checkDateValid(datetime)
-
-    if (!isInvalid) {
-      setDate(datetime)
-    }
+    setDate(datetime)
   }
 
   return (
@@ -110,7 +79,6 @@ export default function DesktopAdmin({
       <div className="flex h-full w-full flex-wrap gap-2 overflow-auto">
         {salaryData.map((data, index) => {
           const location = locations.find(l => l.name === data.location)
-
           const textColorClass =
             theme === 'dark'
               ? isDark(location?.color || '#000000')
@@ -231,32 +199,7 @@ export default function DesktopAdmin({
       </div>
       <Card className="sticky top-2 z-1000 h-fit w-[22vw]">
         <Card.Content className="gap-4">
-          <DatePicker
-            variant="bordered"
-            aria-label="Дата"
-            isInvalid={isDateInvalid}
-            errorMessage="Дата вне диапазона"
-            isDateUnavailable={date =>
-              //@ts-ignore
-              date.compare(today('Europe/Moscow').subtract({days: 1})) === 0 &&
-              days.today.hour > 3 &&
-              !canEdit
-            }
-            selectorButtonPlacement="start"
-            firstDayOfWeek="mon"
-            className="h-16 w-full p-0!"
-            classNames={{inputWrapper: 'h-16'}}
-            // @ts-ignore
-            onChange={(date: CalendarDate) => updateDate(date)}
-            //@ts-ignore
-            minValue={
-              canEdit ? null : today('Europe/Moscow').subtract({days: 1})
-            }
-            //@ts-ignore
-            maxValue={canEdit ? null : today('Europe/Moscow')}
-            // @ts-ignore
-            defaultValue={today('Europe/Moscow')}
-          />
+          <AdminDatePicker callback={updateDate} canEdit={canEdit} />
           <Button
             className="h-14 w-full py-2"
             size="lg"
@@ -280,7 +223,6 @@ export default function DesktopAdmin({
             Добавить
           </Button>
           <Button
-            isDisabled={isDateInvalid}
             size="lg"
             variant="primary"
             className="h-16 w-full"

@@ -13,9 +13,9 @@ import {headers} from 'next/headers'
 import getLocations from '@/lib/functions/getLocations'
 
 interface KonsolBody {
-  // title: string
+  title: string
   since_date: string
-  // since_time: string
+  since_time: string
   upto_date: string
   duties: {
     template_id: number
@@ -93,7 +93,6 @@ export async function POST(req: NextRequest) {
     const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
 
-    console.debug(data)
     const salary = getSalaryData({
       gamesPayments,
       worker: user,
@@ -164,13 +163,13 @@ export async function POST(req: NextRequest) {
       const userDataQuery = `select
                                replace(replace(phone_number, ' ', ''), '-', '') as phone,
                                last_name || ' ' || first_name || ' ' || middle_name as name from workers
-                            where name ilike ${data.worker}`
+                            where name ilike '${data.worker}'`
 
       const userData = await db.query(userDataQuery)
 
       const duties: KonsolBody['duties'] = []
 
-      if (data.oneGames?.value) {
+      if (salary.oneGames && data.oneGames?.number) {
         duties.push({
           template_id: gamesPayments.find(d => d.id === data.oneGames!.id)!
             .konsol_id!,
@@ -178,7 +177,7 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      if (data.twoGames?.value) {
+      if (salary.twoGames && data.twoGames?.number) {
         duties.push({
           template_id: gamesPayments.find(d => d.id === data.twoGames!.id)!
             .konsol_id!,
@@ -186,7 +185,7 @@ export async function POST(req: NextRequest) {
         })
       }
 
-      if (data.threeGames?.value) {
+      if (salary.threeGames && data.threeGames?.number) {
         duties.push({
           template_id: gamesPayments.find(d => d.id === data.threeGames!.id)!
             .konsol_id!,
@@ -195,6 +194,8 @@ export async function POST(req: NextRequest) {
       }
 
       const konsolBody: KonsolBody = {
+        title: 'Проведение лазертаг-игр',
+        since_time: salary.start_time || '09:00',
         address_id: location.konsol_id,
         duties,
         contractor: {
@@ -208,7 +209,6 @@ export async function POST(req: NextRequest) {
       konsolBodies.push(konsolBody)
     }
 
-    console.debug(salary)
     queries.push(`INSERT INTO salary.list
                   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
                   VALUES
@@ -313,10 +313,17 @@ export async function POST(req: NextRequest) {
       }),
     )
 
+    console.debug(JSON.stringify(konsolBodies, null, 2))
+
     try {
-      await Promise.all(konsolPromises)
+      const res = await Promise.all(konsolPromises)
+      for (const r of res) {
+        console.debug(await r.json())
+      }
     } catch (e: any) {
       logger.error('konsolSend', {data: loggerData, error: e})
+      console.error('konsol error')
+      console.error(e, konsolBodies)
       return NextResponse.json({message: e.message || ''}, {status: 500})
     }
   }
