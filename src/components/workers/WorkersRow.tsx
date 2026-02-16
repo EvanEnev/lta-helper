@@ -33,6 +33,10 @@ interface WorkersRowProps {
     toDelete: boolean
     meta: RankUpdateData['meta']
   }) => void
+  updateWorkerRank: (
+    workerId: number,
+    type: 'promote' | 'demote',
+  ) => Promise<void>
 }
 
 export default function WorkersRow({
@@ -42,6 +46,7 @@ export default function WorkersRow({
   minRankId,
   canEdit,
   updateCallback,
+  updateWorkerRank,
 }: WorkersRowProps) {
   const categories = useMemo(
     () =>
@@ -99,6 +104,7 @@ export default function WorkersRow({
         <Activity mode={canEdit ? 'visible' : 'hidden'}>
           <div className="flex flex-col gap-2">
             <Button
+              onPress={() => updateWorkerRank(data.id, 'promote')}
               className="w-full"
               variant="secondary"
               isDisabled={data.rank.id === maxRankId}>
@@ -106,6 +112,7 @@ export default function WorkersRow({
               Повысить
             </Button>
             <Button
+              onPress={() => updateWorkerRank(data.id, 'demote')}
               className="w-full"
               variant="danger-soft"
               isDisabled={data.rank.id === minRankId}>
@@ -204,7 +211,7 @@ export default function WorkersRow({
                               <>
                                 <NumberField
                                   isReadOnly={!canEdit}
-                                  defaultValue={req.value || 0}
+                                  defaultValue={req.value || undefined}
                                   variant="secondary"
                                   minValue={0}
                                   onChange={v =>

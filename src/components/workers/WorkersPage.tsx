@@ -5,6 +5,7 @@ import WorkersRow from '@/src/components/workers/WorkersRow'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {io, Socket} from 'socket.io-client'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface WorkerPageProps {
   worker: LTWorker
@@ -113,6 +114,39 @@ export default function WorkersPage({
     [],
   )
 
+  const updateWorkerRank = useCallback(
+    async (workerId: number, type: 'promote' | 'demote') => {
+      const url = `/api/workers/${type}`
+
+      const res = await fetchHandler({url, method: 'POST', body: {workerId}})
+
+      if (res.newRank) {
+        setWorkers(prev => {
+          const newList = prev.map(w =>
+            w.id === workerId ? {...w, rank: res.newRanks} : w,
+          )
+
+          newList.sort((a, b) => {
+            const formerA = a.isFormer ?? false
+            const formerB = b.isFormer ?? false
+
+            if (formerA !== formerB) return Number(formerA) - Number(formerB)
+
+            const weightA = a.rank.sortingWeight ?? 0
+            const weightB = b.rank.sortingWeight ?? 0
+
+            if (weightB !== weightA) return weightB - weightA
+
+            return a.name.localeCompare(b.name)
+          })
+
+          return [...newList]
+        })
+      }
+    },
+    [],
+  )
+
   return (
     <main className="h-full p-2">
       <div className="flex h-full flex-col gap-4">
@@ -125,6 +159,7 @@ export default function WorkersPage({
             worker={worker}
             data={data}
             updateCallback={updateCallback}
+            updateWorkerRank={updateWorkerRank}
           />
         ))}
       </div>

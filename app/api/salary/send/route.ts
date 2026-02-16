@@ -1,82 +1,21 @@
 import {NextRequest, NextResponse} from 'next/server'
 import {WorkerSalary} from '@/src/utils/types'
 import {DateTime} from 'luxon'
-// import google, {GoogleDocument} from '@/lib/google'
-// import {
-//   GoogleSpreadsheetRow,
-//   GoogleSpreadsheetWorksheet,
-// } from 'google-spreadsheet'
 import db from '@/lib/database'
 import convertTZ from '@/lib/functions/convertTZ'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import getRanks from '@/lib/functions/getRanks'
 import getSalaryData from '@/lib/functions/getSalaryData'
-// import updatePoints from '@/src/utils/admin/updatePoints'
 import logger from '@/Logger'
 import getGamePayments from '@/lib/functions/getGamesPayments'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 
-// export interface SheetData {
-//   sheets: {
-//     pointsSheet: GoogleSpreadsheetWorksheet
-//     goldPointsSheet: GoogleSpreadsheetWorksheet
-//     platinumPointsSheet: GoogleSpreadsheetWorksheet
-//   }
-//   rows: {
-//     pointsRows: GoogleSpreadsheetRow[]
-//     goldPointsRows: GoogleSpreadsheetRow[]
-//     platinumPointsRows: GoogleSpreadsheetRow[]
-//   }
-// }
-
-// const loadData = async (google: GoogleDocument): Promise<SheetData> => {
-//   await Promise.all([
-//     google.actors.loadInfo(),
-//     google.workers.loadInfo(),
-//     google.schedule.loadInfo(),
-//   ])
-//
-//   const pointsSheet = google.schedule.sheetsByTitle['Баллы онлайн']
-//   const goldPointsSheet = google.schedule.sheetsByTitle['Баллы онлайн (ЗОЛОТО)']
-//   const platinumPointsSheet =
-//     google.schedule.sheetsByTitle['Баллы онлайн (ПЛАТИНА) ']
-//
-//   // await Promise.all([
-//   //   pointsSheet.loadHeaderRow(),
-//   //   goldPointsSheet.loadHeaderRow(),
-//   //   platinumPointsSheet.loadHeaderRow(),
-//   // ])
-//
-//   const [
-//     pointsRows,
-//     goldPointsRows,
-//     platinumPointsRows,
-//   ]: GoogleSpreadsheetRow[][] = await Promise.all([
-//     pointsSheet.getRows(),
-//     goldPointsSheet.getRows(),
-//     platinumPointsSheet.getRows(),
-//   ])
-//
-//   return {
-//     sheets: {
-//       pointsSheet,
-//       goldPointsSheet,
-//       platinumPointsSheet,
-//     },
-//     rows: {
-//       pointsRows,
-//       goldPointsRows,
-//       platinumPointsRows,
-//     },
-//   }
-// }
-
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const {user} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: null}
+  }))!.user
 
   const salaryData: WorkerSalary[] = body.salaryData?.filter(
     (data: WorkerSalary) => data.worker && data.location,
@@ -84,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   let date: Date | DateTime = new Date(body.date)
 
-  if (!user) {
+  if (!worker) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
@@ -102,10 +41,7 @@ export async function POST(req: NextRequest) {
 
   date = convertTZ(date, 'Europe/Moscow')
 
-  // const sheetData = await loadData(google)
-  // const {pointsSheet, goldPointsSheet, platinumPointsSheet} = sheetData.sheets
-
-  if (!checkPermissions(['set_salary'], user)) {
+  if (!checkPermissions(['set_salary'], worker)) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
   }
 
@@ -137,7 +73,7 @@ export async function POST(req: NextRequest) {
     console.debug(data)
     const salary = getSalaryData({
       gamesPayments,
-      worker: user,
+      worker,
       rank: rankData,
       workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
       fines: data.fines,
@@ -174,20 +110,6 @@ export async function POST(req: NextRequest) {
 
     if (!salary) continue
 
-    // if (!data.comment?.toLowerCase().includes('под игру')) {
-    //   promises.push(
-    //     updatePoints({
-    //       name: data.worker,
-    //       rank,
-    //       sheetData,
-    //       hasGames: !!data.hasGames,
-    //       comment: data.comment,
-    //       location: data.location,
-    //       date,
-    //     }),
-    //   )
-    // }
-
     if (data.withoutDate) {
       const query = `SELECT date FROM salary.list WHERE
                                    worker_id = (SELECT id FROM workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
@@ -208,7 +130,30 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.debug(salary)
+    if (!data.comment?.toLowerCase().includes('под игру')) {
+      queries.push(
+        `insert into relations.workers_requirements
+         (requirement_id, worker_id, value)
+       select
+         r.id,
+         w.id,
+         1
+       from workers w
+              join ranks.requirements r
+                   on r.rank_id = w.rank_id
+       where w.id = (select id FROM workers WHERE name ilike '${data.worker}')
+         and (r.meta ->> 'auto')::bool = true
+
+       on conflict (requirement_id, worker_id)
+         do update
+         set value = relations.workers_requirements.value + 1
+      where not exists(
+        select 1 from salary.list where worker_id = relations.workers_requirements.worker_id and date = '${date.toFormat('yyyy-MM-dd')}'
+      )
+      `,
+      )
+    }
+
     queries.push(`INSERT INTO salary.list
                   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
                   VALUES
@@ -286,7 +231,7 @@ export async function POST(req: NextRequest) {
   }
 
   loggerData.queries = queries
-  loggerData.user = user
+  loggerData.user = worker
 
   logger.info('sendWorkDays', {data: loggerData})
 
@@ -294,13 +239,6 @@ export async function POST(req: NextRequest) {
     const queriesPromises = queries.map(query => db.query(query))
     try {
       await Promise.all([...promises, ...queriesPromises])
-      //   .then(async () => {
-      //   await Promise.all([
-      //     pointsSheet.saveUpdatedCells(),
-      //     goldPointsSheet.saveUpdatedCells(),
-      //     platinumPointsSheet.saveUpdatedCells(),
-      //   ])
-      // })
     } catch (e: any) {
       logger.error('sendWorkDays', {data: loggerData, error: e})
       return NextResponse.json({message: e.message || ''}, {status: 500})
