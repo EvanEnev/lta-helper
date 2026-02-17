@@ -20,6 +20,7 @@ interface KonsolBody {
   duties: {
     template_id: number
     quantity: number
+    price: number
   }[]
   contractor: {name: string; phone: string}
   address_id: number
@@ -169,29 +170,19 @@ export async function POST(req: NextRequest) {
 
       const duties: KonsolBody['duties'] = []
 
-      if (salary.oneGames && data.oneGames?.number) {
-        duties.push({
-          template_id: gamesPayments.find(d => d.id === data.oneGames!.id)!
-            .konsol_id!,
-          quantity: data.oneGames.number,
-        })
-      }
+      ;['oneGames', 'twoGames', 'threeGames'].forEach(game => {
+        // @ts-ignore
+        if (salary[game] && data[game]?.number) {
+          const paymentData = gamesPayments.find(d => d.name === game)!
 
-      if (salary.twoGames && data.twoGames?.number) {
-        duties.push({
-          template_id: gamesPayments.find(d => d.id === data.twoGames!.id)!
-            .konsol_id!,
-          quantity: data.twoGames.number,
-        })
-      }
-
-      if (salary.threeGames && data.threeGames?.number) {
-        duties.push({
-          template_id: gamesPayments.find(d => d.id === data.threeGames!.id)!
-            .konsol_id!,
-          quantity: data.threeGames.number,
-        })
-      }
+          duties.push({
+            template_id: paymentData.konsol_id!,
+            // @ts-ignore
+            quantity: data[game].number,
+            price: paymentData.value,
+          })
+        }
+      })
 
       const konsolBody: KonsolBody = {
         title: 'Проведение лазертаг-игр',
