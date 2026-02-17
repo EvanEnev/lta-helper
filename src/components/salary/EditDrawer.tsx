@@ -14,7 +14,7 @@ import {
   Textarea,
   useDisclosure,
 } from '@heroui/react'
-import {DateInputGroup, TimeField} from '@heroui/react-beta'
+import {DateInputGroup, TimeField, TimeValue} from '@heroui/react-beta'
 import {
   BillCheck,
   BillCross,
@@ -68,6 +68,36 @@ export default function EditDrawer({
     [data.date],
   )
 
+  const times = useMemo(() => {
+    let startTime = time.start
+    let endTime = time.end
+    let overworkStartTime = overworkTime.start || null
+    let overworkEndTime = overworkTime.end || null
+
+    if (startTime.startsWith('24')) {
+      startTime = startTime.replace('24', '00')
+    }
+
+    if (endTime.startsWith('24')) {
+      endTime = endTime.replace('24', '00')
+    }
+
+    if (overworkStartTime?.startsWith('24')) {
+      overworkStartTime = overworkStartTime.replace('24', '00')
+    }
+
+    if (overworkEndTime?.startsWith('24')) {
+      overworkEndTime = overworkEndTime.replace('24', '00')
+    }
+
+    return {
+      start: parseTime(startTime),
+      end: parseTime(endTime),
+      overworkStart: overworkStartTime ? parseTime(overworkStartTime) : null,
+      overworkEnd: overworkEndTime ? parseTime(overworkEndTime) : null,
+    }
+  }, [overworkTime.end, overworkTime.start, time.end, time.start])
+
   const update = useCallback(
     (
       value:
@@ -78,7 +108,8 @@ export default function EditDrawer({
           }
         | DateValue
         | null
-        | {number: number | null; value: number | null; id: number | null},
+        | {number: number | null; value: number | null; id: number | null}
+        | TimeValue,
       type:
         | 'delete'
         | 'location'
@@ -106,7 +137,7 @@ export default function EditDrawer({
       if (
         ['startTime', 'endTime', 'overworkStart', 'overworkEnd'].includes(type)
       ) {
-        value = value as {hour: number; minute: number}
+        value = value as TimeValue
 
         if (!value) {
           value = 'NULL'
@@ -180,9 +211,9 @@ export default function EditDrawer({
                 </div>
                 <TimeField
                   // @ts-ignore
-                  value={parseTime(time.start)}
+                  value={times.start}
                   onChange={value => update(value, 'startTime')}
-                  isReadOnly
+                  isReadOnly={isReadOnly}
                   name="workStart">
                   <DateInputGroup
                     variant="secondary"
@@ -194,9 +225,9 @@ export default function EditDrawer({
                 </TimeField>
                 <TimeField
                   // @ts-ignore
-                  value={parseTime(time.end)}
+                  value={times.end}
                   onChange={value => update(value, 'endTime')}
-                  isReadOnly
+                  isReadOnly={isReadOnly}
                   name="workStart">
                   <DateInputGroup
                     variant="secondary"
@@ -222,14 +253,11 @@ export default function EditDrawer({
                   <History iconStyle="Bold" size={22} />
                   <p>Переработка</p>
                 </div>
-                {/*// @ts-ignore*/}
                 <TimeField
                   // @ts-ignore
-                  value={
-                    overworkTime.start ? parseTime(overworkTime.start) : null
-                  }
+                  value={times.overworkStart}
                   onChange={value => update(value, 'overworkStart')}
-                  isReadOnly
+                  isReadOnly={isReadOnly}
                   name="workStart">
                   <DateInputGroup
                     variant="secondary"
@@ -241,9 +269,9 @@ export default function EditDrawer({
                 </TimeField>
                 <TimeField
                   // @ts-ignore
-                  value={overworkTime.end ? parseTime(overworkTime.end) : null}
+                  value={times.overworkEnd}
                   onChange={value => update(value, 'overworkEnd')}
-                  isReadOnly
+                  isReadOnly={isReadOnly}
                   name="workStart">
                   <DateInputGroup
                     variant="secondary"
