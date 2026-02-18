@@ -304,6 +304,7 @@ export default async function getLocationSalaryData({
            WHERE s.date BETWEEN p.date_from AND p.date_to
              AND (p.worker_filter   IS NULL OR s.worker_id   = p.worker_filter)
              AND (p.location_filter IS NULL OR s.location_id = p.location_filter)
+           and coalesce(s.is_confirmed, false) = true
          ), payments_filtered AS (
       SELECT
         p.worker_id,

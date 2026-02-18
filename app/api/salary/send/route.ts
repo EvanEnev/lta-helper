@@ -13,6 +13,8 @@ import {headers} from 'next/headers'
 import getLocations from '@/lib/functions/getLocations'
 
 interface KonsolBody {
+  worker_id?: number
+  date?: string
   title: string
   since_date: string
   since_time: string
@@ -22,7 +24,8 @@ interface KonsolBody {
     quantity: number
     price: number
   }[]
-  contractor: {name: string; phone: string}
+  contractor?: {phone: string}
+  contractor_ids: number[]
   address_id: number
 }
 
@@ -162,18 +165,26 @@ export async function POST(req: NextRequest) {
       !KONSOL_DISABLED_RANKS.includes(rankData?.id || 1)
     ) {
       const userDataQuery = `select
-                               replace(replace(phone_number, ' ', ''), '-', '') as phone,
-                               last_name || ' ' || first_name || ' ' || middle_name as name from workers
+                              id,
+                               replace(replace(phone_number, ' ', ''), '-', '') as phone
+                            from workers
                             where name ilike '${data.worker}'`
 
       const userData = await db.query(userDataQuery)
 
-      const duties: KonsolBody['duties'] = []
+      const duties: KonsolBody['duties'] = [
+        {
+          template_id: 75920,
+          quantity: 1,
+          price: salary.value,
+        },
+      ]
 
       ;['oneGames', 'twoGames', 'threeGames'].forEach(game => {
         // @ts-ignore
         if (salary[game] && data[game]?.number) {
-          const paymentData = gamesPayments.find(d => d.name === game)!
+          // @ts-ignore
+          const paymentData = gamesPayments.find(d => d.id === data[game]?.id)!
 
           duties.push({
             template_id: paymentData.konsol_id!,
@@ -185,16 +196,18 @@ export async function POST(req: NextRequest) {
       })
 
       const konsolBody: KonsolBody = {
+        worker_id: userData.rows[0].id,
+        date: date.toFormat('yyyy-MM-dd'),
         title: 'Проведение лазертаг-игр',
         since_time: salary.start_time || '09:00',
         address_id: location.konsol_id,
         duties,
         contractor: {
-          name: userData.rows[0].name,
           phone: userData.rows[0].phone,
         },
         since_date: date.toFormat('yyyy-MM-dd'),
         upto_date: date.toFormat('yyyy-MM-dd'),
+        contractor_ids: [],
       }
 
       konsolBodies.push(konsolBody)
@@ -282,39 +295,148 @@ export async function POST(req: NextRequest) {
 
   logger.info('sendWorkDays', {data: loggerData})
 
+  const konsolIds: number[] = []
+
+  for (const body1 of konsolBodies) {
+    const workerId = body1.worker_id!
+    const date = body1.date!
+
+    const locationRes = await fetch(
+      `https://api.konsol.pro/bus/alpha/workflow/locations/${body1.address_id}`,
+      {
+        method: 'GET',
+        headers: {Authorization: `${process.env.KONSOL_TOKEN}`},
+      },
+    )
+
+    let locationData
+    try {
+      locationData = await locationRes.json()
+    } catch (e: any) {
+      return NextResponse.json(
+        {
+          message: e instanceof Error ? e.message || '' : '',
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    if (locationData.error) {
+      return NextResponse.json(
+        {
+          message: locationData.error,
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    body1.address_id = locationData.address.id
+
+    const workerRes = await fetch(
+      `https://api.konsol.pro/v2/contractors?phone=${body1.contractor!.phone}`,
+      {
+        method: 'GET',
+        headers: {Authorization: `${process.env.KONSOL_TOKEN}`},
+      },
+    )
+
+    let workerData
+    try {
+      workerData = (await workerRes.json())[0]
+    } catch (e: any) {
+      return NextResponse.json(
+        {
+          message: e instanceof Error ? e.message || '' : '',
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    if (workerData.error) {
+      return NextResponse.json(
+        {
+          message: workerData.error,
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    body1.contractor_ids = [workerData.id]
+
+    delete body1.contractor
+    delete body1.worker_id
+    delete body1.date
+
+    const res = await fetch(
+      'https://api.konsol.pro/bus/alpha/workflow/platform/tasks ',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body1),
+      },
+    )
+
+    let resData
+    try {
+      resData = await res.json()
+    } catch (e: any) {
+      return NextResponse.json(
+        {
+          message: e instanceof Error ? e.message || '' : '',
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    if (resData.error) {
+      return NextResponse.json(
+        {
+          message: resData.error,
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    const taskId: number = resData.task_id
+
+    konsolIds.push(taskId)
+
+    const query = `update salary.list set task_id = ${taskId} where worker_id=${workerId} and date='${date}'`
+    queries.push(query)
+  }
+
+  if (konsolIds.length) {
+    await fetch('https://api.konsol.pro/bus/alpha/workflow/tasks/submit', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ids: konsolIds}),
+    })
+  }
+
   if (queries.length) {
     const queriesPromises = queries.map(query => db.query(query))
     try {
       await Promise.all([...promises, ...queriesPromises])
     } catch (e: any) {
       logger.error('sendWorkDays', {data: loggerData, error: e})
-      return NextResponse.json({message: e.message || ''}, {status: 500})
-    }
-  }
-
-  if (konsolBodies.length) {
-    const konsolPromises = konsolBodies.map(body =>
-      fetch('https://api.konsol.pro/bus/alpha/workflow/tasks', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      }),
-    )
-
-    console.debug(JSON.stringify(konsolBodies, null, 2))
-
-    try {
-      const res = await Promise.all(konsolPromises)
-      for (const r of res) {
-        console.debug(await r.json())
-      }
-    } catch (e: any) {
-      logger.error('konsolSend', {data: loggerData, error: e})
-      console.error('konsol error')
-      console.error(e, konsolBodies)
       return NextResponse.json({message: e.message || ''}, {status: 500})
     }
   }
