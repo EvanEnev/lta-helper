@@ -17,7 +17,6 @@ interface KonsolBody {
   date?: string
   title: string
   since_date: string
-  since_time: string
   upto_date: string
   duties: {
     template_id: number
@@ -199,7 +198,6 @@ export async function POST(req: NextRequest) {
         worker_id: userData.rows[0].id,
         date: date.toFormat('yyyy-MM-dd'),
         title: 'Проведение лазертаг-игр',
-        since_time: salary.start_time || '09:00',
         address_id: location.konsol_id,
         duties,
         contractor: {
