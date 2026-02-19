@@ -130,6 +130,7 @@ export default async function PayrollsCreate({
         value: row.balance,
         bonuses: 0,
         fines: 0,
+        balance: row.balance,
       }
 
       // @ts-ignore
@@ -139,6 +140,7 @@ export default async function PayrollsCreate({
 
       // @ts-ignore
       newData.value = (Number(newData.value) || 0) + (Number(row.balance) || 0)
+      newData.balance = row.balance
       data[index] = newData
     }
   })

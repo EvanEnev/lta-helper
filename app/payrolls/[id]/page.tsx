@@ -32,7 +32,8 @@ export default async function PayrollDetails({params}: PayrollDetailsProps) {
     json_build_object(
         'name', w.name,
         'id', w.id,
-        'rank', r.name
+        'rank', r.name,
+        '_searchName', lower(unaccent(w.name))
     ) as worker,
     wp.value as value,
     wp.bonuses,

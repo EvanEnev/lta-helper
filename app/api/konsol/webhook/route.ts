@@ -1,34 +1,52 @@
 import {NextRequest, NextResponse} from 'next/server'
 import db from '@/lib/database'
+import {DateTime} from 'luxon'
 
 export async function POST(req: NextRequest) {
   let data
+
   try {
     data = await req.json()
   } catch {
     return NextResponse.json({ok: true}, {status: 200})
   }
 
+  console.debug('WEBHOOK')
+  console.debug(data)
+
   const action = data.manifest.action_cipher
 
-  if (action === 'billing_tcb.payment_succeeded') {
-    const task_id = data.details.task_id
+  if (action === 'workflow.finalize_tasks') {
+    const id = data.details.id
 
-    const res = await fetch(`https://api.konsol.pro/v2/acts/${task_id}`, {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+    const today = DateTime.now().setZone('Europe/Moscow').toFormat('yyyy-MM-dd')
+
+    const res = await fetch(
+      `https://api.konsol.pro/v2/acts?created_at_from=${today}`,
+      {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+        },
       },
-    })
+    )
 
-    let taskData
+    let tasks
 
     try {
-      taskData = await res.json()
+      tasks = await res.json()
     } catch (e) {
       return NextResponse.json({ok: true}, {status: 200})
     }
+
+    const taskData = tasks.find((task: any) =>
+      task.workflow_tasks.find((d: any) => d.id === id),
+    )
+
+    console.debug(`taskData: ${JSON.stringify(taskData)}`)
+
+    if (!taskData) return NextResponse.json({ok: true}, {status: 200})
 
     const value = taskData.amount.slice(0, -2)
     const date = taskData.start_date
@@ -45,7 +63,7 @@ export async function POST(req: NextRequest) {
        ${value},
        '${date}',
        '${comment}',
-       ${task_id}
+       ${taskData.id}
        )`
 
     try {
@@ -55,9 +73,61 @@ export async function POST(req: NextRequest) {
       console.debug(taskData, query)
       return NextResponse.json({ok: true}, {status: 200})
     }
+  } else if (action === 'billing_tcb.payment_succeeded') {
+    const id = data.details.task_id
+
+    const existingDataQuery = `select id from payments.list where act_id = ${id}`
+    const existingRows = await db.query(existingDataQuery)
+
+    let query = `update payments.list set paid = true where act_id = ${id}`
+
+    if (!existingRows.rows.length) {
+      const res = await fetch(`https://api.konsol.pro/v2/acts/${id}`, {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+        },
+      })
+
+      let taskData
+
+      try {
+        taskData = await res.json()
+      } catch (e) {
+        console.error(e, id)
+        return NextResponse.json({ok: true}, {status: 200})
+      }
+
+      const value = taskData.amount
+      const date = taskData.start_date
+      const firstName = taskData.contractor.first_name
+      const lastName = taskData.contractor.last_name
+
+      const comment = `Выплата по акту №${taskData.number}`
+      const type = 2
+
+      query = `insert into payments.list (worker_id, payment_type, value, date, comment, act_id, paid)
+    values
+      ((select id from workers where unaccent(first_name) ilike unaccent('${firstName}') and unaccent(last_name) ilike unaccent('${lastName}')),
+       ${type},
+       ${value},
+       '${date}',
+       '${comment}',
+       ${taskData.id},
+       true
+      )`
+    }
+
+    console.debug(id, query)
+
+    try {
+      await db.query(query)
+    } catch (e) {
+      console.error(e)
+      return NextResponse.json({ok: true}, {status: 200})
+    }
   }
 
-  console.debug('WEBHOOK')
-  console.debug(data)
   return NextResponse.json({ok: true}, {status: 200})
 }

@@ -222,6 +222,7 @@ export interface LTWorkerPayrollData {
     name: LTWorker['name']
     id: LTWorker['id']
     rank: LTWorker['rank']
+    _searchName: string
   }
   value: number
   bonuses: number | null

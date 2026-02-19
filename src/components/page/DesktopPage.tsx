@@ -106,7 +106,7 @@ export default function DesktopPage({
         </div>
         <div className="flex w-[50%] max-w-full flex-col items-center gap-4">
           <UpcomingShifts workingDays={workingDays} />
-          <UpcomingSalary data={salaryData} worker={worker} />
+          <UpcomingSalary data={salaryData} />
         </div>
       </div>
     </main>

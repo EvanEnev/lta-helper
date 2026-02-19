@@ -42,7 +42,7 @@ export default function DesktopPage({
       {/*</Carousel>*/}
       <div className="flex max-w-[90dvw] flex-col items-center gap-4">
         <UpcomingShifts workingDays={workingDays} />
-        <UpcomingSalary data={salaryData} worker={worker} />
+        <UpcomingSalary data={salaryData} />
       </div>
     </main>
   )
