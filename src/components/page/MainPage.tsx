@@ -4,12 +4,7 @@ import useIsMobile from '@/src/hooks/useIsMobile'
 import MobilePage from '@/src/components/page/MobilePage'
 import DesktopPage from '@/src/components/page/DesktopPage'
 import {ShortSalary} from '@/app/page'
-import {
-  Day,
-  LTWorker,
-  RankDescription,
-  RankRequirement,
-} from '@/src/utils/types'
+import {Day, LTWorker, RankDescription} from '@/src/utils/types'
 
 interface MainPageProps {
   salaryData: ShortSalary
@@ -28,7 +23,7 @@ export default function MainPage({
 
   return isMobile ? (
     <MobilePage
-      // ranksData={ranksData}
+      ranksData={ranksData}
       worker={worker}
       workingDays={workingDays}
       salaryData={salaryData}

@@ -9,9 +9,7 @@ import PushNotificationProvider from '@/src/components/global/providers/PushNoti
 
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
-    <HeroUIProvider
-      locale="ru-RU"
-      className="background relative min-h-dvh w-full min-w-fit">
+    <HeroUIProvider locale="ru-RU" className="background relative min-h-dvh">
       <NextThemesProvider attribute="class" defaultTheme="dark">
         <PushNotificationProvider>
           <Snowfall snowflakeCount={80} />
