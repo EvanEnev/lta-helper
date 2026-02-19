@@ -155,11 +155,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const taskIdQuery = `select task_id from salary.list where worker_id = (select id from workers where name ilike '${data.worker}')  and date = '${date.toFormat('yyyy-MM-dd')}'`
+    const taskIdResult = await db.query(taskIdQuery)
+    const taskId = taskIdResult.rows[0]?.task_id
+
     const location = locations.find(
       l => l.name.toLowerCase() === data.location.toLowerCase(),
     )!
 
     if (
+      !taskId &&
       location.konsol_id &&
       !KONSOL_DISABLED_RANKS.includes(rankData?.id || 1)
     ) {
