@@ -25,10 +25,11 @@ export default async function generateTableByWorkers({
                    s.comment,
                    s.date,
                    l.name
-                 from lt_arena.salary s
-                        left join lt_arena.locations l on l.id = s.location_id
-                        left join lt_arena.workers w on w.id = s.worker_id
-                 where s.date between '${interval.start!.toFormat('yyyy-MM-dd')}' and '${interval.end!.toFormat('yyyy-MM-dd')}'`
+                 from salary.list s
+                        left join locations l on l.id = s.location_id
+                        left join workers w on w.id = s.worker_id
+                 where s.date between '${interval.start!.toFormat('yyyy-MM-dd')}' and '${interval.end!.toFormat('yyyy-MM-dd')}'
+                 and coalesce(s.is_confirmed, false) = true`
 
   const dataResult = await db.query(query)
 

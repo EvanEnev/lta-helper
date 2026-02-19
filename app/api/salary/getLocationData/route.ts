@@ -56,7 +56,9 @@ export async function POST(req: NextRequest) {
   three_games,
   actor_games,
   work_types,
-  r.sorting_weight
+  r.sorting_weight,
+  s.is_confirmed,
+  s.task_id
   FROM salary.list s
   LEFT JOIN locations l ON s.location_id = l.id
   LEFT JOIN workers w ON s.worker_id = w.id
@@ -102,6 +104,8 @@ export async function POST(req: NextRequest) {
       actorGames: row.actor_games,
       workTypes: row.work_types,
       sorting_weight: row.sorting_weight || 0,
+      isConfirmed: row.is_confirmed,
+      taskId: row.task_id,
     }
   })
 
@@ -174,6 +178,8 @@ export async function POST(req: NextRequest) {
         actorGames: null,
         workTypes: workTypes,
         sorting_weight: row.sorting_weight || 0,
+        isConfirmed: false,
+        taskId: null,
       })
     }
   })

@@ -71,7 +71,7 @@ export default function LocationSelect({
 
         if (includeAll) {
           sortedLocations = [
-            {name: 'Все', id: 0, color: '', shortName: 'Все'},
+            {name: 'Все', id: 0, color: '', shortName: 'Все', konsol_id: null},
             ...sortedLocations,
           ]
         }

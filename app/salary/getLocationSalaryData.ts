@@ -153,6 +153,7 @@ export default async function getLocationSalaryData({
            WHERE s.date BETWEEN p.date_from AND p.date_to
              AND (p.worker_filter   IS NULL OR s.worker_id   = p.worker_filter)
              AND (p.location_filter IS NULL OR (s.worker_id = ${workerId} or s.location_id = p.location_filter))
+             and coalesce(s.is_confirmed, false) = true
          ), payments_filtered AS (
       SELECT
         p.worker_id,
@@ -242,6 +243,7 @@ export default async function getLocationSalaryData({
     order by coalesce(w.is_former, false), r.sorting_weight DESC, w.name, w.first_name
 `
 
+    console.debug(query)
     const results = await db.query(query)
     data = results.rows
   }

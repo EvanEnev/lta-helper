@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
   LEFT JOIN workers w ON w.id = s.worker_id
   LEFT JOIN locations l ON l.id = s.location_id
   left join ranks r on r.id = w.rank_id 
-  WHERE s.date BETWEEN '${startString}' AND '${endString}'`
+  WHERE s.date BETWEEN '${startString}' AND '${endString}'
+  and coalesce(s.is_confirmed, false) = true`
 
   const result = await db.query(query)
   const data = result.rows

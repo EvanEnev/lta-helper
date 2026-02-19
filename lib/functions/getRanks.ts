@@ -3,6 +3,7 @@ import {LTRank} from '@/src/utils/types'
 
 export default async function getRanks(): Promise<LTRank[]> {
   const query = `SELECT
+  id,
   name,
   salary,
   overwork,
@@ -14,6 +15,7 @@ export default async function getRanks(): Promise<LTRank[]> {
   const result = await db.query(query)
 
   return result.rows.map(row => ({
+    id: row.id,
     name: row.name,
     salary: row.salary,
     maxPoints: row.max_points,

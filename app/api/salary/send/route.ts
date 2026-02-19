@@ -10,6 +10,25 @@ import logger from '@/Logger'
 import getGamePayments from '@/lib/functions/getGamesPayments'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import getLocations from '@/lib/functions/getLocations'
+
+interface KonsolBody {
+  worker_id?: number
+  date?: string
+  title: string
+  since_date: string
+  upto_date: string
+  duties: {
+    template_id: number
+    quantity: number
+    price: number
+  }[]
+  contractor?: {phone: string}
+  contractor_ids: number[]
+  address_id: number
+}
+
+const KONSOL_DISABLED_RANKS = [10, 12, 13, 14, 2, 1, 6]
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -45,10 +64,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
   }
 
+  const konsolBodies: KonsolBody[] = []
+
+  const gamesPayments = await getGamePayments()
+  const locations = await getLocations()
+
   const ranks = await getRanks()
 
   const promises: Promise<boolean>[] = []
   const queries = []
+
+  const isConfirmed =
+    DateTime.now().setZone('Europe/Moscow').toFormat('yyyy-MM-dd') ===
+    date.toFormat('yyyy-MM-dd')
 
   for (const data of salaryData) {
     if (data.deleted) {
@@ -68,9 +96,6 @@ export async function POST(req: NextRequest) {
     const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
 
-    const gamesPayments = await getGamePayments()
-
-    console.debug(data)
     const salary = getSalaryData({
       gamesPayments,
       worker,
@@ -130,6 +155,65 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const taskIdQuery = `select task_id from salary.list where worker_id = (select id from workers where name ilike '${data.worker}')  and date = '${date.toFormat('yyyy-MM-dd')}'`
+    const taskIdResult = await db.query(taskIdQuery)
+    const taskId = taskIdResult.rows[0]?.task_id
+
+    const location = locations.find(
+      l => l.name.toLowerCase() === data.location.toLowerCase(),
+    )!
+
+    if (
+      !taskId &&
+      location.konsol_id &&
+      !KONSOL_DISABLED_RANKS.includes(rankData?.id || 1)
+    ) {
+      const userDataQuery = `select
+                              id,
+                               replace(replace(phone_number, ' ', ''), '-', '') as phone
+                            from workers
+                            where name ilike '${data.worker}'`
+
+      const userData = await db.query(userDataQuery)
+
+      const duties: KonsolBody['duties'] = [
+        {
+          template_id: 75920,
+          quantity: 1,
+          price: salary.value,
+        },
+      ]
+
+      ;['oneGames', 'twoGames', 'threeGames'].forEach(game => {
+        // @ts-ignore
+        if (salary[game] && data[game]?.number) {
+          // @ts-ignore
+          const paymentData = gamesPayments.find(d => d.id === data[game]?.id)!
+
+          duties.push({
+            template_id: paymentData.konsol_id!,
+            // @ts-ignore
+            quantity: data[game].number,
+            price: paymentData.value,
+          })
+        }
+      })
+
+      const konsolBody: KonsolBody = {
+        worker_id: userData.rows[0].id,
+        date: date.toFormat('yyyy-MM-dd'),
+        title: 'Проведение лазертаг-игр',
+        address_id: location.konsol_id,
+        duties,
+        contractor: {
+          phone: userData.rows[0].phone,
+        },
+        since_date: date.toFormat('yyyy-MM-dd'),
+        upto_date: date.toFormat('yyyy-MM-dd'),
+        contractor_ids: [],
+      }
+
+      konsolBodies.push(konsolBody)
     if (!data.comment?.toLowerCase().includes('под игру')) {
       queries.push(
         `insert into relations.workers_requirements
@@ -164,7 +248,7 @@ export async function POST(req: NextRequest) {
                         '${salary.bonuses}',
                         '${salary.fines}',
                         '${data.comment}',
-                        (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}'),
+                        ${location.id},
                         ${salary.created_by},
                         '${salary.start_time || '00'}',
                         '${salary.end_time || '00'}',
@@ -226,7 +310,8 @@ export async function POST(req: NextRequest) {
                       two_games=excluded.two_games,
                       three_games=excluded.three_games,
                       actor_games=excluded.actor_games,
-                      work_types=excluded.work_types
+                      work_types=excluded.work_types,
+                      is_confirmed=${isConfirmed}
     `)
   }
 
@@ -234,6 +319,142 @@ export async function POST(req: NextRequest) {
   loggerData.user = worker
 
   logger.info('sendWorkDays', {data: loggerData})
+
+  const konsolIds: number[] = []
+
+  for (const body1 of konsolBodies) {
+    const workerId = body1.worker_id!
+    const date = body1.date!
+
+    const locationRes = await fetch(
+      `https://api.konsol.pro/bus/alpha/workflow/locations/${body1.address_id}`,
+      {
+        method: 'GET',
+        headers: {Authorization: `${process.env.KONSOL_TOKEN}`},
+      },
+    )
+
+    let locationData
+    try {
+      locationData = await locationRes.json()
+    } catch (e: any) {
+      return NextResponse.json(
+        {
+          message: e instanceof Error ? e.message || '' : '',
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    if (locationData.error) {
+      return NextResponse.json(
+        {
+          message: locationData.error,
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    body1.address_id = locationData.address.id
+
+    const workerRes = await fetch(
+      `https://api.konsol.pro/v2/contractors?phone=${body1.contractor!.phone}`,
+      {
+        method: 'GET',
+        headers: {Authorization: `${process.env.KONSOL_TOKEN}`},
+      },
+    )
+
+    let workerData
+    try {
+      workerData = (await workerRes.json())[0]
+    } catch (e: any) {
+      return NextResponse.json(
+        {
+          message: e instanceof Error ? e.message || '' : '',
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    if (workerData.error) {
+      return NextResponse.json(
+        {
+          message: workerData.error,
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    body1.contractor_ids = [workerData.id]
+
+    delete body1.contractor
+    delete body1.worker_id
+    delete body1.date
+
+    const res = await fetch(
+      'https://api.konsol.pro/bus/alpha/workflow/platform/tasks ',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body1),
+      },
+    )
+
+    let resData
+    try {
+      resData = await res.json()
+    } catch (e: any) {
+      return NextResponse.json(
+        {
+          message: e instanceof Error ? e.message || '' : '',
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    if (resData.error) {
+      return NextResponse.json(
+        {
+          message: resData.error,
+        },
+        {
+          status: 500,
+        },
+      )
+    }
+
+    const taskId: number = resData.task_id
+
+    konsolIds.push(taskId)
+
+    const query = `update salary.list set task_id = ${taskId} where worker_id=${workerId} and date='${date}'`
+    queries.push(query)
+  }
+
+  if (konsolIds.length) {
+    await fetch('https://api.konsol.pro/bus/alpha/workflow/tasks/submit', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ids: konsolIds}),
+    })
+  }
 
   if (queries.length) {
     const queriesPromises = queries.map(query => db.query(query))
