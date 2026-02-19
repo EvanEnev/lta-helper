@@ -350,10 +350,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (locationData.error) {
+    if (!locationData.success) {
       return NextResponse.json(
         {
-          message: locationData.error,
+          message: locationData.errors?.length
+            ? locationData.errors.join('; ')
+            : locationData.error,
         },
         {
           status: 500,
@@ -385,10 +387,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (workerData.error) {
+    if (!workerData.success) {
       return NextResponse.json(
         {
-          message: workerData.error,
+          message: workerData.errors?.length
+            ? workerData.errors.join('; ')
+            : workerData.error,
         },
         {
           status: 500,
@@ -428,10 +432,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (resData.error) {
+    if (!resData.success) {
       return NextResponse.json(
         {
-          message: resData.error,
+          message: resData.errors?.length
+            ? resData.errors.join('; ')
+            : resData.error,
         },
         {
           status: 500,
