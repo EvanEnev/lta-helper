@@ -214,6 +214,8 @@ export async function POST(req: NextRequest) {
       }
 
       konsolBodies.push(konsolBody)
+    }
+
     if (!data.comment?.toLowerCase().includes('под игру')) {
       queries.push(
         `insert into relations.workers_requirements
