@@ -342,7 +342,8 @@ export async function POST(req: NextRequest) {
     } catch (e: any) {
       return NextResponse.json(
         {
-          message: e instanceof Error ? e.message || '' : '',
+          message:
+            e instanceof Error ? e.message || 'locationData' : 'locationData',
         },
         {
           status: 500,
@@ -379,7 +380,8 @@ export async function POST(req: NextRequest) {
     } catch (e: any) {
       return NextResponse.json(
         {
-          message: e instanceof Error ? e.message || '' : '',
+          message:
+            e instanceof Error ? e.message || 'workerData' : 'workerData',
         },
         {
           status: 500,
@@ -391,7 +393,7 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    if (!workerData.error || workerData.errors?.length) {
+    if (workerData.error || workerData.errors?.length) {
       return NextResponse.json(
         {
           message: workerData.errors?.length
@@ -428,7 +430,7 @@ export async function POST(req: NextRequest) {
     } catch (e: any) {
       return NextResponse.json(
         {
-          message: e instanceof Error ? e.message || '' : '',
+          message: e instanceof Error ? e.message || 'resData' : 'resData',
         },
         {
           status: 500,
