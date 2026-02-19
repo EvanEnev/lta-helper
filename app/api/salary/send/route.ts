@@ -350,7 +350,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!locationData.success) {
+    if (locationData.error || locationData.errors?.length) {
       return NextResponse.json(
         {
           message: locationData.errors?.length
@@ -387,7 +387,11 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!workerData.success) {
+    if (!workerData) {
+      continue
+    }
+
+    if (!workerData.error || workerData.errors?.length) {
       return NextResponse.json(
         {
           message: workerData.errors?.length
@@ -432,7 +436,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    if (!resData.success) {
+    if (resData.error || resData.errors?.length) {
       return NextResponse.json(
         {
           message: resData.errors?.length
