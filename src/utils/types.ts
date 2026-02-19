@@ -226,6 +226,7 @@ export interface LTWorkerPayrollData {
     name: LTWorker['name']
     id: LTWorker['id']
     rank: LTWorker['rank']
+    _searchName: string
   }
   value: number
   bonuses: number | null
@@ -389,10 +390,61 @@ export interface LTWorkerData {
   phoneNumber: string | null
   role: string | null
   location: LTLocation
+  generations: LTGeneration[]
+  quests: LTQuest[]
   rank: {
     id: number
     name: string
     weight: number
     sortingWeight: number
   }
+  rankData: RankRequirement[]
+}
+
+export interface RankRequirement {
+  id: number
+  name: string
+  description: string
+  limit: number | null
+  type: 'check' | 'number' | 'select'
+  selectLabel: string | null
+  category: string | null
+  done: boolean
+  value: number | null
+  immutable: boolean
+  meta: {
+    isChoice?: boolean
+    generationId?: number
+    questId?: number
+  } | null
+}
+
+export interface RankDescription {
+  rank: {
+    id: number
+    name: string
+    weight: number
+    sortingWeight: number
+  }
+  data: RankRequirement[]
+}
+
+export interface RankUpdateData {
+  id: RankRequirement['id']
+  workerId: LTWorker['id']
+  value: number | null
+  delete: boolean
+  oldWorkerId?: LTWorker['id']
+  oldId?: RankRequirement['id']
+  meta: RankRequirement['meta']
+}
+
+export interface LTGeneration {
+  id: number
+  name: string
+}
+
+export interface LTQuest {
+  id: number
+  name: string
 }

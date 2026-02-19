@@ -42,7 +42,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="ru" className="dark">
+    <html lang="ru" className="dark overflow-auto!">
       <head>
         <meta name="apple-mobile-web-app-title" content="LTA Helper" />
         <Script

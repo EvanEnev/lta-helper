@@ -46,6 +46,7 @@ interface PayrollCreatePageProps {
     name: LTWorker['name']
     id: LTWorker['id']
     rank: LTRank['name']
+    balance: number | null
     value: number | null
     bonuses?: number
     fines?: number
@@ -89,7 +90,7 @@ export default function PayrollCreatePage({
         }
       }),
   )
-  console.debug(payrollData)
+
   const [takeBy, setTakeBy] = useState<string>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
       DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
@@ -253,6 +254,33 @@ export default function PayrollCreatePage({
     [initialData, payrollData],
   )
 
+  const generateSum = useCallback(
+    (names: string[]) => {
+      let sum = data.reduce(
+        // @ts-ignore
+        (acc, d) =>
+          acc +
+          names
+            .map(n => {
+              const data = payrollData.find(d2 => d2.workerId === d.id)
+              // @ts-ignore
+              let value = (data[n] ? data[n] : d[n]) || 0
+
+              if (n === 'external_payment' && names.length > 1) {
+                value *= -1
+              }
+
+              return value
+            })
+            .reduce((a, b) => a + b, 0),
+        0,
+      )
+
+      return separateNumber(sum)
+    },
+    [data, payrollData],
+  )
+
   return (
     <main className="h-full w-full p-4">
       <div
@@ -320,15 +348,39 @@ export default function PayrollCreatePage({
             />
             <p className="min-w-32 flex-1 text-center">Сотрудник</p>
             <Divider orientation="vertical" />
-            <p className="min-w-32 flex-1 text-center">Сумма</p>
+            <div className="min-w-32 flex-1 text-center">
+              <p>Сумма</p>
+              <p className="text-foreground-500">{generateSum(['value'])}</p>
+            </div>
             <Divider orientation="vertical" />
-            <p className="min-w-32 flex-1 text-center">Бонусы</p>
+            <div className="min-w-32 flex-1 text-center">
+              <p>Бонусы</p>
+              <p className="text-foreground-500">{generateSum(['bonuses'])}</p>
+            </div>
             <Divider orientation="vertical" />
-            <p className="min-w-32 flex-1 text-center">Штрафы</p>
+            <div className="min-w-32 flex-1 text-center">
+              <p>Штрафы</p>
+              <p className="text-foreground-500">{generateSum(['fines'])}</p>
+            </div>
             <Divider orientation="vertical" />
-            <p className="min-w-32 flex-1 text-center">Внешняя выплата</p>
+            <div className="min-w-32 flex-1 text-center">
+              <p>Остаток</p>
+              <p className="text-foreground-500">{generateSum(['balance'])}</p>
+            </div>
             <Divider orientation="vertical" />
-            <p className="min-w-32 flex-1 text-center">Итог</p>
+            <div className="min-w-32 flex-1 text-center">
+              <p>Внешняя выплата</p>
+              <p className="text-foreground-500">
+                {generateSum(['external_payment'])}
+              </p>
+            </div>
+            <Divider orientation="vertical" />
+            <div className="min-w-32 flex-1 text-center">
+              <p>Итог</p>
+              <p className="text-foreground-500">
+                {generateSum(['fines', 'bonuses', 'value', 'external_payment'])}
+              </p>
+            </div>
             <Divider orientation="vertical" />
             <p className="flex-1 text-center">Локация</p>
           </div>
@@ -372,6 +424,11 @@ export default function PayrollCreatePage({
                     workerId={d.id}
                     callback={handleUpdate}
                   />
+                  <Divider orientation="vertical" />
+                  <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
+                    <p>{separateNumber(d.balance || 0)}</p>
+                    <Ruble iconStyle="Bold" />
+                  </div>
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
                     minValue={0}

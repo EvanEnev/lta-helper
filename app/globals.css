@@ -149,6 +149,10 @@ html {
 }
 
 @layer components {
+    .disclosure__indicator {
+        @apply h-6! w-6!;
+    }
+
     .button[slot="header"] svg {
         width: inherit!important;
         height: inherit!important;
@@ -160,6 +164,5 @@ html {
             height: inherit;
         }
     }
-
 
 }

@@ -16,7 +16,7 @@ export default async function generateCustomSession({
     Number(cookieStore.get('impersonate')?.value || 'a') ||
     Number(user.email.split('@')[0])
 
-  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('dd.MM')
+  const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('yyyy-MM-dd')
 
   const query = `SELECT
                    w.name,

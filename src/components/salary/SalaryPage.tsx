@@ -296,7 +296,7 @@ export default function SalaryPage({
           style={{
             left: `${headerSizes.width}px`,
           }}
-          className={`bg-content1 sticky top-2 z-1000 mb-4 flex h-22 w-dvw flex-wrap items-center gap-2 rounded-2xl p-4 text-xl font-bold`}>
+          className="bg-content1 sticky top-2 z-1000 mb-4 flex h-22 w-dvw flex-wrap items-center gap-2 rounded-2xl p-4 text-xl font-bold">
           <MonthSelect
             type="select"
             labelPlacement="inside"

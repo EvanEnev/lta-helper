@@ -15,7 +15,14 @@ export async function POST(req: NextRequest) {
 
   logger.info('Query', {data: query})
 
-  const result = await db.query(query)
+  let result: any
+
+  try {
+    result = await db.query(query)
+  } catch (e: any) {
+    console.error('QUERY ERROR: ', e.message)
+    console.error(query)
+  }
 
   const response = result.rows?.length ? {rows: result.rows} : {rows: []}
   return NextResponse.json(response, {status: 200})

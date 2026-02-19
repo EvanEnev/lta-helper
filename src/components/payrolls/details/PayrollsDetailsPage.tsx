@@ -12,6 +12,8 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 import PayrollsDetailsRow from '@/src/components/payrolls/details/PayrollsDetailsRow'
 import {io, Socket} from 'socket.io-client'
 import PayrollsDetailsNote from '@/src/components/payrolls/details/PayrollsDetailsNote'
+import PayrollsDetailsHeader from '@/src/components/payrolls/details/PayrollsDetailsHeader'
+import {useTheme} from 'next-themes'
 
 interface PayrollsDetailsPageProps {
   data: LTWorkerPayrollData[]
@@ -21,6 +23,11 @@ interface PayrollsDetailsPageProps {
   worker: LTWorker
 }
 
+interface Filter {
+  name: string
+  value: string | number | LTLocation | null
+}
+
 export default function PayrollsDetailsPage({
   data: initialData,
   locationsData,
@@ -28,8 +35,9 @@ export default function PayrollsDetailsPage({
   payroll,
   worker,
 }: PayrollsDetailsPageProps) {
+  const {theme} = useTheme()
+  const [filters, setFilters] = useState<Filter[]>([])
   const [data, setData] = useState<LTWorkerPayrollData[]>(initialData)
-  const unfilteredData = useRef(initialData)
   const socketRef = useRef<Socket | null>(null)
 
   const canIssue = useMemo(
@@ -61,14 +69,6 @@ export default function PayrollsDetailsPage({
           }
         }),
       )
-
-      unfilteredData.current = data.map((row: any) => {
-        if (!checkTarget(row, data)) return row
-        return {
-          ...row,
-          ...data,
-        }
-      })
     })
 
     return () => {
@@ -77,44 +77,89 @@ export default function PayrollsDetailsPage({
     }
   }, [checkTarget, worker?.id])
 
-  const locationSelectCallback = useCallback((location: LTLocation | null) => {
-    if (!location) return setData(unfilteredData.current)
+  const filteredData = useMemo(() => {
+    let result = data
 
-    setData(unfilteredData.current.filter(d => d.location_id === location.id))
-  }, [])
+    for (const filter of filters) {
+      if (!filter.value) continue
+
+      switch (filter.name) {
+        case 'name': {
+          const value = String(filter.value)
+          result = result.filter(d => d.worker._searchName.startsWith(value))
+          break
+        }
+
+        case 'status': {
+          const value = filter.value
+
+          console.debug(`value`, value)
+          if (value === 1) {
+            result = result.filter(d => !d.issue_confirmed && !d.taken)
+          } else if (value === 2) {
+            result = result.filter(d => d.issue_confirmed)
+          } else if (value === 3) {
+            result = result.filter(d => !!d.taken)
+          }
+          break
+        }
+
+        case 'location': {
+          const id = (filter.value as LTLocation).id
+          result = result.filter(d => d.location_id === id)
+          break
+        }
+      }
+    }
+
+    return result
+  }, [data, filters])
+
+  const filterChangeCallback = useCallback(
+    (name: Filter['name'], value: Filter['value']) => {
+      setFilters(prev => {
+        const existingFilter = prev.find(d => d.name === name)
+
+        if (existingFilter) {
+          if (!value) {
+            return prev.filter(d => d.name !== name)
+          }
+
+          return prev.map(d => (d.name === name ? {...d, value} : d))
+        }
+
+        return [...prev, {name, value}]
+      })
+    },
+    [],
+  )
 
   return (
     <main className="flex h-full w-full gap-2 p-4">
-      <div className="flex flex-col gap-4">
-        <div className="flex h-fit w-full flex-col gap-2 rounded-2xl">
-          <div className="flex flex-col gap-2">
-            {data.map((item, index) => {
-              return (
-                <PayrollsDetailsRow
-                  worker={worker}
-                  socketRef={socketRef}
-                  payrollId={payroll.id}
-                  key={index}
-                  data={item}
-                  canIssue={canIssue}
-                  canEdit={canEdit}
-                  locations={locations}
-                />
-              )
-            })}
-          </div>
-        </div>
+      <div className="flex h-fit w-full flex-col gap-2">
+        <PayrollsDetailsHeader
+          filterChangeCallback={filterChangeCallback}
+          theme={theme!}
+        />
+        {filteredData.map(item => {
+          return (
+            <PayrollsDetailsRow
+              worker={worker}
+              socketRef={socketRef}
+              payrollId={payroll.id}
+              key={item.worker.id}
+              data={item}
+              canIssue={canIssue}
+              canEdit={canEdit}
+              locations={locations}
+            />
+          )
+        })}
       </div>
       {checkPermissions(
         ['view_all_payrolls', 'view_location_payrolls'],
         worker,
-      ) && (
-        <PayrollsDetailsNote
-          locationsData={locationsData}
-          locationSelectCallback={locationSelectCallback}
-          data={data}
-        />
-      )}
+      ) && <PayrollsDetailsNote locationsData={locationsData} data={data} />}
     </main>
   )
 }

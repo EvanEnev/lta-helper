@@ -32,9 +32,9 @@ const KONSOL_DISABLED_RANKS = [10, 12, 13, 14, 2, 1, 6]
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const {user} = (await auth.api.getSession({
+  const worker = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: null}
+  }))!.user
 
   const salaryData: WorkerSalary[] = body.salaryData?.filter(
     (data: WorkerSalary) => data.worker && data.location,
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   let date: Date | DateTime = new Date(body.date)
 
-  if (!user) {
+  if (!worker) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
   }
 
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
   date = convertTZ(date, 'Europe/Moscow')
 
-  if (!checkPermissions(['set_salary'], user)) {
+  if (!checkPermissions(['set_salary'], worker)) {
     return NextResponse.json({message: 'Нет прав'}, {status: 501})
   }
 
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     const salary = getSalaryData({
       gamesPayments,
-      worker: user,
+      worker,
       rank: rankData,
       workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
       fines: data.fines,
@@ -214,6 +214,28 @@ export async function POST(req: NextRequest) {
       }
 
       konsolBodies.push(konsolBody)
+    if (!data.comment?.toLowerCase().includes('под игру')) {
+      queries.push(
+        `insert into relations.workers_requirements
+         (requirement_id, worker_id, value)
+       select
+         r.id,
+         w.id,
+         1
+       from workers w
+              join ranks.requirements r
+                   on r.rank_id = w.rank_id
+       where w.id = (select id FROM workers WHERE name ilike '${data.worker}')
+         and (r.meta ->> 'auto')::bool = true
+
+       on conflict (requirement_id, worker_id)
+         do update
+         set value = relations.workers_requirements.value + 1
+      where not exists(
+        select 1 from salary.list where worker_id = relations.workers_requirements.worker_id and date = '${date.toFormat('yyyy-MM-dd')}'
+      )
+      `,
+      )
     }
 
     queries.push(`INSERT INTO salary.list
@@ -294,7 +316,7 @@ export async function POST(req: NextRequest) {
   }
 
   loggerData.queries = queries
-  loggerData.user = user
+  loggerData.user = worker
 
   logger.info('sendWorkDays', {data: loggerData})
 
