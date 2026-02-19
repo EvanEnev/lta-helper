@@ -164,6 +164,7 @@ export async function POST(req: NextRequest) {
     )!
 
     if (
+      !isConfirmed &&
       !taskId &&
       location.konsol_id &&
       !KONSOL_DISABLED_RANKS.includes(rankData?.id || 1)
