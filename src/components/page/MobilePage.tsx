@@ -31,15 +31,15 @@ export default function DesktopPage({
         />
         {worker.rank}
       </div>
-      <Carousel>
-        {ranksData.map(rank => (
-          <RankDataCard
-            key={rank.rank.id}
-            workerRank={worker.rank}
-            rank={rank}
-          />
-        ))}
-      </Carousel>
+      {/*<Carousel>*/}
+      {/*  {ranksData.map(rank => (*/}
+      {/*    <RankDataCard*/}
+      {/*      key={rank.rank.id}*/}
+      {/*      workerRank={worker.rank}*/}
+      {/*      rank={rank}*/}
+      {/*    />*/}
+      {/*  ))}*/}
+      {/*</Carousel>*/}
       <div className="flex max-w-[90dvw] flex-col items-center gap-4">
         <UpcomingShifts workingDays={workingDays} />
         <UpcomingSalary data={salaryData} worker={worker} />
