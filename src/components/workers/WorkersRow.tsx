@@ -1,10 +1,24 @@
-import {LTWorker, LTWorkerData} from '@/src/utils/types'
-import {Avatar, Button, Separator} from '@heroui/react-beta'
+import {
+  LTWorker,
+  LTWorkerData,
+  RankRequirement,
+  RankUpdateData,
+} from '@/src/utils/types'
+import {
+  Avatar,
+  Button,
+  Separator,
+  Popover,
+  Checkbox,
+  NumberField,
+} from '@heroui/react-beta'
 import RankIcon from '@/src/components/global/RankIcon'
 import {ArrowDown, ArrowUp, Clipboard, Phone} from 'solar-icon-set'
 import formatPhone from '@/lib/functions/formatPhone'
 import {Icon} from '@iconify/react'
-import {Activity} from 'react'
+import {Activity, Fragment, useMemo} from 'react'
+import {Progress} from '@heroui/react'
+import groupBy from '@/lib/functions/groupBy'
 
 interface WorkersRowProps {
   worker: LTWorker
@@ -12,6 +26,17 @@ interface WorkersRowProps {
   maxRankId: number
   minRankId: number
   canEdit: boolean
+  updateCallback: (data: {
+    requirementId: number
+    workerId: number
+    value: number | null
+    toDelete: boolean
+    meta: RankUpdateData['meta']
+  }) => void
+  updateWorkerRank: (
+    workerId: number,
+    type: 'promote' | 'demote',
+  ) => Promise<void>
 }
 
 export default function WorkersRow({
@@ -20,7 +45,45 @@ export default function WorkersRow({
   maxRankId,
   minRankId,
   canEdit,
+  updateCallback,
+  updateWorkerRank,
 }: WorkersRowProps) {
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(data.rankData.filter(d => !!d.category).map(d => d.category)),
+      ),
+    [data.rankData],
+  )
+
+  const groupedCategories = useMemo(() => {
+    if (categories.length === 0) return {}
+
+    return groupBy(
+      data.rankData.filter(d => !!d.category),
+      'category',
+    )
+  }, [categories.length, data.rankData])
+
+  const done = useMemo(() => {
+    const withoutCategories = data.rankData
+      .filter(d => !d.category && !d.meta?.isChoice)
+      .every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!))
+
+    const choices = data.rankData.filter(d => d.meta?.isChoice)
+
+    return (
+      withoutCategories &&
+      (Object.values(groupedCategories).length
+        ? // @ts-ignore
+          Object.values(groupedCategories).some((c: RankRequirement[]) =>
+            c.every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!)),
+          )
+        : true) &&
+      choices.some(d => (d.type === 'check' ? d.done : d.value! >= d.limit!))
+    )
+  }, [data.rankData, groupedCategories])
+
   return (
     <div className="bg-content1 z-1000 flex items-center gap-2 rounded-2xl px-4 py-2">
       <div className="flex w-20 flex-col gap-2 wrap-anywhere">
@@ -36,10 +99,12 @@ export default function WorkersRow({
         <div className="flex flex-col items-center gap-2">
           <RankIcon rank={data.rank.name} />
           <p>{data.rank.name}</p>
+          {data.isFormer && <i>Бывший</i>}
         </div>
         <Activity mode={canEdit ? 'visible' : 'hidden'}>
           <div className="flex flex-col gap-2">
             <Button
+              onPress={() => updateWorkerRank(data.id, 'promote')}
               className="w-full"
               variant="secondary"
               isDisabled={data.rank.id === maxRankId}>
@@ -47,6 +112,7 @@ export default function WorkersRow({
               Повысить
             </Button>
             <Button
+              onPress={() => updateWorkerRank(data.id, 'demote')}
               className="w-full"
               variant="danger-soft"
               isDisabled={data.rank.id === minRankId}>
@@ -86,6 +152,201 @@ export default function WorkersRow({
           Открыть в Telegram
         </a>
       </div>
+      {data.rankData?.length > 0 && (
+        <>
+          {' '}
+          <Separator
+            orientation="vertical"
+            className="bg-content1-foreground/50"
+          />
+          <div className="flex gap-2">
+            <Progress
+              aria-label="Прогресс"
+              showValueLabel
+              color={done ? 'success' : 'primary'}
+              value={
+                data.rankData.length
+                  ? data.rankData.reduce(
+                      (acc, cur) => (cur.done ? acc + 1 : acc),
+                      0,
+                    )
+                  : 0
+              }
+              maxValue={data.rankData.length || undefined}
+              className="w-20 max-w-20"
+            />
+            <Popover>
+              <Button variant="outline">Подробнее</Button>
+              <Popover.Content placement="right">
+                <Popover.Arrow />
+                <Popover.Dialog className="flex flex-col justify-center gap-2">
+                  {data.rankData
+                    .filter(d => !d.category)
+                    .map((req, index) => {
+                      return (
+                        <Fragment key={req.id}>
+                          <div className="flex items-center gap-2">
+                            {req.type === 'check' && (
+                              <Checkbox
+                                className="w-full"
+                                isReadOnly={!canEdit}
+                                defaultSelected={req.done}
+                                onChange={v =>
+                                  updateCallback({
+                                    requirementId: req.id,
+                                    workerId: data.id,
+                                    value: null,
+                                    toDelete: !v,
+                                    meta: req.meta,
+                                  })
+                                }
+                                variant="secondary">
+                                <Checkbox.Control>
+                                  <Checkbox.Indicator />
+                                </Checkbox.Control>
+                                <p>{req.name}</p>
+                              </Checkbox>
+                            )}
+                            {req.type === 'number' && (
+                              <>
+                                <NumberField
+                                  isReadOnly={!canEdit}
+                                  defaultValue={req.value || undefined}
+                                  variant="secondary"
+                                  minValue={0}
+                                  onChange={v =>
+                                    updateCallback({
+                                      requirementId: req.id,
+                                      workerId: data.id,
+                                      value: v,
+                                      toDelete: !v,
+                                      meta: req.meta,
+                                    })
+                                  }>
+                                  <NumberField.Group>
+                                    <NumberField.DecrementButton />
+                                    <div className="flex items-center gap-2 px-2">
+                                      <NumberField.Input
+                                        className="mr-0 w-8 pr-0"
+                                        placeholder="0"
+                                      />
+                                      <span>/ {req.limit!}</span>
+                                    </div>
+                                    <NumberField.IncrementButton />
+                                  </NumberField.Group>
+                                </NumberField>
+                                <p>{req.name}</p>
+                              </>
+                            )}
+                          </div>
+                          {index !== data.rankData.length - 1 && (
+                            <Separator className="bg-content1-foreground/50" />
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  {categories.length !== 0 && (
+                    <div
+                      style={{
+                        gridTemplateColumns: `${new Array(categories.length)
+                          .fill(0)
+                          .map(_ => '1fr')
+                          .join(' auto ')}`,
+                      }}
+                      className="grid auto-rows-min gap-2">
+                      {Object.keys(groupedCategories).map((key, index) => {
+                        const groupData = groupedCategories[key]
+
+                        return (
+                          <Fragment key={key}>
+                            <div className="flex flex-col gap-2">
+                              <p className="col-span-full mb-2 font-bold">
+                                {key}
+                              </p>
+                              {groupData.map(
+                                (req: RankRequirement, index: number) => (
+                                  <Fragment key={req.id}>
+                                    <div className="flex gap-2">
+                                      {req.type === 'check' && (
+                                        <Checkbox
+                                          className="w-full"
+                                          isReadOnly={!canEdit}
+                                          defaultSelected={req.done}
+                                          onChange={v =>
+                                            updateCallback({
+                                              requirementId: req.id,
+                                              workerId: data.id,
+                                              value: null,
+                                              toDelete: !v,
+                                              meta: req.meta,
+                                            })
+                                          }
+                                          variant="secondary">
+                                          <Checkbox.Control>
+                                            <Checkbox.Indicator />
+                                          </Checkbox.Control>
+                                          <p>{req.name}</p>
+                                        </Checkbox>
+                                      )}
+                                      {req.type === 'number' && (
+                                        <>
+                                          <NumberField
+                                            isReadOnly={!canEdit}
+                                            defaultValue={req.value || 0}
+                                            variant="secondary"
+                                            minValue={0}
+                                            onChange={v =>
+                                              updateCallback({
+                                                requirementId: req.id,
+                                                workerId: data.id,
+                                                value: v,
+                                                toDelete: !v,
+                                                meta: req.meta,
+                                              })
+                                            }>
+                                            <NumberField.Group>
+                                              <NumberField.DecrementButton />
+                                              <div className="flex items-center gap-2 px-2">
+                                                <NumberField.Input
+                                                  className="mr-0 w-8 pr-0"
+                                                  placeholder="0"
+                                                />
+                                                <span>/ {req.limit!}</span>
+                                              </div>
+                                              <NumberField.IncrementButton />
+                                            </NumberField.Group>
+                                          </NumberField>
+                                          <p>{req.name}</p>
+                                        </>
+                                      )}
+                                    </div>
+                                    {index !== groupData.length - 1 && (
+                                      <Separator className="bg-content1-foreground/50" />
+                                    )}
+                                  </Fragment>
+                                ),
+                              )}
+                            </div>
+                            {index !==
+                              Object.keys(groupedCategories).length - 1 && (
+                              <Separator
+                                orientation="vertical"
+                                className="bg-content1-foreground/50"
+                              />
+                            )}
+                          </Fragment>
+                        )
+                      })}
+                    </div>
+                  )}
+                </Popover.Dialog>
+              </Popover.Content>
+            </Popover>
+          </div>
+        </>
+      )}
+      <div>{data.quests.map(d => d.name).join(', ')}</div>
+      <div>{data.generations.map(d => d.name).join(', ')}</div>
     </div>
   )
 }
