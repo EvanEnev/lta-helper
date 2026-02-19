@@ -2,9 +2,16 @@ import UpcomingShifts from './UpcomingShifts'
 import RankIcon from '@/src/components/global/RankIcon'
 import UpcomingSalary from '@/src/components/page/UpcomingSalary'
 import {ShortSalary} from '@/app/page'
-import {Skeleton} from '@heroui/react'
-import {Day, LTWorker, RankDescription} from '@/src/utils/types'
-import {Checkbox, Separator} from '@heroui/react-beta'
+import {Progress, Skeleton} from '@heroui/react'
+import {
+  Day,
+  LTWorker,
+  RankDescription,
+  RankRequirement,
+} from '@/src/utils/types'
+import {Button, Checkbox, Disclosure, Separator} from '@heroui/react-beta'
+import {useMemo} from 'react'
+import groupBy from '@/lib/functions/groupBy'
 
 interface DesktopPageProps {
   worker: LTWorker
@@ -19,7 +26,47 @@ export default function DesktopPage({
   workingDays,
   ranksData,
 }: DesktopPageProps) {
-  console.debug(ranksData[0].data)
+  const currentRankData = ranksData.find(d => d.rank.name === worker.rank)?.data
+
+  const categories = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          currentRankData?.filter(d => !!d.category).map(d => d.category),
+        ),
+      ),
+    [currentRankData],
+  )
+
+  const groupedCategories = useMemo(() => {
+    if (categories.length === 0) return {}
+    if (!currentRankData) return {}
+
+    return groupBy(
+      currentRankData.filter(d => !!d.category),
+      'category',
+    )
+  }, [categories.length, currentRankData])
+
+  const done = useMemo(() => {
+    const withoutCategories = currentRankData
+      ?.filter(d => !d.category && !d.meta?.isChoice)
+      .every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!))
+
+    const choices = currentRankData?.filter(d => d.meta?.isChoice)
+
+    return (
+      withoutCategories &&
+      (Object.values(groupedCategories).length
+        ? // @ts-ignore
+          Object.values(groupedCategories).some((c: RankRequirement[]) =>
+            c.every(d => (d.type === 'check' ? d.done : d.value! >= d.limit!)),
+          )
+        : true) &&
+      choices?.some(d => (d.type === 'check' ? d.done : d.value! >= d.limit!))
+    )
+  }, [currentRankData, groupedCategories])
+
   return (
     <main className="h-full w-full">
       <div className="flex justify-between gap-4 p-4">
@@ -31,6 +78,21 @@ export default function DesktopPage({
               className="w-56"
             />{' '}
             {worker?.rank || ''}
+            <Progress
+              aria-label="Прогресс"
+              showValueLabel
+              label="Прогресс ранга"
+              color={done ? 'success' : 'primary'}
+              value={
+                ranksData.length
+                  ? currentRankData?.reduce(
+                      (acc, cur) => (cur.done ? acc + 1 : acc),
+                      0,
+                    )
+                  : 0
+              }
+              maxValue={currentRankData?.length || undefined}
+            />
           </div>
           <div className="flex flex-wrap gap-2 overflow-auto">
             {ranksData.map(rank => (
@@ -40,26 +102,41 @@ export default function DesktopPage({
                 <RankIcon rank={rank?.rank.name || ''} className="w-40" />{' '}
                 <p>{rank?.rank.name || ''}</p>
                 <Separator />
-                {rank.data.map(req => (
-                  <div
-                    key={req.id}
-                    className="flex items-center justify-center gap-2">
-                    <Checkbox
-                      isReadOnly
-                      isSelected={req.done}
-                      variant="secondary">
-                      <Checkbox.Control>
-                        <Checkbox.Indicator />
-                      </Checkbox.Control>
-                    </Checkbox>
-                    <p>{req.name}</p>
-                    {req.type === 'number' && (
-                      <p>
-                        {req.value || 0}/{req.limit}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                {rank.data.length ? (
+                  <Disclosure
+                    defaultExpanded={rank.rank.name === worker.rank}
+                    className="flex flex-col items-center gap-2">
+                    <Disclosure.Heading>
+                      <Button slot="trigger" variant="secondary">
+                        Информация о ранге <Disclosure.Indicator />
+                      </Button>
+                    </Disclosure.Heading>
+                    <Disclosure.Content>
+                      {rank.data.map(req => (
+                        <div
+                          key={req.id}
+                          className="flex items-center justify-center gap-2">
+                          <Checkbox
+                            isReadOnly
+                            isSelected={req.done}
+                            variant="secondary">
+                            <Checkbox.Control>
+                              <Checkbox.Indicator />
+                            </Checkbox.Control>
+                          </Checkbox>
+                          <p>{req.name}</p>
+                          {req.type === 'number' && (
+                            <p>
+                              {req.value || 0}/{req.limit}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </Disclosure.Content>
+                  </Disclosure>
+                ) : (
+                  <i>Нет информации..</i>
+                )}
               </div>
             ))}
           </div>
