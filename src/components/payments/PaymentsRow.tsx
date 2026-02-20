@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  Activity,
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
+import {Activity, Dispatch, SetStateAction, useCallback, useState} from 'react'
 import {
   Button,
   ComboBox,
@@ -50,9 +43,6 @@ export default function PaymentsRow({
     return `${value.year}-${value.month >= 10 ? value.month : `0${value.month}`}-${value.day >= 10 ? value.day : `0${value.day}`}`
   }, [])
 
-  useEffect(() => {
-    console.debug(payment)
-  }, [payment])
   return (
     <div className="bg-content1 flex w-full items-center gap-2 rounded-xl p-2">
       <DatePicker
@@ -163,7 +153,7 @@ export default function PaymentsRow({
                 setPayment(prev => ({...prev, create: false}))
                 setEditMode(false)
               }}>
-              <Icon icon="solar:check-circle-outline" className="w-[24px]" />
+              <Icon icon="solar:check-circle-outline" className="w-6" />
               Сохранить
             </Button>
             <Separator orientation="vertical" className="bg-content3" />
@@ -177,7 +167,7 @@ export default function PaymentsRow({
                 setPayment(paymentData)
                 setEditMode(false)
               }}>
-              <Icon icon="solar:close-circle-outline" className="w-[24px]" />
+              <Icon icon="solar:close-circle-outline" className="w-6" />
               Отменить
             </Button>
             {!payment.create && (
@@ -193,7 +183,7 @@ export default function PaymentsRow({
                   }}>
                   <Icon
                     icon="solar:trash-bin-minimalistic-outline"
-                    className="w-[24px]"
+                    className="w-6"
                   />
                   Удалить
                 </Button>

@@ -5,8 +5,10 @@ import {Dispatch, SetStateAction, useCallback, useEffect, useState} from 'react'
 import {DateRangePicker, DateValue, RangeValue} from '@heroui/react'
 import {PaymentsFilter} from '@/src/components/payments/PaymentsPage'
 import {DateTime} from 'luxon'
+import separateNumber from '@/lib/functions/separateNumber'
 
 interface PaymentsHeaderProps {
+  summary: number
   paymentsTypes: LTPaymentType[]
   scrolled: boolean
   setFilters: Dispatch<SetStateAction<PaymentsFilter[]>>
@@ -15,6 +17,7 @@ interface PaymentsHeaderProps {
 }
 
 export default function PaymentsHeader({
+  summary,
   paymentsTypes,
   scrolled,
   setFilters,
@@ -52,7 +55,7 @@ export default function PaymentsHeader({
 
   return (
     <div
-      className={`${scrolled ? 'scrolled' : ''} scrolled-prepare sticky top-4 left-4 z-1000 flex max-w-[90vw] flex-wrap gap-2 p-2`}>
+      className={`scrolled sticky top-4 left-4 z-1000 flex max-w-[90vw] flex-wrap gap-2 p-2`}>
       {canEdit && (
         <Button
           variant="secondary"
@@ -107,6 +110,9 @@ export default function PaymentsHeader({
         value={name || ''}
         onChange={e => setName(e.target.value || null)}
       />
+      <div className="bg-content1 h-full w-fit rounded-xl p-2">
+        <p>Сумма: {separateNumber(summary)}</p>
+      </div>
     </div>
   )
 }

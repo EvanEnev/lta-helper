@@ -3,7 +3,7 @@
 import {LTPayment, LTPaymentChangeData, LTPaymentType} from '@/src/utils/types'
 import {Separator} from '@heroui/react-beta'
 import {DateTime, Interval} from 'luxon'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import PaymentsRow from '@/src/components/payments/PaymentsRow'
 import PaymentsHeader from '@/src/components/payments/PaymentsHeader'
 import useIsScrolled from '@/src/hooks/useIsScrolled'
@@ -99,9 +99,14 @@ export default function PaymentsPage({
     [paymentsTypes],
   )
 
+  const summary = useMemo(() => {
+    return payments.reduce((acc, cur) => acc + (cur.value || 0), 0)
+  }, [payments])
+
   return (
     <main className="flex flex-col gap-2 p-4">
       <PaymentsHeader
+        summary={summary}
         canEdit={canEdit}
         scrolled={scrolled}
         paymentsTypes={paymentsTypes}
