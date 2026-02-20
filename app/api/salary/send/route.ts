@@ -74,9 +74,7 @@ export async function POST(req: NextRequest) {
   const promises: Promise<boolean>[] = []
   const queries = []
 
-  const isConfirmed =
-    DateTime.now().setZone('Europe/Moscow').toFormat('yyyy-MM-dd') ===
-    date.toFormat('yyyy-MM-dd')
+  const isConfirmed = date.diff(DateTime.now(), 'days').days <= 0
 
   for (const data of salaryData) {
     if (data.deleted) {
