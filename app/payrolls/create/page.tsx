@@ -1,6 +1,4 @@
 import db from '@/lib/database'
-import salarySort from '@/lib/functions/salarySort'
-import {evaluate} from 'mathjs'
 import PayrollCreatePage from '@/src/components/payrolls/create/PayrollCreatePage'
 import getLocations from '@/lib/functions/getLocations'
 
@@ -23,145 +21,27 @@ export default async function PayrollsCreate({
   )
 
   const query = `select
-    w.name,
-    w.id,
-    r.name as rank,
-    w.is_former,
-    sum(value) +
-    sum(coalesce(salary.list.overwork, 0)) +
-    sum(coalesce((one_games ->> 'value')::integer, 0)) +
-    sum(coalesce((two_games ->> 'value')::integer, 0)) +
-    sum(coalesce((three_games ->> 'value')::integer, 0)) +
-    sum(coalesce((actor_games ->> 'value')::integer, 0)) as value,
-    case
-        when r.name = 'Актёр' then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
-        when r.name != 'Актёр' and ${bonuses} then (select string_agg(bonuses, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')  
-      else '0'
-    end as bonuses,
-    case
-      when r.name = 'Актёр' then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${actorsBonusesRange.start}' and '${actorsBonusesRange.end}')
-      when r.name != 'Актёр' and ${bonuses} then (select string_agg(fines, '+') from salary.list where worker_id = w.id and date between '${workersBonusesRange.start || '2025-01-01'}' and '${workersBonusesRange.end || '2025-01-01'}')
-      else '0'
-      end as fines
-    from salary.list
-    left join workers w on w.id = worker_id
-    left join ranks r on r.id = w.rank_id
-    where date between '${dates.start}' and '${dates.end}'
-    group by w.name, r.sorting_weight, w.is_former, w.id, r.name`
-
-  const balancesQuery = `select
-  w.name,
-  w.id,
-  r.name as "rank",
-  w.is_former,
-  balance
-  from workers w
-  left join ranks r on r.id = w.rank_id
-  where balance is not null and balance != 0`
-
-  const bonusesQuery = `select
-   w.name,
-   w.id,
-   r.name as "rank",
-   w.is_former,
-   string_agg(s.bonuses, '+') as bonuses,
-   string_agg(s.fines, '+') as fines
-   from salary.list s
-   left join workers w on w.id = s.worker_id
-   left join ranks r on r.id = w.rank_id
-   where s.date between '${workersBonusesRange.start}' and '${workersBonusesRange.end}' and r.name != 'Актёр'
-   group by w.name, w.is_former, w.id, r.name
-  `
-
-  const paymentsQuery = `select
-  worker_id,
-  sum(value)
-  from payments.list
-  where date between '${dates.start}' and '${dates.end}'
-  group by worker_id`
-
-  const paymentsResult = await db.query(paymentsQuery)
-  const payments = paymentsResult.rows
-
-  let data = (await db.query(query)).rows
-
-  payments.forEach(payment => {
-    const index = data.findIndex(d => d.id === payment.worker_id)
-    if (index === -1) return
-
-    const newData = {...data[index]}
-    newData.externalPayment = Number(payment.sum)
-    data[index] = newData
-  })
-
-  if (bonuses) {
-    const bonusesResult = await db.query(bonusesQuery)
-
-    bonusesResult.rows.forEach(row => {
-      const index = data.findIndex(d => d.id === row.id)
-
-      if (index === -1) {
-        const newData = {
-          name: row.name,
-          id: row.id,
-          rank: row.rank,
-          isFormer: row.is_former,
-          value: 0,
-          bonuses: row.bonuses || '0',
-          fines: row.fines || '0',
-        }
-
-        data.push(newData)
-      }
-    })
-  }
-
-  const balancesResult = await db.query(balancesQuery)
-
-  balancesResult.rows.forEach(row => {
-    const index = data.findIndex(d => d.id === row.id)
-
-    if (index === -1) {
-      const newData = {
-        name: row.name,
-        id: row.id,
-        rank: row.rank,
-        isFormer: row.is_former,
-        value: row.balance,
-        bonuses: 0,
-        fines: 0,
-        balance: row.balance,
-      }
-
-      // @ts-ignore
-      data.push(newData)
-    } else {
-      const newData = {...data[index]}
-
-      // @ts-ignore
-      newData.value = (Number(newData.value) || 0) + (Number(row.balance) || 0)
-      newData.balance = row.balance
-      data[index] = newData
-    }
-  })
+                   w.id,
+                   w.name,
+                   r.name as rank,
+                   coalesce(w.is_former, false) as "isFormer",
+                   s.*
+                 from workers w
+                        join ranks r on w.rank_id = r.id
+                        cross join lateral functions.get_salary(w.id,
+                                                                '${dates.start}'::date,
+                                                                '${dates.end}'::date,
+                                                                case when r.id = 12 then '${actorsBonusesRange.start}'::date
+                                                                     else '${workersBonusesRange.start || '2025-01-01'}'::date end,
+                                                                case when r.id = 12 then '${actorsBonusesRange.end}'::date
+                                                                     else '${workersBonusesRange.end || '2025-01-01'}'::date end
+                                           ) s
+                 where s.sum != 0
+                 order by coalesce(w.is_former, false), r.id != 12 desc, w.name`
 
   const locations = await getLocations()
 
-  data = data
-    .map(row => {
-      const newData = {...row}
-      // @ts-ignore
-      newData.bonuses = evaluate(newData.bonuses || '0')
-      // @ts-ignore
-      newData.fines = evaluate(newData.fines || '0')
-      // @ts-ignore
-      newData.value = Number(newData.value) || 0
-
-      return newData
-    })
-    .filter(row => row.value !== 0 || row.bonuses !== 0 || row.fines !== 0)
-
-  const sortedData = salarySort(data)
+  const data = (await db.query(query)).rows
 
   return (
     <PayrollCreatePage
@@ -169,8 +49,7 @@ export default async function PayrollsCreate({
       dates={dates}
       moneyOnLocations={moneyOnLocations}
       locations={locations}
-      // @ts-ignore
-      data={sortedData}
+      data={data}
     />
   )
 }

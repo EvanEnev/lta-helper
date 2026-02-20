@@ -46,10 +46,14 @@ interface PayrollCreatePageProps {
     name: LTWorker['name']
     id: LTWorker['id']
     rank: LTRank['name']
-    balance: number | null
-    value: number | null
-    bonuses?: number
-    fines?: number
+    sum: number
+    balance: number
+    value: number
+    overwork: number
+    bonuses: number
+    fines: number
+    external: number
+    games: number
   }[]
   dates: {start: string; end: string}
   bonuses: boolean
@@ -81,12 +85,12 @@ export default function PayrollCreatePage({
       data.map(d => {
         return {
           workerId: d.id,
-          // @ts-ignore
-          external_payment: d.externalPayment || 0,
+          external_payment: d.external,
           location: -1,
-          value: d.value || 0,
-          fines: d.fines || 0,
-          bonuses: d.bonuses || 0,
+          value: d.value + d.overwork + d.games,
+          fines: d.fines,
+          bonuses: d.bonuses,
+          balance: d.balance,
         }
       }),
   )
@@ -256,15 +260,14 @@ export default function PayrollCreatePage({
 
   const generateSum = useCallback(
     (names: string[]) => {
-      let sum = data.reduce(
+      let sum = payrollData.reduce(
         // @ts-ignore
-        (acc, d) =>
+        (acc, data) =>
           acc +
           names
             .map(n => {
-              const data = payrollData.find(d2 => d2.workerId === d.id)
               // @ts-ignore
-              let value = (data[n] ? data[n] : d[n]) || 0
+              let value = data[n] || 0
 
               if (n === 'external_payment' && names.length > 1) {
                 value *= -1
@@ -278,7 +281,7 @@ export default function PayrollCreatePage({
 
       return separateNumber(sum)
     },
-    [data, payrollData],
+    [payrollData],
   )
 
   return (
@@ -378,7 +381,13 @@ export default function PayrollCreatePage({
             <div className="min-w-32 flex-1 text-center">
               <p>Итог</p>
               <p className="text-foreground-500">
-                {generateSum(['fines', 'bonuses', 'value', 'external_payment'])}
+                {generateSum([
+                  'fines',
+                  'bonuses',
+                  'value',
+                  'external_payment',
+                  'balance',
+                ])}
               </p>
             </div>
             <Divider orientation="vertical" />
@@ -393,7 +402,8 @@ export default function PayrollCreatePage({
               (payrollWorkerData?.fines || 0) +
               (payrollWorkerData?.bonuses || 0) +
               (Number(payrollWorkerData?.value) || 0) -
-              (payrollWorkerData?.external_payment || 0)
+              (payrollWorkerData?.external_payment || 0) +
+              (payrollWorkerData?.balance || 0)
 
             return (
               <Fragment key={index}>
