@@ -253,6 +253,7 @@ export interface LTPayrollData {
   bonuses?: number
   fines?: number
   value: number
+  balance: number
 }
 
 export interface LTPayrollCreateData {
@@ -447,4 +448,20 @@ export interface LTGeneration {
 export interface LTQuest {
   id: number
   name: string
+}
+
+export interface LTSalarySummary {
+  workerId: LTWorker['id']
+  workerName: LTWorker['name']
+  isFormer: LTWorker['isFormer']
+  rank: LTRank['name']
+  sum: number
+  value: number
+  overwork: number
+  games: number
+  bonuses: number
+  fines: number
+  balance: number
+  external: number
+  [key: string]: number | string | LTWorker['isFormer']
 }
