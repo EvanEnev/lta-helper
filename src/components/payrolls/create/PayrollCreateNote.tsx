@@ -58,6 +58,7 @@ export default function PayrollCreateNote({
               .reduce(
                 (acc, d) =>
                   acc +
+                  (d.balance || 0) +
                   (d.fines || 0) +
                   (d.bonuses || 0) +
                   (d.value || 0) -

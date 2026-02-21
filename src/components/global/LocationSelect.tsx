@@ -52,7 +52,6 @@ export default function LocationSelect({
   placeholder = 'Выберите элемент',
   selectionMode = 'single',
 }: LocationSelectProps) {
-  console.debug(selectionMode)
   const worker = useSession().data?.user as LTWorker | undefined
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
   const [selectedLocations, setSelectedLocations] = useState<
