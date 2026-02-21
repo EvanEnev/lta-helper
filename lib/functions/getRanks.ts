@@ -1,7 +1,13 @@
 import db from '@/lib/database'
 import {LTRank} from '@/src/utils/types'
 
-export default async function getRanks(): Promise<LTRank[]> {
+interface GetRanksProps {
+  addon?: string
+}
+
+export default async function getRanks(
+  {addon = ''}: GetRanksProps = {addon: ''},
+): Promise<LTRank[]> {
   const query = `SELECT
   id,
   name,
@@ -10,7 +16,8 @@ export default async function getRanks(): Promise<LTRank[]> {
   max_points,
   max_shift_points,
   weight
-  FROM ranks`
+  FROM ranks
+  ${addon}`
 
   const result = await db.query(query)
 

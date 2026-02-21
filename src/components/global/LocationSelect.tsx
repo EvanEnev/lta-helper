@@ -13,7 +13,7 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 import {useSession} from '@/lib/auth/authClient'
 
 interface LocationSelectProps {
-  callback: (location: LTLocation | null) => void
+  callback: (location: (LTLocation | LTLocation[]) | null) => void
   isClearable?: boolean
   isDisabled?: boolean
   dynamicLocationId?: boolean
@@ -32,6 +32,7 @@ interface LocationSelectProps {
   locations?: LTLocation[]
   useShortNames?: boolean
   placeholder?: string
+  selectionMode?: 'single' | 'multiple'
 }
 
 export default function LocationSelect({
@@ -49,11 +50,13 @@ export default function LocationSelect({
   locations: definedLocations = [],
   useShortNames = false,
   placeholder = 'Выберите элемент',
+  selectionMode = 'single',
 }: LocationSelectProps) {
   const worker = useSession().data?.user as LTWorker | undefined
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
-  const [selectedLocation, setSelectedLocation] =
-    useState<LTLocation['id']>(locationId)
+  const [selectedLocations, setSelectedLocations] = useState<
+    LTLocation['id'][]
+  >([locationId])
   const {contains} = useFilter({sensitivity: 'base'})
 
   async function getLocations() {
@@ -110,17 +113,58 @@ export default function LocationSelect({
 
   useEffect(() => {
     if (dynamicLocationId) {
-      setSelectedLocation(locationId)
+      setSelectedLocations([locationId])
     }
   }, [dynamicLocationId, locationId])
 
   const onChange = useCallback(
     (locationId: any) => {
       if (isDisabled || isReadOnly) return
-      setSelectedLocation(locationId)
-      callback(locations.find(location => location?.id == locationId) || null)
+
+      if (
+        selectionMode === 'multiple' &&
+        Array.isArray(locationId) &&
+        locationId?.includes(0) &&
+        !selectedLocations.includes(0)
+      ) {
+        setSelectedLocations(locations.map(l => l.id))
+        callback(locations)
+        return
+      } else if (
+        selectionMode === 'multiple' &&
+        Array.isArray(locationId) &&
+        !locationId?.includes(0) &&
+        selectedLocations.includes(0)
+      ) {
+        setSelectedLocations([])
+        callback([])
+        return
+      }
+
+      setSelectedLocations(
+        selectionMode === 'single'
+          ? [locationId]
+          : locationId.filter((l: number) => l != 0),
+      )
+
+      if (selectionMode === 'single') {
+        callback(locations.find(location => location?.id == locationId) || null)
+      } else if (selectionMode === 'multiple') {
+        callback(
+          locations.filter(location =>
+            locationId.filter((l: number) => l != 0).includes(location?.id),
+          ) || null,
+        )
+      }
     },
-    [callback, isDisabled, isReadOnly, locations],
+    [
+      callback,
+      isDisabled,
+      isReadOnly,
+      locations,
+      selectedLocations,
+      selectionMode,
+    ],
   )
 
   return (
@@ -128,13 +172,13 @@ export default function LocationSelect({
       placeholder={placeholder}
       isDisabled={isDisabled || isReadOnly}
       variant="secondary"
-      selectionMode="single"
+      selectionMode={selectionMode}
       className={className}
-      value={selectedLocation}
+      value={selectedLocations}
       onChange={onChange}>
       {showLabel ? <Label>Локация</Label> : null}
       <Autocomplete.Trigger>
-        <Autocomplete.Value className="flex items-center gap-2" />
+        <Autocomplete.Value className="flex items-center gap-2 truncate" />
         {isClearable && <Autocomplete.ClearButton />}
         <Autocomplete.Indicator />
       </Autocomplete.Trigger>
