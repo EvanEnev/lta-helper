@@ -13,7 +13,8 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 import {useSession} from '@/lib/auth/authClient'
 
 interface LocationSelectProps {
-  callback: (location: (LTLocation | LTLocation[]) | null) => void
+  selectionMode?: 'single' | 'multiple'
+  callback: (location: LTLocation | LTLocation[] | null) => void
   isClearable?: boolean
   isDisabled?: boolean
   dynamicLocationId?: boolean
@@ -32,7 +33,6 @@ interface LocationSelectProps {
   locations?: LTLocation[]
   useShortNames?: boolean
   placeholder?: string
-  selectionMode?: 'single' | 'multiple'
 }
 
 export default function LocationSelect({
@@ -52,6 +52,7 @@ export default function LocationSelect({
   placeholder = 'Выберите элемент',
   selectionMode = 'single',
 }: LocationSelectProps) {
+  console.debug(selectionMode)
   const worker = useSession().data?.user as LTWorker | undefined
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
   const [selectedLocations, setSelectedLocations] = useState<

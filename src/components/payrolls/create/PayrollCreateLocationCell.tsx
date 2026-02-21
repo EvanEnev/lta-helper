@@ -20,8 +20,8 @@ export default memo(function PayrollCreateLocationCell({
   locationId,
 }: PayrollCreateLocationCellProps) {
   const locationCallback = useCallback(
-    (location: LTLocation | null) => {
-      callback(workerId, location?.id || -1, 'location')
+    (location: (LTLocation | LTLocation[]) | null) => {
+      callback(workerId, (location as LTLocation)?.id || -1, 'location')
     },
     [callback, workerId],
   )

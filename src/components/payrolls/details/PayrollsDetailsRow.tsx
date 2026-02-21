@@ -145,7 +145,10 @@ function PayrollsDetailsRow({
             isReadOnly={!canEdit}
             className="min-w-36 flex-1"
             callback={location => {
-              updateCallback('location_id', location?.id || null)
+              updateCallback(
+                'location_id',
+                (location as LTLocation)?.id || null,
+              )
             }}
             dynamicLocationId
             locationId={data.location_id}

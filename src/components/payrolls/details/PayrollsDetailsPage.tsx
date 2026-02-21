@@ -25,7 +25,7 @@ interface PayrollsDetailsPageProps {
 
 interface Filter {
   name: string
-  value: string | number | LTLocation | null
+  value: string | number | LTLocation | LTLocation[] | null
 }
 
 export default function PayrollsDetailsPage({

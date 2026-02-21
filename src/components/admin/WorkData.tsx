@@ -313,7 +313,7 @@ export default function WorkData({
       <LocationSelect
         dynamicLocationId
         locations={locations}
-        callback={value => updateData('location', value?.name)}
+        callback={value => updateData('location', (value as LTLocation)?.name)}
         locationId={location?.id || -1}
       />
       <Select

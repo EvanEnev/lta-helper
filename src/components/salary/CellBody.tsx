@@ -1,6 +1,6 @@
 import {LTFaceIdData, SalaryData} from '@/src/utils/types'
 import {Divider, Tooltip} from '@heroui/react'
-import {TimeField, DateInputGroup} from '@heroui/react-beta'
+import {TimeField, DateField} from '@heroui/react-beta'
 import {parseTime} from '@internationalized/date'
 import {memo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
@@ -113,13 +113,13 @@ export default function CellBody({
               )}
               isReadOnly
               name="workStart">
-              <DateInputGroup
+              <DateField.Group
                 variant="secondary"
                 className="items-center justify-center">
-                <DateInputGroup.Input>
-                  {segment => <DateInputGroup.Segment segment={segment} />}
-                </DateInputGroup.Input>
-              </DateInputGroup>
+                <DateField.Input>
+                  {segment => <DateField.Segment segment={segment} />}
+                </DateField.Input>
+              </DateField.Group>
             </TimeField>
             <TimeField
               // @ts-ignore
@@ -130,13 +130,13 @@ export default function CellBody({
               )}
               isReadOnly
               name="workEnd">
-              <DateInputGroup
+              <DateField.Group
                 variant="secondary"
                 className="items-center justify-center">
-                <DateInputGroup.Input>
-                  {segment => <DateInputGroup.Segment segment={segment} />}
-                </DateInputGroup.Input>
-              </DateInputGroup>
+                <DateField.Input>
+                  {segment => <DateField.Segment segment={segment} />}
+                </DateField.Input>
+              </DateField.Group>
             </TimeField>
           </>
         )}
@@ -161,13 +161,13 @@ export default function CellBody({
               }
               isReadOnly
               name="overworkStart">
-              <DateInputGroup
+              <DateField.Group
                 variant="secondary"
                 className="items-center justify-center">
-                <DateInputGroup.Input>
-                  {segment => <DateInputGroup.Segment segment={segment} />}
-                </DateInputGroup.Input>
-              </DateInputGroup>
+                <DateField.Input>
+                  {segment => <DateField.Segment segment={segment} />}
+                </DateField.Input>
+              </DateField.Group>
             </TimeField>
             <TimeField
               // @ts-ignore
@@ -182,11 +182,11 @@ export default function CellBody({
               }
               isReadOnly
               name="overworkEnd">
-              <DateInputGroup variant="secondary">
-                <DateInputGroup.Input>
-                  {segment => <DateInputGroup.Segment segment={segment} />}
-                </DateInputGroup.Input>
-              </DateInputGroup>
+              <DateField.Group variant="secondary">
+                <DateField.Input>
+                  {segment => <DateField.Segment segment={segment} />}
+                </DateField.Input>
+              </DateField.Group>
             </TimeField>
             <CellChip
               className={`text-foreground text-small col-span-2 flex justify-between`}>

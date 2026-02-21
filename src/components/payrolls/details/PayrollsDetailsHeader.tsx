@@ -9,7 +9,7 @@ interface PayrollsDetailsHeaderProps {
   theme: string
   filterChangeCallback: (
     filter: string,
-    value: string | number | LTLocation | null,
+    value: string | number | LTLocation | LTLocation[] | null,
   ) => void
 }
 
@@ -99,7 +99,12 @@ export default function PayrollsDetailsHeader({
         includeAll
         placeholder="Локация"
         showLabel={false}
-        callback={l => filterChangeCallback('location', l?.id === 0 ? null : l)}
+        callback={l =>
+          filterChangeCallback(
+            'location',
+            (l as LTLocation)?.id === 0 ? null : l,
+          )
+        }
         locationId={-1}
       />
     </div>

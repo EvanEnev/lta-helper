@@ -14,7 +14,7 @@ import {
   Textarea,
   useDisclosure,
 } from '@heroui/react'
-import {DateInputGroup, TimeField, TimeValue} from '@heroui/react-beta'
+import {DateField, TimeField, TimeValue} from '@heroui/react-beta'
 import {
   BillCheck,
   BillCross,
@@ -215,13 +215,13 @@ export default function EditDrawer({
                   onChange={value => update(value, 'startTime')}
                   isReadOnly={isReadOnly}
                   name="workStart">
-                  <DateInputGroup
+                  <DateField.Group
                     variant="secondary"
                     className="items-center justify-center">
-                    <DateInputGroup.Input>
-                      {segment => <DateInputGroup.Segment segment={segment} />}
-                    </DateInputGroup.Input>
-                  </DateInputGroup>
+                    <DateField.Input>
+                      {segment => <DateField.Segment segment={segment} />}
+                    </DateField.Input>
+                  </DateField.Group>
                 </TimeField>
                 <TimeField
                   // @ts-ignore
@@ -229,13 +229,13 @@ export default function EditDrawer({
                   onChange={value => update(value, 'endTime')}
                   isReadOnly={isReadOnly}
                   name="workStart">
-                  <DateInputGroup
+                  <DateField.Group
                     variant="secondary"
                     className="items-center justify-center">
-                    <DateInputGroup.Input>
-                      {segment => <DateInputGroup.Segment segment={segment} />}
-                    </DateInputGroup.Input>
-                  </DateInputGroup>
+                    <DateField.Input>
+                      {segment => <DateField.Segment segment={segment} />}
+                    </DateField.Input>
+                  </DateField.Group>
                 </TimeField>
                 <NumberInput
                   isReadOnly={isReadOnly}
@@ -259,13 +259,13 @@ export default function EditDrawer({
                   onChange={value => update(value, 'overworkStart')}
                   isReadOnly={isReadOnly}
                   name="workStart">
-                  <DateInputGroup
+                  <DateField.Group
                     variant="secondary"
                     className="items-center justify-center">
-                    <DateInputGroup.Input>
-                      {segment => <DateInputGroup.Segment segment={segment} />}
-                    </DateInputGroup.Input>
-                  </DateInputGroup>
+                    <DateField.Input>
+                      {segment => <DateField.Segment segment={segment} />}
+                    </DateField.Input>
+                  </DateField.Group>
                 </TimeField>
                 <TimeField
                   // @ts-ignore
@@ -273,13 +273,13 @@ export default function EditDrawer({
                   onChange={value => update(value, 'overworkEnd')}
                   isReadOnly={isReadOnly}
                   name="workStart">
-                  <DateInputGroup
+                  <DateField.Group
                     variant="secondary"
                     className="items-center justify-center">
-                    <DateInputGroup.Input>
-                      {segment => <DateInputGroup.Segment segment={segment} />}
-                    </DateInputGroup.Input>
-                  </DateInputGroup>
+                    <DateField.Input>
+                      {segment => <DateField.Segment segment={segment} />}
+                    </DateField.Input>
+                  </DateField.Group>
                 </TimeField>
                 <NumberInput
                   isReadOnly={isReadOnly}

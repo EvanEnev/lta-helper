@@ -319,8 +319,8 @@ export default function SalaryPage({
                       labelPlacement="inside"
                       includeAll={true}
                       className="w-fit"
-                      callback={(location: LTLocation | null) =>
-                        updateData('location', location)
+                      callback={(location: LTLocation | LTLocation[] | null) =>
+                        updateData('location', location as LTLocation)
                       }
                       dynamicLocationId
                       locationId={locationId}
@@ -363,8 +363,8 @@ export default function SalaryPage({
                   labelPlacement="inside"
                   includeAll={true}
                   className="w-fit"
-                  callback={(location: LTLocation | null) =>
-                    updateData('location', location)
+                  callback={(location: LTLocation | LTLocation[] | null) =>
+                    updateData('location', location as LTLocation)
                   }
                   dynamicLocationId
                   locationId={locationId}
