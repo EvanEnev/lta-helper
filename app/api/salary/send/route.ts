@@ -240,7 +240,7 @@ export async function POST(req: NextRequest) {
     }
 
     queries.push(`INSERT INTO salary.list
-                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types)
+                  (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types, is_confirmed)
                   VALUES
                     (
                         (SELECT id FROM workers WHERE name ilike '${data.worker}'),
@@ -293,7 +293,8 @@ export async function POST(req: NextRequest) {
                         )`
                             : 'NULL'
                         },
-                        ${data.workTypes?.length ? `array[${data.workTypes}]` : 'NULL'}
+                        ${data.workTypes?.length ? `array[${data.workTypes}]` : 'NULL'},
+                     ${isConfirmed}
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET
@@ -312,7 +313,7 @@ export async function POST(req: NextRequest) {
                       three_games=excluded.three_games,
                       actor_games=excluded.actor_games,
                       work_types=excluded.work_types,
-                      is_confirmed=${isConfirmed}
+                      is_confirmed=excluded.is_confirmed
     `)
   }
 
