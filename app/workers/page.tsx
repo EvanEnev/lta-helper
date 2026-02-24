@@ -62,7 +62,7 @@ select
       select  coalesce( jsonb_agg(
         jsonb_build_object(
           'id', wg.generation_id,
-          'name', (select name from quests where id = wg.generation_id)
+          'name', (select name from generations where id = wg.generation_id)
         )
                         ), '[]'::jsonb) as data
       from relations.workers_generations wg where worker_id = w.id
