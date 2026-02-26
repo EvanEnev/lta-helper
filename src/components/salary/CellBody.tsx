@@ -21,19 +21,6 @@ export default function CellBody({
   time: string
   overworkTime: string | null
 }) {
-  // @ts-ignore
-  faceId = faceId
-    .filter(d => d.location.id === data.location.id)
-    .sort(
-      (d1, d2) =>
-        DateTime.fromFormat(d1.date, 'yyyy-MM-dd HH:mm:ss').valueOf() -
-        DateTime.fromFormat(d2.date, 'yyyy-MM-dd HH:mm:ss').valueOf(),
-    )
-    .map(d => ({
-      ...d,
-      date: DateTime.fromFormat(d.date, 'yyyy-MM-dd HH:mm:ss'),
-    }))
-
   const Games = memo(function Games() {
     if (data.type) {
       return null
@@ -206,14 +193,14 @@ export default function CellBody({
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Вход
           </CellChip>
-          <CellChip className="col-span-full">
+          <CellChip className="text-small col-span-full">
             {data.faceId && data.faceId[0]?.timestamp}
           </CellChip>
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Выход
           </CellChip>
-          <CellChip className="col-span-full">
-            {data.faceId && data.faceId[faceId.length - 1]?.timestamp}
+          <CellChip className="text-small col-span-full">
+            {data.faceId && data.faceId[data.faceId.length - 1]?.timestamp}
           </CellChip>
         </div>
       )}
