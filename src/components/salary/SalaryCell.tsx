@@ -14,7 +14,6 @@ import {
 } from '@heroui/react'
 import CellBody from '@/src/components/salary/CellBody'
 import CellFooter from '@/src/components/salary/CellFooter'
-import {Activity} from 'react'
 import isDark from '@/lib/functions/isDark'
 import EditDrawer from '@/src/components/salary/EditDrawer'
 import LocationIcon from '@/src/components/global/LocationIcon'
@@ -60,7 +59,7 @@ export default function SalaryCell({
 
   return (
     <div>
-      <Activity mode={data.location ? 'visible' : 'hidden'}>
+      {!!data.location && (
         <Card
           style={{backgroundColor: data.location?.color}}
           className={`${canViewFull ? '' : 'min-h-60'} mb-2 max-h-full w-fit min-w-[20rem]`}>
@@ -114,10 +113,14 @@ export default function SalaryCell({
             />
           </CardFooter>
         </Card>
-      </Activity>
+      )}
+
       {
         // @ts-ignore
-        data.payments && <PaymentData data={data.payments} />
+        data.payments && (
+          // @ts-ignore
+          <PaymentData location={!!data.location} data={data.payments} />
+        )
       }
     </div>
   )

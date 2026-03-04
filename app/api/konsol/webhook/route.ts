@@ -99,6 +99,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ok: true}, {status: 200})
       }
 
+      console.debug(taskData, res, `https://api.konsol.pro/v2/acts/${id}`)
+
       const value = taskData.amount
       const date = taskData.start_date
       const firstName = taskData.contractor.first_name
@@ -117,6 +119,8 @@ export async function POST(req: NextRequest) {
        ${taskData.id},
        true
       )`
+    } else {
+      query = `update payments.list set paid = true where act_id = ${id}`
     }
 
     console.debug(id, query)

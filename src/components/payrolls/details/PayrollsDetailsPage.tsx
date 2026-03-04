@@ -93,7 +93,6 @@ export default function PayrollsDetailsPage({
         case 'status': {
           const value = filter.value
 
-          console.debug(`value`, value)
           if (value === 1) {
             result = result.filter(d => !d.issue_confirmed && !d.taken)
           } else if (value === 2) {

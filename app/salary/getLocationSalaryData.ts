@@ -56,194 +56,172 @@ export default async function getLocationSalaryData({
     }
 
     const query = `
-    with params as (
-      select
-        ${workerId}::int as worker_filter,
-        ${locationId}::int as location_filter,
-        '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}'::date as date_from,
-        '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'::date as date_to
-    ),
-         ranks_data as (
-           select id, name, sorting_weight from ranks
-         ),
-         workers_data as (
-           select id, name, first_name, rank_id, is_former, is_fired
-           from workers
-                  cross join params p
-           where coalesce(is_fired, false) = false
-             and (p.worker_filter is null or id = p.worker_filter)
-         ),
-         locations as (
-           select distinct s.location_id
-           from salary.list s
-                  cross join params p
-           where s.date BETWEEN p.date_from and p.date_to
-             and (p.worker_filter is null or s.worker_id = p.worker_filter)
-             and (p.location_filter is null or s.location_id = p.location_filter)
-         ),
-         locations_face as (
-           select distinct f.location_id
-           from face_id f
-                  cross join params p
-           where f.date BETWEEN p.date_from and p.date_to
-             and (p.worker_filter is null or f.worker_id = p.worker_filter)
-             and (p.location_filter is null or f.location_id = p.location_filter)
-         ),
-         all_locations as (
-           select distinct location_id from locations
-           union
-           select distinct location_id from locations_face
-         ),
-         location_map as (
-           select location_id, functions.get_location(location_id) as data
-           from all_locations
-         ),
-         face_agg as (
-           select
-             f.worker_id,
-             f.date::date as f_date,
-             jsonb_agg(
-                jsonb_build_object(
-                    'timestamp', to_char(f.date, 'DD.MM.YYYY HH24:MI:SS'),
-                    'location', lm.data
-                )
-             ) as data
-           from face_id f
-                  join location_map lm on lm.location_id = f.location_id
-                  cross join params p
-           where f.date BETWEEN p.date_from and p.date_to
-             and (p.worker_filter is null or f.worker_id = p.worker_filter)
-             and (p.location_filter is null or f.location_id = p.location_filter)
-           group by f.worker_id, f.date::date
-         ),
-         payments_agg as (
-           select
-             p.worker_id,
-             p.date as p_date,
-             jsonb_agg(
-               jsonb_build_object(
-                 'name', (select name from payments.types where id = p.payment_type),
-                 'value', p.value,
-                 'comment', coalesce(p.comment, ''),
-                 'act_id', p.act_id
-               )
-             ) as data
-           from payments.list p
-                  cross join params param
-           where p.date BETWEEN param.date_from and param.date_to
-             and (param.worker_filter is null or p.worker_id = param.worker_filter)
-           group by p.worker_id, p.date::date
-         ),
-         salary_filtered AS (
-           SELECT
-             s.id,
-             s.worker_id,
-             s.date::date,
-             s.start_time, s.end_time,
-             s.overwork_start, s.overwork_end,
-             s.value, s.overwork, s.bonuses, s.fines,
-             s.comment,
-             s.created_at, s.created_by,
-             s.location_id,
-             s.type,
-             s.one_games, s.two_games, s.three_games, s.actor_games,
-             s.work_types
-           FROM salary.list s
-                  CROSS JOIN params p
-           WHERE s.date BETWEEN p.date_from AND p.date_to
-             AND (p.worker_filter   IS NULL OR s.worker_id   = p.worker_filter)
-             AND (p.location_filter IS NULL OR (s.worker_id = ${workerId} or s.location_id = p.location_filter))
-             and coalesce(s.is_confirmed, false) = true
-         ), payments_filtered AS (
-      SELECT
-        p.worker_id,
-        p.date::date AS p_date,
-        jsonb_agg(
-          jsonb_build_object(
-            'name', pt.name,
-            'value', p.value,
-            'comment', COALESCE(p.comment, ''),
-            'act_id', p.act_id
-          )
-        ) AS payments
-      FROM payments.list p
-             JOIN payments.types pt ON pt.id = p.payment_type
-             CROSS JOIN params pa
-      WHERE p.date BETWEEN pa.date_from AND pa.date_to
-        AND (pa.worker_filter IS NULL OR p.worker_id = pa.worker_filter)
-      GROUP BY p.worker_id, p.date::date
-    ), salary_payments AS (
-      SELECT
-        COALESCE(s.worker_id, p.worker_id) AS worker_id,
-        COALESCE(s.date, p.p_date)         AS date,
+      with params as (select ${workerId}::int                                               as worker_filter,
+                             ${locationId}::int                                             as location_filter,
+                             '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}'::date as date_from,
+                             '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'::date   as date_to),
+           ranks_data as (select id, name, sorting_weight
+                          from ranks),
+           workers_data as (select id, name, first_name, rank_id, is_former, is_fired
+                            from workers
+                                   cross join params p
+                            where coalesce(is_fired, false) = false
+                              and (p.worker_filter is null or id = p.worker_filter)),
+           locations as (select distinct s.location_id
+                         from salary.list s
+                                cross join params p
+                         where s.date BETWEEN p.date_from and p.date_to
+                           and (p.worker_filter is null or s.worker_id = p.worker_filter)
+                           and (p.location_filter is null or s.location_id = p.location_filter)),
+           locations_face as (select distinct f.location_id
+                              from face_id f
+                                     cross join params p
+                              where f.date BETWEEN p.date_from and p.date_to
+                                and (p.worker_filter is null or f.worker_id = p.worker_filter)
+                                and (p.location_filter is null or f.location_id = p.location_filter)
+                             ),
+           all_locations as (select distinct location_id
+                             from locations
+                             union
+                             select distinct location_id
+                             from locations_face),
+           location_map as (select location_id, functions.get_location(location_id) as data
+                            from all_locations),
+           face_agg as (select f.worker_id,
+                               f.date::date as f_date,
+                               jsonb_agg(
+                                 jsonb_build_object(
+                                   'timestamp', to_char(f.date, 'DD.MM.YYYY HH24:MI:SS'),
+                                   'location', lm.data
+                                 )
+                               )            as data
+                        from face_id f
+                               join location_map lm on lm.location_id = f.location_id
+                               cross join params p
+                        where f.date BETWEEN p.date_from and p.date_to
+                          and (p.worker_filter is null or f.worker_id = p.worker_filter)
+                          and (p.location_filter is null or f.location_id = p.location_filter)
+                        group by f.worker_id, f.date::date),
+           salary_filtered AS (SELECT s.id,
+                                      s.worker_id,
+                                      s.date::date,
+                                      s.start_time,
+                                      s.end_time,
+                                      s.overwork_start,
+                                      s.overwork_end,
+                                      s.value,
+                                      s.overwork,
+                                      s.bonuses,
+                                      s.fines,
+                                      s.comment,
+                                      s.created_at,
+                                      s.created_by,
+                                      s.location_id,
+                                      s.type,
+                                      s.one_games,
+                                      s.two_games,
+                                      s.three_games,
+                                      s.actor_games,
+                                      s.work_types
+                               FROM salary.list s
+                                      CROSS JOIN params p
+                               WHERE s.date BETWEEN p.date_from AND p.date_to
+                                 AND (p.worker_filter IS NULL OR s.worker_id = p.worker_filter)
+                                 AND (p.location_filter IS NULL OR
+                                      (s.worker_id = ${workerId} or s.location_id = p.location_filter))
+                                 and coalesce(s.is_confirmed, false) = true),
+           payments_filtered AS (SELECT p.worker_id,
+                                        p.date::date AS p_date,
+                                        jsonb_agg(
+                                          jsonb_build_object(
+                                            'name', pt.name,
+                                            'value', p.value,
+                                            'comment', COALESCE(p.comment, ''),
+                                            'act_id', p.act_id
+                                          )
+                                        )            AS payments
+                                 FROM payments.list p
+                                        JOIN payments.types pt ON pt.id = p.payment_type
+                                        CROSS JOIN params pa
+                                 WHERE p.date BETWEEN pa.date_from AND pa.date_to
+                                   AND (pa.worker_filter IS NULL OR p.worker_id = pa.worker_filter)
+                                 GROUP BY p.worker_id, p.date::date),
+           salary_payments AS (SELECT
+                                      coalesce(s.worker_id, p.worker_id) as worker_id,
+                                      coalesce(s.date, p.p_date) as date,
+                                      s.id,
+                                      s.start_time,
+                                      s.end_time,
+                                      s.overwork_start,
+                                      s.overwork_end,
+                                      s.value,
+                                      s.overwork,
+                                      s.bonuses,
+                                      s.fines,
+                                      s.comment,
+                                      s.created_at,
+                                      s.created_by,
+                                      s.location_id,
+                                      s.type,
+                                      s.one_games,
+                                      s.two_games,
+                                      s.three_games,
+                                      s.actor_games,
+                                      s.work_types,
 
-        s.id,
-        s.start_time, s.end_time,
-        s.overwork_start, s.overwork_end,
-        s.value, s.overwork,
-        s.bonuses, s.fines,
-        s.comment,
-        s.created_at, s.created_by,
-        s.location_id,
-        s.type,
-        s.one_games, s.two_games, s.three_games, s.actor_games,
-        s.work_types,
+                                      -- payments
+                                      COALESCE(p.payments, '[]'::jsonb)  AS payments
+                               FROM salary_filtered s
+                                      FULL JOIN payments_filtered p
+                                                ON p.worker_id = s.worker_id
+                                                  AND p.p_date = s.date)
+      select jsonb_build_object(
+               'id', w.id,
+               'name', w.name,
+               'firstName', w.first_name,
+               'rank', r.name,
+               'isFormer', coalesce(w.is_former, false)
+             ) as worker,
+             coalesce(
+                 jsonb_agg(
+                 jsonb_build_object(
+                   'id', sp.id,
+                   'date', to_char(sp.date, 'DD.MM.YYYY'),
+                   'startTime', to_char(sp.start_time, 'HH24:MI'),
+                   'endTime', to_char(sp.end_time, 'HH24:MI'),
+                   'overworkStart',
+                   case when sp.overwork_start is not null then to_char(sp.overwork_start, 'HH24:MI') end,
+                   'overworkEnd', case when sp.overwork_end is not null then to_char(sp.overwork_end, 'HH24:MI') end,
+                   'value', coalesce(sp.value, 0),
+                   'overworkValue', coalesce(sp.overwork, 0),
+                   'bonuses', coalesce(sp.bonuses, '0'),
+                   'fines', coalesce(sp.fines, '0'),
+                   'comment', coalesce(sp.comment, ''),
+                   'createdAt', to_char(sp.created_at, 'DD.MM.YYYY HH24:MI:SS'),
+                   'createdBy', w_creator.name,
+                   'location', case when sp.location_id IS NOT NULL THEN functions.get_location(sp.location_id) END,
+                   'type', sp.type,
+                   'oneGames', sp.one_games,
+                   'twoGames', sp.two_games,
+                   'threeGames', sp.three_games,
+                   'actorGames', sp.actor_games,
+                   'workTypes', sp.work_types,
+                   'faceId', f.data,
+                   'payments', sp.payments
+                 )
+                          ) filter (where sp.id is not null or sp.payments is not null),
+                 '[]'::jsonb
+             ) as dates
+      from workers_data w
+             left join ranks_data r on r.id = w.rank_id
+             left join salary_payments sp on sp.worker_id = w.id
+             left join workers w_creator on w_creator.id = sp.created_by
+             left join location_map lm on lm.location_id = sp.location_id
+             left join face_agg f on f.worker_id = w.id and f.f_date = sp.date
+      group by w.id, w.name, w.first_name, w.is_former, r.name, r.sorting_weight
+      order by coalesce(w.is_former, false), r.sorting_weight DESC, w.name, w.first_name
+    `
 
-        -- payments
-        COALESCE(p.payments, '[]'::jsonb) AS payments
-      FROM salary_filtered s
-             FULL JOIN payments_filtered p
-                       ON p.worker_id = s.worker_id
-                         AND p.p_date    = s.date
-    )
-    select
-      jsonb_build_object(
-        'id', w.id,
-        'name', w.name,
-        'firstName', w.first_name,
-        'rank', r.name,
-        'isFormer', coalesce(w.is_former, false)
-      ) as worker,
-      coalesce(
-          jsonb_agg(
-          jsonb_build_object(
-            'id', sp.id,
-            'date', to_char(sp.date, 'DD.MM.YYYY'),
-            'startTime', to_char(sp.start_time, 'HH24:MI'),
-            'endTime', to_char(sp.end_time, 'HH24:MI'),
-            'overworkStart', case when sp.overwork_start is not null then to_char(sp.overwork_start, 'HH24:MI') end,
-            'overworkEnd', case when sp.overwork_end is not null then to_char(sp.overwork_end, 'HH24:MI') end,
-            'value', coalesce(sp.value, 0),
-            'overworkValue', coalesce(sp.overwork, 0),
-            'bonuses', coalesce(sp.bonuses, '0'),
-            'fines', coalesce(sp.fines, '0'),
-            'comment', coalesce(sp.comment, ''),
-            'createdAt', to_char(sp.created_at, 'DD.MM.YYYY HH24:MI:SS'),
-            'createdBy', w_creator.name,
-            'location', case when sp.location_id IS NOT NULL THEN functions.get_location(sp.location_id) END,
-            'type', sp.type,
-            'oneGames', sp.one_games,
-            'twoGames', sp.two_games,
-            'threeGames', sp.three_games,
-            'actorGames', sp.actor_games,
-            'workTypes', sp.work_types,
-            'faceId', f.data,
-            'payments', sp.payments
-          )
-                   ) filter (where sp.id is not null or sp.payments is not null),
-          '[]'::jsonb
-      ) as dates
-    from workers_data w
-           left join ranks_data r on r.id = w.rank_id
-           left join salary_payments sp on sp.worker_id = w.id
-           left join workers w_creator on w_creator.id = sp.created_by
-           left join location_map lm on lm.location_id = sp.location_id
-           left join face_agg f on f.worker_id = w.id and f.f_date = sp.date
-    group by w.id, w.name, w.first_name, w.is_former, r.name, r.sorting_weight
-    order by coalesce(w.is_former, false), r.sorting_weight DESC, w.name, w.first_name
-`
-
-    console.debug(query)
     const results = await db.query(query)
     data = results.rows
   }

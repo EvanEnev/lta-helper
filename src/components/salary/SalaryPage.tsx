@@ -10,7 +10,7 @@ import {
 } from '@/src/utils/types'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {io, Socket} from 'socket.io-client'
-import {DateTime} from 'luxon'
+import {DateTime, Interval} from 'luxon'
 import {
   Button,
   Checkbox,
@@ -33,6 +33,7 @@ import {useTheme} from 'next-themes'
 import SalaryRow from '@/src/components/salary/SalaryRow'
 import SalaryDaysRow from '@/src/components/salary/SalaryDaysRow'
 import unaccent from '@/lib/functions/unaccent'
+import Excel from '@/public/icons/Excel'
 
 export default function SalaryPage({
   worker,
@@ -88,11 +89,9 @@ export default function SalaryPage({
   const today = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
 
   const dates: string[] = useMemo(() => {
-    console.debug(date)
     const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd')
     const month = datetime.toFormat('MM')
 
-    console.debug(datetime, month)
     const dates = []
     for (let i = 0; i < datetime.daysInMonth!; i++) {
       dates.push(`${i + 1 < 10 ? `0${i + 1}` : `${i + 1}`}.${month}`)
@@ -288,6 +287,36 @@ export default function SalaryPage({
     [initialData],
   )
 
+  const download = useCallback(async () => {
+    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd')
+    const start = datetime.startOf('month')
+    const end = datetime.endOf('month')
+
+    const response = await fetch('/api/excel', {
+      method: 'POST',
+      body: JSON.stringify({
+        start_date: start.toString(),
+        end_date: end.toString(),
+        type: 'salary',
+      }),
+    })
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+
+    const interval = Interval.fromDateTimes(start, end)
+
+    let name = `Сводная сотрудников (${interval.toFormat('dd.MM.yyyy')})`
+
+    a.download = `${name}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  }, [date])
+
   return (
     <main className="h-fit">
       <div className="relative h-full w-full">
@@ -398,6 +427,13 @@ export default function SalaryPage({
             <>
               <Spinner color="default" /> Загрузка
             </>
+          )}
+          {canViewFull && (
+            <Button
+              startContent={<Excel width={40} height={40} />}
+              onPress={() => download()}>
+              Скачать сводную
+            </Button>
           )}
         </div>
         <div

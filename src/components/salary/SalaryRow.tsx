@@ -54,7 +54,7 @@ export default function SalaryRow({
         {worker.isFormer && <p className="text-xs">Бывший сотрудник</p>}
       </div>
       {days.map(day => {
-        const data = dates.find(d => d.date.slice(0, -5) === day)
+        const data = dates.find(d => d.date?.slice(0, -5) === day)
         if (!data) {
           return (
             <div

@@ -1,4 +1,4 @@
-import {Input, Label, ListBox, Select, TextField} from '@heroui/react-beta'
+import {Input, Label, ListBox, Select} from '@heroui/react-beta'
 import {Icon} from '@iconify/react'
 import {semanticColors} from '@heroui/react'
 import LocationSelect from '@/src/components/global/LocationSelect'
@@ -33,7 +33,6 @@ export default function PayrollsDetailsHeader({
         variant="secondary"
         placeholder="Статус"
         onChange={v => {
-          console.debug(v)
           filterChangeCallback('status', v)
         }}>
         <Select.Trigger>
