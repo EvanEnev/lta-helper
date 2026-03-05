@@ -12,11 +12,11 @@ import DayInfo from './DayInfo'
 import SendButton from './SendButton'
 import {Day, LTWorker} from '@/src/utils/types'
 import {Fragment, useEffect, useMemo, useState} from 'react'
-import {Pen2} from 'solar-icon-set'
 import {useAtom} from 'jotai'
 import {daysAtom, selectedDatesAtom} from '@/src/utils/global/atoms'
 import {DateTime} from 'luxon'
 import AnimatedBorder from '@/src/components/global/AnimatedBorder'
+import {Icon} from '@iconify/react'
 
 interface DesktopScheduleProps {
   worker: LTWorker
@@ -136,7 +136,7 @@ export default function DesktopSchedule({
       )}
       <Card className="glass sticky top-2 h-fit min-h-64 min-w-[20%]">
         <CardHeader className="flex gap-2 text-2xl">
-          <Pen2 size={24} svgProps={{width: 24, height: 24}} />
+          <Icon icon="solar:pen-2-linear" width="24" height="24" />
           Изменённые дни:
         </CardHeader>
         <CardBody className="gap-4">

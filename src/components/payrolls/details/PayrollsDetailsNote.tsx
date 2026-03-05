@@ -1,14 +1,9 @@
 import {Button, Code, Divider, Link} from '@heroui/react'
-import {ArrowLeft} from 'solar-icon-set'
-import LocationSelect from '@/src/components/global/LocationSelect'
 import {Fragment, useMemo} from 'react'
 import Location from '@/src/components/global/Location'
-import {
-  LTLocation,
-  LTMoneyOnLocationsData,
-  LTWorkerPayrollData,
-} from '@/src/utils/types'
+import {LTMoneyOnLocationsData, LTWorkerPayrollData} from '@/src/utils/types'
 import separateNumber from '@/lib/functions/separateNumber'
+import {Icon} from '@iconify/react'
 
 interface PayrollsDetailsNoteProps {
   locationsData: LTMoneyOnLocationsData[]
@@ -38,7 +33,9 @@ export default function PayrollsDetailsNote({
           className="w-full"
           as={Link}
           href="/payrolls"
-          startContent={<ArrowLeft />}>
+          startContent={
+            <Icon icon="solar:arrow-left-linear" width="24" height="24" />
+          }>
           Назад
         </Button>
       </div>

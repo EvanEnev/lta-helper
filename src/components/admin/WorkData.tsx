@@ -33,8 +33,8 @@ import {evaluate} from 'mathjs'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import FormulaInput from '@/src/components/global/FormulaInput'
 import {DateTime} from 'luxon'
-import {AltArrowDown, Gamepad} from 'solar-icon-set'
 import {withMask} from 'use-mask-input'
+import {Icon} from '@iconify/react'
 
 type WorkDataProps = {
   faceId: LTFaceIdData[]
@@ -478,9 +478,14 @@ export default function WorkData({
           <Accordion.Item>
             <Accordion.Heading>
               <Accordion.Trigger className="border-default-300 hover:bg-default-200 mt-auto flex cursor-pointer justify-start gap-2 rounded-t-xl border-b-1 transition-colors duration-200">
-                <Gamepad iconStyle="Bold" size={24} /> {accordionTitle}
+                <Icon icon="solar:gamepad-bold" width="24" height="24" />{' '}
+                {accordionTitle}
                 <Accordion.Indicator>
-                  <AltArrowDown />
+                  <Icon
+                    icon="solar:alt-arrow-down-linear"
+                    width="24"
+                    height="24"
+                  />
                 </Accordion.Indicator>
               </Accordion.Trigger>
             </Accordion.Heading>

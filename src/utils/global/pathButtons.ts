@@ -1,23 +1,10 @@
-import {
-  Home,
-  ClockCircle,
-  Ruble,
-  AddCircle,
-  BillList,
-  CashOut,
-  Wallet,
-  ConfettiMinimalistic,
-  UsersGroupRounded,
-} from 'solar-icon-set'
-import {ElementType} from 'react'
-
 interface ButtonBase {
   name: string
   href: string
   permission?: string
   isDisabled?: boolean // Админы видят
   hide?: boolean // Не видит никто
-  icon?: ElementType
+  icon?: string
   className?: string
 }
 
@@ -34,46 +21,50 @@ const buttons: PathButton[] = [
             before:absolute before:inset-0
             before:shadow-[inset_0_0_20px_rgba(168,85,247,0.6)]
             before:pointer-events-none`,
-    icon: ConfettiMinimalistic,
+    icon: 'solar:confetti-minimalistic-linear',
     hide: true,
   },
-  {name: 'Главная', href: '/', icon: Home},
-  {name: 'График работы', href: '/schedule', icon: ClockCircle},
-  {name: 'Сотрудники', href: '/workers', icon: UsersGroupRounded},
+  {name: 'Главная', href: '/', icon: 'solar:home-angle-linear'},
+  {name: 'График работы', href: '/schedule', icon: 'solar:clock-circle-linear'},
+  {
+    name: 'Сотрудники',
+    href: '/workers',
+    icon: 'solar:users-group-rounded-linear',
+  },
   {
     name: 'Деньги',
     href: '#',
-    icon: Ruble,
+    icon: 'solar:ruble-linear',
     children: [
       {
         name: 'Проставление ЗП',
         href: '/admin',
         permission: 'set_salary',
-        icon: AddCircle,
+        icon: 'solar:add-circle-linear',
       },
-      {name: 'График ЗП', href: '/salary', icon: Wallet},
+      {name: 'График ЗП', href: '/salary', icon: 'solar:wallet-linear'},
       {
         name: 'Сводная',
         href: '/salary/summarized',
-        icon: Wallet,
+        icon: 'solar:wallet-linear',
         permission: 'view_full_salary',
       },
       {
         name: 'Выплаты',
         href: '/payments',
-        icon: Wallet,
+        icon: 'solar:wallet-linear',
       },
       {
         name: 'Ведомости',
         href: '/payrolls',
         permission: 'view_payrolls',
-        icon: BillList,
+        icon: 'solar:bill-list-linear',
       },
       {
         name: 'Получение ЗП',
         permission: 'view_payrolls',
         href: '/payrolls/issue',
-        icon: CashOut,
+        icon: 'solar:cash-out-linear',
       },
     ],
   },

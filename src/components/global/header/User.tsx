@@ -9,8 +9,8 @@ import {
 import {useTheme} from 'next-themes'
 import {authClient} from '@/lib/auth/authClient'
 import {useRouter} from 'next/navigation'
-import {Moon, Sun2} from 'solar-icon-set'
 import {LTWorker} from '@/src/utils/types'
+import {Icon} from '@iconify/react'
 
 interface UserProps {
   worker?: LTWorker
@@ -38,13 +38,17 @@ export default function User({worker}: UserProps) {
           <Button
             color={theme === 'dark' ? 'primary' : 'default'}
             onPress={() => setTheme('dark')}
-            startContent={<Moon />}>
+            startContent={
+              <Icon icon="solar:moon-linear" width="24" height="24" />
+            }>
             Тёмная
           </Button>
           <Button
             color={theme === 'light' ? 'primary' : 'default'}
             onPress={() => setTheme('light')}
-            startContent={<Sun2 />}>
+            startContent={
+              <Icon icon="solar:sun-2-linear" width="24" height="24" />
+            }>
             Светлая
           </Button>
         </div>

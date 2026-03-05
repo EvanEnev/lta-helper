@@ -12,6 +12,7 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 import User from '@/src/components/global/header/User'
 import {Ref, useEffect, useState} from 'react'
 import {LTWorker} from '@/src/utils/types'
+import {Icon} from '@iconify/react'
 
 interface DesktopHeaderProps {
   worker?: LTWorker
@@ -76,7 +77,9 @@ export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
                       title={button.name}
                       aria-label={button.name}
                       aria-placeholder={button.name}>
-                      {button.icon && <button.icon size={24} />}
+                      {button.icon && (
+                        <Icon icon={button.icon} width="24" height="24" />
+                      )}
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu
@@ -102,7 +105,11 @@ export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
                           key={index}
                           className="h-12"
                           startContent={
-                            child.icon ? <child.icon size={24} /> : ''
+                            child.icon ? (
+                              <Icon icon={child.icon} width="24" height="24" />
+                            ) : (
+                              ''
+                            )
                           }
                           href={path === child.href ? '#' : child.href}
                         />
@@ -123,7 +130,9 @@ export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
                 title={button.name}
                 aria-label={button.name}
                 aria-placeholder={button.name}>
-                {button.icon && <button.icon size={24} />}
+                {button.icon && (
+                  <Icon icon={button.icon} width="24" height="24" />
+                )}
               </Button>
             )
           })}

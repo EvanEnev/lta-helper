@@ -1,21 +1,27 @@
 import {Card, CardBody, CardHeader, Skeleton} from '@heroui/react'
-import {CalendarMinimalistic, ClockCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import {useMemo, useCallback} from 'react'
 import Location from '@/src/components/global/Location'
-import {Day} from "@/src/utils/types";
+import {Day} from '@/src/utils/types'
+import {Icon} from '@iconify/react'
 
 interface UpcomingShiftsProps {
-className?: string
-workingDays: Day[]
+  className?: string
+  workingDays: Day[]
 }
 
-export default function UpcomingShifts({className = '', workingDays}: UpcomingShiftsProps) {
+export default function UpcomingShifts({
+  className = '',
+  workingDays,
+}: UpcomingShiftsProps) {
+  const days = useMemo(
     // @ts-ignore
-  const days = useMemo(() => workingDays.map(d => ({...d, date: DateTime.fromISO(d.date)})), [workingDays])
+    () => workingDays.map(d => ({...d, date: DateTime.fromISO(d.date)})),
+    [workingDays],
+  )
 
-    const currentDate = convertTZ(new Date(), 'Europe/Moscow')
+  const currentDate = convertTZ(new Date(), 'Europe/Moscow')
 
   const getDatesDiff = useCallback(
     (date?: DateTime) => {
@@ -50,11 +56,19 @@ export default function UpcomingShifts({className = '', workingDays}: UpcomingSh
                 className="text-foreground glass flex flex-col gap-4 rounded-xl border-1 p-4">
                 <Location locationName={dayData?.locationName || ''} />
                 <span className="flex items-center gap-1">
-                  <CalendarMinimalistic iconStyle="Bold" />
+                  <Icon
+                    icon="solar:calendar-minimalistic-bold"
+                    width="24"
+                    height="24"
+                  />
                   {day.date?.toFormat('dd.MM EEE', {locale: 'ru-RU'})}
                 </span>
                 <span className="flex items-center gap-1">
-                  <ClockCircle />
+                  <Icon
+                    icon="solar:clock-circle-linear"
+                    width="24"
+                    height="24"
+                  />
                   {dayData?.data?.time}
                 </span>
               </Skeleton>

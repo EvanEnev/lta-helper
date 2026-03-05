@@ -1,11 +1,11 @@
 import {Button, Input, ListBox, Select} from '@heroui/react-beta'
-import {AddCircle} from 'solar-icon-set'
 import {LTPayment, LTPaymentType} from '@/src/utils/types'
 import {Dispatch, SetStateAction, useCallback, useEffect, useState} from 'react'
 import {DateRangePicker, DateValue, RangeValue} from '@heroui/react'
 import {PaymentsFilter} from '@/src/components/payments/PaymentsPage'
 import {DateTime} from 'luxon'
 import separateNumber from '@/lib/functions/separateNumber'
+import {Icon} from '@iconify/react'
 
 interface PaymentsHeaderProps {
   summary: number
@@ -70,7 +70,7 @@ export default function PaymentsHeader({
               ...prev,
             ])
           }>
-          <AddCircle iconStyle="Bold" size={24} />
+          <Icon icon="solar:add-circle-bold" width="24" height="24" />
           Создать
         </Button>
       )}

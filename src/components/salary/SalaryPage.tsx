@@ -26,7 +26,6 @@ import LocationSelect from '@/src/components/global/LocationSelect'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {Filter} from 'solar-icon-set'
 import {useAtomValue} from 'jotai'
 import {headerSizesAtom} from '@/src/utils/global/atoms'
 import {useTheme} from 'next-themes'
@@ -34,6 +33,7 @@ import SalaryRow from '@/src/components/salary/SalaryRow'
 import SalaryDaysRow from '@/src/components/salary/SalaryDaysRow'
 import unaccent from '@/lib/functions/unaccent'
 import Excel from '@/public/icons/Excel'
+import {Icon} from '@iconify/react'
 
 export default function SalaryPage({
   worker,
@@ -339,7 +339,7 @@ export default function SalaryPage({
               <Dropdown closeOnSelect={false}>
                 <DropdownTrigger>
                   <Button variant="flat" isIconOnly>
-                    <Filter />
+                    <Icon icon="solar:filter-bold" width="24" height="24" />
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu className="min-w-40">

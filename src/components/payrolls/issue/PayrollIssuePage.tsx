@@ -17,8 +17,8 @@ import {
 import {DateTime} from 'luxon'
 import {useCallback, useMemo, useState} from 'react'
 import RankIcon from '@/src/components/global/RankIcon'
-import {CheckCircle} from 'solar-icon-set'
 import fetchHandler from '@/src/utils/global/fetchHandler'
+import {Icon} from '@iconify/react'
 
 interface PayrollIssuePageProps {
   payrolls: LTPayrollIssueData[]
@@ -167,7 +167,9 @@ export default function PayrollIssuePage({
         isDisabled={!payrolls[0]?.id || !!payrolls[0]?.taken}
         className="sticky bottom-4 my-2 h-14 w-full"
         color="primary"
-        startContent={<CheckCircle iconStyle="Bold" size={24} />}>
+        startContent={
+          <Icon icon="solar:check-circle-bold" width="24" height="24" />
+        }>
         Подтвердить
       </Button>
     </main>

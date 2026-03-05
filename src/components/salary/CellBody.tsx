@@ -4,9 +4,8 @@ import {TimeField, DateField} from '@heroui/react-beta'
 import {parseTime} from '@internationalized/date'
 import {memo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
-import {DateTime} from 'luxon'
-import {BillCheck, BillCross, Ruble} from 'solar-icon-set'
 import {evaluate} from 'mathjs'
+import {Icon} from '@iconify/react'
 
 export default function CellBody({
   data,
@@ -36,13 +35,14 @@ export default function CellBody({
             {(data.oneGames?.value || 0) +
               (data.twoGames?.value || 0) +
               (data.threeGames?.value || 0)}{' '}
-            <Ruble iconStyle="Bold" />
+            <Icon icon="solar:ruble-bold" width="24" height="24" />
           </CellChip>
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Актёрские
           </CellChip>
           <CellChip className="text-foreground text-small col-span-full flex justify-between">
-            {data.actorGames?.value || 0} <Ruble iconStyle="Bold" />
+            {data.actorGames?.value || 0}{' '}
+            <Icon icon="solar:ruble-bold" width="24" height="24" />
           </CellChip>
         </>
       )
@@ -128,7 +128,8 @@ export default function CellBody({
           </>
         )}
         <CellChip className="text-foreground text-small col-span-2 flex justify-between">
-          {data.value?.toString()} <Ruble iconStyle="Bold" />
+          {data.value?.toString()}{' '}
+          <Icon icon="solar:ruble-bold" width="24" height="24" />
         </CellChip>
         {!data.type && (
           <>
@@ -178,7 +179,12 @@ export default function CellBody({
             <CellChip
               className={`text-foreground text-small col-span-2 flex justify-between`}>
               {data.overworkValue?.toString() || ''}{' '}
-              <Ruble iconStyle="Bold" className="ml-auto" />
+              <Icon
+                icon="solar:ruble-bold"
+                width="24"
+                height="24"
+                className="ml-auto"
+              />
             </CellChip>
           </>
         )}
@@ -207,7 +213,7 @@ export default function CellBody({
       <div className="col-span-full flex justify-between gap-2">
         <div className="flex w-full flex-col gap-2">
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-            <BillCheck iconStyle="Bold" size={22} />
+            <Icon icon="solar:bill-check-bold" width="22" height="22" />
             <p>Бонусы</p>
           </CellChip>
           <Tooltip className="w-full" content={<p>{data.bonuses || ''}</p>}>
@@ -218,7 +224,7 @@ export default function CellBody({
         </div>
         <div className="flex w-full flex-col gap-2">
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
-            <BillCross iconStyle="Bold" size={22} />
+            <Icon icon="solar:bill-cross-bold" width="22" height="22" />
             <p>Штрафы</p>
           </CellChip>
           <Tooltip content={<p>{data.fines || ''}</p>}>

@@ -1,5 +1,4 @@
 import AbandonedFactory from '@/public/icons/locations/AbandonedFactory'
-import {MapPoint} from 'solar-icon-set'
 import Jungle from '@/public/icons/locations/Jungle'
 import WildWest from '@/public/icons/locations/WildWest'
 import Shelter from '@/public/icons/locations/Shelter'
@@ -10,6 +9,7 @@ import VB from '@/public/icons/locations/VB'
 import Cyberport from '@/public/icons/locations/Cyberport'
 import Enclave from '@/public/icons/locations/Enclave'
 import PirateStation from '@/public/icons/locations/PirateStation'
+import {Icon} from '@iconify/react'
 
 export default function LocationIcon({
   locationName = '',
@@ -18,61 +18,70 @@ export default function LocationIcon({
   locationName: string
   className?: string
 }) {
-  let Icon
+  let LIcon
 
   switch (locationName?.toLowerCase().trim()) {
     case 'вб':
     case 'военный бункер':
-      Icon = VB
+      LIcon = VB
       break
     case 'уб':
     case 'убежище':
-      Icon = Shelter
+      LIcon = Shelter
       break
     case 'зф':
     case 'забытая фабрика':
-      Icon = AbandonedFactory
+      LIcon = AbandonedFactory
       break
     case 'ст':
     case 'сити':
-      Icon = City
+      LIcon = City
       break
     case 'тп':
     case 'телепорт':
-      Icon = Teleport
+      LIcon = Teleport
       break
     case 'вр':
     case 'виармания':
-      Icon = VR
+      LIcon = VR
       break
     case 'дз':
     case 'дикий запад':
-      Icon = WildWest
+      LIcon = WildWest
       break
     case 'анк':
     case 'анклав':
-      Icon = Enclave
+      LIcon = Enclave
       break
     case 'кп':
     case 'киберпорт':
-      Icon = Cyberport
+      LIcon = Cyberport
       break
     case 'пс':
     case 'пиратская станция':
-      Icon = PirateStation
+      LIcon = PirateStation
       break
     case 'дж':
     case 'джунгли':
-      Icon = Jungle
+      LIcon = Jungle
       break
   }
 
-  if (!Icon) {
-    Icon = MapPoint
+  if (!LIcon) {
+    return (
+      <Icon
+        className={`${className}`}
+        fill={'currentColor'}
+        color={'currentColor'}
+        icon="solar:map-point-linear"
+        width="40"
+        height="40"
+      />
+    )
   }
 
   return (
-    <Icon
+    <LIcon
       className={`${className}`}
       fill={'currentColor'}
       color={'currentColor'}

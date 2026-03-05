@@ -8,7 +8,6 @@ import RankIcon from '@/src/components/global/RankIcon'
 import {Button, Code, Divider, NumberInput} from '@heroui/react'
 import {DateTime} from 'luxon'
 import LocationSelect from '@/src/components/global/LocationSelect'
-import {Ruble} from 'solar-icon-set'
 import {memo, RefObject, useCallback, useState} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {Socket} from 'socket.io-client'
@@ -18,6 +17,7 @@ import separateNumber from '@/lib/functions/separateNumber'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {useAtomValue} from 'jotai'
 import {headerSizesAtom} from '@/src/utils/global/atoms'
+import {Icon} from '@iconify/react'
 
 interface PayrollsDetailsRowProps {
   data: LTWorkerPayrollData
@@ -107,7 +107,7 @@ function PayrollsDetailsRow({
               updateCallback('value', value)
             }}
             isWheelDisabled
-            endContent={<Ruble iconStyle="Bold" />}
+            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
             className="min-w-36 flex-1"
             value={data.value || 0}
           />
@@ -121,7 +121,7 @@ function PayrollsDetailsRow({
             onValueChange={(value: number) => {
               updateCallback('bonuses', value)
             }}
-            endContent={<Ruble iconStyle="Bold" />}
+            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
             className="min-w-36 flex-1"
             value={data.bonuses || 0}
           />
@@ -136,7 +136,7 @@ function PayrollsDetailsRow({
             onValueChange={(value: number) => {
               updateCallback('external_payment', value)
             }}
-            endContent={<Ruble iconStyle="Bold" />}
+            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
             className="min-w-36 flex-1"
             value={data.external_payment || 0}
           />
@@ -161,7 +161,7 @@ function PayrollsDetailsRow({
             label="Сумма"
             labelPlacement="outside"
             classNames={{stepperButton: 'hidden'}}
-            endContent={<Ruble iconStyle="Bold" />}
+            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
             className="min-w-36 flex-1"
             value={
               data.value + (data.bonuses || 0) - (data.external_payment || 0)
@@ -174,7 +174,7 @@ function PayrollsDetailsRow({
             label="Остаток"
             labelPlacement="outside"
             classNames={{stepperButton: 'hidden'}}
-            endContent={<Ruble iconStyle="Bold" />}
+            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
             className="min-w-36 flex-1"
             value={
               data.value +

@@ -1,6 +1,6 @@
 import {Button} from '@heroui/react'
 import {useState} from 'react'
-import {CheckCircle, MinusCircle, TrashBinTrash} from 'solar-icon-set'
+import {Icon} from '@iconify/react'
 
 interface DeleteButtonProps {
   label?: string
@@ -31,7 +31,7 @@ export default function DeleteButton({
             className="w-full"
             color="default"
             variant="faded">
-            <MinusCircle size={20} />
+            <Icon icon="solar:minus-circle-linear" width="20" height="20" />
             <p>Нет</p>
           </Button>
           <Button
@@ -39,7 +39,7 @@ export default function DeleteButton({
             onPress={() => callback()}
             color="success"
             variant="ghost">
-            <CheckCircle size={20} />
+            <Icon icon="solar:check-circle-linear" width="20" height="20" />
             <p>Да</p>
           </Button>
         </div>
@@ -49,7 +49,9 @@ export default function DeleteButton({
           className="w-full"
           variant="faded"
           onPress={() => setShowConfirm(true)}
-          startContent={<TrashBinTrash />}>
+          startContent={
+            <Icon icon="solar:trash-bin-trash-linear" width="24" height="24" />
+          }>
           {label}
         </Button>
       )}

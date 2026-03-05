@@ -10,18 +10,11 @@ import {
 import {DateValue, semanticColors} from '@heroui/react'
 import {Button, Card} from '@heroui/react-beta'
 import WorkData from './WorkData'
-import {
-  AddCircle,
-  CheckCircle,
-  Eye,
-  MinusCircle,
-  Plain,
-  RestartCircle,
-} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import isDark from '@/lib/functions/isDark'
 import {useTheme} from 'next-themes'
 import AdminDatePicker from '@/src/components/admin/AdminDatePicker'
+import {Icon} from '@iconify/react'
 
 interface DesktopAdminProps {
   faceId: LTFaceIdData[]
@@ -119,16 +112,20 @@ export default function DesktopAdmin({
                     }
                     className="w-full flex-1">
                     {data.deleted ? (
-                      <RestartCircle
+                      <Icon
                         //@ts-ignore
                         color={semanticColors.dark.success.DEFAULT}
-                        size={24}
+                        icon="solar:restart-circle-linear"
+                        width="24"
+                        height="24"
                       />
                     ) : (
-                      <MinusCircle
-                        //@ts-ignore
+                      <Icon
+                        // @ts-ignore
                         color={semanticColors.dark.danger.DEFAULT}
-                        size={24}
+                        icon="solar:minus-circle-linear"
+                        width="24"
+                        height="24"
                       />
                     )}
                     {data.deleted ? 'Вернуть' : 'Удалить'}
@@ -142,7 +139,7 @@ export default function DesktopAdmin({
                           prev.filter((_, i) => i !== index),
                         )
                       }>
-                      <Eye size={24} />
+                      <Icon icon="solar:eye-linear" width="24" height="24" />
                       Скрыть
                     </Button>
                   )}
@@ -150,11 +147,12 @@ export default function DesktopAdmin({
                 <div
                   className="text-small flex items-center gap-2"
                   style={{visibility: data.createdAt ? undefined : 'hidden'}}>
-                  <CheckCircle
-                    iconStyle="Bold"
+                  <Icon
+                    icon="solar:check-circle-bold"
+                    width="20"
+                    height="20"
                     // @ts-ignore
                     color={semanticColors[theme].success.DEFAULT}
-                    size={20}
                   />
                   <p>{data.createdAt || 'a'}</p>
                 </div>
@@ -191,9 +189,9 @@ export default function DesktopAdmin({
               },
             ])
           }
-          className="border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 w-[300px] border-2 border-dashed bg-transparent transition-colors duration-300 ease-in-out hover:cursor-pointer">
+          className="border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 w-75 border-2 border-dashed bg-transparent transition-colors duration-300 ease-in-out hover:cursor-pointer">
           <Card.Content className="flex h-full w-full items-center justify-center border-0">
-            <AddCircle size={48} />
+            <Icon icon="solar:add-circle-linear" width="48" height="48" />
           </Card.Content>
         </Card>
       </div>
@@ -219,7 +217,7 @@ export default function DesktopAdmin({
                 },
               ])
             }>
-            <AddCircle size={24} />
+            <Icon icon="solar:add-circle-linear" width="24" height="24" />
             Добавить
           </Button>
           <Button
@@ -228,7 +226,7 @@ export default function DesktopAdmin({
             className="h-16 w-full"
             onPress={sendData}
             isPending={isLoading}>
-            <Plain size={24} />
+            <Icon icon="solar:plain-linear" width="24" height="24" />
             Отправить
           </Button>
         </Card.Content>

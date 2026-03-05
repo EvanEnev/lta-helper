@@ -15,17 +15,6 @@ import {
   useDisclosure,
 } from '@heroui/react'
 import {DateField, TimeField, TimeValue} from '@heroui/react-beta'
-import {
-  BillCheck,
-  BillCross,
-  ChatRoundLine,
-  ClockCircle,
-  Eye,
-  Gamepad,
-  History,
-  Ruble,
-  SortByTime,
-} from 'solar-icon-set'
 import {LTGamePayment, LTLocation, SalaryData} from '@/src/utils/types'
 import Location from '@/src/components/global/Location'
 import {DateTime} from 'luxon'
@@ -36,6 +25,7 @@ import useIsMobile from '@/src/hooks/useIsMobile'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import CellChip from '@/src/components/salary/CellChip'
 import FormulaInput from '@/src/components/global/FormulaInput'
+import {Icon} from '@iconify/react'
 
 interface EditDrawerProps {
   data: SalaryData
@@ -177,7 +167,7 @@ export default function EditDrawer({
   return (
     <>
       <Button
-        startContent={<Eye iconStyle="Bold" />}
+        startContent={<Icon icon="solar:eye-bold" width="24" height="24" />}
         variant="faded"
         className="w-full"
         onPress={() => onOpen()}>
@@ -206,7 +196,11 @@ export default function EditDrawer({
               </DrawerHeader>
               <DrawerBody className="grid grid-flow-row auto-rows-min grid-cols-2 gap-2">
                 <div className="col-span-full flex items-center gap-1">
-                  <ClockCircle size={22} />
+                  <Icon
+                    icon="solar:clock-circle-linear"
+                    width="22"
+                    height="22"
+                  />
                   <p>Смена</p>
                 </div>
                 <TimeField
@@ -246,11 +240,13 @@ export default function EditDrawer({
                   value={data.value ? Number(data.value) : 0}
                   onValueChange={value => update(value.toString(), 'value')}
                   minValue={0}
-                  endContent={<Ruble iconStyle="Bold" />}
+                  endContent={
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  }
                 />
                 <Divider className="col-span-full w-full" />
                 <div className="col-span-full flex items-center gap-1">
-                  <History iconStyle="Bold" size={22} />
+                  <Icon icon="solar:history-bold" width="22" height="22" />
                   <p>Переработка</p>
                 </div>
                 <TimeField
@@ -292,11 +288,13 @@ export default function EditDrawer({
                   onValueChange={value =>
                     update(value.toString(), 'overworkValue')
                   }
-                  endContent={<Ruble iconStyle="Bold" />}
+                  endContent={
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  }
                 />
                 <Divider className="col-span-full" />
                 <div className="col-span-full flex items-center gap-1">
-                  <Gamepad iconStyle="Bold" size={22} />
+                  <Icon icon="solar:gamepad-bold" width="22" height="22" />
                   <p>Игры</p>
                 </div>
                 <p className="col-span-full">1 часовые</p>
@@ -481,7 +479,7 @@ export default function EditDrawer({
                 />
                 <Divider className="col-span-full" />
                 <div className="col-span-full flex items-center gap-1">
-                  <BillCheck iconStyle="Bold" size={22} />
+                  <Icon icon="solar:bill-check-bold" width="22" height="22" />
                   <p>Бонусы</p>
                 </div>
                 <FormulaInput
@@ -495,7 +493,7 @@ export default function EditDrawer({
                   value={data.bonuses || ''}
                 />
                 <div className="col-span-full flex items-center gap-1">
-                  <BillCross iconStyle="Bold" size={22} />
+                  <Icon icon="solar:bill-cross-bold" width="22" height="22" />
                   <p>Штрафы</p>
                 </div>
                 <FormulaInput
@@ -510,8 +508,10 @@ export default function EditDrawer({
                 />
                 <Divider className="col-span-full" />
                 <p className="col-span-full w-full">
-                  <ChatRoundLine
-                    iconStyle="Bold"
+                  <Icon
+                    icon="solar:chat-round-line-bold"
+                    width="22"
+                    height="22"
                     className="mr-1 align-middle"
                   />
                   Комментарий
@@ -529,7 +529,12 @@ export default function EditDrawer({
                   onValueChange={value => update(value, 'comment')}
                 />
                 <p className="col-span-full w-full">
-                  <SortByTime iconStyle="Bold" className="mr-1 align-middle" />
+                  <Icon
+                    icon="solar:sort-by-time-bold"
+                    width="24"
+                    height="24"
+                    className="mr-1 align-middle"
+                  />
                   FaceID
                 </p>
                 {data.faceId?.map(data => (

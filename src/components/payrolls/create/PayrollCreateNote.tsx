@@ -2,9 +2,9 @@ import {Button, Code, DatePicker, Divider, Input} from '@heroui/react'
 import {Fragment} from 'react'
 import Location from '@/src/components/global/Location'
 import {parseDate} from '@internationalized/date'
-import {Plain} from 'solar-icon-set'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import separateNumber from '@/lib/functions/separateNumber'
+import {Icon} from '@iconify/react'
 
 interface PayrollCreateNoteProps {
   locations: LTLocation[]
@@ -97,7 +97,9 @@ export default function PayrollCreateNote({
       </div>
       <div className="glass p-2">
         <Button
-          startContent={<Plain size={24} />}
+          startContent={
+            <Icon icon="solar:plain-linear" width="24" height="24" />
+          }
           className="col-span-full w-full"
           variant="shadow"
           color="primary"

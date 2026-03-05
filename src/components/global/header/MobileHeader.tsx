@@ -11,12 +11,12 @@ import {
 } from '@heroui/react'
 import {Button, Separator, Link} from '@heroui/react-beta'
 import {usePathname} from 'next/navigation'
-import {HamburgerMenu} from 'solar-icon-set'
 import buttonsRaw from '@/src/utils/global/pathButtons'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {LTWorker} from '@/src/utils/types'
 import {Fragment, Ref} from 'react'
 import {useTheme} from 'next-themes'
+import {Icon} from '@iconify/react'
 
 interface MobileHeaderProps {
   scrolled: boolean
@@ -96,7 +96,11 @@ export default function MobileHeader({
                       classNames={{content: 'flex flex-col gap-2'}}
                       title={button.name}
                       startContent={
-                        button.icon ? <button.icon size={24} /> : ''
+                        button.icon ? (
+                          <Icon icon={button.icon} width="24" height="24" />
+                        ) : (
+                          ''
+                        )
                       }
                       key={'1'}>
                       {button.children
@@ -120,7 +124,15 @@ export default function MobileHeader({
                             <Button
                               variant="tertiary"
                               className={`h-16 w-full ${path === child.href ? 'shadow-primary shadow-sm' : ''} ${child.className}`}>
-                              {child.icon ? <child.icon size={24} /> : ''}
+                              {child.icon ? (
+                                <Icon
+                                  icon={child.icon}
+                                  width="24"
+                                  height="24"
+                                />
+                              ) : (
+                                ''
+                              )}
                               {child.name}
                             </Button>
                           </Link>
@@ -139,7 +151,12 @@ export default function MobileHeader({
                     variant="tertiary"
                     className={`h-16 w-full p-2 ${path === button.href ? 'shadow-primary shadow-sm' : ''} ${button.className}`}
                     size="lg">
-                    {button.icon ? <button.icon size={24} /> : ''} {button.name}
+                    {button.icon ? (
+                      <Icon icon={button.icon} width="24" height="24" />
+                    ) : (
+                      ''
+                    )}{' '}
+                    {button.name}
                   </Button>
                 </Link>
               )
@@ -164,7 +181,8 @@ export default function MobileHeader({
             className={`flex-col items-center justify-center gap-1 ${button.className} ${path === button.href ? 'drop-shadow-primary drop-shadow-2xl' : ''}`}
             slot="header">
             {button.icon && (
-              <button.icon
+              <Icon
+                icon={button.icon}
                 className="items-center justify-center"
                 color={
                   path === button.href
@@ -172,8 +190,8 @@ export default function MobileHeader({
                       semanticColors[theme || 'dark'].primary['500']
                     : undefined
                 }
-                iconStyle={path === button.href ? 'Bold' : 'Outline'}
-                size={24}
+                width="24"
+                height="24"
               />
             )}
             <Separator
@@ -198,7 +216,12 @@ export default function MobileHeader({
         variant="ghost"
         onPress={onOpen}
         isIconOnly>
-        <HamburgerMenu className="items-center justify-center" size={24} />
+        <Icon
+          icon="solar:hamburger-menu-linear"
+          width="24"
+          height="24"
+          className="items-center justify-center"
+        />
         <Separator className="bg-content2-foreground" />
       </Button>
 

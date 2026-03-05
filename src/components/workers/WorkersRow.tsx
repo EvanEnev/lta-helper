@@ -13,7 +13,6 @@ import {
   NumberField,
 } from '@heroui/react-beta'
 import RankIcon from '@/src/components/global/RankIcon'
-import {ArrowDown, ArrowUp, Clipboard, Phone} from 'solar-icon-set'
 import formatPhone from '@/lib/functions/formatPhone'
 import {Icon} from '@iconify/react'
 import {Activity, Fragment, useMemo} from 'react'
@@ -108,7 +107,7 @@ export default function WorkersRow({
               className="w-full"
               variant="secondary"
               isDisabled={data.rank.id === maxRankId}>
-              <ArrowUp size={24} />
+              <Icon icon="solar:arrow-up-linear" width="24" height="24" />
               Повысить
             </Button>
             <Button
@@ -116,7 +115,7 @@ export default function WorkersRow({
               className="w-full"
               variant="danger-soft"
               isDisabled={data.rank.id === minRankId}>
-              <ArrowDown size={24} />
+              <Icon icon="solar:arrow-down-linear" width="24" height="24" />
               Понизить
             </Button>
           </div>
@@ -131,7 +130,7 @@ export default function WorkersRow({
       <Separator orientation="vertical" className="bg-content1-foreground/50" />
       <div className="flex w-60 flex-col flex-wrap gap-2">
         <div className="border-content1-foreground/50 flex items-center gap-2 rounded-2xl border-2 p-1">
-          <Phone iconStyle="Bold" />
+          <Icon icon="solar:phone-bold" width="24" height="24" />
           <a href={`tel:${data.phoneNumber}`}>
             {formatPhone(data.phoneNumber || '')}
           </a>
@@ -141,7 +140,7 @@ export default function WorkersRow({
             onPress={() =>
               navigator.clipboard.writeText(data.phoneNumber || '')
             }>
-            <Clipboard iconStyle="Bold" />
+            <Icon icon="solar:clipboard-bold" width="24" height="24" />
           </Button>
         </div>
         <a

@@ -10,7 +10,7 @@ import {Card, Separator} from '@heroui/react-beta'
 import RankIcon from '@/src/components/global/RankIcon'
 import Location from '@/src/components/global/Location'
 import {Fragment, ReactElement} from 'react'
-import {AddCircle, MinusCircle, QuestionCircle} from 'solar-icon-set'
+import {Icon} from '@iconify/react'
 
 interface WrappedPageProps {
   workersData: WrapperWorkers[]
@@ -30,19 +30,19 @@ const scheduleLegend: {
   {
     name: 'Могу',
     key: 'plus',
-    icon: <AddCircle iconStyle="Bold" />,
+    icon: <Icon icon="solar:add-circle-bold" width="24" height="24" />,
     color: 'bg-success/30',
   },
   {
     name: 'Не могу',
     key: 'minus',
-    icon: <MinusCircle iconStyle="Bold" />,
+    icon: <Icon icon="solar:minus-circle-bold" width="24" height="24" />,
     color: 'bg-danger/30',
   },
   {
     name: 'С ограничением',
     key: 'limitations',
-    icon: <QuestionCircle iconStyle="Bold" />,
+    icon: <Icon icon="solar:question-circle-bold" width="24" height="24" />,
     color: 'bg-warning/30',
   },
 ]

@@ -12,7 +12,6 @@ import {
   Separator,
   TextField,
 } from '@heroui/react-beta'
-import {Pen2, Ruble} from 'solar-icon-set'
 import {LTPayment, LTPaymentType, LTWorker} from '@/src/utils/types'
 import {CalendarDate, DatePicker} from '@heroui/react'
 import {parseDate} from '@internationalized/date'
@@ -129,9 +128,11 @@ export default function PaymentsRow({
         <Label className="mt-auto">Сумма</Label>
         <NumberField.Group className="h-10">
           <NumberField.Input className="h-10" placeholder="0" />
-          <Ruble
-            iconStyle="Bold"
+          <Icon
             className={`mr-3 ${editMode ? '' : 'opacity-30'} transition-opacity duration-250`}
+            icon="solar:ruble-bold"
+            width="24"
+            height="24"
           />
         </NumberField.Group>
       </NumberField>
@@ -195,7 +196,7 @@ export default function PaymentsRow({
             size="lg"
             variant="tertiary"
             onPress={() => setEditMode(true)}>
-            <Pen2 size={24} /> Изменить
+            <Icon icon="solar:pen-2-linear" width="24" height="24" /> Изменить
           </Button>
         )}
       </Activity>

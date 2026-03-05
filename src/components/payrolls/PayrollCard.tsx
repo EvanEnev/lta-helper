@@ -10,20 +10,24 @@ import {
   semanticColors,
 } from '@heroui/react'
 import Link from 'next/link'
-import {ChatLine, CheckCircle, CloseCircle} from 'solar-icon-set'
 import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import DeleteButton from '@/src/components/global/DeleteButton'
 import {useCallback, useMemo} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
+import {Icon} from '@iconify/react'
 
 interface PayrollCardProps {
   data: LTPayroll
   onDelete: (payrollId: LTPayroll['id']) => void
-    worker: LTWorker
+  worker: LTWorker
 }
 
-export default function PayrollCard({data, onDelete, worker}: PayrollCardProps) {
+export default function PayrollCard({
+  data,
+  onDelete,
+  worker,
+}: PayrollCardProps) {
   const {theme} = useTheme()
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)
@@ -71,15 +75,17 @@ export default function PayrollCard({data, onDelete, worker}: PayrollCardProps) 
         <div className="flex items-center gap-2">
           <p>Бонусы: </p>
           {data.bonuses ? (
-            <CheckCircle
-              iconStyle="Bold"
+            <Icon
               color={themeColors.success['500']}
-              size={20}
+              icon="solar:check-circle-bold"
+              width="20"
+              height="20"
             />
           ) : (
-            <CloseCircle
-              iconStyle="Bold"
-              size={20}
+            <Icon
+              icon="solar:close-circle-bold"
+              width="20"
+              height="20"
               color={themeColors.danger['500']}
             />
           )}
@@ -95,7 +101,9 @@ export default function PayrollCard({data, onDelete, worker}: PayrollCardProps) 
           }
           as={Link}
           href={`/payrolls/${data.id}`}
-          startContent={<ChatLine iconStyle="Bold" />}>
+          startContent={
+            <Icon icon="solar:chat-line-bold" width="24" height="24" />
+          }>
           Подробнее
         </Button>
         {checkPermissions(['edit_payrolls'], worker) && (

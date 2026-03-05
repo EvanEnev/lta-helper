@@ -8,8 +8,8 @@ import {
   DropdownItem,
 } from '@heroui/react'
 import {useState} from 'react'
-import {AddCircle} from 'solar-icon-set'
 import LocationIcon from '@/src/components/global/LocationIcon'
+import {Icon} from '@iconify/react'
 
 type Props = {
   isAdmin: boolean
@@ -34,7 +34,7 @@ export default function PossibilityButton({
       <Button
         startContent={
           selectedOption === 'Могу' || !selectedOption ? (
-            <AddCircle size={24} />
+            <Icon icon="solar:add-circle-linear" width="24" height="24" />
           ) : (
             <LocationIcon locationName={location || ''} />
           )

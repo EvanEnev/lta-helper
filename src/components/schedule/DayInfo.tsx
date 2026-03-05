@@ -12,7 +12,6 @@ import {Fragment, useMemo} from 'react'
 import PossibilityButton from './PossibilityButton'
 import SlashDivider from './SlashDivider'
 import CommentTemplates from './CommentTemplates'
-import {MinusCircle, QuestionCircle} from 'solar-icon-set'
 import groupBy from '@/lib/functions/groupBy'
 import {useAtom, useAtomValue} from 'jotai'
 import {
@@ -25,6 +24,7 @@ import RankIcon from '@/src/components/global/RankIcon'
 import sortByRank from '@/lib/functions/sortByRank'
 import Location from '@/src/components/global/Location'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import {Icon} from '@iconify/react'
 
 export default function DayInfo({
   day,
@@ -158,7 +158,9 @@ export default function DayInfo({
 
       <Button
         isDisabled={isDisabled}
-        startContent={<MinusCircle size={24} />}
+        startContent={
+          <Icon icon="solar:minus-circle-linear" width="24" height="24" />
+        }
         className="h-14"
         size="lg"
         color={day?.value === '-' ? 'danger' : 'default'}
@@ -167,7 +169,9 @@ export default function DayInfo({
       </Button>
       <Button
         isDisabled={isDisabled}
-        startContent={<QuestionCircle size={24} />}
+        startContent={
+          <Icon icon="solar:question-circle-linear" width="24" height="24" />
+        }
         className="h-14"
         size="lg"
         color={day?.value === '+/-' ? 'warning' : 'default'}

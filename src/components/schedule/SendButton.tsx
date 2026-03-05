@@ -1,17 +1,17 @@
 import {addToast, Button} from '@heroui/react'
 import {useState} from 'react'
 import useIsMobile from '@/src/hooks/useIsMobile'
-import {Plain} from 'solar-icon-set'
 import {Day, LTWorker} from '@/src/utils/types'
 import {selectedDayAtom} from '@/src/utils/global/atoms'
 import {useAtom} from 'jotai'
+import {Icon} from '@iconify/react'
 
 export default function SendButton({
-    worker,
+  worker,
   className = '',
   days,
 }: {
-    worker: LTWorker
+  worker: LTWorker
   className?: string
   days: Day[]
 }) {
@@ -86,7 +86,14 @@ export default function SendButton({
       size="lg"
       color="primary"
       variant="shadow"
-      endContent={<Plain color={'#ffffff'} size={24} />}
+      endContent={
+        <Icon
+          icon="solar:plain-linear"
+          width="24"
+          height="24"
+          style={{color: '#fff'}}
+        />
+      }
       className={`h-16 w-full text-2xl ${className}`}>
       Отправить
     </Button>

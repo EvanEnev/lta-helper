@@ -26,13 +26,6 @@ import {
 import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
 import PayrollCreateWorkerCell from '@/src/components/payrolls/create/PayrollCreateWorkerCell'
 import PayrollCreateLocationCell from '@/src/components/payrolls/create/PayrollCreateLocationCell'
-import {
-  ArrowLeft,
-  CheckCircle,
-  CloseCircle,
-  CloseSquare,
-  Ruble,
-} from 'solar-icon-set'
 import {DateTime, Interval} from 'luxon'
 import {useTheme} from 'next-themes'
 import fetchHandler from '@/src/utils/global/fetchHandler'
@@ -40,6 +33,7 @@ import {evaluate} from 'mathjs'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
 import {useRouter} from 'next/navigation'
 import separateNumber from '@/lib/functions/separateNumber'
+import {Icon} from '@iconify/react'
 
 interface PayrollCreatePageProps {
   data: {
@@ -289,22 +283,29 @@ export default function PayrollCreatePage({
       <div
         ref={headerRef}
         className="sticky top-2 z-1000 flex items-center gap-2 pb-4">
-        <Button as={Link} href="/payrolls" startContent={<ArrowLeft />}>
+        <Button
+          as={Link}
+          href="/payrolls"
+          startContent={
+            <Icon icon="solar:arrow-left-linear" width="24" height="24" />
+          }>
           Назад
         </Button>
         <div className="glass p-2">{interval.toFormat('dd.MM.yyyy')}</div>
         <div className="glass flex items-center gap-2 p-2">
           Бонусы:{' '}
           {bonuses ? (
-            <CheckCircle
-              iconStyle="Bold"
+            <Icon
               color={themeColors.success['500']}
-              size={20}
+              icon="solar:check-circle-bold"
+              width="20"
+              height="20"
             />
           ) : (
-            <CloseCircle
-              iconStyle="Bold"
-              size={20}
+            <Icon
+              icon="solar:close-circle-bold"
+              width="20"
+              height="20"
               color={themeColors.danger['500']}
             />
           )}
@@ -321,14 +322,14 @@ export default function PayrollCreatePage({
                   (cur.external_payment || 0)),
               0,
             )}
-            <Ruble iconStyle="Bold" />
+            <Icon icon="solar:ruble-bold" width="24" height="24" />
           </Code>
         </div>
         <div className="glass flex items-center gap-2 p-2">
           <p>Площадки:</p>
           <Code color="primary" className="flex items-center gap-2">
             {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
-            <Ruble iconStyle="Bold" />
+            <Icon icon="solar:ruble-bold" width="24" height="24" />
           </Code>
         </div>
       </div>
@@ -346,7 +347,9 @@ export default function PayrollCreatePage({
                 setLastSelectedRow(null)
                 setSelectedRows([])
               }}
-              startContent={<CloseSquare iconStyle="Bold" />}
+              startContent={
+                <Icon icon="solar:close-square-bold" width="24" height="24" />
+              }
               isIconOnly
             />
             <p className="min-w-32 flex-1 text-center">Сотрудник</p>
@@ -437,7 +440,7 @@ export default function PayrollCreatePage({
                   <Divider orientation="vertical" />
                   <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
                     <p>{separateNumber(d.balance || 0)}</p>
-                    <Ruble iconStyle="Bold" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
                   </div>
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
@@ -450,7 +453,7 @@ export default function PayrollCreatePage({
                   <Divider orientation="vertical" />
                   <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
                     <p>{separateNumber(summary)}</p>
-                    <Ruble iconStyle="Bold" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
                   </div>
                   <Divider orientation="vertical" />
                   <PayrollCreateLocationCell

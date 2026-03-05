@@ -13,7 +13,6 @@ import {
   ModalFooter,
   ModalHeader,
 } from '@heroui/react'
-import {AddCircle, Ruble} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import {Fragment, useEffect, useMemo, useState} from 'react'
 import {parseDate} from '@internationalized/date'
@@ -21,6 +20,7 @@ import {LTLocation} from '@/src/utils/types'
 import Location from '@/src/components/global/Location'
 import Link from 'next/link'
 import {evaluate} from 'mathjs'
+import {Icon} from '@iconify/react'
 
 interface PayrollsCreateCardProps {
   locations: LTLocation[]
@@ -143,7 +143,7 @@ export default function PayrollCreateCard({
         variant="ghost"
         onPress={onOpen}
         className="flex h-[18rem] w-full flex-col gap-2 border-dashed text-2xl sm:w-[20rem]">
-        <AddCircle size={50} />
+        <Icon icon="solar:add-circle-linear" width="50" height="50" />
         Создать
       </Button>
       <Modal
@@ -232,7 +232,13 @@ export default function PayrollCreateCard({
                               }),
                             )
                           }
-                          endContent={<Ruble />}
+                          endContent={
+                            <Icon
+                              icon="solar:ruble-linear"
+                              width="24"
+                              height="24"
+                            />
+                          }
                           defaultValue={'0'}
                         />
                         <p className="bg-content2 flex rounded-xl p-2">

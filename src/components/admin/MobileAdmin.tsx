@@ -16,9 +16,9 @@ import {
   LTWorkType,
   WorkerSalary,
 } from '@/src/utils/types'
-import {MinusCircle, Plain, RestartCircle} from 'solar-icon-set'
 import {DateTime} from 'luxon'
 import AdminDatePicker from '@/src/components/admin/AdminDatePicker'
+import {Icon} from '@iconify/react'
 
 interface MobileAdminProps {
   worker: LTWorker
@@ -134,9 +134,17 @@ export default function MobileAdmin({
                   variant="ghost"
                   onPress={() => removeSalaryData(index)}>
                   {data.deleted ? (
-                    <RestartCircle size={24} />
+                    <Icon
+                      icon="solar:restart-circle-linear"
+                      width="24"
+                      height="24"
+                    />
                   ) : (
-                    <MinusCircle size={24} />
+                    <Icon
+                      icon="solar:minus-circle-linear"
+                      width="24"
+                      height="24"
+                    />
                   )}
                 </Button>
               }>
@@ -169,7 +177,7 @@ export default function MobileAdmin({
         color="primary"
         className="h-16 w-full"
         onPress={sendData}
-        endContent={<Plain size={24} />}
+        endContent={<Icon icon="solar:plain-linear" width="24" height="24" />}
         isLoading={isLoading}>
         Отправить
       </Button>
