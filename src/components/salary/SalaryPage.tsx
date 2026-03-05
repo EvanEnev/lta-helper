@@ -288,7 +288,9 @@ export default function SalaryPage({
   )
 
   const download = useCallback(async () => {
-    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd')
+    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd').setZone(
+      'Europe/Moscow',
+    )
     const start = datetime.startOf('month')
     const end = datetime.endOf('month')
 
