@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
     type: 'day' | 'month' | 'workers' | 'salary'
   } = await req.json()
 
-  const startDate = DateTime.fromISO(body.start_date)
-  const endDate = DateTime.fromISO(body.end_date)
+  const startDate = DateTime.fromISO(body.start_date).setZone('Europe/Moscow')
+  const endDate = DateTime.fromISO(body.end_date).setZone('Europe/Moscow')
 
   const interval = Interval.fromDateTimes(startDate, endDate)
 

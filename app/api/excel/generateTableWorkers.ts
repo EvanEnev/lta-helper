@@ -52,7 +52,7 @@ export default async function generateTableWorkers({
              (select date from salary.list where id = sl.id) desc
   `
 
-  console.debug(query)
+  console.debug(query, interval.toISO())
 
   const dataResult = await db.query(query)
 
