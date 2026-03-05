@@ -21,6 +21,7 @@ export default async function generateTableWorkers({
       group by worker_id, date::date
     )
     select
+      w.last_name || ' ' || w.first_name || ' ' || w.middle_name as fio,
       w.name,
       jsonb_agg(
         jsonb_build_object(
@@ -43,9 +44,15 @@ export default async function generateTableWorkers({
            left join faceId fd on fd.worker_id = sl.worker_id and fd.date = sl.date
            left join workers w on w.id = sl.worker_id
     where  sl.date between '${interval.start!.toFormat('yyyy-MM-dd')}' and '${interval.end!.toFormat('yyyy-MM-dd')}'
-    group by w.name, w.id
-    order by (select coalesce(ww.is_former, false) from workers ww where ww.id = w.id), (select sorting_weight from ranks r where r.id = w.rank_id) DESC, w.name, (select ww.first_name from workers ww where ww.id = w.id) 
+    group by w.name, w.id, sl.id
+    order by (select coalesce(ww.is_former, false) from workers ww where ww.id = w.id),
+             (select sorting_weight from ranks r where r.id = w.rank_id) DESC,
+             w.name,
+             (select ww.first_name from workers ww where ww.id = w.id),
+             (select date from salary.list where id = sl.id) desc
   `
+
+  console.debug(query)
 
   const dataResult = await db.query(query)
 
@@ -53,6 +60,7 @@ export default async function generateTableWorkers({
 
   const baseRows: (number | string)[][] = [
     [
+      'ФИО',
       'Позывной',
       'Дата',
       'Локация',
@@ -76,44 +84,24 @@ export default async function generateTableWorkers({
   })
 
   data.forEach(d => {
-    const row: (number | string)[] = []
-    row.push(d.name)
+    d.data.forEach((v: any) => {
+      const row = [
+        d.fio,
+        d.name,
+        v.date,
+        v.location,
+        v.value,
+        v.overwork,
+        v.bonuses,
+        v.fines,
+        v.type,
+        v.act,
+        v.comment,
+        v.min,
+        v.max,
+      ]
 
-    d.data.forEach((v: any, index: number) => {
-      if (index === 0) {
-        row.push(
-          v.date,
-          v.location,
-          v.value,
-          v.overwork,
-          v.bonuses,
-          v.fines,
-          v.type,
-          v.act,
-          v.comment,
-          v.min,
-          v.max,
-        )
-
-        rows.push(row)
-      } else {
-        const row = [
-          '',
-          v.date,
-          v.location,
-          v.value,
-          v.overwork,
-          v.bonuses,
-          v.fines,
-          v.type,
-          v.act,
-          v.comment,
-          v.min,
-          v.max,
-        ]
-
-        rows.push(row)
-      }
+      rows.push(row)
     })
   })
 
