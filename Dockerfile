@@ -6,8 +6,8 @@ ARG CODE_VERSION=22-alpine
 FROM node:${CODE_VERSION} AS builder
 WORKDIR /app
 
-RUN pnpm config set registry https://registry.npmmirror.com
 RUN npm install -g pnpm@9
+RUN pnpm config set registry https://registry.npmmirror.com
 
 # Только зависимости
 COPY package.json pnpm-lock.yaml .npmrc ./
@@ -26,8 +26,8 @@ RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
 FROM node:${CODE_VERSION} AS runner
 WORKDIR /app
 
-RUN pnpm config set registry https://registry.npmmirror.com
 RUN npm install -g pnpm@9
+RUN pnpm config set registry https://registry.npmmirror.com
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
