@@ -288,9 +288,16 @@ export default function SalaryPage({
   )
 
   const download = useCallback(async () => {
-    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd')
+    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd').setZone(
+      'Europe/Moscow',
+    )
+
+    console.debug(datetime.toISO())
+
     const start = datetime.startOf('month')
     const end = datetime.endOf('month')
+
+    console.debug(start.toString(), end.toString(), start.toISO())
 
     const response = await fetch('/api/excel', {
       method: 'POST',
