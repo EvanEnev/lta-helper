@@ -2,7 +2,6 @@ import {LTFaceIdData, SalaryData} from '@/src/utils/types'
 import {Divider, Tooltip} from '@heroui/react'
 import {TimeField, DateField} from '@heroui/react-beta'
 import {parseTime} from '@internationalized/date'
-import {memo} from 'react'
 import CellChip from '@/src/components/salary/CellChip'
 import {evaluate} from 'mathjs'
 import {Icon} from '@iconify/react'
@@ -20,7 +19,7 @@ export default function CellBody({
   time: string
   overworkTime: string | null
 }) {
-  const Games = memo(function Games() {
+  const Games = function Games() {
     if (data.type) {
       return null
     }
@@ -75,7 +74,7 @@ export default function CellBody({
         </CellChip>
       </>
     )
-  })
+  }
 
   return (
     <>

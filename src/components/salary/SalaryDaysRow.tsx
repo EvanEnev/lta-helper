@@ -13,7 +13,7 @@ export default function SalaryDaysRow({
 }: SalaryDaysRowProps) {
   return (
     <>
-      <div className="border-content1-foreground/20 h-full w-full rounded-2xl border-2 bg-black" />
+      <div className="border-content1-foreground/20 h-full w-full rounded-2xl border-2" />
       {dates.map((date, index) => {
         const key = date ?? `default-key-${index}`
 

@@ -55,7 +55,7 @@ export default function SalaryRow({
       </div>
       {days.map(day => {
         const data = dates.find(d => d.date?.slice(0, -5) === day)
-        if (!data) {
+        if (!data?.id) {
           return (
             <div
               key={day}
