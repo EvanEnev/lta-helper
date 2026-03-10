@@ -6,7 +6,7 @@ ARG CODE_VERSION=22-alpine
 FROM node:${CODE_VERSION} AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm@9
+RUN corepack enable
 RUN pnpm config set registry https://registry.npmmirror.com
 
 # Только зависимости
@@ -26,7 +26,7 @@ RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
 FROM node:${CODE_VERSION} AS runner
 WORKDIR /app
 
-RUN npm install -g pnpm@9
+RUN corepack enable
 RUN pnpm config set registry https://registry.npmmirror.com
 
 ENV NODE_ENV production
