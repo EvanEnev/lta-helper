@@ -70,8 +70,6 @@ export default function AdminPage({
     const currentDate = convertTZ(new Date(), 'Europe/Moscow')
     const previousDate = convertTZ(new Date(), 'Europe/Moscow').minus({day: 1})
 
-    setDate(currentDate)
-
     return {
       current: currentDate,
       previous: previousDate,

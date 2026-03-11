@@ -110,12 +110,13 @@ export default function DesktopAdmin({
                             ),
                       )
                     }
-                    className="w-full flex-1">
+                    className="w-fit flex-1">
                     {data.deleted ? (
                       <Icon
                         //@ts-ignore
                         color={semanticColors.dark.success.DEFAULT}
                         icon="solar:restart-circle-linear"
+                        className="p-1"
                         width="24"
                         height="24"
                       />
@@ -124,25 +125,24 @@ export default function DesktopAdmin({
                         // @ts-ignore
                         color={semanticColors.dark.danger.DEFAULT}
                         icon="solar:minus-circle-linear"
+                        className="p-1"
                         width="24"
                         height="24"
                       />
                     )}
                     {data.deleted ? 'Вернуть' : 'Удалить'}
                   </Button>
-                  {data.deleted && (
-                    <Button
-                      className="w-fit flex-1"
-                      variant="tertiary"
-                      onPress={() =>
-                        setSalaryData((prev: WorkerSalary[]) =>
-                          prev.filter((_, i) => i !== index),
-                        )
-                      }>
-                      <Icon icon="solar:eye-linear" width="24" height="24" />
-                      Скрыть
-                    </Button>
-                  )}
+                  <Button
+                    className="w-fit flex-1"
+                    variant="tertiary"
+                    onPress={() =>
+                      setSalaryData((prev: WorkerSalary[]) =>
+                        prev.filter((_, i) => i !== index),
+                      )
+                    }>
+                    <Icon icon="solar:eye-linear" width="24" height="24" />
+                    Скрыть
+                  </Button>
                 </div>
                 <div
                   className="text-small flex items-center gap-2"
@@ -217,7 +217,12 @@ export default function DesktopAdmin({
                 },
               ])
             }>
-            <Icon icon="solar:add-circle-linear" width="24" height="24" />
+            <Icon
+              icon="solar:add-circle-linear"
+              className="w-fit p-2"
+              width="24"
+              height="24"
+            />
             Добавить
           </Button>
           <Button
@@ -226,7 +231,12 @@ export default function DesktopAdmin({
             className="h-16 w-full"
             onPress={sendData}
             isPending={isLoading}>
-            <Icon icon="solar:plain-linear" width="24" height="24" />
+            <Icon
+              icon="solar:plain-linear"
+              className="w-fit p-4"
+              width="24"
+              height="24"
+            />
             Отправить
           </Button>
         </Card.Content>

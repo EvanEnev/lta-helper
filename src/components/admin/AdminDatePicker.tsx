@@ -1,5 +1,6 @@
 import {DateTime} from 'luxon'
-import {DatePicker, DateValue} from '@heroui/react'
+import type {DateValue} from '@internationalized/date'
+import {Calendar, DateField, DatePicker} from '@heroui/react-beta'
 import {today} from '@internationalized/date'
 import {useCallback} from 'react'
 
@@ -47,19 +48,47 @@ export default function AdminDatePicker({
 
   return (
     <DatePicker
-      variant="bordered"
-      aria-label="Дата"
-      errorMessage="Дата вне диапазона"
       isDateUnavailable={date =>
         checkDateValid(DateTime.fromJSDate(date.toDate('Europe/Moscow')))
       }
-      selectorButtonPlacement="start"
-      firstDayOfWeek="mon"
-      className="h-16 w-full p-0!"
-      classNames={{inputWrapper: 'h-16'}}
-      onChange={updateCallback}
-      // @ts-ignore
+      name="date"
       defaultValue={today('Europe/Moscow')}
-    />
+      onChange={updateCallback}>
+      <DateField.Group fullWidth variant="secondary">
+        <DateField.Input>
+          {segment => <DateField.Segment segment={segment} />}
+        </DateField.Input>
+        <DateField.Suffix>
+          <DatePicker.Trigger>
+            <DatePicker.TriggerIndicator />
+          </DatePicker.Trigger>
+        </DateField.Suffix>
+      </DateField.Group>
+      <DatePicker.Popover>
+        <Calendar aria-label="Дата">
+          <Calendar.Header>
+            <Calendar.YearPickerTrigger>
+              <Calendar.YearPickerTriggerHeading />
+              <Calendar.YearPickerTriggerIndicator />
+            </Calendar.YearPickerTrigger>
+            <Calendar.NavButton slot="previous" />
+            <Calendar.NavButton slot="next" />
+          </Calendar.Header>
+          <Calendar.Grid>
+            <Calendar.GridHeader>
+              {day => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+            </Calendar.GridHeader>
+            <Calendar.GridBody>
+              {date => <Calendar.Cell date={date} />}
+            </Calendar.GridBody>
+          </Calendar.Grid>
+          <Calendar.YearPickerGrid>
+            <Calendar.YearPickerGridBody>
+              {({year}) => <Calendar.YearPickerCell year={year} />}
+            </Calendar.YearPickerGridBody>
+          </Calendar.YearPickerGrid>
+        </Calendar>
+      </DatePicker.Popover>
+    </DatePicker>
   )
 }
