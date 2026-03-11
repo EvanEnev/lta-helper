@@ -142,7 +142,7 @@ export default function PayrollCreateCard({
       <Button
         variant="ghost"
         onPress={onOpen}
-        className="flex h-[18rem] w-full flex-col gap-2 border-dashed text-2xl sm:w-[20rem]">
+        className="flex h-72 w-full flex-col gap-2 border-dashed text-2xl sm:w-[20rem]">
         <Icon icon="solar:add-circle-linear" width="50" height="50" />
         Создать
       </Button>
@@ -293,8 +293,12 @@ export default function PayrollCreateCard({
                         moneyOnLocations: JSON.stringify(moneyOnLocations),
                         bonuses,
                         workersBonusesRange: JSON.stringify({
-                          start: workersBonusesRange?.start.toString(),
-                          end: workersBonusesRange?.end.toString(),
+                          start: bonuses
+                            ? workersBonusesRange?.start.toString()
+                            : null,
+                          end: bonuses
+                            ? workersBonusesRange?.end.toString()
+                            : null,
                         }),
                         actorsBonusesRange: JSON.stringify({
                           start: actorsBonusesRange?.start.toString(),

@@ -32,9 +32,9 @@ export default async function PayrollsCreate({
                                                                 '${dates.start}'::date,
                                                                 '${dates.end}'::date,
                                                                 case when r.id = 12 then '${actorsBonusesRange.start}'::date
-                                                                     else '${workersBonusesRange.start || '2025-01-01'}'::date end,
+                                                                     else ${bonuses ? `'${workersBonusesRange.start}'::date` : null} end,
                                                                 case when r.id = 12 then '${actorsBonusesRange.end}'::date
-                                                                     else '${workersBonusesRange.end || '2025-01-01'}'::date end
+                                                                     else ${bonuses ? `'${workersBonusesRange.end}'::date` : null} end
                                            ) s
                  where s.sum != 0
                  order by coalesce(w.is_former, false), r.id != 12 desc, w.name`

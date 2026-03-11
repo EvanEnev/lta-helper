@@ -35,7 +35,7 @@ export default function PayrollCreateNote({
   setTakeBy,
 }: PayrollCreateNoteProps) {
   return (
-    <div className="sticky top-2 flex h-fit max-h-[87vh] flex-col gap-2 overflow-auto">
+    <div className="sticky top-2 flex h-fit max-h-[87vh] min-w-70 flex-col gap-2 overflow-y-auto">
       <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
         <p className="text-center">Локация</p>
         <Code color="primary" className="text-center">
