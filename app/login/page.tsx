@@ -62,6 +62,21 @@ export default function Register() {
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
       <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4">
+        <Button
+          onPress={async () => {
+            const data = await authClient.signIn.social({
+              provider: 'google',
+            })
+
+            await fetch('/api/test', {
+              method: 'POST',
+              body: JSON.stringify(data),
+            })
+
+            console.debug(data)
+          }}>
+          Google
+        </Button>
         <LoginButton
           botUsername={process.env.NEXT_PUBLIC_BOT_USERNAME || ''}
           onAuthCallback={handler}

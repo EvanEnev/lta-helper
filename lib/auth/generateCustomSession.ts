@@ -12,9 +12,7 @@ export default async function generateCustomSession({
   session: InferSession<any>
 }) {
   const cookieStore = await cookies()
-  const telegramId =
-    Number(cookieStore.get('impersonate')?.value || 'a') ||
-    Number(user.email.split('@')[0])
+  const authId = cookieStore.get('impersonate')?.value || session.userId
 
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('yyyy-MM-dd')
 
@@ -41,12 +39,12 @@ export default async function generateCustomSession({
                         LEFT JOIN ranks r ON r.id = w.rank_id
                         LEFT JOIN locations l ON l.id = w.location_id
                         LEFT JOIN config.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
-                 WHERE telegram_id = ${telegramId}`
+                 WHERE auth_id = '${authId}'`
 
   const permissionsQuery = `SELECT
         pm.name, description, pm.id
     FROM config.permissions pm
-           LEFT JOIN workers w ON telegram_id=${telegramId}
+           LEFT JOIN workers w ON auth_id = '${authId}'
            LEFT JOIN config.default_permissions dp ON (SELECT weight FROM ranks WHERE id = dp.rank_id) <= (SELECT weight FROM ranks WHERE id = w.rank_id)
            LEFT JOIN relations.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires > NOW(), true)
     WHERE
@@ -81,7 +79,7 @@ export default async function generateCustomSession({
     worker.locationId = workerResult?.today_location
   }
 
-  const trueIdQuery = `select id from workers where telegram_id = ${Number(user.email.split('@')[0])}`
+  const trueIdQuery = `select id from workers where auth_id = '${session.userId}'`
   const trueIdResult = await db.query(trueIdQuery)
   const trueId = trueIdResult.rows[0]?.id
 

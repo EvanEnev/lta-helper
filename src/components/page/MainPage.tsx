@@ -5,6 +5,9 @@ import MobilePage from '@/src/components/page/MobilePage'
 import DesktopPage from '@/src/components/page/DesktopPage'
 import {ShortSalary} from '@/app/page'
 import {Day, LTWorker, RankDescription} from '@/src/utils/types'
+import convertTZ from '@/lib/functions/convertTZ'
+import {authClient} from '@/lib/auth/authClient'
+import {useEffect} from 'react'
 
 interface MainPageProps {
   salaryData: ShortSalary
@@ -20,6 +23,12 @@ export default function MainPage({
   ranksData,
 }: MainPageProps) {
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    ;(async () => {
+      await authClient.oneTap()
+    })()
+  }, [])
 
   return isMobile ? (
     <MobilePage
