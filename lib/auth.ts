@@ -45,7 +45,6 @@ export const auth = betterAuth({
     nextCookies(),
     oneTap(),
     customSession(async ({user, session}) => {
-      console.debug(user, session)
       return generateCustomSession({user, session})
     }),
   ],

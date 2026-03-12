@@ -10,8 +10,17 @@ import {
   Input,
   FieldError,
   Button,
+  Separator,
 } from '@heroui/react-beta'
 import {authClient} from '@/lib/auth/authClient'
+import {Icon} from '@iconify/react'
+import capitalize from '@/lib/functions/capitalize'
+
+const providers = [
+  {name: 'google', icon: 'google-icon'},
+  {name: 'apple', icon: 'apple'},
+  {name: 'discord', icon: 'discord-icon'},
+]
 
 export default function Register() {
   const params = useSearchParams()
@@ -61,26 +70,7 @@ export default function Register() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
-      <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4">
-        <Button
-          onPress={async () => {
-            const data = await authClient.signIn.social({
-              provider: 'google',
-            })
-
-            await fetch('/api/test', {
-              method: 'POST',
-              body: JSON.stringify(data),
-            })
-
-            console.debug(data)
-          }}>
-          Google
-        </Button>
-        <LoginButton
-          botUsername={process.env.NEXT_PUBLIC_BOT_USERNAME || ''}
-          onAuthCallback={handler}
-        />
+      <div className="flex w-fit flex-col flex-wrap justify-center gap-4">
         <Form className="flex flex-col gap-4" onSubmit={onsubmit}>
           <TextField isRequired name="email" type="email">
             <Label>Почта</Label>
@@ -94,12 +84,38 @@ export default function Register() {
             <FieldError />
           </TextField>
           <div className="flex gap-2">
-            <Button type="submit">Войти</Button>
-            <Button type="reset" variant="secondary">
+            <Button className="w-full" type="submit" variant="secondary">
+              Войти
+            </Button>
+            <Button className="w-full" type="reset" variant="tertiary">
               Сбросить
             </Button>
           </div>
         </Form>
+        <div className="flex max-w-full items-center gap-2">
+          <Separator className="flex-1" />
+          <p>или</p>
+          <Separator className="flex-1" />
+        </div>
+        {providers.map(provider => (
+          <Button
+            key={provider.name}
+            className="w-full"
+            variant="tertiary"
+            onPress={async () => {
+              await authClient.signIn.social({
+                provider: provider.name,
+              })
+            }}>
+            <Icon
+              icon={`logos:${provider.icon}`}
+              className="w-fit p-1"
+              width="256"
+              height="262"
+            />
+            Войти с {capitalize(provider.name)}
+          </Button>
+        ))}
       </div>
     </main>
   )
