@@ -93,7 +93,7 @@ export default async function getLocationSalaryData({
                                  jsonb_build_object(
                                    'timestamp', to_char(f.date, 'DD.MM.YYYY HH24:MI:SS'),
                                    'location', lm.data
-                                 )
+                                 ) order by f.date
                                )            as data
                         from face_id f
                                join location_map lm on lm.location_id = f.location_id
