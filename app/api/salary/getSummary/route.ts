@@ -28,17 +28,20 @@ export async function POST(req: NextRequest) {
                    w.name as "workerName",
                    r.name as rank,
                    coalesce(w.is_former, false) as "isFormer",
-                   s.*
+                   s.*,
+                   b.incoming,
+                   b.outcoming
                  from workers w
                         join ranks r on w.rank_id = r.id
-                        cross join lateral functions.get_salary(w.id,
+                        left join lateral functions.get_salary(w.id,
                                                                 '${startString}'::date,
                                                                 '${endString}'::date,
                                                                 '${startString}'::date,
                                                                 '${endString}'::date,
                                                                 array[${locations}]
-                                           ) s
-                 where s.sum != 0
+                                           ) s on true
+                   left join lateral functions.get_balance(w.id,  '${startString}'::date,
+                                                            '${endString}'::date) b on true
                  order by coalesce(w.is_former, false), r.id != 12 desc, w.name`
 
   const result = await db.query(query)

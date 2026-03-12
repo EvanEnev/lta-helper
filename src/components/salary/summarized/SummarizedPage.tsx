@@ -163,10 +163,16 @@ export default function SummarizedPage({
           getIndividualSum(workerId, ['overwork']),
       },
       {
-        title: 'Остаток',
-        sumFn: () => getSum(['balance']),
+        title: 'Входящий остаток',
+        sumFn: () => getSum(['incoming']),
         accessorFn: (workerId: number) =>
-          getIndividualSum(workerId, ['balance']),
+          getIndividualSum(workerId, ['incoming']),
+      },
+      {
+        title: 'Исходящий остаток',
+        sumFn: () => getSum(['outcoming']),
+        accessorFn: (workerId: number) =>
+          getIndividualSum(workerId, ['outcoming']),
       },
       {
         title: 'ЗП + Переработка',

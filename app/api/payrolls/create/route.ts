@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     .filter(d => d.location !== -1)
     .map(
       worker =>
-        `(${worker.workerId}, ${payrollId}, ${worker.value}, ${worker.location}, ${(worker.bonuses || 0) + (worker.fines || 0) != 0 ? (worker.bonuses || 0) + (worker.fines || 0) : 'NULL'}, ${worker.external_payment ? worker.external_payment : 'NULL'})`,
+        `(${worker.workerId}, ${payrollId}, ${worker.value + (worker.balance || 0)}, ${worker.location}, ${(worker.bonuses || 0) + (worker.fines || 0) != 0 ? (worker.bonuses || 0) + (worker.fines || 0) : 'NULL'}, ${worker.external_payment ? worker.external_payment : 'NULL'})`,
     )
     .join(',\n')}`
 

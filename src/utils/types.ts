@@ -463,5 +463,7 @@ export interface LTSalarySummary {
   fines: number
   balance: number
   external: number
+  incoming: number
+  outcoming: number
   [key: string]: number | string | LTWorker['isFormer']
 }

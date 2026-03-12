@@ -183,20 +183,31 @@ export async function POST(req: NextRequest) {
         },
       ]
 
-      ;['oneGames', 'twoGames', 'threeGames'].forEach(game => {
-        // @ts-ignore
-        if (salary[game] && data[game]?.number) {
+      if (rankData?.id === 8) {
+        duties[0].price = 1500
+        duties.push({
+          template_id: 76175,
+          quantity: 1,
+          price: 500,
+        })
+      } else {
+        ;['oneGames', 'twoGames', 'threeGames', 'actorGames'].forEach(game => {
           // @ts-ignore
-          const paymentData = gamesPayments.find(d => d.id === data[game]?.id)!
+          if (salary[game] && data[game]?.number) {
+            const paymentData = gamesPayments.find(
+              // @ts-ignore
+              d => d.id === data[game]?.id,
+            )!
 
-          duties.push({
-            template_id: paymentData.konsol_id!,
-            // @ts-ignore
-            quantity: data[game].number,
-            price: paymentData.value,
-          })
-        }
-      })
+            duties.push({
+              template_id: paymentData.konsol_id!,
+              // @ts-ignore
+              quantity: data[game].number,
+              price: paymentData.value,
+            })
+          }
+        })
+      }
 
       const konsolBody: KonsolBody = {
         worker_id: userData.rows[0].id,
