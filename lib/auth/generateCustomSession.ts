@@ -4,16 +4,7 @@ import db from '@/lib/database'
 import {LTWorker} from '@/src/utils/types'
 import {cookies} from 'next/headers'
 
-export default async function generateCustomSession({
-  user,
-  session,
-}: {
-  user: InferUser<any>
-  session: InferSession<any>
-}) {
-  const cookieStore = await cookies()
-  const authId = cookieStore.get('impersonate')?.value || session.userId
-
+async function getData(authId: string, userId: string) {
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('yyyy-MM-dd')
 
   const query = `SELECT
@@ -39,12 +30,12 @@ export default async function generateCustomSession({
                         LEFT JOIN ranks r ON r.id = w.rank_id
                         LEFT JOIN locations l ON l.id = w.location_id
                         LEFT JOIN config.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
-                 WHERE auth_id = '${authId}'`
+                 WHERE auth_id = '${authId}' or email = '${authId}'`
 
   const permissionsQuery = `SELECT
         pm.name, description, pm.id
     FROM config.permissions pm
-           LEFT JOIN workers w ON auth_id = '${authId}'
+           LEFT JOIN workers w ON auth_id = '${authId}' or email = '${authId}'
            LEFT JOIN config.default_permissions dp ON (SELECT weight FROM ranks WHERE id = dp.rank_id) <= (SELECT weight FROM ranks WHERE id = w.rank_id)
            LEFT JOIN relations.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires > NOW(), true)
     WHERE
@@ -79,12 +70,37 @@ export default async function generateCustomSession({
     worker.locationId = workerResult?.today_location
   }
 
-  const trueIdQuery = `select id from workers where auth_id = '${session.userId}'`
+  const trueIdQuery = `select id from workers where auth_id = '${userId}' or email = '${authId}'`
   const trueIdResult = await db.query(trueIdQuery)
   const trueId = trueIdResult.rows[0]?.id
 
+  return {worker, trueId}
+}
+
+export default async function generateCustomSession({
+  user,
+  session,
+}: {
+  user: InferUser<any>
+  session: InferSession<any>
+}) {
+  const cookieStore = await cookies()
+  const authId = cookieStore.get('impersonate')?.value || session.userId
+
+  let data = await getData(authId, session.userId)
+
+  if (!data.worker.id) {
+    const email = user.email
+    data = await getData(email, session.userId)
+
+    if (data.worker.id) {
+      const query = `update workers set auth_id = '${session.userId}' where id = ${data.worker.id}`
+
+      await db.query(query)
+    }
+  }
   return {
-    user: {...user, ...worker, trueId},
+    user: {...user, ...data.worker, trueId: data.trueId},
     session,
   }
 }

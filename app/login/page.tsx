@@ -1,8 +1,6 @@
 'use client'
 
-import {LoginButton, TelegramAuthData} from '@telegram-auth/react'
-import {redirect, useSearchParams} from 'next/navigation'
-import {useCallback} from 'react'
+import {useSearchParams} from 'next/navigation'
 import {
   Form,
   Label,
@@ -18,35 +16,12 @@ import capitalize from '@/lib/functions/capitalize'
 
 const providers = [
   {name: 'google', icon: 'google-icon'},
-  {name: 'apple', icon: 'apple'},
-  {name: 'discord', icon: 'discord-icon'},
+  // {name: 'apple', icon: 'apple'},
+  // {name: 'discord', icon: 'discord-icon'},
 ]
 
 export default function Register() {
   const params = useSearchParams()
-
-  const login = useCallback(async (telegramData: string | TelegramAuthData) => {
-    if (typeof telegramData !== 'string' && !Object.keys(telegramData).length) {
-      return
-    }
-
-    try {
-      await fetch('/api/auth/telegram', {
-        method: 'POST',
-        body: JSON.stringify({credentials: telegramData, initiator: 'login'}),
-      })
-    } catch (err) {
-      console.error(err)
-    }
-  }, [])
-
-  const handler = async (data: any) => {
-    if (!data) return
-    await login(data)
-    let path = params.get('redirect') || '/'
-
-    redirect(path)
-  }
 
   const onsubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -62,11 +37,10 @@ export default function Register() {
       email: data.email,
       password: data.password,
       rememberMe: true,
-      callbackURL: '/',
+      callbackURL: params.get('redirect') || '/',
     })
   }
 
-  // https://oauth.telegram.org/auth?bot_id=7614425121&origin=http://192.168.8.111&return_to=${redirect}
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
@@ -105,6 +79,7 @@ export default function Register() {
             onPress={async () => {
               await authClient.signIn.social({
                 provider: provider.name,
+                callbackURL: params.get('redirect') || '/',
               })
             }}>
             <Icon
