@@ -1,7 +1,7 @@
 import {betterAuth} from 'better-auth'
 import {nextCookies} from 'better-auth/next-js'
 import {Pool} from 'pg'
-import {customSession} from 'better-auth/plugins'
+import {customSession, oneTap} from 'better-auth/plugins'
 import generateCustomSession from '@/lib/auth/generateCustomSession'
 
 export const auth = betterAuth({
@@ -43,11 +43,25 @@ export const auth = betterAuth({
   },
   plugins: [
     nextCookies(),
+    oneTap(),
     customSession(async ({user, session}) => {
       return generateCustomSession({user, session})
     }),
   ],
   emailAndPassword: {
     enabled: true,
+  },
+  baseURL: process.env.BETTER_AUTH_URL,
+  socialProviders: {
+    google: {
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
+  account: {
+    accountLinking: {
+      enabled: true,
+      allowDifferentEmails: true,
+    },
   },
 })

@@ -8,6 +8,7 @@ const REQUIRED_FIELDS = [
   'phoneNumber',
   'firstName',
   'lastName',
+  'middleName',
 ]
 
 export async function proxy(request: NextRequest) {
@@ -25,10 +26,6 @@ export async function proxy(request: NextRequest) {
     destination = destination.join('/') || '/'
 
     let host = request.headers.get('host') || '127.0.0.1'
-
-    if (host === 'localhost') {
-      host = '127.0.0.1'
-    }
 
     const url = request.nextUrl.clone()
 
