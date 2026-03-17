@@ -13,6 +13,8 @@ import {FormEvent} from 'react'
 import {useRouter} from 'next/navigation'
 import {LTWorker} from '@/src/utils/types'
 import {withMask} from 'use-mask-input'
+import {authClient} from '@/lib/auth/authClient'
+import {Icon} from '@iconify/react'
 
 interface RegisterPageProps {
   worker: LTWorker
@@ -63,6 +65,25 @@ export default function RegisterPage({worker}: RegisterPageProps) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Регистрация</h1>
+      <Button
+        className="w-full"
+        variant="tertiary"
+        onPress={async () => {
+          await authClient.signOut()
+
+          await authClient.signIn.social({
+            provider: 'google',
+            callbackURL: '/',
+          })
+        }}>
+        <Icon
+          icon={`logos:google-icon`}
+          className="w-fit p-1"
+          width="256"
+          height="262"
+        />
+        Войти с Google
+      </Button>
       <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4 sm:w-1/2">
         <Form className="w-full" onSubmit={handler}>
           <TextField isRequired defaultValue={worker.name || ''}>
