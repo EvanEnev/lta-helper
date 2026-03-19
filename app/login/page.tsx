@@ -37,7 +37,7 @@ export default function Register() {
       email: data.email,
       password: data.password,
       rememberMe: true,
-      callbackURL: params.get('redirect') || '/',
+      callbackURL: '/' + params.get('redirect') || '/',
     })
   }
 
@@ -79,7 +79,7 @@ export default function Register() {
             onPress={async () => {
               await authClient.signIn.social({
                 provider: provider.name,
-                callbackURL: params.get('redirect') || '/',
+                callbackURL: '/' + params.get('redirect') || '/',
               })
             }}>
             <Icon
