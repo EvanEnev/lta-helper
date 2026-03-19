@@ -101,7 +101,7 @@ export default function RegisterPage({worker}: RegisterPageProps) {
             <Input name="first_name" />
             <FieldError>Поле обязательно</FieldError>
           </TextField>
-          <TextField defaultValue={worker.middleName || ''}>
+          <TextField isRequired defaultValue={worker.middleName || ''}>
             <Label>Отчество</Label>
             <Input name="middle_name" />
           </TextField>
