@@ -1,10 +1,11 @@
-import {addToast, Button} from '@heroui/react'
+import {toast, Button} from '@heroui/react'
 import {useState} from 'react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {Day, LTWorker} from '@/src/utils/types'
 import {selectedDayAtom} from '@/src/utils/global/atoms'
 import {useAtom} from 'jotai'
 import {Icon} from '@iconify/react'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 export default function SendButton({
   worker,
@@ -33,10 +34,9 @@ export default function SendButton({
     if (invalidDay) {
       setLoading(false)
       setSelectedDay({...invalidDay, invalidComment: true})
-      addToast({
-        title: 'Ошибка!',
+      toast('Ошибка!', {
         description: 'Необходимо указать причину/комментарий',
-        color: 'warning',
+        variant: 'warning',
       })
       return
     }
@@ -45,35 +45,11 @@ export default function SendButton({
       selectedDays: days,
     }
 
-    const result = await fetch('/api/send', {
+    await fetchHandler({
+      url: '/api/send',
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body,
     })
-
-    if (result.ok) {
-      addToast({
-        title: 'Успешно!',
-        color: 'success',
-        description: 'Данные отправлены',
-        timeout: 8000,
-        shouldShowTimeoutProgress: true,
-      })
-    } else {
-      let message = 'Неизвестная ошибка'
-
-      try {
-        const data = await result.json()
-        if (data?.message) {
-          message = data.message
-        }
-      } catch {}
-
-      addToast({
-        title: 'Ошибка!',
-        description: message,
-        color: 'danger',
-      })
-    }
 
     setLoading(false)
   }
@@ -82,19 +58,16 @@ export default function SendButton({
     <Button
       isDisabled={selectedDay.date ? false : isMobile}
       onPress={handler}
-      isLoading={isLoading}
+      isPending={isLoading}
+      slot="icon"
       size="lg"
-      color="primary"
-      variant="shadow"
-      endContent={
-        <Icon
-          icon="solar:plain-linear"
-          width="24"
-          height="24"
-          style={{color: '#fff'}}
-        />
-      }
       className={`h-16 w-full text-2xl ${className}`}>
+      <Icon
+        icon="solar:plain-linear"
+        width="24"
+        height="24"
+        style={{color: '#fff'}}
+      />
       Отправить
     </Button>
   )

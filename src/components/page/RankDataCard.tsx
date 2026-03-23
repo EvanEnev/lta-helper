@@ -6,7 +6,7 @@ import {
   Disclosure,
   Separator,
   NumberField,
-} from '@heroui/react-beta'
+} from '@heroui/react'
 import {Fragment, useMemo} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 
@@ -58,7 +58,7 @@ export default function RankDataCard({workerRank, rank}: RankDataCardProps) {
   }, [currentRankData, groupedCategories])
 
   return (
-    <div className="border-content1-foreground/10 bg-content1 flex w-full flex-col items-center gap-2 rounded-2xl border-2 p-2">
+    <div className="border-field-foreground/10 bg-surface flex w-full flex-col items-center gap-2 rounded-2xl border-2 p-2">
       <RankIcon rank={rank?.rank.name || ''} className="w-30" />
       <p>{rank?.rank.name || ''}</p>
       <Separator />
@@ -103,7 +103,7 @@ export default function RankDataCard({workerRank, rank}: RankDataCardProps) {
                       )}
                     </div>
                     {index !== rank.data.length - 1 && (
-                      <Separator className="bg-content1-foreground/50" />
+                      <Separator className="bg-surface-foreground/50" />
                     )}
                   </Fragment>
                 )
@@ -164,7 +164,7 @@ export default function RankDataCard({workerRank, rank}: RankDataCardProps) {
                                 )}
                               </div>
                               {index !== groupData.length - 1 && (
-                                <Separator className="bg-content1-foreground/50" />
+                                <Separator className="bg-surface-foreground/50" />
                               )}
                             </Fragment>
                           ),
@@ -173,7 +173,7 @@ export default function RankDataCard({workerRank, rank}: RankDataCardProps) {
                       {index !== Object.keys(groupedCategories).length - 1 && (
                         <Separator
                           orientation="vertical"
-                          className="bg-content1-foreground/50"
+                          className="bg-surface-foreground/50"
                         />
                       )}
                     </Fragment>

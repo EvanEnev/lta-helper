@@ -1,4 +1,4 @@
-import {Button, Code, Divider, Link} from '@heroui/react'
+import {Button, Separator, Link} from '@heroui/react'
 import {Fragment, useMemo} from 'react'
 import Location from '@/src/components/global/Location'
 import {LTMoneyOnLocationsData, LTWorkerPayrollData} from '@/src/utils/types'
@@ -41,13 +41,9 @@ export default function PayrollsDetailsNote({
       </div>
       <div className="glass grid w-fit auto-rows-auto grid-cols-4 gap-2 rounded-2xl p-2">
         <p className="text-center">Локация</p>
-        <Code color="primary" className="text-center">
-          Выделено
-        </Code>
-        <Code className="text-center">К выдаче</Code>
-        <Code color="success" className="text-center">
-          Выдано
-        </Code>
+        <p className="text-accent text-center">Выделено</p>
+        <p className="text-center">К выдаче</p>
+        <p className="text-success text-center">Выдано</p>
         {locationsData.map((locationData, index) => {
           const locationIssued = data
             .filter(d => d.location_id === locationData.location_id)
@@ -66,28 +62,28 @@ export default function PayrollsDetailsNote({
 
           return (
             <Fragment key={index}>
-              <Divider className="col-span-full" />
+              <Separator className="col-span-full" />
               <Location
                 className="w-fit break-all"
                 locationName={locationData.location}
               />
-              <Code className="w-full min-w-fit" color="primary">
+              <p className="text-accent w-full min-w-fit">
                 {separateNumber(locationData.value)}
-              </Code>
-              <Code className="w-full min-w-fit">
+              </p>
+              <p className="w-full min-w-fit">
                 {separateNumber(locationToTake)}
-              </Code>
-              <Code className="w-full min-w-fit" color="success">
+              </p>
+              <p className="text-success w-full min-w-fit">
                 {separateNumber(locationIssued)}
-              </Code>
+              </p>
             </Fragment>
           )
         })}
       </div>
       <div className="glass flex w-full flex-col gap-2 p-2">
         <p>Общий остаток</p>
-        <Divider />
-        <Code color="success">{separateNumber(summaryBalance)}</Code>
+        <Separator />
+        <p className="text-success">{separateNumber(summaryBalance)}</p>
       </div>
     </div>
   )

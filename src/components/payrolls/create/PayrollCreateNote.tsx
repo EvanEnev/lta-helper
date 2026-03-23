@@ -1,4 +1,4 @@
-import {Input} from '@heroui/react-beta'
+import {Input} from '@heroui/react'
 import Location from '@/src/components/global/Location'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import separateNumber from '@/lib/functions/separateNumber'

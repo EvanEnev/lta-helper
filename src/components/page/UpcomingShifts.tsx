@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader, Skeleton} from '@heroui/react'
+import {Card} from '@heroui/react'
 import {DateTime} from 'luxon'
 import convertTZ from '@/lib/functions/convertTZ'
 import {useMemo, useCallback} from 'react'
@@ -43,17 +43,16 @@ export default function UpcomingShifts({
 
   return (
     <Card className={`w-full ${className}`}>
-      <CardHeader className="text-3xl">Ближайшие смены</CardHeader>
-      <CardBody className="flex max-w-full flex-row gap-4 overflow-auto">
+      <Card.Header className="text-3xl">Ближайшие смены</Card.Header>
+      <Card.Content className="flex max-w-full flex-row gap-4 overflow-auto">
         {filteredDats.length ? (
           filteredDats.map((day, index) => {
             const dayData = day.locationData?.find(data => data.self)
 
             return (
-              <Skeleton
-                isLoaded={!!dayData?.locationName}
+              <div
                 key={index}
-                className="text-foreground glass flex flex-col gap-4 rounded-xl border-1 p-4">
+                className="text-foreground glass flex flex-col gap-4 rounded-xl border p-4">
                 <Location locationName={dayData?.locationName || ''} />
                 <span className="flex items-center gap-1">
                   <Icon
@@ -71,13 +70,13 @@ export default function UpcomingShifts({
                   />
                   {dayData?.data?.time}
                 </span>
-              </Skeleton>
+              </div>
             )
           })
         ) : (
           <i>Тут пока пусто..</i>
         )}
-      </CardBody>
+      </Card.Content>
     </Card>
   )
 }

@@ -5,7 +5,7 @@ import {
   LTWorkerPayrollData,
 } from '@/src/utils/types'
 import RankIcon from '@/src/components/global/RankIcon'
-import {Button, Code, Divider, NumberInput} from '@heroui/react'
+import {Button, Separator, NumberField} from '@heroui/react'
 import {DateTime} from 'luxon'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import {memo, RefObject, useCallback, useState} from 'react'
@@ -111,7 +111,7 @@ function PayrollsDetailsRow({
             className="min-w-36 flex-1"
             value={data.value || 0}
           />
-          <Divider orientation="vertical" />
+          <Separator orientation="vertical" />
           <NumberInput
             label="Бонусы"
             labelPlacement="outside"
@@ -125,7 +125,7 @@ function PayrollsDetailsRow({
             className="min-w-36 flex-1"
             value={data.bonuses || 0}
           />
-          <Divider orientation="vertical" />
+          <Separator orientation="vertical" />
           <NumberInput
             label="Внешняя выплата"
             labelPlacement="outside"
@@ -140,7 +140,7 @@ function PayrollsDetailsRow({
             className="min-w-36 flex-1"
             value={data.external_payment || 0}
           />
-          <Divider orientation="vertical" />
+          <Separator orientation="vertical" />
           <LocationSelect
             isReadOnly={!canEdit}
             className="min-w-36 flex-1"
@@ -154,7 +154,7 @@ function PayrollsDetailsRow({
             locationId={data.location_id}
             locations={locations}
           />
-          <Divider orientation="vertical" />
+          <Separator orientation="vertical" />
           <NumberInput
             readOnly
             variant="bordered"
@@ -167,7 +167,7 @@ function PayrollsDetailsRow({
               data.value + (data.bonuses || 0) - (data.external_payment || 0)
             }
           />
-          <Divider orientation="vertical" />
+          <Separator orientation="vertical" />
           <NumberInput
             readOnly
             variant="bordered"
@@ -206,7 +206,7 @@ function PayrollsDetailsRow({
                 }>
                 {data.taken ? 'Выдано' : 'Выдать'}
               </Button>
-              <Divider orientation="vertical" />
+              <Separator orientation="vertical" />
               {data.taken ? (
                 <>
                   <div className="min-w-36">
@@ -215,7 +215,7 @@ function PayrollsDetailsRow({
                       {separateNumber(data.taken)}
                     </Code>
                   </div>
-                  <Divider orientation="vertical" />
+                  <Separator orientation="vertical" />
                   <div>
                     <p>Забрал:</p>
                     <div className="flex items-center gap-1">
@@ -249,7 +249,7 @@ function PayrollsDetailsRow({
                       <i>Не указано</i>
                     )}
                   </div>
-                  <Divider orientation="vertical" />
+                  <Separator orientation="vertical" />
                   <div>
                     <p>Заберёт:</p>
                     {

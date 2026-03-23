@@ -1,7 +1,7 @@
 import {ShortSalary} from '@/app/page'
 import SalaryCard from '@/src/components/page/SalaryCard'
 import {useTheme} from 'next-themes'
-import {Button, Link} from '@heroui/react-beta'
+import {Button, Link} from '@heroui/react'
 import {Icon} from '@iconify/react'
 
 interface UpcomingSalaryProps {
@@ -22,7 +22,6 @@ export default function UpcomingSalary({data}: UpcomingSalaryProps) {
           value={data.previousSalary}
           dates={data.previousDates}
           title={`Текущая выплата (${data.previousSalaryTakeDate})`}
-          theme={theme!}
           isCurrent
         />
         <SalaryCard
@@ -33,7 +32,6 @@ export default function UpcomingSalary({data}: UpcomingSalaryProps) {
           value={data.currentSalary}
           dates={data.currentDates}
           title={`Будущая выплата (${data.currentSalaryTakeDate})`}
-          theme={theme!}
         />
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">

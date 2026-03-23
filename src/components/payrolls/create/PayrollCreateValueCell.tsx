@@ -1,6 +1,6 @@
 import {memo, useCallback, useState} from 'react'
 import {LTWorker} from '@/src/utils/types'
-import {NumberField} from '@heroui/react-beta'
+import {NumberField} from '@heroui/react'
 
 interface PayrollCreateValueCellProps {
   data: number

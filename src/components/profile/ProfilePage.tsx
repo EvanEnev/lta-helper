@@ -1,7 +1,7 @@
 'use client'
 
 import {LTWorker} from '@/src/utils/types'
-import {Avatar} from '@heroui/react-beta'
+import {Avatar} from '@heroui/react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import Navigation from '@/src/components/profile/Navigation'
 

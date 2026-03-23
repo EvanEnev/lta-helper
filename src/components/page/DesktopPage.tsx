@@ -2,7 +2,7 @@ import UpcomingShifts from './UpcomingShifts'
 import RankIcon from '@/src/components/global/RankIcon'
 import UpcomingSalary from '@/src/components/page/UpcomingSalary'
 import {ShortSalary} from '@/app/page'
-import {Progress} from '@heroui/react'
+import {Label, ProgressBar} from '@heroui/react'
 import {
   Day,
   LTWorker,
@@ -78,11 +78,8 @@ export default function DesktopPage({
               className="w-56"
             />{' '}
             {worker?.rank || ''}
-            <Progress
-              aria-label="Прогресс"
-              showValueLabel
-              label="Прогресс ранга"
-              color={done ? 'success' : 'primary'}
+            <ProgressBar
+              color={done ? 'success' : 'default'}
               value={
                 ranksData.length
                   ? currentRankData?.reduce(
@@ -92,7 +89,13 @@ export default function DesktopPage({
                   : 0
               }
               maxValue={currentRankData?.length || undefined}
-            />
+              formatOptions={{style: 'percent'}}>
+              <Label>Прогресс ранга</Label>
+              <ProgressBar.Output />
+              <ProgressBar.Track>
+                <ProgressBar.Fill />
+              </ProgressBar.Track>
+            </ProgressBar>
           </div>
           <div className="grid auto-rows-auto grid-cols-4 gap-2 overflow-auto">
             {ranksData.map(rank => (

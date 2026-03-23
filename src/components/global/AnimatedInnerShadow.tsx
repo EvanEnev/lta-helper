@@ -7,6 +7,7 @@ export default function AnimatedInnerShadow({
   color: string
   className?: string
 }) {
+  console.debug(color)
   return (
     <motion.div
       className={`${className} pointer-events-none absolute inset-0`}

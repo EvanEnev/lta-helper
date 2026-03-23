@@ -11,12 +11,13 @@ import {
   Popover,
   Checkbox,
   NumberField,
-} from '@heroui/react-beta'
+  ProgressBar,
+  Label,
+} from '@heroui/react'
 import RankIcon from '@/src/components/global/RankIcon'
 import formatPhone from '@/lib/functions/formatPhone'
 import {Icon} from '@iconify/react'
 import {Activity, Fragment, useMemo} from 'react'
-import {Progress} from '@heroui/react'
 import groupBy from '@/lib/functions/groupBy'
 
 interface WorkersRowProps {
@@ -84,7 +85,7 @@ export default function WorkersRow({
   }, [data.rankData, groupedCategories])
 
   return (
-    <div className="bg-content1 z-1000 flex items-center gap-2 rounded-2xl px-4 py-2">
+    <div className="bg-surface z-1000 flex items-center gap-2 rounded-2xl px-4 py-2">
       <div className="flex w-20 flex-col gap-2 wrap-anywhere">
         <Avatar>
           <Avatar.Image src={data.photoUrl || ''} />
@@ -92,7 +93,7 @@ export default function WorkersRow({
         </Avatar>
         <p>{data.name}</p>
       </div>
-      <Separator orientation="vertical" className="bg-content1-foreground/50" />
+      <Separator orientation="vertical" className="bg-surface-foreground/50" />
       <div
         className={`flex ${canEdit ? 'w-60 justify-between' : 'w-25 justify-center'} items-center gap-2`}>
         <div className="flex flex-col items-center gap-2">
@@ -121,15 +122,15 @@ export default function WorkersRow({
           </div>
         </Activity>
       </div>
-      <Separator orientation="vertical" className="bg-content1-foreground/50" />
+      <Separator orientation="vertical" className="bg-surface-foreground/50" />
       <div className="w-40 wrap-break-word">
         <p>
           {data.lastName} {data.firstName} {data.middleName}
         </p>
       </div>
-      <Separator orientation="vertical" className="bg-content1-foreground/50" />
+      <Separator orientation="vertical" className="bg-surface-foreground/50" />
       <div className="flex w-60 flex-col flex-wrap gap-2">
-        <div className="border-content1-foreground/50 flex items-center gap-2 rounded-2xl border-2 p-1">
+        <div className="border-surface-foreground/50 flex items-center gap-2 rounded-2xl border-2 p-1">
           <Icon icon="solar:phone-bold" width="24" height="24" />
           <a href={`tel:${data.phoneNumber}`}>
             {formatPhone(data.phoneNumber || '')}
@@ -144,7 +145,7 @@ export default function WorkersRow({
           </Button>
         </div>
         <a
-          className="transition-background border-primary hover:bg-primary flex items-center gap-2 rounded-2xl border-2 p-1"
+          className="border-accent hover:bg-accent flex items-center gap-2 rounded-2xl border-2 p-1 transition-colors"
           target="_blank"
           href={`tg://user?id=${data.telegramId}`}>
           <Icon icon="ic:baseline-telegram" width={24} height={24} />
@@ -153,16 +154,13 @@ export default function WorkersRow({
       </div>
       {data.rankData?.length > 0 && (
         <>
-          {' '}
           <Separator
             orientation="vertical"
-            className="bg-content1-foreground/50"
+            className="bg-surface-foreground/50"
           />
           <div className="flex gap-2">
-            <Progress
-              aria-label="Прогресс"
-              showValueLabel
-              color={done ? 'success' : 'primary'}
+            <ProgressBar
+              color={done ? 'success' : 'default'}
               value={
                 data.rankData.length
                   ? data.rankData.reduce(
@@ -171,9 +169,14 @@ export default function WorkersRow({
                     )
                   : 0
               }
-              maxValue={data.rankData.length || undefined}
-              className="w-20 max-w-20"
-            />
+              formatOptions={{style: 'percent'}}
+              maxValue={data.rankData.length || undefined}>
+              <Label>Прогресс</Label>
+              <ProgressBar.Output />
+              <ProgressBar.Track>
+                <ProgressBar.Fill />
+              </ProgressBar.Track>
+            </ProgressBar>
             <Popover>
               <Button variant="outline">Подробнее</Button>
               <Popover.Content placement="right">
@@ -239,7 +242,7 @@ export default function WorkersRow({
                             )}
                           </div>
                           {index !== data.rankData.length - 1 && (
-                            <Separator className="bg-content1-foreground/50" />
+                            <Separator className="bg-surface-foreground/50" />
                           )}
                         </Fragment>
                       )
@@ -320,7 +323,7 @@ export default function WorkersRow({
                                       )}
                                     </div>
                                     {index !== groupData.length - 1 && (
-                                      <Separator className="bg-content1-foreground/50" />
+                                      <Separator className="bg-surface-foreground/50" />
                                     )}
                                   </Fragment>
                                 ),
@@ -330,7 +333,7 @@ export default function WorkersRow({
                               Object.keys(groupedCategories).length - 1 && (
                               <Separator
                                 orientation="vertical"
-                                className="bg-content1-foreground/50"
+                                className="bg-surface-foreground/50"
                               />
                             )}
                           </Fragment>

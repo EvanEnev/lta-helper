@@ -31,6 +31,7 @@ export default function DesktopHeader({
   const [isHover, setIsHover] = useState<number | null>(null)
 
   useEffect(() => {
+    console.debug(rawHover)
     if (isHover === rawHover) return
     const timeout = setTimeout(() => {
       setIsHover(rawHover)
@@ -60,84 +61,67 @@ export default function DesktopHeader({
 
             if (button.children?.length) {
               return (
-                <Dropdown
-                  onOpenChange={() => {
-                    if (permanentHovers.includes(index)) {
-                      setPermanentHovers(prev => prev.filter(i => i !== index))
-                    } else {
-                      setPermanentHovers(prev => [...prev, index])
-                    }
-                  }}
-                  placement="right"
-                  key={index}
-                  isOpen={isHover === index || permanentHovers.includes(index)}
-                  classNames={{backdrop: 'z-10000', content: 'z-10000'}}>
-                  <DropdownTrigger>
-                    <Button
-                      onMouseEnter={() => setRawHover(index)}
-                      onMouseLeave={() => setRawHover(null)}
-                      variant={path === button.href ? 'shadow' : 'ghost'}
-                      className={`h-16 w-full flex-col p-2 text-xs ${button.className}`}
-                      size="lg"
-                      title={button.name}
-                      aria-label={button.name}
-                      aria-placeholder={button.name}>
-                      {button.icon && (
-                        <Icon icon={button.icon} width="24" height="24" />
-                      )}
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu
-                    onMouseEnter={() => setRawHover(index)}
-                    onMouseLeave={() => setRawHover(null)}>
-                    {button.children
-                      .filter(d =>
-                        d.permission
-                          ? checkPermissions([d.permission], worker)
-                          : true,
-                      )
-                      .filter(
-                        d =>
-                          !(
-                            d.isDisabled && !checkPermissions(['admin'], worker)
-                          ),
-                      )
-                      .map((child, index) => (
-                        <DropdownItem
-                          title={child.name}
-                          // @ts-ignore
-                          routerOptions={{replace: true}}
-                          key={index}
-                          className="h-12"
-                          startContent={
-                            child.icon ? (
+                <Dropdown key={button.name}>
+                  <Button
+                    isIconOnly
+                    slot="icon"
+                    variant={path === button.href ? 'tertiary' : 'outline'}
+                    className={`flex h-16 w-full gap-1 p-2 text-xs ${button.className}`}
+                    aria-label={button.name}
+                    aria-placeholder={button.name}>
+                    {button.icon && (
+                      <Icon icon={button.icon} width="24" height="24" />
+                    )}
+                  </Button>
+                  <Dropdown.Popover>
+                    <Dropdown.Menu>
+                      {button.children
+                        .filter(d =>
+                          d.permission
+                            ? checkPermissions([d.permission], worker)
+                            : true,
+                        )
+                        .filter(
+                          d =>
+                            !(
+                              d.isDisabled &&
+                              !checkPermissions(['admin'], worker)
+                            ),
+                        )
+                        .map((child, index) => (
+                          <Dropdown.Item
+                            key={index}
+                            id={index}
+                            className="h-12"
+                            href={path === child.href ? '#' : child.href}>
+                            {child.icon ? (
                               <Icon icon={child.icon} width="24" height="24" />
                             ) : (
                               ''
-                            )
-                          }
-                          href={path === child.href ? '#' : child.href}
-                        />
-                      ))}
-                  </DropdownMenu>
+                            )}
+                            {child.name}
+                          </Dropdown.Item>
+                        ))}
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
                 </Dropdown>
               )
             }
 
             return (
               <Button
+                slot="icon"
                 key={index}
-                as={Link}
-                href={path === button.href ? '#' : button.href}
-                variant={path === button.href ? 'shadow' : 'ghost'}
+                variant={path === button.href ? 'tertiary' : 'outline'}
                 className={`h-16 w-full flex-col p-2 text-xs ${button.className}`}
                 size="lg"
-                title={button.name}
                 aria-label={button.name}
                 aria-placeholder={button.name}>
-                {button.icon && (
-                  <Icon icon={button.icon} width="24" height="24" />
-                )}
+                <Link href={path === button.href ? '#' : button.href}>
+                  {button.icon && (
+                    <Icon icon={button.icon} width="24" height="24" />
+                  )}
+                </Link>
               </Button>
             )
           })}

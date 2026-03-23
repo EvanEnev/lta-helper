@@ -1,11 +1,9 @@
 import {
   Card,
-  CardBody,
   CardFooter,
   CardHeader,
   Checkbox,
-  Code,
-  Divider,
+  Separator,
   Skeleton,
 } from '@heroui/react'
 import DayInfo from './DayInfo'
@@ -85,22 +83,18 @@ export default function DesktopSchedule({
         <div className="grid w-full grid-flow-row auto-rows-min grid-cols-3 gap-4 lg:grid-cols-4">
           {weeks.map((week: Day[], index: number) => (
             <Fragment key={index}>
-              {index !== 0 && <Divider className="col-span-full" />}
+              {index !== 0 && <Separator className="col-span-full" />}
               {week.map((day, index) => (
-                <Skeleton
-                  isLoaded={!!day.date}
-                  key={index}
-                  className="rounded-2xl">
+                <div key={index} className="rounded-2xl">
                   <AnimatedBorder
                     isDisabled={
                       today.toFormat('yyyy-MM-dd') !==
                       day.date?.toFormat('yyyy-MM-dd')
                     }>
                     <Card className={`scrollbar-hide h-full overflow-hidden`}>
-                      <CardHeader className="w-full">
+                      <Card.Header className="w-full">
                         <Checkbox
                           className="w-full"
-                          size="lg"
                           isSelected={
                             !!selectedDates.find(
                               date =>
@@ -108,25 +102,26 @@ export default function DesktopSchedule({
                                 day.date?.toFormat('yyyy-MM-dd'),
                             )
                           }
-                          onValueChange={isSelected =>
+                          onChange={isSelected =>
                             changeDates(day.date, isSelected)
                           }>
                           <span className="text-2xl font-bold">
-                            {day.date?.toFormat('dd.MM')},{' '}
-                            {day.date?.toFormat('EEE', {locale: 'ru-RU'})}
+                            {day.date?.toFormat('dd.MM, EEE', {
+                              locale: 'ru-RU',
+                            })}
                           </span>
                         </Checkbox>
-                      </CardHeader>
-                      <CardBody>
+                      </Card.Header>
+                      <Card.Content>
                         <DayInfo
                           worker={worker}
                           day={day}
                           changeDates={changeDates}
                         />
-                      </CardBody>
+                      </Card.Content>
                     </Card>
                   </AnimatedBorder>
-                </Skeleton>
+                </div>
               ))}
             </Fragment>
           ))}
@@ -135,11 +130,11 @@ export default function DesktopSchedule({
         <i className="opacity-50">Дат пока нет..</i>
       )}
       <Card className="glass sticky top-2 h-fit min-h-64 min-w-[20%]">
-        <CardHeader className="flex gap-2 text-2xl">
+        <Card.Header className="flex flex-row gap-2 text-2xl">
           <Icon icon="solar:pen-2-linear" width="24" height="24" />
-          Изменённые дни:
-        </CardHeader>
-        <CardBody className="gap-4">
+          <p>Изменённые дни:</p>
+        </Card.Header>
+        <Card.Content className="gap-4">
           {initialDays
             .filter(
               (initDay, index) =>
@@ -154,41 +149,96 @@ export default function DesktopSchedule({
               )
               if (!day) return ''
 
+              let initialColor = ''
+
+              switch (initialDay?.value) {
+                case '+':
+                  initialColor = 'text-success'
+                  break
+                case '-':
+                  initialColor = 'text-danger'
+                  break
+                case '+/-':
+                  initialColor = 'text-warning'
+                  break
+              }
+
+              let newColor = ''
+
+              switch (day?.value) {
+                case '+':
+                  newColor = 'text-success'
+                  break
+                case '-':
+                  newColor = 'text-danger'
+                  break
+                case '+/-':
+                  newColor = 'text-warning'
+                  break
+              }
+
               return (
-                <div key={index} className="flex gap-2 text-xl">
-                  {day.date?.toFormat('dd.MM')}:
-                  {initialDay?.value !== day.value ? (
-                    <div className="flex gap-1">
-                      <Code className="min-h-7 min-w-6" color={'danger'}>
-                        {initialDay?.value}
-                      </Code>
-                      {'->'}
-                      <Code className="min-h-7 min-w-6" color="success">
-                        {day.value}
-                      </Code>
-                    </div>
-                  ) : (
-                    ''
-                  )}
-                  {initialDay?.comment !== day.comment ? (
-                    <div className="flex w-full gap-1">
-                      <Code className="min-h-7" color={'danger'}>
-                        {initialDay?.comment}
-                      </Code>
-                      {'->'}
-                      <Code
-                        color="success"
-                        className="min-h-7 break-all whitespace-normal">
-                        {day.comment}
-                      </Code>
-                    </div>
-                  ) : (
-                    ''
-                  )}
+                <div key={index} className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 text-center text-xl">
+                    <p className="underline">{day.date?.toFormat('dd.MM')}</p>
+                    {initialDay?.value !== day.value ? (
+                      <>
+                        {initialDay?.value ? (
+                          <>
+                            <p className={`${initialColor} min-h-7`}>
+                              {initialDay?.value}
+                            </p>
+                            <Icon
+                              icon="solar:arrow-right-linear"
+                              width="24"
+                              height="24"
+                            />
+                          </>
+                        ) : (
+                          ''
+                        )}
+
+                        <p
+                          className={`${newColor} min-h-7 break-all whitespace-normal`}>
+                          {day.value}
+                        </p>
+                      </>
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-xl">
+                    {initialDay?.comment !== day.comment ? (
+                      <>
+                        <p className="underline">
+                          {day.date?.toFormat('dd.MM')}
+                        </p>
+
+                        {initialDay?.comment ? (
+                          <>
+                            <p className="min-h-7">{initialDay?.comment}</p>
+                            <Icon
+                              icon="solar:arrow-right-linear"
+                              width="24"
+                              height="24"
+                            />
+                          </>
+                        ) : (
+                          ''
+                        )}
+
+                        <p className="min-h-7 break-all whitespace-normal">
+                          {day.comment}
+                        </p>
+                      </>
+                    ) : (
+                      ''
+                    )}
+                  </div>
                 </div>
               )
             })}
-        </CardBody>
+        </Card.Content>
         <CardFooter>
           <SendButton
             worker={worker}

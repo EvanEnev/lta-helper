@@ -29,29 +29,24 @@ export default function DeleteButton({
           <Button
             onPress={() => setShowConfirm(false)}
             className="w-full"
-            color="default"
-            variant="faded">
+            variant="primary">
             <Icon icon="solar:minus-circle-linear" width="20" height="20" />
             <p>Нет</p>
           </Button>
           <Button
             className="w-full"
             onPress={() => callback()}
-            color="success"
-            variant="ghost">
+            variant="danger">
             <Icon icon="solar:check-circle-linear" width="20" height="20" />
             <p>Да</p>
           </Button>
         </div>
       ) : (
         <Button
-          color="danger"
           className="w-full"
-          variant="faded"
-          onPress={() => setShowConfirm(true)}
-          startContent={
-            <Icon icon="solar:trash-bin-trash-linear" width="24" height="24" />
-          }>
+          variant="danger-soft"
+          onPress={() => setShowConfirm(true)}>
+          <Icon icon="solar:trash-bin-trash-linear" width="24" height="24" />
           {label}
         </Button>
       )}

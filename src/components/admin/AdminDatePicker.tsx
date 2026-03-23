@@ -1,6 +1,6 @@
 import {DateTime} from 'luxon'
 import type {DateValue} from '@internationalized/date'
-import {Calendar, DateField, DatePicker} from '@heroui/react-beta'
+import {Calendar, DateField, DatePicker} from '@heroui/react'
 import {today} from '@internationalized/date'
 import {useCallback} from 'react'
 

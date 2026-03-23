@@ -1,20 +1,19 @@
 import {PayrollColumn} from '@/src/components/payrolls/create/PayrollCreatePage'
-import {Code, semanticColors} from '@heroui/react'
 import {
   Button,
   Disclosure,
   DatePicker,
   Calendar,
   DateField,
-} from '@heroui/react-beta'
+} from '@heroui/react'
 import {Icon} from '@iconify/react'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
-import {useTheme} from 'next-themes'
 import {Dispatch, SetStateAction, useCallback, useMemo} from 'react'
 import {Interval} from 'luxon'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import {parseDate} from '@internationalized/date'
 import LocationSelect from '@/src/components/global/LocationSelect'
+import useColors from '@/src/hooks/useColors'
 
 interface PayrollCreateHeaderProps {
   columns: PayrollColumn[]
@@ -50,9 +49,7 @@ export default function PayrollCreateHeader({
   setPayrollData,
   initialData,
 }: PayrollCreateHeaderProps) {
-  const {theme} = useTheme()
-  // @ts-ignore
-  const themeColors = semanticColors[theme || 'dark']
+  const colors = useColors()
 
   const interval = useMemo(() => {
     return Interval.fromISO(`${dates.start}/${dates.end}`)
@@ -95,7 +92,7 @@ export default function PayrollCreateHeader({
                 Бонусы:{' '}
                 {bonuses ? (
                   <Icon
-                    color={themeColors.success['500']}
+                    color={colors?.success}
                     icon="solar:check-circle-bold"
                     width="20"
                     height="20"
@@ -105,16 +102,16 @@ export default function PayrollCreateHeader({
                     icon="solar:close-circle-bold"
                     width="20"
                     height="20"
-                    color={themeColors.danger['500']}
+                    color={colors?.danger}
                   />
                 )}
               </div>
               <div className="flex items-center gap-2 p-2">
                 <p>Площадки:</p>
-                <Code color="primary" className="flex items-center gap-2">
+                <p className="text-accent flex items-center gap-2">
                   {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
                   <Icon icon="solar:ruble-bold" width="24" height="24" />
-                </Code>
+                </p>
               </div>
               <Disclosure.Indicator />
             </Button>

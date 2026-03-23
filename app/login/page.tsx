@@ -9,7 +9,7 @@ import {
   FieldError,
   Button,
   Separator,
-} from '@heroui/react-beta'
+} from '@heroui/react'
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'

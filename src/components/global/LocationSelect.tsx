@@ -1,11 +1,11 @@
-import {addToast} from '@heroui/react'
 import {
   Autocomplete,
   Label,
   SearchField,
   ListBox,
   useFilter,
-} from '@heroui/react-beta'
+  toast,
+} from '@heroui/react'
 import {useCallback, useEffect, useState} from 'react'
 import {LTLocation, LTWorker} from '@/src/utils/types'
 import LocationIcon from '@/src/components/global/LocationIcon'
@@ -101,9 +101,8 @@ export default function LocationSelect({
         setLocations(sortedLocations)
       }
     } else {
-      addToast({
-        color: 'danger',
-        title: 'Ошибка!',
+      toast('Ошибка!', {
+        variant: 'danger',
         description: json.message || 'Неизвестная ошибка',
       })
     }
@@ -187,7 +186,7 @@ export default function LocationSelect({
       </Autocomplete.Trigger>
       <Autocomplete.Popover>
         <Autocomplete.Filter filter={contains}>
-          <SearchField>
+          <SearchField autoFocus>
             <SearchField.Group>
               <SearchField.SearchIcon />
               <SearchField.Input />

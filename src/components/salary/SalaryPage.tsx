@@ -15,11 +15,10 @@ import {
   Button,
   Checkbox,
   Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
   Input,
   Spinner,
+  TextField,
+  Label,
 } from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import LocationSelect from '@/src/components/global/LocationSelect'
@@ -332,7 +331,7 @@ export default function SalaryPage({
           style={{
             left: `${headerSizes.width}px`,
           }}
-          className="bg-content1 sticky top-2 z-1000 mb-4 flex h-22 w-dvw flex-wrap items-center gap-2 rounded-2xl p-4 text-xl font-bold">
+          className="bg-surface sticky top-2 z-1000 mb-4 flex h-22 w-dvw flex-wrap items-center gap-2 rounded-2xl p-4 text-xl font-bold">
           <MonthSelect
             type="select"
             labelPlacement="inside"
@@ -343,14 +342,14 @@ export default function SalaryPage({
           />
           {canViewLocation &&
             (isMobile ? (
-              <Dropdown closeOnSelect={false}>
-                <DropdownTrigger>
-                  <Button variant="flat" isIconOnly>
+              <Dropdown>
+                <Dropdown.Trigger>
+                  <Button slot="icon" variant="tertiary" isIconOnly>
                     <Icon icon="solar:filter-bold" width="24" height="24" />
                   </Button>
-                </DropdownTrigger>
-                <DropdownMenu className="min-w-40">
-                  <DropdownItem key="location">
+                </Dropdown.Trigger>
+                <Dropdown.Menu className="min-w-40">
+                  <Dropdown.Item key="location">
                     <LocationSelect
                       labelPlacement="inside"
                       includeAll={true}
@@ -361,37 +360,52 @@ export default function SalaryPage({
                       dynamicLocationId
                       locationId={locationId}
                     />
-                  </DropdownItem>
-                  <DropdownItem key="name">
-                    <Input
+                  </Dropdown.Item>
+                  <Dropdown.Item key="name">
+                    <TextField
+                      variant="secondary"
                       className="w-fit"
-                      label="Позывной"
-                      onValueChange={value => handleNameFilter(value)}
-                    />
-                  </DropdownItem>
-                  <DropdownItem key="hide">
+                      onChange={handleNameFilter}>
+                      <Label>Позывной</Label>
+                      <Input className="w-fit" />
+                    </TextField>
+                  </Dropdown.Item>
+                  <Dropdown.Item key="hide">
                     <Checkbox
-                      className="border-content1-foreground/20 ml-1 h-full rounded-2xl border-2"
-                      onValueChange={value => {
+                      variant="secondary"
+                      id="hide"
+                      className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
+                      isSelected={isReviewMode}
+                      onChange={value => {
                         handleHideFilter(value)
                       }}>
-                      Скрыть пустые
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Checkbox.Content>
+                        <Label htmlFor="hide">Скрыть пустые</Label>
+                      </Checkbox.Content>
                     </Checkbox>
-                  </DropdownItem>
+                  </Dropdown.Item>
                   {canViewFull ? (
-                    <DropdownItem key="review">
-                      <Checkbox
-                        className="border-content1-foreground/20 ml-1 h-full rounded-2xl border-2"
-                        isSelected={isReviewMode}
-                        onValueChange={value => {
-                          setReviewMode(value)
-                          localStorage.setItem('salaryReview', `${value}`)
-                        }}>
-                        Проверка
-                      </Checkbox>
-                    </DropdownItem>
+                    <Checkbox
+                      variant="secondary"
+                      id="check"
+                      className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
+                      isSelected={isReviewMode}
+                      onChange={value => {
+                        setReviewMode(value)
+                        localStorage.setItem('salaryReview', `${value}`)
+                      }}>
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Checkbox.Content>
+                        <Label htmlFor="check">Проверка</Label>
+                      </Checkbox.Content>
+                    </Checkbox>
                   ) : null}
-                </DropdownMenu>
+                </Dropdown.Menu>
               </Dropdown>
             ) : (
               <>
@@ -405,40 +419,60 @@ export default function SalaryPage({
                   dynamicLocationId
                   locationId={locationId}
                 />
-                <Input
+                <TextField
+                  variant="secondary"
                   className="w-fit"
-                  label="Позывной"
-                  onValueChange={value => handleNameFilter(value)}
-                />
+                  onChange={handleNameFilter}>
+                  <Label>Позывной</Label>
+                  <Input className="w-fit" />
+                </TextField>
                 <Checkbox
-                  className="border-content1-foreground/20 ml-1 h-full rounded-2xl border-2"
-                  onValueChange={value => {
+                  variant="secondary"
+                  id="hide"
+                  className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
+                  isSelected={isReviewMode}
+                  onChange={value => {
                     handleHideFilter(value)
                   }}>
-                  Скрыть пустые
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Content>
+                    <Label htmlFor="hide">Скрыть пустые</Label>
+                  </Checkbox.Content>
                 </Checkbox>
                 {canViewFull && (
                   <Checkbox
-                    className="border-content1-foreground/20 ml-1 h-full rounded-2xl border-2"
+                    variant="secondary"
+                    id="check"
+                    className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
                     isSelected={isReviewMode}
-                    onValueChange={value => {
+                    onChange={value => {
                       setReviewMode(value)
                       localStorage.setItem('salaryReview', `${value}`)
                     }}>
-                    Проверка
+                    <Checkbox.Control>
+                      <Checkbox.Indicator />
+                    </Checkbox.Control>
+                    <Checkbox.Content>
+                      <Label htmlFor="check">Проверка</Label>
+                    </Checkbox.Content>
                   </Checkbox>
                 )}
               </>
             ))}
           {loading && (
             <>
-              <Spinner color="default" /> Загрузка
+              <Spinner /> Загрузка
             </>
           )}
           {canViewFull && (
             <Button
-              startContent={<Excel width={40} height={40} />}
+              slot="icon"
+              className="h-fit"
+              variant="tertiary"
               onPress={() => download()}>
+              <Excel width={32} height={32} />
               Скачать сводную
             </Button>
           )}

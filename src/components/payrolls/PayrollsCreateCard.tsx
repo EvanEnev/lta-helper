@@ -1,16 +1,12 @@
 import {
   Button,
-  Checkbox,
-  DateRangePicker,
   Separator,
   RangeValue,
   Modal,
-  DateField,
-  RangeCalendar,
   useOverlayState,
   DateValue,
   Spinner,
-} from '@heroui/react-beta'
+} from '@heroui/react'
 import {DateTime} from 'luxon'
 import {useEffect, useMemo, useState} from 'react'
 import {parseDate} from '@internationalized/date'

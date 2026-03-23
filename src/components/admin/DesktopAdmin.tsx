@@ -7,14 +7,14 @@ import {
   LTWorkType,
   WorkerSalary,
 } from '@/src/utils/types'
-import {DateValue, semanticColors} from '@heroui/react'
-import {Button, Card} from '@heroui/react-beta'
+import {Button, Card, DateValue} from '@heroui/react'
 import WorkData from './WorkData'
 import {DateTime} from 'luxon'
 import isDark from '@/lib/functions/isDark'
 import {useTheme} from 'next-themes'
 import AdminDatePicker from '@/src/components/admin/AdminDatePicker'
 import {Icon} from '@iconify/react'
+import useColors from '@/src/hooks/useColors'
 
 interface DesktopAdminProps {
   faceId: LTFaceIdData[]
@@ -54,6 +54,7 @@ export default function DesktopAdmin({
   worker,
 }: DesktopAdminProps) {
   const {theme = 'dark'} = useTheme()
+  const colors = useColors()
 
   const updateDate = (date: DateValue | null) => {
     if (!date) return
@@ -69,7 +70,7 @@ export default function DesktopAdmin({
 
   return (
     <main className="flex min-h-full gap-4 p-4">
-      <div className="flex h-full w-full flex-wrap gap-2 overflow-auto">
+      <div className="flex h-full w-full flex-wrap gap-2">
         {salaryData.map((data, index) => {
           const location = locations.find(l => l.name === data.location)
           const textColorClass =
@@ -94,6 +95,7 @@ export default function DesktopAdmin({
                 <div className="flex w-full shrink-0 items-center justify-start gap-2">
                   <p className={textColorClass}>{index + 1}.</p>
                   <Button
+                    slot="icon"
                     variant="tertiary"
                     onPress={() =>
                       setSalaryData((prev: WorkerSalary[]) =>
@@ -113,8 +115,7 @@ export default function DesktopAdmin({
                     className="w-fit flex-1">
                     {data.deleted ? (
                       <Icon
-                        //@ts-ignore
-                        color={semanticColors.dark.success.DEFAULT}
+                        color={colors?.success}
                         icon="solar:restart-circle-linear"
                         className="p-1"
                         width="24"
@@ -122,8 +123,7 @@ export default function DesktopAdmin({
                       />
                     ) : (
                       <Icon
-                        // @ts-ignore
-                        color={semanticColors.dark.danger.DEFAULT}
+                        color={colors?.danger}
                         icon="solar:minus-circle-linear"
                         className="p-1"
                         width="24"
@@ -133,6 +133,7 @@ export default function DesktopAdmin({
                     {data.deleted ? 'Вернуть' : 'Удалить'}
                   </Button>
                   <Button
+                    slot="icon"
                     className="w-fit flex-1"
                     variant="tertiary"
                     onPress={() =>
@@ -151,8 +152,7 @@ export default function DesktopAdmin({
                     icon="solar:check-circle-bold"
                     width="20"
                     height="20"
-                    // @ts-ignore
-                    color={semanticColors[theme].success.DEFAULT}
+                    color={colors?.success}
                   />
                   <p>{data.createdAt || 'a'}</p>
                 </div>
@@ -174,33 +174,37 @@ export default function DesktopAdmin({
             </Card>
           )
         })}
-        <Card
-          onClick={() =>
-            setSalaryData((prev: WorkerSalary[]) => [
-              ...prev,
-              {
-                worker: '',
-                workingHours: prev[prev.length - 1]?.workingHours || '',
-                location: prev[prev.length - 1]?.location || '',
-                bonuses: '',
-                comment: '',
-                isHardTime: false,
-                gamesCount: 1,
-              },
-            ])
-          }
-          className="border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 w-75 border-2 border-dashed bg-transparent transition-colors duration-300 ease-in-out hover:cursor-pointer">
-          <Card.Content className="flex h-full w-full items-center justify-center border-0">
+        <div>
+          <Button
+            slot="icon"
+            className="h-full w-75 flex-col"
+            variant="outline"
+            onPress={() => {
+              setSalaryData((prev: WorkerSalary[]) => [
+                ...prev,
+                {
+                  worker: '',
+                  workingHours: prev[prev.length - 1]?.workingHours || '',
+                  location: prev[prev.length - 1]?.location || '',
+                  bonuses: '',
+                  comment: '',
+                  isHardTime: false,
+                  gamesCount: 1,
+                },
+              ])
+            }}>
             <Icon icon="solar:add-circle-linear" width="48" height="48" />
-          </Card.Content>
-        </Card>
+            Добавить
+          </Button>
+        </div>
       </div>
-      <Card className="sticky top-2 z-1000 h-fit w-[22vw]">
+      <Card className="sticky top-2 z-1000 h-fit w-fit">
         <Card.Content className="gap-4">
           <AdminDatePicker callback={updateDate} canEdit={canEdit} />
           <Button
             className="h-14 w-full py-2"
             size="lg"
+            slot="icon"
             variant="tertiary"
             isIconOnly
             onPress={() =>
@@ -227,6 +231,7 @@ export default function DesktopAdmin({
           </Button>
           <Button
             size="lg"
+            slot="icon"
             variant="primary"
             className="h-16 w-full"
             onPress={sendData}

@@ -46,7 +46,7 @@ export default function SalaryRow({
     <>
       <div
         style={{left: `${headerSizes.width}px`}}
-        className="bg-content1 sticky z-100 flex min-h-full w-40 flex-col items-center justify-center rounded-2xl p-2">
+        className="bg-surface sticky z-100 flex min-h-full w-40 flex-col items-center justify-center rounded-2xl p-2">
         <RankIcon rank={worker.rank} />
         <i className="mb-2 text-xs">{worker.rank}</i>
         <p>{worker.name}</p>
@@ -60,7 +60,7 @@ export default function SalaryRow({
           return (
             <div
               key={day}
-              className="border-content1-foreground/20 h-full w-full rounded-2xl border-2"></div>
+              className="border-surface-foreground/20 h-full w-full rounded-2xl border-2"></div>
           )
         }
 

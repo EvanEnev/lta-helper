@@ -15,7 +15,7 @@ export default function AnimatedBorder({
 
   return (
     <motion.div
-      className={`rounded-2xl border-2 ${className}`}
+      className={`rounded-3xl border-2 ${className}`}
       style={{borderColor: '#ff6b6b'}}
       animate={{
         borderColor: [

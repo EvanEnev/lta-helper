@@ -4,9 +4,10 @@ import {
   AccordionItem,
   Button,
   Card,
-  CardBody,
-  Divider,
   Input,
+  Label,
+  Separator,
+  TextField,
 } from '@heroui/react'
 import {Fragment, useMemo} from 'react'
 import PossibilityButton from './PossibilityButton'
@@ -138,12 +139,12 @@ export default function DayInfo({
     <div className="flex w-full flex-col gap-4">
       {isDisabled && selectedDay.date && (
         <Card className="bg-warning/70 h-18">
-          <CardBody className="items-center justify-center">
+          <Card.Content className="items-center justify-center">
             <p>Нельзя изменить график за день до или в день смены</p>
             <p>
               Необходимо написать старшему площадки и в топик График LT Arena
             </p>
-          </CardBody>
+          </Card.Content>
         </Card>
       )}
 
@@ -158,30 +159,25 @@ export default function DayInfo({
 
       <Button
         isDisabled={isDisabled}
-        startContent={
-          <Icon icon="solar:minus-circle-linear" width="24" height="24" />
-        }
-        className="h-14"
-        size="lg"
-        color={day?.value === '-' ? 'danger' : 'default'}
+        className="h-14 w-full"
+        slot="icon"
+        variant={day?.value === '-' ? 'danger' : 'tertiary'}
         onPress={() => possibilityHandler('-')}>
+        <Icon icon="solar:minus-circle-linear" width="24" height="24" />
         Не могу
       </Button>
       <Button
         isDisabled={isDisabled}
-        startContent={
-          <Icon icon="solar:question-circle-linear" width="24" height="24" />
-        }
-        className="h-14"
-        size="lg"
-        color={day?.value === '+/-' ? 'warning' : 'default'}
+        className={`h-14 w-full ${day?.value === '+/-' ? 'bg-warning text-warning-foreground' : ''}`}
+        slot="icon"
+        variant={'tertiary'}
         onPress={() => possibilityHandler('+/-')}>
-        С ограничением
+        <Icon icon="solar:question-circle-linear" width="24" height="24" />С
+        ограничением
       </Button>
-      <Input
+      <TextField
+        variant="secondary"
         isDisabled={isDisabled}
-        label={day?.value === '-' ? 'Причина' : 'Комментарий'}
-        size="lg"
         value={day?.comment || ''}
         isRequired={
           (day?.value === '-' &&
@@ -189,20 +185,17 @@ export default function DayInfo({
             worker.rank.toLowerCase() !== 'актёр') ||
           day?.value === '+/-'
         }
-        onChange={commentHandler}
-        color={day?.invalidComment ? 'danger' : 'default'}
-      />
+        onChange={commentHandler}>
+        <Label>{day?.value === '-' ? 'Причина' : 'Комментарий'}</Label>
+        <Input />
+      </TextField>
+
       <CommentTemplates
         onChange={commentHandler}
         selected={day?.comment || ''}
       />
       {locationData && (
-        <Accordion
-          variant="splitted"
-          itemClasses={{
-            content: 'gap-2 flex flex-col cursor-default',
-            trigger: 'cursor-pointer',
-          }}>
+        <Accordion>
           {Object.keys(groupedData).map((key, index) => {
             const data = groupedData[key]
             if (!data) return <></>
@@ -232,29 +225,48 @@ export default function DayInfo({
             )
 
             return (
-              <AccordionItem key={index} className="py-1" title={title}>
-                {sortedData.map((data: any, index: number) => {
-                  return (
-                    <Fragment key={index}>
-                      <div>
-                        <div className="flex flex-1 flex-wrap gap-2">
-                          <RankIcon rank={data?.rank || ''} className="h-8" />
-                          <SlashDivider />
-                          <span>{data?.name}</span>
-                          <SlashDivider />
-                          <span>{data?.time}</span>
-                        </div>
-                        {data?.role && (
-                          <span className="pl-2">
-                            <b>Роль:</b> {data?.role}
-                          </span>
-                        )}
-                      </div>
-                      {index !== sortedData.length - 1 && <Divider />}
-                    </Fragment>
-                  )
-                })}
-              </AccordionItem>
+              <Accordion.Item key={index}>
+                <Accordion.Heading>
+                  <Accordion.Trigger className="rounded-2xl">
+                    {title}
+                    <Accordion.Indicator>
+                      <Icon
+                        icon="solar:alt-arrow-down-linear"
+                        width="24"
+                        height="24"
+                      />
+                    </Accordion.Indicator>
+                  </Accordion.Trigger>
+                </Accordion.Heading>
+                <Accordion.Panel>
+                  <Accordion.Body>
+                    {sortedData.map((data: any, index: number) => {
+                      return (
+                        <Fragment key={index}>
+                          <div>
+                            <div className="flex flex-1 flex-wrap gap-2">
+                              <RankIcon
+                                rank={data?.rank || ''}
+                                className="h-8"
+                              />
+                              <SlashDivider />
+                              <span>{data?.name}</span>
+                              <SlashDivider />
+                              <span>{data?.time}</span>
+                            </div>
+                            {data?.role && (
+                              <span className="pl-2">
+                                <b>Роль:</b> {data?.role}
+                              </span>
+                            )}
+                          </div>
+                          {index !== sortedData.length - 1 && <Separator />}
+                        </Fragment>
+                      )
+                    })}
+                  </Accordion.Body>
+                </Accordion.Panel>
+              </Accordion.Item>
             )
           })}
         </Accordion>

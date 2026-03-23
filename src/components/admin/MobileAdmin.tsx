@@ -1,10 +1,4 @@
-import {
-  Accordion,
-  AccordionItem,
-  Button,
-  DateValue,
-  Selection,
-} from '@heroui/react'
+import {Accordion, Button, DateValue, Selection} from '@heroui/react'
 import WorkData from './WorkData'
 import {useState} from 'react'
 import {
@@ -109,12 +103,7 @@ export default function MobileAdmin({
       <div className="flex gap-4">
         <AdminDatePicker callback={updateDate} canEdit={canEdit} />
       </div>
-      <Accordion
-        variant="splitted"
-        className="p-0"
-        key={key}
-        selectedKeys={selectedKeys}
-        onSelectionChange={setSelectedKeys}>
+      <Accordion variant="surface" className="p-0" key={key}>
         {salaryData?.map((data, index) => {
           const title = `${index + 1}. ${
             [data.worker, data.location, data.workingHours]
@@ -123,15 +112,13 @@ export default function MobileAdmin({
           }`
 
           return (
-            <AccordionItem
-              title={title}
-              key={index}
-              className={`pb-2 ${data.deleted ? 'bg-danger/50' : ''}`}
-              startContent={
+            <Accordion.Item key={index}>
+              <Accordion.Heading
+                className={`${data.deleted ? 'bg-danger-soft rounded-3xl' : ''} items-center gap-2`}>
                 <Button
                   isIconOnly
-                  color="danger"
-                  variant="ghost"
+                  className="ml-2"
+                  variant="danger-soft"
                   onPress={() => removeSalaryData(index)}>
                   {data.deleted ? (
                     <Icon
@@ -147,38 +134,54 @@ export default function MobileAdmin({
                     />
                   )}
                 </Button>
-              }>
-              <WorkData
-                faceId={faceId}
-                gamesPayments={gamesPayments}
-                workTypes={workTypes}
-                ranks={ranks}
-                locations={locations}
-                data={data}
-                setData={setSalaryData}
-                workers={workers}
-                worker={worker}
-                index={index}
-              />
-            </AccordionItem>
+                <Accordion.Trigger>
+                  {title}
+                  <Accordion.Indicator>
+                    <Icon
+                      icon="solar:alt-arrow-down-linear"
+                      width="24"
+                      height="24"
+                    />
+                  </Accordion.Indicator>
+                </Accordion.Trigger>
+              </Accordion.Heading>
+              <Accordion.Panel>
+                <Accordion.Body className="flex justify-center">
+                  <WorkData
+                    faceId={faceId}
+                    gamesPayments={gamesPayments}
+                    workTypes={workTypes}
+                    ranks={ranks}
+                    locations={locations}
+                    data={data}
+                    setData={setSalaryData}
+                    workers={workers}
+                    worker={worker}
+                    index={index}
+                  />
+                </Accordion.Body>
+              </Accordion.Panel>
+            </Accordion.Item>
           )
         })}
       </Accordion>
 
       <Button
         size="lg"
-        color="default"
+        slot="icon"
+        variant="tertiary"
         className="h-16 w-full"
         onPress={addSalaryData}>
+        <Icon icon="solar:add-circle-linear" width="24" height="24" />
         Добавить
       </Button>
       <Button
         size="lg"
-        color="primary"
+        slot="icon"
         className="h-16 w-full"
         onPress={sendData}
-        endContent={<Icon icon="solar:plain-linear" width="24" height="24" />}
-        isLoading={isLoading}>
+        isPending={isLoading}>
+        <Icon icon="solar:plain-linear" width="24" height="24" />
         Отправить
       </Button>
     </main>

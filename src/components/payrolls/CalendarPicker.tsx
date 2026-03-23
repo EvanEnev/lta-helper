@@ -6,9 +6,8 @@ import {
   Label,
   RangeCalendar,
   RangeValue,
-} from '@heroui/react-beta'
+} from '@heroui/react'
 import {Icon} from '@iconify/react'
-import {useEffect} from 'react'
 
 interface DateRangePickerProps {
   value: RangeValue<DateValue> | null

@@ -1,6 +1,6 @@
 'use client'
 
-import {ComboBox, Input, ListBox} from '@heroui/react-beta'
+import {ComboBox, Input, ListBox} from '@heroui/react'
 import {setCookie, getCookie} from 'cookies-next/client'
 
 interface ImpersonateBoxProps {

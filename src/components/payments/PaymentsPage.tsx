@@ -1,7 +1,7 @@
 'use client'
 
 import {LTPayment, LTPaymentChangeData, LTPaymentType} from '@/src/utils/types'
-import {Separator} from '@heroui/react-beta'
+import {Separator} from '@heroui/react'
 import {DateTime, Interval} from 'luxon'
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import PaymentsRow from '@/src/components/payments/PaymentsRow'

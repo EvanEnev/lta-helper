@@ -13,13 +13,13 @@ export default function SalaryDaysRow({
 }: SalaryDaysRowProps) {
   return (
     <>
-      <div className="border-content1-foreground/20 h-full w-full rounded-2xl border-2" />
+      <div className="border-surface-foreground/20 h-full w-full rounded-2xl border-2" />
       {dates.map((date, index) => {
         const key = date ?? `default-key-${index}`
 
         return (
           <div
-            className={`${today && today === date ? 'border-success' : 'border-content1-foreground/20'} bg-content1 border-content1-foreground/20 sticky top-26 z-150 w-full rounded-2xl border-2 p-2 text-center`}
+            className={`${today && today === date ? 'border-success' : 'border-surface-foreground/20'} bg-surface border-surface-foreground/20 sticky top-26 z-150 w-full rounded-2xl border-2 p-2 text-center`}
             key={key}>
             {date}
           </div>
@@ -28,7 +28,7 @@ export default function SalaryDaysRow({
       {/*{workTypes.map(type => (*/}
       {/*  <div*/}
       {/*    key={type.id}*/}
-      {/*    className="border-content1-foreground/20 h-full w-full rounded-2xl border-2 bg-black"*/}
+      {/*    className="border-surface-foreground/20 h-full w-full rounded-2xl border-2 bg-black"*/}
       {/*  />*/}
       {/*))}*/}
     </>

@@ -9,11 +9,6 @@ import {
   WorkerSalary,
 } from '@/src/utils/types'
 import {
-  Autocomplete,
-  AutocompleteItem,
-  AutocompleteSection,
-} from '@heroui/react'
-import {
   ListBox,
   Select,
   NumberField,
@@ -25,7 +20,12 @@ import {
   Description,
   TextField,
   TextArea,
-} from '@heroui/react-beta'
+  Autocomplete,
+  useFilter,
+  SearchField,
+  Header,
+  Separator,
+} from '@heroui/react'
 import {Activity, useCallback, useMemo, useState} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 import RankIcon from '@/src/components/global/RankIcon'
@@ -70,6 +70,7 @@ export default function WorkData({
   workTypes,
   gamesPayments,
 }: WorkDataProps) {
+  const {contains} = useFilter({sensitivity: 'base'})
   const [selectedKeys, setSelectedKeys] = useState<
     Key | Key[] | null | undefined
   >()
@@ -260,55 +261,67 @@ export default function WorkData({
   }, [worker?.rank, gamesPayments])
 
   return (
-    <div className="flex h-full w-75 flex-col gap-2 overflow-y-hidden">
+    <div className="flex h-full max-w-75 flex-col gap-2 overflow-y-hidden">
       <Autocomplete
-        isRequired
-        label="Сотрудник"
-        labelPlacement="outside"
-        isClearable={false}
-        description={
-          <div className="flex justify-between">
-            <p>
-              Вход:{' '}
-              {faceIdData && faceIdData[0] ? faceIdData[0]?.date : <i>Нет</i>}
-            </p>
-            <p>
-              Выход:{' '}
-              {faceIdData && faceIdData[1] ? faceIdData[1]?.date : <i>Нет</i>}
-            </p>
-          </div>
-        }
-        startContent={
-          <RankIcon
-            className="h-6"
-            rank={workers.find(w => w.name === data.worker)?.rank || ''}
-          />
-        }
-        selectedKey={data.worker}
-        scrollShadowProps={{
-          isEnabled: false,
-        }}
-        onSelectionChange={value => updateData('worker', value)}>
-        {Object.entries(groupedWorkers).map(([key, value], index) => {
-          const title = (
-            <div className="bg-default-100 z-100 flex flex-1 items-center gap-1 rounded-xl px-2 select-none">
-              <RankIcon rank={key} className="h-6" /> {key}
-            </div>
-          )
+        variant="secondary"
+        fullWidth
+        value={data.worker}
+        onChange={value => updateData('worker', value)}>
+        <Label>Сотрудник</Label>
+        <Autocomplete.Trigger>
+          <Autocomplete.Value />
+          <Autocomplete.Indicator />
+        </Autocomplete.Trigger>
+        <Autocomplete.Popover>
+          <Autocomplete.Filter filter={contains}>
+            <SearchField autoFocus name="search" variant="secondary">
+              <SearchField.Group>
+                <SearchField.SearchIcon />
+                <SearchField.Input />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
+            <ListBox>
+              {Object.entries(groupedWorkers).map(([key, value], index) => {
+                const title = (
+                  <div className="z-100 flex flex-1 items-center gap-1 select-none">
+                    <RankIcon rank={key} className="h-6" /> {key}
+                  </div>
+                )
 
-          return (
-            <AutocompleteSection
-              // @ts-ignore
-              title={key === 'null' ? '' : title}
-              key={index}>
-              {value.map(worker => (
-                <AutocompleteItem key={worker.name}>
-                  {worker.name}
-                </AutocompleteItem>
-              ))}
-            </AutocompleteSection>
-          )
-        })}
+                return (
+                  <>
+                    <ListBox.Section key={index}>
+                      <Header>{key === 'null' ? '' : title}</Header>
+                      {value.map(worker => (
+                        <ListBox.Item
+                          textValue={worker.name}
+                          id={worker.name}
+                          key={worker.name}>
+                          {worker.name}
+                          <ListBox.ItemIndicator />
+                        </ListBox.Item>
+                      ))}
+                    </ListBox.Section>
+                    {index !== Object.entries(groupedWorkers).length - 1 && (
+                      <Separator />
+                    )}
+                  </>
+                )
+              })}
+            </ListBox>
+          </Autocomplete.Filter>
+        </Autocomplete.Popover>
+        <Description className="flex justify-between">
+          <p>
+            Вход:{' '}
+            {faceIdData && faceIdData[0] ? faceIdData[0]?.date : <i>Нет</i>}
+          </p>
+          <p>
+            Выход:{' '}
+            {faceIdData && faceIdData[1] ? faceIdData[1]?.date : <i>Нет</i>}
+          </p>
+        </Description>
       </Autocomplete>
       <LocationSelect
         dynamicLocationId
@@ -412,7 +425,7 @@ export default function WorkData({
       <div className="flex justify-between gap-2">
         <FormulaInput
           labelPlacement="outside"
-          className="col-2"
+          className="col-2 w-fit"
           label="Бонусы"
           description={evaluate(data.bonuses || '')}
           value={data.bonuses}
@@ -478,7 +491,7 @@ export default function WorkData({
         <Accordion className="mt-auto px-0">
           <Accordion.Item>
             <Accordion.Heading>
-              <Accordion.Trigger className="border-default-300 hover:bg-default-200 mt-auto flex cursor-pointer justify-start gap-2 rounded-t-xl border-b-1 transition-colors duration-200">
+              <Accordion.Trigger className="border-default-300 hover:bg-default-200 mt-auto flex cursor-pointer justify-start gap-2 rounded-t-xl border-b transition-colors duration-200">
                 <Icon icon="solar:gamepad-bold" width="24" height="24" />{' '}
                 {accordionTitle}
                 <Accordion.Indicator>

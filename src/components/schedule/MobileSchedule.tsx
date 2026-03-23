@@ -1,4 +1,4 @@
-import {Divider} from '@heroui/react'
+import {Separator} from '@heroui/react'
 import DayButton from './DayButton'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
@@ -90,7 +90,7 @@ export default function MobileSchedule({
       {days.length ? (
         weeks.map((week, index) => (
           <>
-            {index !== 0 && <Divider />}
+            {index !== 0 && <Separator />}
             <div className="flex w-full flex-wrap gap-4" key={index}>
               {week.map((day, index) => (
                 <DayButton
@@ -106,7 +106,7 @@ export default function MobileSchedule({
       ) : (
         <i className="opacity-50">Дат пока нет..</i>
       )}
-      <Divider />
+      <Separator />
       <DayInfo worker={worker} day={day} />
       <SendButton
         worker={worker}

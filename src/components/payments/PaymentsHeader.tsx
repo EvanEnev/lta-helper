@@ -1,7 +1,16 @@
-import {Button, Input, ListBox, Select} from '@heroui/react-beta'
+import {
+  Button,
+  Input,
+  ListBox,
+  Select,
+  DateRangePicker,
+  DateValue,
+  RangeValue,
+  DateField,
+  RangeCalendar,
+} from '@heroui/react'
 import {LTPayment, LTPaymentType} from '@/src/utils/types'
 import {Dispatch, SetStateAction, useCallback, useEffect, useState} from 'react'
-import {DateRangePicker, DateValue, RangeValue} from '@heroui/react'
 import {PaymentsFilter} from '@/src/components/payments/PaymentsPage'
 import {DateTime} from 'luxon'
 import separateNumber from '@/lib/functions/separateNumber'
@@ -99,18 +108,51 @@ export default function PaymentsHeader({
           </ListBox>
         </Select.Popover>
       </Select>
-      <DateRangePicker
-        className="w-fit"
-        classNames={{inputWrapper: 'h-9 min-h-9'}}
-        onChange={parseDateRange}
-      />
+      <DateRangePicker onChange={parseDateRange}>
+        <DateField.Group lang="ru" variant="secondary">
+          <DateField.Input slot="start">
+            {segment => <DateField.Segment segment={segment} />}
+          </DateField.Input>
+          <DateRangePicker.RangeSeparator />
+          <DateField.Input slot="end">
+            {segment => <DateField.Segment segment={segment} />}
+          </DateField.Input>
+          <DateField.Suffix>
+            <DateRangePicker.Trigger>
+              <DateRangePicker.TriggerIndicator />
+            </DateRangePicker.Trigger>
+          </DateField.Suffix>
+        </DateField.Group>
+        <DateRangePicker.Popover>
+          <RangeCalendar aria-label="Choose trip dates">
+            <RangeCalendar.Header>
+              <RangeCalendar.YearPickerTrigger>
+                <RangeCalendar.YearPickerTriggerHeading lang="ru-RU" />
+                <RangeCalendar.YearPickerTriggerIndicator lang="ru-RU" />
+              </RangeCalendar.YearPickerTrigger>
+              <RangeCalendar.NavButton slot="previous" />
+              <RangeCalendar.NavButton slot="next" />
+            </RangeCalendar.Header>
+            <RangeCalendar.Grid>
+              <RangeCalendar.GridHeader>
+                {day => (
+                  <RangeCalendar.HeaderCell>{day}</RangeCalendar.HeaderCell>
+                )}
+              </RangeCalendar.GridHeader>
+              <RangeCalendar.GridBody>
+                {date => <RangeCalendar.Cell date={date} />}
+              </RangeCalendar.GridBody>
+            </RangeCalendar.Grid>
+          </RangeCalendar>
+        </DateRangePicker.Popover>
+      </DateRangePicker>
       <Input
         placeholder="Позывной"
         id="nameInput"
         value={name || ''}
         onChange={e => setName(e.target.value || null)}
       />
-      <div className="bg-content1 h-full w-fit rounded-xl p-2">
+      <div className="bg-surface h-full w-fit rounded-xl p-2">
         <p>Сумма: {separateNumber(summary)}</p>
       </div>
     </div>

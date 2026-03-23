@@ -1,4 +1,4 @@
-import {Input} from '@heroui/react'
+import {Description, Input, Label, TextField} from '@heroui/react'
 import {useCallback, useEffect, useState} from 'react'
 import {evaluate} from 'mathjs'
 
@@ -59,16 +59,17 @@ export default function FormulaInput({
   }, [initialValue])
 
   return (
-    <Input
-      isReadOnly={isReadOnly}
-      labelPlacement={labelPlacement}
-      color={hasError ? 'danger' : 'default'}
-      className={className}
-      label={label}
+    <TextField
+      variant="secondary"
+      fullWidth
+      className={`${className} flex-1`}
       aria-label={ariaLabel}
+      isReadOnly={isReadOnly}
       value={value}
-      onValueChange={onChange}
-      description={description}
-    />
+      onChange={onChange}>
+      <Label className="w-fit">{label}</Label>
+      <Input className={`${hasError ? 'bg-danger-soft' : ''}`} />
+      <Description className="w-fit">{description}</Description>
+    </TextField>
   )
 }

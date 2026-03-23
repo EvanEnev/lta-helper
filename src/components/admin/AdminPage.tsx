@@ -15,7 +15,7 @@ import {
 } from '@/src/utils/types'
 import {useEffect, useMemo, useState} from 'react'
 import {DateTime} from 'luxon'
-import {addToast} from '@heroui/react'
+import {toast} from '@heroui/react'
 
 interface AdminPageProps {
   worker: LTWorker
@@ -109,18 +109,16 @@ export default function AdminPage({
     const workers = salaryData.map(d => d.worker)
 
     if (!workers.some(d => d)) {
-      return addToast({
-        title: 'Ошибка!',
+      return toast('Ошибка!', {
         description: 'Нет данных для отправки',
-        color: 'warning',
+        variant: 'warning',
       })
     }
 
     if (salaryData.some(d => d.location !== 'Другое' && !d.workTypes?.length)) {
-      return addToast({
-        title: 'Ошибка!',
+      return toast('Ошибка!', {
         description: 'Не указаны типы работ',
-        color: 'warning',
+        variant: 'warning',
       })
     }
 
@@ -147,22 +145,19 @@ export default function AdminPage({
     } catch {}
 
     if (response.ok) {
-      addToast({
-        title: 'Успешно!',
+      toast('Успешно!', {
         description: message || 'Данные отправлены',
-        color: 'success',
         timeout: 8000,
-        shouldShowTimeoutProgress: true,
+        variant: 'success',
       })
 
       if (!worker.locationId) {
         setSalaryData([defaultSalaryData])
       }
     } else {
-      addToast({
-        title: 'Ошибка!',
+      toast('Ошибка!', {
         description: message || 'Неизвестная ошибка',
-        color: 'danger',
+        variant: 'danger',
       })
     }
 

@@ -1,9 +1,9 @@
-import {Input, Label, ListBox, Select} from '@heroui/react-beta'
+import {Input, Label, ListBox, Select} from '@heroui/react'
 import {Icon} from '@iconify/react'
-import {semanticColors} from '@heroui/react'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import {LTLocation} from '@/src/utils/types'
 import unaccent from '@/lib/functions/unaccent'
+import useColors from '@/src/hooks/useColors'
 
 interface PayrollsDetailsHeaderProps {
   theme: string
@@ -17,6 +17,7 @@ export default function PayrollsDetailsHeader({
   theme,
   filterChangeCallback,
 }: PayrollsDetailsHeaderProps) {
+  const colors = useColors()
   return (
     <div className="scrolled bg-content1 sticky top-2 z-1000 flex w-full flex-wrap items-center gap-2 rounded-2xl p-3 text-xl font-bold">
       <Input
@@ -58,8 +59,7 @@ export default function PayrollsDetailsHeader({
                   icon="solar:close-circle-bold"
                   width="24"
                   height="24"
-                  // @ts-ignore
-                  style={{color: semanticColors[theme].default['500']}}
+                  style={{color: colors?.default}}
                 />
                 Без статуса
               </Label>
@@ -71,8 +71,7 @@ export default function PayrollsDetailsHeader({
                   icon="solar:danger-circle-bold"
                   width="24"
                   height="24"
-                  // @ts-ignore
-                  style={{color: semanticColors[theme].primary['500']}}
+                  style={{color: colors?.primary}}
                 />
                 Подтверждено
               </Label>
@@ -84,8 +83,7 @@ export default function PayrollsDetailsHeader({
                   icon="solar:check-circle-bold"
                   width="24"
                   height="24"
-                  // @ts-ignore
-                  style={{color: semanticColors[theme].success['500']}}
+                  style={{color: colors?.success}}
                 />
                 Выдано
               </Label>

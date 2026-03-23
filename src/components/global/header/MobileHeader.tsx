@@ -1,4 +1,4 @@
-import {Link} from '@heroui/react-beta'
+import {Link} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import buttonsRaw from '@/src/utils/global/pathButtons'
 import checkPermissions from '@/lib/functions/checkPermissions'
@@ -60,7 +60,7 @@ export default function MobileHeader({
             <Link
               key={index}
               href={button.href}
-              className={`h-full flex-1 flex-col items-center justify-center gap-1 rounded-4xl px-6 py-4 text-center no-underline ${button.className} ${path === button.href ? 'bg-primary/20' : ''}`}
+              className={`h-full flex-1 flex-col items-center justify-center gap-1 rounded-4xl px-6 py-4 text-center no-underline ${button.className} ${path === button.href ? 'bg-accent-soft-hover' : ''}`}
               slot="header">
               {button.icon && (
                 <Icon
@@ -69,7 +69,7 @@ export default function MobileHeader({
                       ? button.icon.replace('linear', 'bold')
                       : button.icon
                   }
-                  className={`${path === button.href ? 'text-primary' : ''} shrink-0`}
+                  className={`${path === button.href ? 'text-accent' : ''} shrink-0`}
                   width="24"
                   height="24"
                 />

@@ -1,6 +1,6 @@
 import buttonsRaw from '@/src/utils/global/pathButtons'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {Button, Link} from '@heroui/react-beta'
+import {Button, Link} from '@heroui/react'
 import {Icon} from '@iconify/react'
 import {LTWorker} from '@/src/utils/types'
 
