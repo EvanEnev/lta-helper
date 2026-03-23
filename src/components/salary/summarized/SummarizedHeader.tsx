@@ -10,13 +10,17 @@ import {
   Key,
   DateValue,
   RangeValue,
+  Button,
 } from '@heroui/react'
 import {LTLocation, LTRank} from '@/src/utils/types'
 import LocationSelect from '@/src/components/global/LocationSelect'
+import {Interval} from 'luxon'
+import Excel from '@/public/icons/Excel'
 
 interface SummarizedHeaderProps {
   columns: SummaryColumn[]
   setDateRange: Dispatch<SetStateAction<RangeValue<DateValue> | null>>
+  dateRange: RangeValue<DateValue> | null
   updateRank: (keys: Key[]) => void
   ranks: LTRank[]
   selectedRanks: string[]
@@ -27,6 +31,7 @@ export default function SummarizedHeader({
   columns,
   setDateRange,
   updateRank,
+  dateRange,
   ranks,
   selectedRanks,
   updateLocations,
@@ -38,6 +43,43 @@ export default function SummarizedHeader({
       updateLocations(Array.isArray(locations) ? locations.map(l => l.id) : [])
     },
     [updateLocations],
+  )
+
+  const download = useCallback(
+    async (type: string) => {
+      const response = await fetch('/api/excel', {
+        method: 'POST',
+        body: JSON.stringify({
+          start_date: dateRange?.start.toString(),
+          end_date: dateRange?.end.toString(),
+          type,
+        }),
+      })
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+
+      const interval = Interval.fromISO(
+        `${dateRange?.start.toString()}/${dateRange?.end.toString()}`,
+      )
+
+      let name = 'Сводная'
+      if (type === 'day') {
+        name += ` по дням (${interval.toFormat('dd.MM.yyyy')})`
+      } else if (type === 'month') {
+        name += ' по месяцам'
+      } else if (type === 'workers') {
+        name += ` по сотрудникам (${interval.toFormat('dd.MM.yyyy')})`
+      }
+      a.download = `${name}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    },
+    [dateRange?.end, dateRange?.start],
   )
 
   return (
@@ -118,6 +160,18 @@ export default function SummarizedHeader({
           locationId={0}
           includeAll
         />
+        <Button variant="tertiary" onPress={() => download('day')}>
+          <Excel width={40} height={40} />
+          Скачать по дням
+        </Button>
+        <Button variant="tertiary" onPress={() => download('month')}>
+          <Excel width={40} height={40} />
+          Скачать по месяцам
+        </Button>
+        <Button variant="tertiary" onPress={() => download('workers')}>
+          <Excel width={40} height={40} />
+          Скачать по сотрудникам
+        </Button>
       </div>
       <div className="bg-surface flex h-fit w-full gap-2 rounded-2xl p-2">
         {columns.map(col => (

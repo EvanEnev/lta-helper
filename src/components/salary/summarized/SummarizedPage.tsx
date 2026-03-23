@@ -214,6 +214,7 @@ export default function SummarizedPage({
   return (
     <main className="flex w-full flex-col gap-4 p-2">
       <SummarizedHeader
+        dateRange={dateRange}
         ranks={ranks}
         updateRank={updateRank}
         selectedRanks={selectedRanks}
