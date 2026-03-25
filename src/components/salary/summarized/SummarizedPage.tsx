@@ -60,43 +60,6 @@ export default function SummarizedPage({
     })
   }, [dateRange, selectedLocations])
 
-  // const download = useCallback(
-  //   async (type: string) => {
-  //     const response = await fetch('/api/excel', {
-  //       method: 'POST',
-  //       body: JSON.stringify({
-  //         start_date: dateRange?.start.toString(),
-  //         end_date: dateRange?.end.toString(),
-  //         type,
-  //       }),
-  //     })
-  //
-  //     const blob = await response.blob()
-  //     const url = window.URL.createObjectURL(blob)
-  //     const a = document.createElement('a')
-  //     a.href = url
-  //
-  //     const interval = Interval.fromISO(
-  //       `${dateRange?.start.toString()}/${dateRange?.end.toString()}`,
-  //     )
-  //
-  //     let name = 'Сводная'
-  //     if (type === 'day') {
-  //       name += ` по дням (${interval.toFormat('dd.MM.yyyy')})`
-  //     } else if (type === 'month') {
-  //       name += ' по месяцам'
-  //     } else if (type === 'workers') {
-  //       name += ` по сотрудникам (${interval.toFormat('dd.MM.yyyy')})`
-  //     }
-  //     a.download = `${name}.xlsx`
-  //     document.body.appendChild(a)
-  //     a.click()
-  //     a.remove()
-  //     window.URL.revokeObjectURL(url)
-  //   },
-  //   [dateRange?.end, dateRange?.start],
-  // )
-
   const getSum = useCallback(
     (names: string[]) => {
       const sum = data.reduce((acc, cur) => {
@@ -229,13 +192,6 @@ export default function SummarizedPage({
       if (removeAll) {
         newKeys = []
       }
-
-      console.log({
-        removeAll,
-        initialDataLength: initialData.length,
-        newKeys,
-        sampleRanks: initialData.map(d => d.rank),
-      })
 
       setSelectedRanks(newKeys)
       setData(initialData.filter(d => newKeys.includes(d.rank)))
