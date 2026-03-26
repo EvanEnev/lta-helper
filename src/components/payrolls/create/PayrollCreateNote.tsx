@@ -72,13 +72,14 @@ export default function PayrollCreateNote({
                 <Location locationName={location.shortName!} />
                 <Input
                   color={locationData.error ? 'danger' : 'primary'}
-                  defaultValue={locationMoney.toString()}
+                  defaultValue={locationMoney.toString() || undefined}
+                  placeholder="0"
                   onValueChange={value =>
                     updateLocationMoneyCallback(location.id, value)
                   }
                 />
                 <Code
-                  className="flex h-10 items-center"
+                  className="flex h-10 items-center whitespace-normal"
                   color={locationMoney - usedMoney < 0 ? 'danger' : 'success'}>
                   {separateNumber(locationMoney - usedMoney)}
                 </Code>
