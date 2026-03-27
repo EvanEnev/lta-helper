@@ -55,7 +55,8 @@ export default function SalaryRow({
       </div>
       {days.map(day => {
         const data = dates.find(d => d.date?.slice(0, -5) === day)
-        if (!data?.id) {
+        // @ts-ignore
+        if (!data?.id && !data?.payments?.length) {
           return (
             <div
               key={day}
@@ -65,7 +66,7 @@ export default function SalaryRow({
 
         return (
           <SalaryCell
-            key={data.id}
+            key={day}
             data={data}
             handleEdit={handleEdit}
             handleDelete={handleDelete}

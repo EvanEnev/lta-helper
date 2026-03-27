@@ -33,7 +33,7 @@ export default memo(function PayrollCreateValueCell({
 
   return (
     <NumberInput
-      className="w-full min-w-[8rem] flex-1"
+      className="w-full min-w-32 flex-1"
       value={value}
       minValue={minValue}
       isWheelDisabled

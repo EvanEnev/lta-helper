@@ -128,7 +128,7 @@ export default function PayrollCreatePage({
     (locationId: number, rawValue: string) => {
       let value = null
       try {
-        value = evaluate(rawValue)
+        value = evaluate(rawValue || '0')
       } catch {}
 
       setMoneyOnLocations(prev =>
@@ -183,6 +183,10 @@ export default function PayrollCreatePage({
       value: number,
       type: 'location' | 'bonuses' | 'fines' | 'value' | 'external_payment',
     ) => {
+      if (type === 'fines' && value > 0) {
+        value = -value
+      }
+
       const index = data.findIndex(d => d.id === workerId)
 
       if (selectedRows.length && selectedRows.includes(index)) {
