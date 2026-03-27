@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
         },
       ]
 
-      ;['oneGames', 'twoGames', 'threeGames'].forEach(game => {
+      ;['oneGames', 'twoGames', 'threeGames', 'actorGames'].forEach(game => {
         // @ts-ignore
         if (salary[game] && data[game]?.number) {
           // @ts-ignore
