@@ -2,14 +2,17 @@
 
 import {addToast} from '@heroui/react'
 import {
+  Autocomplete,
   Button,
   FieldError,
   Form,
   Input,
   Label,
+  ListBox,
+  SearchField,
   TextField,
 } from '@heroui/react-beta'
-import {FormEvent} from 'react'
+import {Activity, FormEvent} from 'react'
 import {useRouter} from 'next/navigation'
 import {LTWorker} from '@/src/utils/types'
 import {withMask} from 'use-mask-input'
@@ -18,9 +21,10 @@ import {Icon} from '@iconify/react'
 
 interface RegisterPageProps {
   worker: LTWorker
+  workers: {id: number; name: string}[]
 }
 
-export default function RegisterPage({worker}: RegisterPageProps) {
+export default function RegisterPage({worker, workers}: RegisterPageProps) {
   const router = useRouter()
 
   const handler = async (e: FormEvent<HTMLFormElement>) => {
@@ -65,27 +69,27 @@ export default function RegisterPage({worker}: RegisterPageProps) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Регистрация</h1>
-      <Button
-        className="w-full"
-        variant="tertiary"
-        onPress={async () => {
-          await authClient.signOut()
-
-          await authClient.signIn.social({
-            provider: 'google',
-            callbackURL: '/',
-          })
-        }}>
-        <Icon
-          icon={`logos:google-icon`}
-          className="w-fit p-1"
-          width="256"
-          height="262"
-        />
-        Войти с Google
-      </Button>
       <div className="flex max-h-[50%] w-full flex-wrap justify-center gap-4 sm:w-1/2">
-        <Form className="w-full" onSubmit={handler}>
+        <Button
+          className="w-full"
+          variant="tertiary"
+          onPress={async () => {
+            await authClient.signOut()
+
+            await authClient.signIn.social({
+              provider: 'google',
+              callbackURL: '/',
+            })
+          }}>
+          <Icon
+            icon={`logos:google-icon`}
+            className="w-fit p-1"
+            width="256"
+            height="262"
+          />
+          Войти с Google
+        </Button>
+        <Form className="flex w-full flex-col gap-2" onSubmit={handler}>
           <TextField isRequired defaultValue={worker.name || ''}>
             <Label>Позывной</Label>
             <Input name="name" />
@@ -125,6 +129,35 @@ export default function RegisterPage({worker}: RegisterPageProps) {
             <Input name="email" />
             <FieldError>Неверная почта</FieldError>
           </TextField>
+          {/*<Activity*/}
+          {/*  mode={worker.isApproved || worker.id ? 'hidden' : 'visible'}>*/}
+          {/*  <Autocomplete>*/}
+          {/*    <Label>Куратор при обучении</Label>*/}
+          {/*    <Autocomplete.Trigger>*/}
+          {/*      <Autocomplete.Value />*/}
+          {/*      <Autocomplete.ClearButton />*/}
+          {/*      <Autocomplete.Indicator />*/}
+          {/*    </Autocomplete.Trigger>*/}
+          {/*    <Autocomplete.Popover>*/}
+          {/*      <Autocomplete.Filter>*/}
+          {/*        <SearchField>*/}
+          {/*          <SearchField.Group>*/}
+          {/*            <SearchField.SearchIcon />*/}
+          {/*            <SearchField.Input />*/}
+          {/*          </SearchField.Group>*/}
+          {/*        </SearchField>*/}
+          {/*        <ListBox>*/}
+          {/*          {workers.map(({id, name}) => (*/}
+          {/*            <ListBox.Item key={id}>*/}
+          {/*              <Label>{name}</Label>*/}
+          {/*              <ListBox.ItemIndicator />*/}
+          {/*            </ListBox.Item>*/}
+          {/*          ))}*/}
+          {/*        </ListBox>*/}
+          {/*      </Autocomplete.Filter>*/}
+          {/*    </Autocomplete.Popover>*/}
+          {/*  </Autocomplete>*/}
+          {/*</Activity>*/}
 
           <Button
             className="mt-8 h-16 w-full"
