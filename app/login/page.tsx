@@ -13,15 +13,13 @@ import {
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'
-
-const providers = [
-  {name: 'google', icon: 'google-icon'},
-  // {name: 'apple', icon: 'apple'},
-  // {name: 'discord', icon: 'discord-icon'},
-]
+import providers from '@/src/utils/global/providers'
 
 export default function Register() {
   const params = useSearchParams()
+
+  const redirect = params.get('redirect')
+  const callbackURL = redirect ? (redirect === '/' ? '/' : `/${redirect}`) : '/'
 
   const onsubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -37,7 +35,7 @@ export default function Register() {
       email: data.email,
       password: data.password,
       rememberMe: true,
-      callbackURL: '/' + params.get('redirect') || '/',
+      callbackURL,
     })
   }
 
@@ -79,7 +77,7 @@ export default function Register() {
             onPress={async () => {
               await authClient.signIn.social({
                 provider: provider.name,
-                callbackURL: '/' + params.get('redirect') || '/',
+                callbackURL,
               })
             }}>
             <Icon
