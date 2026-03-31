@@ -374,7 +374,7 @@ export default function WorkData({
         <NumberField
           variant="secondary"
           isWheelDisabled
-          className="h-full w-fit min-w-0"
+          className="h-full w-fit min-w-0 flex-1"
           minValue={0}
           value={salary?.value}
           onChange={value => updateData('value', value)}>
@@ -397,7 +397,7 @@ export default function WorkData({
           <NumberField
             variant="secondary"
             isWheelDisabled
-            className="h-full w-fit min-w-0"
+            className="h-full w-fit min-w-0 flex-1"
             minValue={0}
             value={salary?.overwork}
             onChange={value => updateData('overwork', value)}>
