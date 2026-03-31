@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useLayoutEffect, useState} from 'react'
+import {useLayoutEffect, useState} from 'react'
 
 export default function useIsMobile() {
   const [isMobile, setIsMobile] = useState(/mobile/i.test(navigator.userAgent))

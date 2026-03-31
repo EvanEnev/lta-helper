@@ -13,7 +13,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
       <HeroUIProvider locale="ru-RU" className="background relative min-h-dvh">
         <NextThemesProvider attribute="class" defaultTheme="dark">
           <PushNotificationProvider>
-            <div className="w-full min-w-fit pb-20 sm:flex sm:gap-2 sm:pb-0">
+            <div className="w-full min-w-fit pb-16 sm:flex sm:gap-2 sm:pb-0">
               <Provider>
                 <Header />
                 <div className="w-full">

@@ -17,9 +17,14 @@ import {Icon} from '@iconify/react'
 interface DesktopHeaderProps {
   worker?: LTWorker
   ref: Ref<HTMLElement | null>
+  className?: string
 }
 
-export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
+export default function DesktopHeader({
+  worker,
+  ref,
+  className = '',
+}: DesktopHeaderProps) {
   const path = usePathname()
   const [permanentHovers, setPermanentHovers] = useState<number[]>([])
   const [rawHover, setRawHover] = useState<number | null>(null)
@@ -37,7 +42,7 @@ export default function DesktopHeader({worker, ref}: DesktopHeaderProps) {
   return (
     <header
       ref={ref}
-      className="sticky top-0 left-0 z-10000 flex h-dvh w-fit flex-col p-2">
+      className={`sticky top-0 left-0 z-10000 flex h-dvh w-fit flex-col p-2 ${className}`}>
       <div className="header-inner items-between glass flex h-full w-full justify-between px-2 py-4">
         <div className="items-between flex flex-col justify-start gap-4">
           <User worker={worker} />

@@ -82,9 +82,10 @@ export default function Header() {
   if (path === '/login') return ''
   if (path === '/register') return ''
 
-  return isMobile ? (
-    <MobileHeader ref={ref} worker={worker} scrolled={scrolled} />
-  ) : (
-    <DesktopHeader ref={ref} worker={worker} />
+  return (
+    <>
+      <MobileHeader ref={ref} worker={worker} className="block sm:hidden" />
+      <DesktopHeader ref={ref} worker={worker} className="hidden sm:block" />
+    </>
   )
 }

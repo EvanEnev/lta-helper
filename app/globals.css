@@ -10,7 +10,7 @@
 @custom-variant light (&:where(.light, .light *));
 
 @utility glass {
-    backdrop-filter: blur(14px);
+    backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
@@ -153,16 +153,21 @@ html {
         @apply h-6! w-6!;
     }
 
+    .button[slot='icon'] svg {
+        width: auto !important;
+        height: auto !important;
+    }
+
     .button[slot="header"] svg {
         width: inherit!important;
         height: inherit!important;
     }
 
-    @media (min-width: 40rem) {
-        .button svg:not([data-slot="spinner"] svg) {
-            width: inherit;
-            height: inherit;
-        }
-    }
+    /*@media (min-width: 40rem) {*/
+    /*    .button svg:not([data-slot="spinner"], [data-slot='icon']) {*/
+    /*        width: inherit;*/
+    /*        height: inherit;*/
+    /*    }*/
+    /*}*/
 
 }
