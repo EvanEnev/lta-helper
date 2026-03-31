@@ -25,7 +25,16 @@ const buttons: PathButton[] = [
     hide: true,
   },
   {name: 'Главная', href: '/', icon: 'solar:home-angle-linear'},
-  {name: 'График работы', href: '/schedule', icon: 'solar:clock-circle-linear'},
+  {
+    name: 'Профиль',
+    href: '/profile',
+    icon: 'solar:user-linear',
+  },
+  {
+    name: 'График работы',
+    href: '/schedule',
+    icon: 'solar:clock-circle-linear',
+  },
   {
     name: 'Сотрудники',
     href: '/workers',
@@ -42,7 +51,11 @@ const buttons: PathButton[] = [
         permission: 'set_salary',
         icon: 'solar:add-circle-linear',
       },
-      {name: 'График ЗП', href: '/salary', icon: 'solar:wallet-linear'},
+      {
+        name: 'График ЗП',
+        href: '/salary',
+        icon: 'solar:wallet-linear',
+      },
       {
         name: 'Сводная',
         href: '/salary/summarized',
