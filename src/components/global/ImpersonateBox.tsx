@@ -4,7 +4,7 @@ import {ComboBox, Input, ListBox} from '@heroui/react-beta'
 import {setCookie, getCookie} from 'cookies-next/client'
 
 interface ImpersonateBoxProps {
-  users: {name: string; telegram_id: number}[]
+  users: {name: string; id: number}[]
 }
 
 export default function ImpersonateBox({users}: ImpersonateBoxProps) {
@@ -13,7 +13,7 @@ export default function ImpersonateBox({users}: ImpersonateBoxProps) {
   return (
     <ComboBox
       className="max-w-50"
-      selectedKey={impersonateId}
+      selectedKey={Number(impersonateId) || null}
       onSelectionChange={async id => {
         setCookie('impersonate', String(id))
         sessionStorage.removeItem('worker')
@@ -25,8 +25,8 @@ export default function ImpersonateBox({users}: ImpersonateBoxProps) {
       </ComboBox.InputGroup>
       <ComboBox.Popover className="h-100">
         <ListBox>
-          {users.map(({name, telegram_id}) => (
-            <ListBox.Item key={telegram_id} id={telegram_id} textValue={name}>
+          {users.map(({name, id}) => (
+            <ListBox.Item key={id} id={id} textValue={name}>
               {name}
             </ListBox.Item>
           ))}

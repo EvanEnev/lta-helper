@@ -30,16 +30,15 @@ export default async function RootLayout({
 }) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
-  })) || {user: {id: -1, rank: ''}}
+  })) || {user: {id: -1, trueId: -1, rank: ''}}
 
   let users = []
-  // @ts-ignore
-  // if (worker.trueId === 9) {
-  //   const query = `select w.name, w.telegram_id from workers w left join ranks r on r.id = w.rank_id order by r.sorting_weight desc, w.name`
-  //   const result = await db.query(query)
-  //
-  //   users = result.rows
-  // }
+  if (worker.trueId === 9) {
+    const query = `select w.name, w.id from workers w left join ranks r on r.id = w.rank_id order by r.sorting_weight desc, w.name`
+    const result = await db.query(query)
+
+    users = result.rows
+  }
 
   return (
     <html lang="ru" className="dark overflow-auto!">
@@ -51,10 +50,10 @@ export default async function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        {/*{*/}
-        {/*  // @ts-ignore*/}
-        {/*  worker.trueId === 9 && <ImpersonateBox users={users} />*/}
-        {/*}*/}
+        {
+          // @ts-ignore
+          worker.trueId === 9 && <ImpersonateBox users={users} />
+        }
         <Providers>{children}</Providers>
       </body>
     </html>
