@@ -379,7 +379,7 @@ export default function WorkData({
           value={salary?.value}
           onChange={value => updateData('value', value)}>
           <Label>Смена</Label>
-          <NumberField.Group className="h-full w-fit min-w-0">
+          <NumberField.Group className="h-full w-full min-w-0">
             <NumberField.Input className="w-full" />
           </NumberField.Group>
           <Activity
@@ -402,7 +402,7 @@ export default function WorkData({
             value={salary?.overwork}
             onChange={value => updateData('overwork', value)}>
             <Label>Переработка</Label>
-            <NumberField.Group className="h-full w-fit min-w-0">
+            <NumberField.Group className="h-full w-full min-w-0">
               <NumberField.Input className="w-full" />
             </NumberField.Group>
           </NumberField>
