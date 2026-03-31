@@ -1,5 +1,5 @@
 import convertTZ from '@/lib/functions/convertTZ'
-import {InferSession, InferUser} from 'better-auth'
+import {Session, User} from 'better-auth'
 import db from '@/lib/database'
 import {LTWorker} from '@/src/utils/types'
 import {cookies} from 'next/headers'
@@ -25,7 +25,7 @@ async function getData(authId: string, userId: string, impersonate: boolean) {
                    w.photo_url,
                    w.is_fired,
                    w.is_former,
-                   w.is_approved,
+--                    w.is_approved,
                    admins.location_id as today_location
                  FROM workers w
                         LEFT JOIN ranks r ON r.id = w.rank_id
@@ -65,7 +65,7 @@ async function getData(authId: string, userId: string, impersonate: boolean) {
     permissions:
       workerResult.is_fired || workerResult.is_former ? [] : permissions,
     email: workerResult.email || authId.includes('@') ? authId : null,
-    isApproved: workerResult.is_approved || false,
+    // isApproved: workerResult.is_approved || false,
   }
 
   if (workerResult?.today_location) {
@@ -83,8 +83,8 @@ export default async function generateCustomSession({
   user,
   session,
 }: {
-  user: InferUser<any>
-  session: InferSession<any>
+  user: User<any>
+  session: Session<any>
 }) {
   const cookieStore = await cookies()
   const impersonate = cookieStore.get('impersonate')?.value
