@@ -155,7 +155,5 @@ export default async function generateTableWorkers({
     })
   })
 
-  console.log([...baseRows, ...rows])
-  console.debug('end')
   return await workbook.xlsx.writeBuffer()
 }
