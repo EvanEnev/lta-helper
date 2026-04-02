@@ -31,6 +31,14 @@ export default async function generateTableWorkers({
           'location', l.name,
           'bonuses', functions.eval(coalesce(bonuses, '0')),
           'fines', functions.eval(coalesce(fines, '0')),
+          'oneCount', coalesce((sl.one_games ->> 'number'), '0'),
+          'oneValue', coalesce((sl.one_games ->> 'value'), '0'),
+          'twoCount', coalesce((sl.two_games ->> 'number'), '0'),
+          'twoValue', coalesce((sl.two_games ->> 'value'), '0'),
+          'threeCount', coalesce((sl.three_games ->> 'number'), '0'),
+          'threeValue', coalesce((sl.three_games ->> 'value'), '0'),
+          'actorCount', coalesce((sl.actor_games ->> 'number'), '0'),
+          'actorValue', coalesce((sl.actor_games ->> 'value'), '0'),
           'type', coalesce(type, ''),
           'act', coalesce(p.value, 0),
           'comment', coalesce(p.comment, ''),
@@ -44,6 +52,7 @@ export default async function generateTableWorkers({
            left join faceId fd on fd.worker_id = sl.worker_id and fd.date = sl.date
            left join workers w on w.id = sl.worker_id
     where  sl.date between '${interval.start!.toFormat('yyyy-MM-dd')}' and '${interval.end!.toFormat('yyyy-MM-dd')}'
+      and sl.is_confirmed is true
     group by w.name, w.id, sl.id
     order by (select coalesce(ww.is_former, false) from workers ww where ww.id = w.id),
              (select sorting_weight from ranks r where r.id = w.rank_id) DESC,
@@ -51,8 +60,6 @@ export default async function generateTableWorkers({
              (select ww.first_name from workers ww where ww.id = w.id),
              (select date from salary.list where id = sl.id) desc
   `
-
-  console.debug(query, interval.toISO())
 
   const dataResult = await db.query(query)
 
@@ -68,6 +75,14 @@ export default async function generateTableWorkers({
       'Переработка',
       'Бонусы',
       'Штрафы',
+      'Часовые игры',
+      '',
+      'Двухчасовые игры',
+      '',
+      'Трёхчасовые игры',
+      '',
+      'Актёрские игры',
+      '',
       'Тип выплаты',
       'Выплата по акту',
       'Комментарий акта',
@@ -77,6 +92,8 @@ export default async function generateTableWorkers({
   ]
 
   const rows: (number | string)[][] = []
+
+  console.debug([...baseRows, ...rows])
 
   const workbook = new ExcelJS.Workbook()
   const worksheet = workbook.addWorksheet('По сотрудникам', {
@@ -94,6 +111,14 @@ export default async function generateTableWorkers({
         v.overwork,
         v.bonuses,
         v.fines,
+        v.oneCount,
+        v.oneValue,
+        v.twoCount,
+        v.twoValue,
+        v.threeCount,
+        v.threeValue,
+        v.actorCount,
+        v.actorValue,
         v.type,
         v.act,
         v.comment,
@@ -105,7 +130,12 @@ export default async function generateTableWorkers({
     })
   })
 
-  worksheet.addRows([...baseRows, ...rows])
+  await worksheet.addRows([...baseRows, ...rows])
+
+  worksheet.mergeCells('I1:J1')
+  worksheet.mergeCells('K1:L1')
+  worksheet.mergeCells('M1:N1')
+  worksheet.mergeCells('O1:P1')
 
   worksheet.columns.forEach(function (column) {
     const lengths = column.values?.map(v => v?.toString().length)
@@ -122,5 +152,7 @@ export default async function generateTableWorkers({
     })
   })
 
+  console.log([...baseRows, ...rows])
+  console.debug('end')
   return await workbook.xlsx.writeBuffer()
 }
