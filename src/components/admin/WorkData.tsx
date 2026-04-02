@@ -260,7 +260,7 @@ export default function WorkData({
   }, [worker?.rank, gamesPayments])
 
   return (
-    <div className="flex h-full w-[300px] flex-col gap-2 overflow-y-hidden">
+    <div className="flex h-full w-75 flex-col gap-2 overflow-y-hidden">
       <Autocomplete
         isRequired
         label="Сотрудник"
@@ -345,8 +345,8 @@ export default function WorkData({
                 ))
               : workTypes.map(type => (
                   <ListBox.Item
-                    key={type.id}
-                    id={type.id}
+                    key={type.id.toString()}
+                    id={type.id.toString()}
                     textValue={type.name}>
                     {type.name}
                     <ListBox.ItemIndicator />
@@ -374,12 +374,13 @@ export default function WorkData({
         <NumberField
           variant="secondary"
           isWheelDisabled
-          className="h-full w-fit min-w-0 flex-1"
+          fullWidth
+          className="h-full flex-1"
           minValue={0}
           value={salary?.value}
           onChange={value => updateData('value', value)}>
           <Label>Смена</Label>
-          <NumberField.Group className="h-full w-full min-w-0">
+          <NumberField.Group className="flex">
             <NumberField.Input className="w-full" />
           </NumberField.Group>
           <Activity
@@ -397,12 +398,12 @@ export default function WorkData({
           <NumberField
             variant="secondary"
             isWheelDisabled
-            className="h-full w-fit min-w-0 flex-1"
+            className="flex-1"
             minValue={0}
             value={salary?.overwork}
             onChange={value => updateData('overwork', value)}>
             <Label>Переработка</Label>
-            <NumberField.Group className="h-full w-full min-w-0">
+            <NumberField.Group className="flex">
               <NumberField.Input className="w-full" />
             </NumberField.Group>
           </NumberField>
@@ -438,7 +439,7 @@ export default function WorkData({
         <Checkbox
           variant="secondary"
           onChange={value => updateData('isHardTime', value)}
-          className="col-1 [&_[data-slot='checkbox-default-indicator--checkmark']]:size-4">
+          className="col-1 **:data-[slot='checkbox-default-indicator--checkmark']:size-4">
           <Checkbox.Control className="size-5">
             <Checkbox.Indicator />
           </Checkbox.Control>
@@ -451,7 +452,7 @@ export default function WorkData({
         <Checkbox
           variant="secondary"
           onChange={value => updateData('hasGames', value)}
-          className="col-1 [&_[data-slot='checkbox-default-indicator--checkmark']]:size-4">
+          className="col-1 **:data-[slot='checkbox-default-indicator--checkmark']:size-4">
           <Checkbox.Control className="size-5">
             <Checkbox.Indicator />
           </Checkbox.Control>
@@ -464,7 +465,7 @@ export default function WorkData({
         <Checkbox
           variant="secondary"
           onChange={value => updateData('withoutDate', value)}
-          className="col-1 [&_[data-slot='checkbox-default-indicator--checkmark']]:size-4">
+          className="col-1 **:data-[slot='checkbox-default-indicator--checkmark']:size-4">
           <Checkbox.Control className="size-5">
             <Checkbox.Indicator />
           </Checkbox.Control>

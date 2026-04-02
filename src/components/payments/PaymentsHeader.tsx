@@ -10,21 +10,21 @@ import {Icon} from '@iconify/react'
 interface PaymentsHeaderProps {
   summary: number
   paymentsTypes: LTPaymentType[]
-  scrolled: boolean
   setFilters: Dispatch<SetStateAction<PaymentsFilter[]>>
   setPayments: Dispatch<SetStateAction<LTPayment[]>>
   canEdit: boolean
+  initialDates: string
 }
 
 export default function PaymentsHeader({
   summary,
   paymentsTypes,
-  scrolled,
   setFilters,
   setPayments,
   canEdit,
+  initialDates,
 }: PaymentsHeaderProps) {
-  const [date, setDate] = useState<string | null>(null)
+  const [date, setDate] = useState<string | null>(initialDates || null)
   const [name, setName] = useState<string | null>(null)
   const [type, setType] = useState<string | null>(null)
 

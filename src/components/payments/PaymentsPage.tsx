@@ -6,12 +6,10 @@ import {DateTime, Interval} from 'luxon'
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import PaymentsRow from '@/src/components/payments/PaymentsRow'
 import PaymentsHeader from '@/src/components/payments/PaymentsHeader'
-import useIsScrolled from '@/src/hooks/useIsScrolled'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface PaymentsPageProps {
   paymentsTypes: LTPaymentType[]
-  payments: LTPayment[]
   workers: string[]
   canEdit: boolean
 }
@@ -23,20 +21,24 @@ export interface PaymentsFilter {
 
 export default function PaymentsPage({
   paymentsTypes,
-  payments: paymentsData,
   workers,
   canEdit,
 }: PaymentsPageProps) {
-  const [payments, setPayments] = useState(paymentsData)
-  const scrolled = useIsScrolled()
-  const [filters, setFilters] = useState<PaymentsFilter[]>([])
+  const [initialPayments, setInitialPayments] = useState<LTPayment[]>([])
+  const [payments, setPayments] = useState<LTPayment[]>([])
+  const [filters, setFilters] = useState<PaymentsFilter[]>([
+    {
+      name: 'dates',
+      value: Interval.fromDateTimes(
+        DateTime.now().set({day: 1}),
+        DateTime.now().set({day: 14}),
+      ).toISO(),
+    },
+  ])
 
   useEffect(() => {
-    if (!filters?.length) {
-      return setPayments(paymentsData)
-    }
-
-    let filteredData: LTPayment[] = paymentsData
+    console.debug(filters)
+    let filteredData: LTPayment[] = initialPayments
 
     const nameFilter = filters.find(d => d.name === 'name')
     const typeFilter = filters.find(d => d.name === 'type')
@@ -56,15 +58,20 @@ export default function PaymentsPage({
     }
 
     if (datesFilter?.value) {
-      const interval = Interval.fromISO(datesFilter.value)
-      filteredData = filteredData.filter(d => {
-        const date = DateTime.fromISO(d.date)
-        return interval.contains(date)
-      })
+      ;(async () => {
+        const res = await fetch('/api/payments/get', {
+          method: 'POST',
+          body: JSON.stringify({dates: datesFilter.value}),
+        })
+
+        filteredData = await res.json()
+        console.debug(res, filteredData)
+      })()
     }
 
+    console.debug(filteredData)
     setPayments(filteredData)
-  }, [filters, paymentsData])
+  }, [filters, initialPayments])
 
   const updateData = useCallback(
     async (payment: LTPayment) => {
@@ -92,7 +99,7 @@ export default function PaymentsPage({
       if (res) {
         if (res.id !== payment.id && !sendData.delete) {
           setPayments(prev => prev.filter(d => d.id !== payment.id))
-          setPayments(prev => [res, ...prev])
+          setPayments(prev => [payment, ...prev])
         }
       }
     },
@@ -108,10 +115,13 @@ export default function PaymentsPage({
       <PaymentsHeader
         summary={summary}
         canEdit={canEdit}
-        scrolled={scrolled}
         paymentsTypes={paymentsTypes}
         setFilters={setFilters}
         setPayments={setPayments}
+        initialDates={Interval.fromDateTimes(
+          DateTime.now().set({day: 1}),
+          DateTime.now().set({day: 14}),
+        ).toISO()}
       />
       <Separator />
       <div className="flex flex-wrap gap-4">

@@ -54,7 +54,7 @@ export default function PaymentsRow({
         className="w-fit"
         isReadOnly={!editMode}
         // @ts-ignore
-        value={parseDate(payment.date)}
+        value={payment.date ? parseDate(payment.date) : null}
       />
       <div className="flex flex-col gap-1">
         <Label>Позывной</Label>
@@ -90,7 +90,7 @@ export default function PaymentsRow({
       </div>
       {editMode ? (
         <Select
-          value={payment.type}
+          value={payment.type || null}
           onChange={v => setPayment(prev => ({...prev, type: String(v || '')}))}
           selectionMode="single">
           <Label>Тип</Label>
@@ -150,6 +150,7 @@ export default function PaymentsRow({
             <Button
               variant="primary"
               onPress={async () => {
+                console.debug(payment)
                 await updateData(payment)
                 setPayment(prev => ({...prev, create: false}))
                 setEditMode(false)
