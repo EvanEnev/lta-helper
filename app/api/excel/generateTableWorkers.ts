@@ -43,7 +43,8 @@ export default async function generateTableWorkers({
           'act', coalesce(p.value, 0),
           'comment', coalesce(p.comment, ''),
           'min', fd.min,
-          'max', fd.max
+          'max', fd.max,
+        'comment', sl.comment
         )
       ) as data
     from salary.list sl
@@ -88,6 +89,7 @@ export default async function generateTableWorkers({
       'Комментарий акта',
       'Вход',
       'Выход',
+      'Комментарий к смене',
     ],
   ]
 
@@ -124,6 +126,7 @@ export default async function generateTableWorkers({
         v.comment,
         v.min,
         v.max,
+        v.comment,
       ]
 
       rows.push(row)
