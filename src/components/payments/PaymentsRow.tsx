@@ -58,16 +58,16 @@ export default function PaymentsRow({
       />
       <div className="flex flex-col gap-1">
         <Label>Позывной</Label>
-        {editMode && !payment.worker?.name ? (
+        {editMode ? (
           <ComboBox
-            onSelectionChange={v =>
+            variant="secondary"
+            onChange={v =>
               // @ts-ignore
               setPayment(prev => ({
                 ...prev,
                 worker: {id: prev.worker?.id, name: String(v || '')},
               }))
-            }
-            selectedKey={payment.type}>
+            }>
             <ComboBox.InputGroup className="w-50">
               <Input placeholder="Выберите элемент" />
               <ComboBox.Trigger />
@@ -90,6 +90,7 @@ export default function PaymentsRow({
       </div>
       {editMode ? (
         <Select
+          variant="secondary"
           value={payment.type || null}
           onChange={v => setPayment(prev => ({...prev, type: String(v || '')}))}
           selectionMode="single">

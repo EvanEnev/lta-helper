@@ -37,40 +37,39 @@ export default function PaymentsPage({
   ])
 
   useEffect(() => {
-    console.debug(filters)
-    let filteredData: LTPayment[] = initialPayments
+    ;(async () => {
+      let filteredData: LTPayment[] = initialPayments
 
-    const nameFilter = filters.find(d => d.name === 'name')
-    const typeFilter = filters.find(d => d.name === 'type')
-    const datesFilter = filters.find(d => d.name === 'dates')
+      const nameFilter = filters.find(d => d.name === 'name')
+      const typeFilter = filters.find(d => d.name === 'type')
+      const datesFilter = filters.find(d => d.name === 'dates')
 
-    if (nameFilter?.value) {
-      filteredData = filteredData.filter(d =>
-        d.worker?.name
-          .toLowerCase()
-          .trim()
-          .startsWith(nameFilter.value?.toLowerCase().trim() || ''),
-      )
-    }
+      if (nameFilter?.value) {
+        filteredData = filteredData.filter(d =>
+          d.worker?.name
+            .toLowerCase()
+            .trim()
+            .startsWith(nameFilter.value?.toLowerCase().trim() || ''),
+        )
+      }
 
-    if (typeFilter?.value) {
-      filteredData = filteredData.filter(d => d.type === typeFilter.value)
-    }
+      if (typeFilter?.value) {
+        filteredData = filteredData.filter(d => d.type === typeFilter.value)
+      }
 
-    if (datesFilter?.value) {
-      ;(async () => {
+      if (datesFilter?.value) {
         const res = await fetch('/api/payments/get', {
           method: 'POST',
           body: JSON.stringify({dates: datesFilter.value}),
         })
 
-        filteredData = await res.json()
+        filteredData = (await res.json()).data
         console.debug(res, filteredData)
-      })()
-    }
+      }
 
-    console.debug(filteredData)
-    setPayments(filteredData)
+      console.debug(filteredData)
+      setPayments(filteredData)
+    })()
   }, [filters, initialPayments])
 
   const updateData = useCallback(
@@ -107,7 +106,8 @@ export default function PaymentsPage({
   )
 
   const summary = useMemo(() => {
-    return payments.reduce((acc, cur) => acc + (cur.value || 0), 0)
+    console.debug(payments)
+    return payments?.reduce((acc, cur) => acc + (cur.value || 0), 0) || 0
   }, [payments])
 
   return (
