@@ -126,8 +126,8 @@ export default function PaymentsRow({
         onChange={v => setPayment(prev => ({...prev, value: v}))}
         className="h-full">
         <Label className="mt-auto">Сумма</Label>
-        <NumberField.Group className="h-10">
-          <NumberField.Input className="h-10" placeholder="0" />
+        <NumberField.Group className="flex h-10">
+          <NumberField.Input className="h-10 flex-1" placeholder="0" />
           <Icon
             className={`mr-3 ${editMode ? '' : 'opacity-30'} transition-opacity duration-250`}
             icon="solar:ruble-bold"
