@@ -56,7 +56,7 @@ export default function PaymentsRow({
         // @ts-ignore
         value={payment.date ? parseDate(payment.date) : null}
       />
-      <div className="flex flex-col gap-1">
+      <div className="flex w-40 flex-col gap-1">
         <Label>Позывной</Label>
         {editMode ? (
           <ComboBox
