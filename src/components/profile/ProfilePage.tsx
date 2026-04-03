@@ -4,7 +4,6 @@ import {LTWorker} from '@/src/utils/types'
 import {Avatar} from '@heroui/react-beta'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import Navigation from '@/src/components/profile/Navigation'
-import {Activity} from 'react'
 
 interface ProfilePageProps {
   worker: LTWorker
@@ -27,9 +26,7 @@ export default function ProfilePage({worker, userProviders}: ProfilePageProps) {
         {/*  <Input />*/}
         {/*</TextField>*/}
       </div>
-      <Activity mode={isMobile ? 'visible' : 'hidden'}>
-        <Navigation worker={worker} />
-      </Activity>
+      {isMobile && <Navigation worker={worker} />}
       {/*<div>*/}
       {/*  {providers.map(provider => (*/}
       {/*    <div*/}
