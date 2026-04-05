@@ -54,7 +54,7 @@ export default function PayrollCard({
 
   return (
     <Card
-      className={`h-[18rem] w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
+      className={`h-72 w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
       <CardHeader>{interval.toFormat('dd.MM.yyyy')}</CardHeader>
       <CardBody className="flex flex-col gap-2">
         {canViewAllData && (

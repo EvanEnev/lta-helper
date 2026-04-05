@@ -33,6 +33,7 @@ export default memo(function PayrollCreateValueCell({
 
   return (
     <NumberInput
+      aria-label={type}
       className="w-full min-w-32 flex-1"
       value={value}
       minValue={minValue}

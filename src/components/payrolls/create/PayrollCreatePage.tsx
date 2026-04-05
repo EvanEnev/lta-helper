@@ -156,26 +156,30 @@ export default function PayrollCreatePage({
     localStorage.setItem('payrollsCreate', JSON.stringify(data))
   }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
 
-  const sendData = useCallback(async () => {
-    const dataToSend: LTPayrollCreateData = {
-      withBonuses: bonuses,
-      workersData: payrollData,
-      takeBy,
-      dates,
-      moneyOnLocations,
-    }
+  const sendData = useCallback(
+    async (isPublished: boolean) => {
+      const dataToSend: LTPayrollCreateData = {
+        withBonuses: bonuses,
+        workersData: payrollData,
+        takeBy,
+        dates,
+        moneyOnLocations,
+        isPublished,
+      }
 
-    const result = await fetchHandler({
-      url: '/api/payrolls/create',
-      method: 'POST',
-      body: dataToSend,
-    })
+      const result = await fetchHandler({
+        url: '/api/payrolls/create',
+        method: 'POST',
+        body: dataToSend,
+      })
 
-    if (result?.id) {
-      localStorage.removeItem('payrollsCreate')
-      router.push(`/payrolls/${result.id}`)
-    }
-  }, [bonuses, dates, moneyOnLocations, payrollData, router, takeBy])
+      if (result?.id) {
+        localStorage.removeItem('payrollsCreate')
+        router.push(`/payrolls/${result.id}`)
+      }
+    },
+    [bonuses, dates, moneyOnLocations, payrollData, router, takeBy],
+  )
 
   const handleUpdate = useCallback(
     (
@@ -359,6 +363,11 @@ export default function PayrollCreatePage({
             <p className="min-w-32 flex-1 text-center">Сотрудник</p>
             <Divider orientation="vertical" />
             <div className="min-w-32 flex-1 text-center">
+              <p>Остаток</p>
+              <p className="text-foreground-500">{generateSum(['balance'])}</p>
+            </div>
+            <Divider orientation="vertical" />
+            <div className="min-w-32 flex-1 text-center">
               <p>Сумма</p>
               <p className="text-foreground-500">{generateSum(['value'])}</p>
             </div>
@@ -371,11 +380,6 @@ export default function PayrollCreatePage({
             <div className="min-w-32 flex-1 text-center">
               <p>Штрафы</p>
               <p className="text-foreground-500">{generateSum(['fines'])}</p>
-            </div>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Остаток</p>
-              <p className="text-foreground-500">{generateSum(['balance'])}</p>
             </div>
             <Divider orientation="vertical" />
             <div className="min-w-32 flex-1 text-center">
@@ -421,6 +425,11 @@ export default function PayrollCreatePage({
                   />
                   <PayrollCreateWorkerCell name={d.name} rank={d.rank} />
                   <Divider orientation="vertical" />
+                  <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
+                    <p>{separateNumber(d.balance || 0)}</p>
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </div>
+                  <Divider orientation="vertical" />
                   <PayrollCreateValueCell
                     data={payrollWorkerData?.value || 0}
                     workerId={d.id}
@@ -441,11 +450,6 @@ export default function PayrollCreatePage({
                     workerId={d.id}
                     callback={handleUpdate}
                   />
-                  <Divider orientation="vertical" />
-                  <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
-                    <p>{separateNumber(d.balance || 0)}</p>
-                    <Icon icon="solar:ruble-bold" width="24" height="24" />
-                  </div>
                   <Divider orientation="vertical" />
                   <PayrollCreateValueCell
                     minValue={0}

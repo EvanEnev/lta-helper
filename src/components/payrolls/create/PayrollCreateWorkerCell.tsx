@@ -11,7 +11,7 @@ export default function PayrollCreateWorkerCell({
   rank,
 }: PayrollCreateWorkerCellProps) {
   return (
-    <div className="flex min-w-[8rem] flex-1 items-center justify-start gap-2">
+    <div className="flex min-w-32 flex-1 items-center justify-start gap-2">
       <RankIcon rank={rank} />
       <p className="mx-auto">{name}</p>
     </div>

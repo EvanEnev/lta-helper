@@ -37,8 +37,11 @@ export async function POST(req: NextRequest) {
 
   const createPayrollQuery = `
   insert into payrolls.list
-  (dates, take_by, bonuses, created_by) values
-  ('[${data.dates.start},${data.dates.end}]', '${data.takeBy}', ${data.withBonuses || 'NULL'}, ${worker.id})
+  (dates, take_by, bonuses, created_by, is_published) values
+  ('[${data.dates.start},${data.dates.end}]', '${data.takeBy}', ${data.withBonuses || 'NULL'}, ${worker.id}, ${data.isPublished})
+  on conflict (dates) do update set
+                          take_by=excluded.take_by,
+                          is_published=excluded.is_published
   returning id`
 
   const payrollCreateResult = await db.query(createPayrollQuery)
@@ -53,12 +56,19 @@ export async function POST(req: NextRequest) {
       worker =>
         `(${worker.workerId}, ${payrollId}, ${worker.value + worker.balance}, ${worker.location}, ${(worker.bonuses || 0) + (worker.fines || 0) != 0 ? (worker.bonuses || 0) + (worker.fines || 0) : 'NULL'}, ${worker.external_payment ? worker.external_payment : 'NULL'})`,
     )
-    .join(',\n')}`
+    .join(',\n')}
+    on conflict (worker_id, payroll_id) do update set
+    value = excluded.value,
+    location_id = excluded.location_id,
+    bonuses = excluded.bonuses,
+    external_payment = excluded.external_payment`
 
   const createMoneyOnLocationsQuery = `
     insert into payrolls.locations_money
     (location_id, payroll_id, value) values
-    ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}`
+    ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}
+                                     on conflict (location_id, payroll_id) do update set
+                                     value = excluded.value`
 
   await db.query(createWorkersPayrollQuery)
   await db.query(createMoneyOnLocationsQuery)

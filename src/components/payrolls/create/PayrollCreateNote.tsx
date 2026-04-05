@@ -1,4 +1,5 @@
-import {Button, Code, DatePicker, Divider, Input} from '@heroui/react'
+import {Code, DatePicker, Divider, Input} from '@heroui/react'
+import {Button} from '@heroui/react-beta'
 import {Fragment} from 'react'
 import Location from '@/src/components/global/Location'
 import {parseDate} from '@internationalized/date'
@@ -19,7 +20,7 @@ interface PayrollCreateNoteProps {
     location: LTLocation['id'],
     value: string,
   ) => void
-  sendDataCallback: () => void
+  sendDataCallback: (isPublished: boolean) => void
   takeBy: string
   setTakeBy: (date: string) => void
 }
@@ -51,7 +52,7 @@ export default function PayrollCreateNote({
               d => d.location === location.id,
             )!
 
-            const locationMoney = locationData.value || 0
+            const locationMoney = locationData?.value || 0
 
             const usedMoney = payrollData
               .filter(d => d.location === location.id)
@@ -71,7 +72,7 @@ export default function PayrollCreateNote({
                 <Divider className="col-span-full" />
                 <Location locationName={location.shortName!} />
                 <Input
-                  color={locationData.error ? 'danger' : 'primary'}
+                  color={locationData?.error ? 'danger' : 'primary'}
                   defaultValue={locationMoney.toString() || undefined}
                   placeholder="0"
                   onValueChange={value =>
@@ -96,16 +97,20 @@ export default function PayrollCreateNote({
           onChange={d => setTakeBy(d?.toString() || '')}
         />
       </div>
-      <div className="glass p-2">
+      <div className="glass flex gap-2 p-2">
         <Button
-          startContent={
-            <Icon icon="solar:plain-linear" width="24" height="24" />
-          }
           className="col-span-full w-full"
-          variant="shadow"
-          color="primary"
-          onPress={sendDataCallback}>
-          Отправить
+          variant="secondary"
+          onPress={() => sendDataCallback(false)}>
+          <Icon icon="solar:diskette-bold" width="24" height="24" />
+          Сохранить
+        </Button>
+        <Button
+          className="col-span-full w-full"
+          variant="primary"
+          onPress={() => sendDataCallback(true)}>
+          <Icon icon="solar:plain-bold" width="24" height="24" />
+          Опубликовать
         </Button>
       </div>
     </div>

@@ -219,6 +219,7 @@ export interface LTPayroll {
   createdBy: LTWorker
   bonuses: boolean | null
   workersCount: string
+  isPublished: boolean
 }
 
 export interface LTWorkerPayrollData {
@@ -265,6 +266,7 @@ export interface LTPayrollCreateData {
     location: LTLocation['id']
     value: number
   }[]
+  isPublished: boolean
 }
 
 export interface LTMoneyOnLocationsData {
