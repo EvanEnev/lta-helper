@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   await google.schedule.loadInfo()
 
   const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
-  await sheet.loadHeaderRow(7)
+  await sheet.loadHeaderRow(1)
   const rows = await sheet.getRows()
 
   const row = rows.find(
