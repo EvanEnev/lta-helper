@@ -4,6 +4,7 @@ import PayrollsPage from '@/src/components/payrolls/PayrollsPage'
 import getLocations from '@/lib/functions/getLocations'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +20,11 @@ export default async function Payrolls() {
   created_at as "createdAt",
   functions.get_worker(created_by) as "createdBy",
   bonuses,
+  is_published as "isPublished",
+  meta,
   (select count(*) from relations.workers_payrolls where payroll_id = p.id) as "workersCount"
   from payrolls.list p
+  ${checkPermissions(['edit_payrolls'], worker) ? '' : 'where p.is_published = true'}
   order by lower(dates) desc
   `
 

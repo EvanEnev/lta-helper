@@ -28,11 +28,11 @@ export default memo(function PayrollCreateLocationCell({
 
   return (
     <LocationSelect
-      useShortNames
-      dynamicLocationId={true}
+      variant="primary"
+      dynamicLocationId
       locationId={locationId}
       showLabel={false}
-      className="h-full min-w-[8rem] flex-1"
+      className="h-full w-full"
       callback={locationCallback}
       locations={locations}
       exclude={['другое', 'выезд', 'отдел продаж']}

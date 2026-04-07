@@ -1,10 +1,8 @@
-import {Button, Code, DatePicker, Divider, Input} from '@heroui/react'
-import {Fragment} from 'react'
+import {Input} from '@heroui/react-beta'
 import Location from '@/src/components/global/Location'
-import {parseDate} from '@internationalized/date'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import separateNumber from '@/lib/functions/separateNumber'
-import {Icon} from '@iconify/react'
+import {evaluate} from 'mathjs'
 
 interface PayrollCreateNoteProps {
   locations: LTLocation[]
@@ -19,9 +17,6 @@ interface PayrollCreateNoteProps {
     location: LTLocation['id'],
     value: string,
   ) => void
-  sendDataCallback: () => void
-  takeBy: string
-  setTakeBy: (date: string) => void
 }
 
 export default function PayrollCreateNote({
@@ -30,84 +25,64 @@ export default function PayrollCreateNote({
   moneyOnLocations,
   payrollData,
   updateLocationMoneyCallback,
-  sendDataCallback,
-  takeBy,
-  setTakeBy,
 }: PayrollCreateNoteProps) {
   return (
-    <div className="sticky top-2 flex h-fit max-h-[87vh] min-w-70 flex-col gap-2 overflow-y-auto">
-      <div className="glass grid auto-rows-auto grid-cols-3 gap-2 rounded-2xl p-2">
-        <p className="text-center">Локация</p>
-        <Code color="primary" className="text-center">
-          Начало
-        </Code>
-        <Code color="success" className="text-center">
-          Остаток
-        </Code>
-        {locations
-          .filter(l => !locationsToHide.includes(l.name.toLowerCase()))
-          .map(location => {
-            const locationData = moneyOnLocations.find(
-              d => d.location === location.id,
-            )!
+    <div className="sticky top-20 z-1000 grid grid-flow-col grid-rows-3 gap-2 p-1">
+      {locations
+        .filter(l => !locationsToHide.includes(l.name.toLowerCase()))
+        .map(location => {
+          const locationData = moneyOnLocations.find(
+            d => d.location === location.id,
+          )!
 
-            const locationMoney = locationData.value || 0
+          const locationMoney = locationData?.value || undefined
 
-            const usedMoney = payrollData
-              .filter(d => d.location === location.id)
-              .reduce(
-                (acc, d) =>
-                  acc +
-                  (d.balance || 0) +
-                  (d.fines || 0) +
-                  (d.bonuses || 0) +
-                  (d.value || 0) -
-                  (d.external_payment || 0),
-                0,
-              )
+          const usedMoney = payrollData
+            .filter(d => d.location === location.id)
+            .reduce(
+              (acc, d) =>
+                acc +
+                (d.balance || 0) +
+                (d.fines || 0) +
+                (d.bonuses || 0) +
+                (d.value || 0) -
+                (d.external_payment || 0),
+              0,
+            )
 
-            return (
-              <Fragment key={location.id}>
-                <Divider className="col-span-full" />
-                <Location locationName={location.shortName!} />
+          return (
+            <div
+              className="bg-content1 flex flex-col rounded-2xl p-2"
+              key={location.id}>
+              <Location
+                iconClassName="w-6"
+                className="text-xs"
+                locationName={location.name!}
+              />
+              <div className="flex gap-2">
                 <Input
-                  color={locationData.error ? 'danger' : 'primary'}
-                  defaultValue={locationMoney.toString() || undefined}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.value = evaluate(e.currentTarget.value)
+                    }
+                  }}
+                  variant="secondary"
+                  defaultValue={locationMoney?.toString() || undefined}
                   placeholder="0"
-                  onValueChange={value =>
-                    updateLocationMoneyCallback(location.id, value)
+                  onChange={event =>
+                    updateLocationMoneyCallback(location.id, event.target.value)
                   }
                 />
-                <Code
-                  className="flex h-10 items-center whitespace-normal"
-                  color={locationMoney - usedMoney < 0 ? 'danger' : 'success'}>
-                  {separateNumber(locationMoney - usedMoney)}
-                </Code>
-              </Fragment>
-            )
-          })}
-      </div>
-      <div className="glass p-2">
-        <p>Можно забрать до</p>
-        <DatePicker
-          // @ts-ignore
-          value={parseDate(takeBy)}
-          // @ts-ignore
-          onChange={d => setTakeBy(d?.toString() || '')}
-        />
-      </div>
-      <div className="glass p-2">
-        <Button
-          startContent={
-            <Icon icon="solar:plain-linear" width="24" height="24" />
-          }
-          className="col-span-full w-full"
-          variant="shadow"
-          color="primary"
-          onPress={sendDataCallback}>
-          Отправить
-        </Button>
-      </div>
+                <div className="bg-content2 flex h-10 w-20 items-center rounded-xl px-2 text-center text-sm">
+                  <p
+                    className={`${(locationMoney || 0) - usedMoney < 0 ? 'text-danger' : ''} truncate`}>
+                    {separateNumber((locationMoney || 0) - usedMoney)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
     </div>
   )
 }

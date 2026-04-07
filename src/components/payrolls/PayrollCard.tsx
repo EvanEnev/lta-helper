@@ -1,7 +1,6 @@
 import {LTPayroll, LTWorker} from '@/src/utils/types'
 import {DateTime, Interval} from 'luxon'
 import {
-  Button,
   Card,
   CardBody,
   CardFooter,
@@ -9,6 +8,7 @@ import {
   Code,
   semanticColors,
 } from '@heroui/react'
+import {Button} from '@heroui/react-beta'
 import Link from 'next/link'
 import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
@@ -54,11 +54,14 @@ export default function PayrollCard({
 
   return (
     <Card
-      className={`h-[18rem] w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
+      className={`h-72 w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
       <CardHeader>{interval.toFormat('dd.MM.yyyy')}</CardHeader>
       <CardBody className="flex flex-col gap-2">
         {canViewAllData && (
           <>
+            {!data.isPublished && (
+              <p className="text-danger mx-auto underline">Не опубликована</p>
+            )}
             <p>
               Создана: {createdAt.toFormat('dd.MM.yyyy HH:mm')},{' '}
               {data.createdBy.name}
@@ -93,18 +96,45 @@ export default function PayrollCard({
       </CardBody>
       <CardFooter className="flex gap-2">
         <Button
-          variant="faded"
+          onPress={() => {
+            if (!data.isPublished) {
+              localStorage.setItem('payrollsCreate', JSON.stringify(data.meta))
+            }
+          }}
+          variant="tertiary"
           className={
             checkPermissions(['edit_payrolls'], worker)
               ? 'flex-1 sm:flex-none'
               : 'flex-1'
-          }
-          as={Link}
-          href={`/payrolls/${data.id}`}
-          startContent={
-            <Icon icon="solar:chat-line-bold" width="24" height="24" />
           }>
-          Подробнее
+          <Link
+            className="flex items-center gap-2"
+            href={{
+              pathname: data.isPublished
+                ? `/payrolls/${data.id}`
+                : `/payrolls/create`,
+              query: data.isPublished
+                ? undefined
+                : {
+                    dates: JSON.stringify({
+                      start: data.meta.dates?.start.toString(),
+                      end: data.meta.dates?.end.toString(),
+                    }),
+                    moneyOnLocations: JSON.stringify([]),
+                    bonuses: data.meta.withBonuses,
+                    workersBonusesRange: JSON.stringify({
+                      start: data.meta.dates?.start.toString(),
+                      end: data.meta.dates?.end.toString(),
+                    }),
+                    actorsBonusesRange: JSON.stringify({
+                      start: data.meta.dates?.start.toString(),
+                      end: data.meta.dates?.end.toString(),
+                    }),
+                  },
+            }}>
+            <Icon icon="solar:chat-line-bold" width="24" height="24" />
+            Подробнее
+          </Link>
         </Button>
         {checkPermissions(['edit_payrolls'], worker) && (
           <DeleteButton

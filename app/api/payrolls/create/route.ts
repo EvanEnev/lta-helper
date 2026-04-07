@@ -37,14 +37,34 @@ export async function POST(req: NextRequest) {
 
   const createPayrollQuery = `
   insert into payrolls.list
-  (dates, take_by, bonuses, created_by) values
-  ('[${data.dates.start},${data.dates.end}]', '${data.takeBy}', ${data.withBonuses || 'NULL'}, ${worker.id})
+  (
+   dates,
+   take_by,
+   bonuses,
+   created_by,
+   is_published,
+   meta
+  ) values
+  (
+   '[${data.dates.start},${data.dates.end}]',
+   '${data.takeBy}', ${data.withBonuses || 'NULL'},
+   ${worker.id},
+   ${data.isPublished},
+   ${data.isPublished ? null : `'${data.meta}'::jsonb`}
+  )
+  on conflict (dates) do update set
+                          take_by=excluded.take_by,
+                          is_published=excluded.is_published,
+                          meta=excluded.meta
   returning id`
+
+  console.debug(createPayrollQuery)
 
   const payrollCreateResult = await db.query(createPayrollQuery)
   const payrollId: number = payrollCreateResult.rows[0].id
 
-  const createWorkersPayrollQuery = `
+  if (data.isPublished) {
+    const createWorkersPayrollQuery = `
   insert into relations.workers_payrolls
   (worker_id, payroll_id, value, location_id, bonuses, external_payment) values
   ${data.workersData
@@ -55,13 +75,14 @@ export async function POST(req: NextRequest) {
     )
     .join(',\n')}`
 
-  const createMoneyOnLocationsQuery = `
+    const createMoneyOnLocationsQuery = `
     insert into payrolls.locations_money
     (location_id, payroll_id, value) values
     ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}`
 
-  await db.query(createWorkersPayrollQuery)
-  await db.query(createMoneyOnLocationsQuery)
+    await db.query(createWorkersPayrollQuery)
+    await db.query(createMoneyOnLocationsQuery)
+  }
 
   return NextResponse.json({id: payrollId}, {status: 200})
 }

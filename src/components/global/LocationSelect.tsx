@@ -33,6 +33,7 @@ interface LocationSelectProps {
   locations?: LTLocation[]
   useShortNames?: boolean
   placeholder?: string
+  variant?: 'secondary' | 'primary'
 }
 
 export default function LocationSelect({
@@ -51,6 +52,7 @@ export default function LocationSelect({
   useShortNames = false,
   placeholder = 'Выберите элемент',
   selectionMode = 'single',
+  variant = 'secondary',
 }: LocationSelectProps) {
   const worker = useSession().data?.user as LTWorker | undefined
   const [locations, setLocations] = useState<LTLocation[]>(definedLocations)
@@ -169,15 +171,16 @@ export default function LocationSelect({
 
   return (
     <Autocomplete
+      aria-label="Выбор локации"
       placeholder={placeholder}
       isDisabled={isDisabled || isReadOnly}
-      variant="secondary"
+      variant={variant}
       selectionMode={selectionMode}
       className={className}
       value={selectedLocations}
       onChange={onChange}>
       {showLabel ? <Label>Локация</Label> : null}
-      <Autocomplete.Trigger>
+      <Autocomplete.Trigger className="h-full">
         <Autocomplete.Value className="flex items-center gap-2 truncate" />
         {isClearable && <Autocomplete.ClearButton />}
         <Autocomplete.Indicator />
