@@ -23,6 +23,7 @@ export default async function PayrollsCreate({
   const query = `select
                    w.id,
                    w.name,
+                   w.last_name || ' ' || w.first_name as fio, 
                    r.name as rank,
                    coalesce(w.is_former, false) as "isFormer",
                    s.*

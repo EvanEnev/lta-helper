@@ -7,27 +7,23 @@ import {
   LTRank,
   LTWorker,
 } from '@/src/utils/types'
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
-import {Checkbox, Code, Divider, Link, semanticColors} from '@heroui/react'
-import {Disclosure, DisclosureGroup, Button} from '@heroui/react-beta'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
-import PayrollCreateWorkerCell from '@/src/components/payrolls/create/PayrollCreateWorkerCell'
 import PayrollCreateLocationCell from '@/src/components/payrolls/create/PayrollCreateLocationCell'
-import {DateTime, Interval} from 'luxon'
-import {useTheme} from 'next-themes'
+import {DateTime} from 'luxon'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {evaluate} from 'mathjs'
-import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
 import {useRouter} from 'next/navigation'
 import separateNumber from '@/lib/functions/separateNumber'
-import {Icon} from '@iconify/react'
+import RankIcon from '@/src/components/global/RankIcon'
+import PayrollCreateHeader from '@/src/components/payrolls/create/PayrollCreateHeader'
+import PayrollCreateRow from '@/src/components/payrolls/create/PayrollCreateRow'
+
+export interface PayrollColumn {
+  title: string
+  sumFn: () => string | null
+  accessorFn: (workerId: number) => string | React.ReactNode
+}
 
 interface PayrollCreatePageProps {
   data: {
@@ -42,6 +38,7 @@ interface PayrollCreatePageProps {
     fines: number
     external: number
     games: number
+    [key: string]: number | string | LTWorker['name'] | LTWorker['id']
   }[]
   dates: {start: string; end: string}
   bonuses: boolean
@@ -63,11 +60,7 @@ export default function PayrollCreatePage({
 }: PayrollCreatePageProps) {
   const router = useRouter()
   const [data, setData] = useState(initialData)
-  const headerRef = useRef<HTMLDivElement | null>(null)
 
-  const {theme} = useTheme()
-  // @ts-ignore
-  const themeColors = semanticColors[theme || 'dark']
   const [payrollData, setPayrollData] = useState<LTPayrollData[]>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.workersData ||
       data.map(d => {
@@ -114,10 +107,6 @@ export default function PayrollCreatePage({
     [initialBonuses],
   )
 
-  const interval = useMemo(() => {
-    return Interval.fromISO(`${dates.start}/${dates.end}`)
-  }, [dates.start, dates.end])
-
   const updateLocationMoney = useCallback(
     (locationId: number, rawValue: string) => {
       let value = null
@@ -126,13 +115,20 @@ export default function PayrollCreatePage({
       } catch {}
 
       setMoneyOnLocations(prev =>
-        prev.map(d =>
-          d.location === locationId
-            ? value === null
-              ? {location: locationId, value: d.value, error: true}
-              : {location: locationId, value}
-            : d,
-        ),
+        prev.find(d => d.location === locationId)
+          ? prev.map(d =>
+              d.location === locationId
+                ? value === null
+                  ? {location: locationId, value: d.value, error: true}
+                  : {location: locationId, value}
+                : d,
+            )
+          : [
+              ...prev,
+              value === null
+                ? {location: locationId, value: undefined, error: true}
+                : {location: locationId, value},
+            ],
       )
     },
     [],
@@ -159,6 +155,11 @@ export default function PayrollCreatePage({
         dates,
         moneyOnLocations,
         isPublished,
+        meta: null,
+      }
+
+      if (!isPublished) {
+        dataToSend.meta = localStorage.getItem('payrollsCreate') || {}
       }
 
       const result = await fetchHandler({
@@ -207,54 +208,54 @@ export default function PayrollCreatePage({
     [data, selectedRows],
   )
 
-  const checkboxChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>, rowIndex: number) => {
-      // @ts-ignore
-      const withShift = e.nativeEvent.shiftKey
+  // const checkboxChange = useCallback(
+  //   (e: React.ChangeEvent<HTMLInputElement>, rowIndex: number) => {
+  //     // @ts-ignore
+  //     const withShift = e.nativeEvent.shiftKey
+  //
+  //     if (lastSelectedRow !== null && withShift) {
+  //       let selected = [...selectedRows]
+  //       for (let i = lastSelectedRow + 1; i <= rowIndex; i++) {
+  //         if (selected.includes(i)) {
+  //           selected = selected.filter(d => d !== i)
+  //         } else {
+  //           selected.push(i)
+  //         }
+  //       }
+  //
+  //       const newSelected = new Set(selected)
+  //
+  //       setSelectedRows(Array.from(newSelected))
+  //       setLastSelectedRow(null)
+  //     } else {
+  //       if (!selectedRows.includes(rowIndex)) {
+  //         setSelectedRows(prev => [...prev, rowIndex])
+  //       } else {
+  //         setSelectedRows(prev => prev.filter(d => d !== rowIndex))
+  //       }
+  //
+  //       setLastSelectedRow(rowIndex)
+  //     }
+  //   },
+  //   [lastSelectedRow, selectedRows],
+  // )
+  //
+  // const locationsFilter = useCallback(
+  //   (value: boolean) => {
+  //     if (!value) {
+  //       setData(initialData)
+  //     } else {
+  //       setData(prev =>
+  //         prev.filter(
+  //           d => payrollData.find(d2 => d2.workerId === d.id)?.location === -1,
+  //         ),
+  //       )
+  //     }
+  //   },
+  //   [initialData, payrollData],
+  // )
 
-      if (lastSelectedRow !== null && withShift) {
-        let selected = [...selectedRows]
-        for (let i = lastSelectedRow + 1; i <= rowIndex; i++) {
-          if (selected.includes(i)) {
-            selected = selected.filter(d => d !== i)
-          } else {
-            selected.push(i)
-          }
-        }
-
-        const newSelected = new Set(selected)
-
-        setSelectedRows(Array.from(newSelected))
-        setLastSelectedRow(null)
-      } else {
-        if (!selectedRows.includes(rowIndex)) {
-          setSelectedRows(prev => [...prev, rowIndex])
-        } else {
-          setSelectedRows(prev => prev.filter(d => d !== rowIndex))
-        }
-
-        setLastSelectedRow(rowIndex)
-      }
-    },
-    [lastSelectedRow, selectedRows],
-  )
-
-  const locationsFilter = useCallback(
-    (value: boolean) => {
-      if (!value) {
-        setData(initialData)
-      } else {
-        setData(prev =>
-          prev.filter(
-            d => payrollData.find(d2 => d2.workerId === d.id)?.location === -1,
-          ),
-        )
-      }
-    },
-    [initialData, payrollData],
-  )
-
-  const generateSum = useCallback(
+  const getSum = useCallback(
     (names: string[]) => {
       let sum = payrollData.reduce(
         // @ts-ignore
@@ -280,209 +281,198 @@ export default function PayrollCreatePage({
     [payrollData],
   )
 
+  const getIndividualSum = useCallback(
+    (workerId: number, names: string[]) => {
+      const row = payrollData.find(r => r.workerId === workerId)
+      if (!row) return '0'
+
+      let sum = names.reduce((acc, n) => {
+        // @ts-ignore
+        let value = row[n] || 0
+
+        if (n === 'external_payment' && names.length > 1) {
+          value *= -1
+        }
+        return acc + value
+      }, 0)
+
+      return separateNumber(sum)
+    },
+    [payrollData],
+  )
+
+  const getName = useCallback(
+    (workerId: number) => {
+      const row = data.find(r => r.id === workerId)
+      if (!row) return ''
+
+      return (
+        <div className="flex items-center gap-2">
+          <RankIcon rank={row.rank} />
+          <p>{row.name}</p>
+        </div>
+      )
+    },
+    [data],
+  )
+
+  const getFi = useCallback(
+    (workerId: number) => {
+      const row = data.find(r => r.id === workerId)
+      if (!row) return ''
+
+      return (
+        <div className="flex items-center justify-center gap-2 text-center whitespace-break-spaces">
+          <p>{row.fio}</p>
+        </div>
+      )
+    },
+    [data],
+  )
+
+  const columns: PayrollColumn[] = useMemo(() => {
+    return [
+      {
+        title: 'Сотрудник',
+        sumFn: () => null,
+        accessorFn: (workerId: number) => getName(workerId),
+      },
+      {
+        title: 'ФИ',
+        sumFn: () => null,
+        accessorFn: (workerId: number) => getFi(workerId),
+      },
+      {
+        title: 'Остаток',
+        sumFn: () => getSum(['balance']),
+        accessorFn: (workerId: number) =>
+          getIndividualSum(workerId, ['balance']),
+      },
+      {
+        title: 'Сумма',
+        sumFn: () => getSum(['value']),
+        accessorFn: (workerId: number) => (
+          <PayrollCreateValueCell
+            data={Number(
+              getIndividualSum(workerId, ['value']).replaceAll(' ', ''),
+            )}
+            workerId={workerId}
+            callback={handleUpdate}
+            type="value"
+          />
+        ),
+      },
+      {
+        title: 'Бонусы',
+        sumFn: () => getSum(['bonuses']),
+        accessorFn: (workerId: number) => (
+          <PayrollCreateValueCell
+            data={Number(
+              getIndividualSum(workerId, ['bonuses']).replaceAll(' ', ''),
+            )}
+            workerId={workerId}
+            callback={handleUpdate}
+            type="bonuses"
+          />
+        ),
+      },
+      {
+        title: 'Штрафы',
+        sumFn: () => getSum(['fines']),
+        accessorFn: (workerId: number) => (
+          <PayrollCreateValueCell
+            data={Number(
+              getIndividualSum(workerId, ['fines']).replaceAll(' ', ''),
+            )}
+            workerId={workerId}
+            callback={handleUpdate}
+            type="fines"
+          />
+        ),
+      },
+      {
+        title: 'Внешняя выплата',
+        sumFn: () => getSum(['external_payment']),
+        accessorFn: (workerId: number) => (
+          <PayrollCreateValueCell
+            data={Number(
+              getIndividualSum(workerId, ['external_payment']).replaceAll(
+                ' ',
+                '',
+              ),
+            )}
+            workerId={workerId}
+            callback={handleUpdate}
+            type="external_payment"
+          />
+        ),
+      },
+      {
+        title: 'Итог',
+        sumFn: () =>
+          getSum(['fines', 'bonuses', 'value', 'external_payment', 'balance']),
+        accessorFn: (workerId: number) =>
+          getIndividualSum(workerId, [
+            'fines',
+            'bonuses',
+            'value',
+            'external_payment',
+            'balance',
+          ]),
+      },
+      {
+        title: 'Локация',
+        sumFn: () => null,
+        accessorFn: (workerId: number) => {
+          const payrollWorkerData = payrollData.find(
+            d => d.workerId === workerId,
+          )
+
+          return (
+            <PayrollCreateLocationCell
+              locationId={payrollWorkerData?.location || -1}
+              locations={locations}
+              callback={handleUpdate}
+              workerId={workerId}
+            />
+          )
+        },
+      },
+    ]
+  }, [
+    getFi,
+    getIndividualSum,
+    getName,
+    getSum,
+    handleUpdate,
+    locations,
+    payrollData,
+  ])
+
   return (
     <main className="h-full w-full p-4">
-      <Disclosure
-        id="1"
-        ref={headerRef}
-        className="sticky top-2 z-1000 mb-2 w-full">
-        <Disclosure.Heading>
-          <Button
-            slot="trigger"
-            className="flex h-fit w-full items-center gap-2"
-            variant="tertiary">
-            <p className="underline">{interval.toFormat('dd.MM.yyyy')}</p>
-            <div className="glass flex items-center gap-2 p-2">
-              Бонусы:{' '}
-              {bonuses ? (
-                <Icon
-                  color={themeColors.success['500']}
-                  icon="solar:check-circle-bold"
-                  width="20"
-                  height="20"
-                />
-              ) : (
-                <Icon
-                  icon="solar:close-circle-bold"
-                  width="20"
-                  height="20"
-                  color={themeColors.danger['500']}
-                />
-              )}
-            </div>
-            <div className="glass flex items-center gap-2 p-2">
-              <p>Сотрудники:</p>
-              <Code color="success" className="flex items-center gap-2">
-                {payrollData.reduce(
-                  (acc, cur) =>
-                    acc +
-                    ((cur.fines || 0) +
-                      Number(cur.value || 0) +
-                      (cur.bonuses || 0) -
-                      (cur.external_payment || 0)),
-                  0,
-                )}
-                <Icon icon="solar:ruble-bold" width="24" height="24" />
-              </Code>
-            </div>
-            <div className="glass flex items-center gap-2 p-2">
-              <p>Площадки:</p>
-              <Code color="primary" className="flex items-center gap-2">
-                {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
-                <Icon icon="solar:ruble-bold" width="24" height="24" />
-              </Code>
-            </div>
-            <Disclosure.Indicator />
-          </Button>
-        </Disclosure.Heading>
-        <Disclosure.Content>
-          <Disclosure.Body className="glass">
-            <PayrollCreateNote
-              locations={locations}
-              locationsToHide={locationsToHide}
-              moneyOnLocations={moneyOnLocations}
-              payrollData={payrollData}
-              updateLocationMoneyCallback={updateLocationMoney}
-              sendDataCallback={sendData}
-              takeBy={takeBy}
-              setTakeBy={val => setTakeBy(val)}
-            />
-          </Disclosure.Body>
-        </Disclosure.Content>
-      </Disclosure>
       <div className="flex flex-col gap-4">
         <div className="bg-content1 flex flex-col gap-2 rounded-2xl">
-          <div className="flex justify-end p-2">
-            <Checkbox onValueChange={locationsFilter}>Пустые</Checkbox>
-          </div>
-          <div
-            className="bg-content2 sticky z-500 flex items-center gap-2 rounded-xl p-2"
-            style={{top: `${(headerRef?.current?.offsetHeight || 0) + 4}px`}}>
-            <Button
-              variant="ghost"
-              className="max-w-7 min-w-7"
-              onPress={() => {
-                setLastSelectedRow(null)
-                setSelectedRows([])
-              }}
-              isIconOnly>
-              <Icon icon="solar:close-square-bold" width="24" height="24" />
-            </Button>
-            <p className="min-w-32 flex-1 text-center">Сотрудник</p>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Остаток</p>
-              <p className="text-foreground-500">{generateSum(['balance'])}</p>
-            </div>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Сумма</p>
-              <p className="text-foreground-500">{generateSum(['value'])}</p>
-            </div>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Бонусы</p>
-              <p className="text-foreground-500">{generateSum(['bonuses'])}</p>
-            </div>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Штрафы</p>
-              <p className="text-foreground-500">{generateSum(['fines'])}</p>
-            </div>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Внешняя выплата</p>
-              <p className="text-foreground-500">
-                {generateSum(['external_payment'])}
-              </p>
-            </div>
-            <Divider orientation="vertical" />
-            <div className="min-w-32 flex-1 text-center">
-              <p>Итог</p>
-              <p className="text-foreground-500">
-                {generateSum([
-                  'fines',
-                  'bonuses',
-                  'value',
-                  'external_payment',
-                  'balance',
-                ])}
-              </p>
-            </div>
-            <Divider orientation="vertical" />
-            <p className="flex-1 text-center">Локация</p>
-          </div>
-          {payrollData.map((payrollWorkerData, index) => {
-            const d = data.find(d2 => d2.id === payrollWorkerData.workerId)!
-
-            if (!d) return null
-
-            const summary =
-              (payrollWorkerData?.fines || 0) +
-              (payrollWorkerData?.bonuses || 0) +
-              (Number(payrollWorkerData?.value) || 0) -
-              (payrollWorkerData?.external_payment || 0) +
-              (payrollWorkerData?.balance || 0)
-
-            return (
-              <Fragment key={index}>
-                <div className="flex items-center gap-2 p-2">
-                  <Checkbox
-                    onChange={e => checkboxChange(e, index)}
-                    isSelected={selectedRows.includes(index)}
-                  />
-                  <PayrollCreateWorkerCell name={d.name} rank={d.rank} />
-                  <Divider orientation="vertical" />
-                  <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
-                    <p>{separateNumber(d.balance || 0)}</p>
-                    <Icon icon="solar:ruble-bold" width="24" height="24" />
-                  </div>
-                  <Divider orientation="vertical" />
-                  <PayrollCreateValueCell
-                    data={payrollWorkerData?.value || 0}
-                    workerId={d.id}
-                    callback={handleUpdate}
-                  />
-                  <Divider orientation="vertical" />
-                  <PayrollCreateValueCell
-                    minValue={0}
-                    data={payrollWorkerData?.bonuses || 0}
-                    type="bonuses"
-                    workerId={d.id}
-                    callback={handleUpdate}
-                  />
-                  <Divider orientation="vertical" />
-                  <PayrollCreateValueCell
-                    type="fines"
-                    data={payrollWorkerData?.fines || 0}
-                    workerId={d.id}
-                    callback={handleUpdate}
-                  />
-                  <Divider orientation="vertical" />
-                  <PayrollCreateValueCell
-                    minValue={0}
-                    data={payrollWorkerData?.external_payment || 0}
-                    type="external_payment"
-                    workerId={d.id}
-                    callback={handleUpdate}
-                  />
-                  <Divider orientation="vertical" />
-                  <div className="bg-content2 flex h-10 min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
-                    <p>{separateNumber(summary)}</p>
-                    <Icon icon="solar:ruble-bold" width="24" height="24" />
-                  </div>
-                  <Divider orientation="vertical" />
-                  <PayrollCreateLocationCell
-                    locationId={payrollWorkerData?.location || -1}
-                    locations={locations}
-                    callback={handleUpdate}
-                    workerId={d.id}
-                  />
-                </div>
-                {index !== data.length - 1 ? <Divider /> : ''}
-              </Fragment>
-            )
-          })}
+          <PayrollCreateHeader
+            locations={locations}
+            dates={dates}
+            bonuses={bonuses}
+            moneyOnLocations={moneyOnLocations}
+            payrollData={payrollData}
+            locationsToHide={locationsToHide}
+            updateLocationMoney={updateLocationMoney}
+            sendData={sendData}
+            takeBy={takeBy}
+            setTakeBy={setTakeBy}
+            columns={columns}
+          />
+          {payrollData.map(data => (
+            <PayrollCreateRow
+              key={data.workerId}
+              data={data}
+              columns={columns}
+            />
+          ))}
         </div>
       </div>
     </main>

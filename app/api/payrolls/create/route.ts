@@ -37,17 +37,34 @@ export async function POST(req: NextRequest) {
 
   const createPayrollQuery = `
   insert into payrolls.list
-  (dates, take_by, bonuses, created_by, is_published) values
-  ('[${data.dates.start},${data.dates.end}]', '${data.takeBy}', ${data.withBonuses || 'NULL'}, ${worker.id}, ${data.isPublished})
+  (
+   dates,
+   take_by,
+   bonuses,
+   created_by,
+   is_published,
+   meta
+  ) values
+  (
+   '[${data.dates.start},${data.dates.end}]',
+   '${data.takeBy}', ${data.withBonuses || 'NULL'},
+   ${worker.id},
+   ${data.isPublished},
+   ${data.isPublished ? null : `'${data.meta}'::jsonb`}
+  )
   on conflict (dates) do update set
                           take_by=excluded.take_by,
-                          is_published=excluded.is_published
+                          is_published=excluded.is_published,
+                          meta=excluded.meta
   returning id`
+
+  console.debug(createPayrollQuery)
 
   const payrollCreateResult = await db.query(createPayrollQuery)
   const payrollId: number = payrollCreateResult.rows[0].id
 
-  const createWorkersPayrollQuery = `
+  if (data.isPublished) {
+    const createWorkersPayrollQuery = `
   insert into relations.workers_payrolls
   (worker_id, payroll_id, value, location_id, bonuses, external_payment) values
   ${data.workersData
@@ -56,22 +73,16 @@ export async function POST(req: NextRequest) {
       worker =>
         `(${worker.workerId}, ${payrollId}, ${worker.value + worker.balance}, ${worker.location}, ${(worker.bonuses || 0) + (worker.fines || 0) != 0 ? (worker.bonuses || 0) + (worker.fines || 0) : 'NULL'}, ${worker.external_payment ? worker.external_payment : 'NULL'})`,
     )
-    .join(',\n')}
-    on conflict (worker_id, payroll_id) do update set
-    value = excluded.value,
-    location_id = excluded.location_id,
-    bonuses = excluded.bonuses,
-    external_payment = excluded.external_payment`
+    .join(',\n')}`
 
-  const createMoneyOnLocationsQuery = `
+    const createMoneyOnLocationsQuery = `
     insert into payrolls.locations_money
     (location_id, payroll_id, value) values
-    ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}
-                                     on conflict (location_id, payroll_id) do update set
-                                     value = excluded.value`
+    ${data.moneyOnLocations.map(d => `(${d.location}, ${payrollId}, ${d.value || 'NULL'})`).join(',\n')}`
 
-  await db.query(createWorkersPayrollQuery)
-  await db.query(createMoneyOnLocationsQuery)
+    await db.query(createWorkersPayrollQuery)
+    await db.query(createMoneyOnLocationsQuery)
+  }
 
   return NextResponse.json({id: payrollId}, {status: 200})
 }

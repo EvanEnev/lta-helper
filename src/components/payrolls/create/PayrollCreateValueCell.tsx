@@ -1,10 +1,9 @@
-import {NumberInput} from '@heroui/react'
 import {memo, useCallback, useState} from 'react'
 import {LTWorker} from '@/src/utils/types'
+import {NumberField} from '@heroui/react-beta'
 
 interface PayrollCreateValueCellProps {
   data: number
-  minValue?: number
   workerId: LTWorker['id']
   type?: 'location' | 'bonuses' | 'fines' | 'value' | 'external_payment'
   callback: (
@@ -18,7 +17,6 @@ export default memo(function PayrollCreateValueCell({
   data,
   workerId,
   callback,
-  minValue = undefined,
   type = 'value',
 }: PayrollCreateValueCellProps) {
   const [value, setValue] = useState<number>(data)
@@ -32,13 +30,14 @@ export default memo(function PayrollCreateValueCell({
   )
 
   return (
-    <NumberInput
+    <NumberField
+      className="h-full w-full"
+      defaultValue={value || undefined}
       aria-label={type}
-      className="w-full min-w-32 flex-1"
-      value={value}
-      minValue={minValue}
-      isWheelDisabled
-      onValueChange={onValueChange}
-    />
+      onChange={onValueChange}>
+      <NumberField.Group className="flex h-full">
+        <NumberField.Input placeholder="0" className="h-full w-full flex-1" />
+      </NumberField.Group>
+    </NumberField>
   )
 })
