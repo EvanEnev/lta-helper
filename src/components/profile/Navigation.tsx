@@ -58,7 +58,7 @@ export default function Navigation({worker}: NavigationProps) {
     }
 
     return (
-      <Link className="w-full no-underline" key={index}>
+      <Link className="w-full no-underline" href={button.href} key={index}>
         <Button
           variant="tertiary"
           className={`h-16 w-full p-2 ${button.className}`}
