@@ -9,6 +9,7 @@ import {
   RangeCalendar,
   useOverlayState,
   DateValue,
+  Spinner,
 } from '@heroui/react-beta'
 import {DateTime} from 'luxon'
 import {useEffect, useMemo, useState} from 'react'
@@ -25,6 +26,7 @@ interface PayrollsCreateCardProps {
 export default function PayrollCreateCard({
   locations,
 }: PayrollsCreateCardProps) {
+  const [isPending, setIsPending] = useState(false)
   const state = useOverlayState()
 
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
@@ -156,61 +158,79 @@ export default function PayrollCreateCard({
             </Modal.Body>
             <Modal.Footer className="justify-center">
               {existingAttempt && (
-                <Button className="w-full" variant="outline">
-                  <Link
-                    href={{
-                      pathname: '/payrolls/create',
-                      query: {
-                        dates: JSON.stringify({
-                          start: dateRange?.start.toString(),
-                          end: dateRange?.end.toString(),
-                        }),
-                        moneyOnLocations: JSON.stringify([]),
-                        bonuses,
-                        workersBonusesRange: JSON.stringify({
-                          start: workersBonusesRange?.start.toString(),
-                          end: workersBonusesRange?.end.toString(),
-                        }),
-                        actorsBonusesRange: JSON.stringify({
-                          start: actorsBonusesRange?.start.toString(),
-                          end: actorsBonusesRange?.end.toString(),
-                        }),
-                      },
-                    }}>
-                    Продолжить черновик
-                  </Link>
+                <Button
+                  isPending={isPending}
+                  onPress={() => setIsPending(true)}
+                  className="w-full"
+                  variant="outline">
+                  {({isPending}) => (
+                    <>
+                      {isPending && <Spinner color="current" size="sm" />}
+                      <Link
+                        href={{
+                          pathname: '/payrolls/create',
+                          query: {
+                            dates: JSON.stringify({
+                              start: dateRange?.start.toString(),
+                              end: dateRange?.end.toString(),
+                            }),
+                            moneyOnLocations: JSON.stringify([]),
+                            bonuses,
+                            workersBonusesRange: JSON.stringify({
+                              start: workersBonusesRange?.start.toString(),
+                              end: workersBonusesRange?.end.toString(),
+                            }),
+                            actorsBonusesRange: JSON.stringify({
+                              start: actorsBonusesRange?.start.toString(),
+                              end: actorsBonusesRange?.end.toString(),
+                            }),
+                          },
+                        }}>
+                        Продолжить черновик
+                      </Link>
+                    </>
+                  )}
                 </Button>
               )}
               <Button
                 className="w-full"
                 variant="primary"
-                onPress={() => localStorage.removeItem('payrollsCreate')}>
-                <Link
-                  href={{
-                    pathname: '/payrolls/create',
-                    query: {
-                      dates: JSON.stringify({
-                        start: dateRange?.start.toString(),
-                        end: dateRange?.end.toString(),
-                      }),
-                      moneyOnLocations: JSON.stringify([]),
-                      bonuses,
-                      workersBonusesRange: JSON.stringify({
-                        start: bonuses
-                          ? workersBonusesRange?.start.toString()
-                          : null,
-                        end: bonuses
-                          ? workersBonusesRange?.end.toString()
-                          : null,
-                      }),
-                      actorsBonusesRange: JSON.stringify({
-                        start: actorsBonusesRange?.start.toString(),
-                        end: actorsBonusesRange?.end.toString(),
-                      }),
-                    },
-                  }}>
-                  Продолжить
-                </Link>
+                isPending={isPending}
+                onPress={() => {
+                  setIsPending(true)
+                  localStorage.removeItem('payrollsCreate')
+                }}>
+                {({isPending}) => (
+                  <>
+                    {isPending && <Spinner color="current" size="sm" />}
+                    <Link
+                      href={{
+                        pathname: '/payrolls/create',
+                        query: {
+                          dates: JSON.stringify({
+                            start: dateRange?.start.toString(),
+                            end: dateRange?.end.toString(),
+                          }),
+                          moneyOnLocations: JSON.stringify([]),
+                          bonuses,
+                          workersBonusesRange: JSON.stringify({
+                            start: bonuses
+                              ? workersBonusesRange?.start.toString()
+                              : null,
+                            end: bonuses
+                              ? workersBonusesRange?.end.toString()
+                              : null,
+                          }),
+                          actorsBonusesRange: JSON.stringify({
+                            start: actorsBonusesRange?.start.toString(),
+                            end: actorsBonusesRange?.end.toString(),
+                          }),
+                        },
+                      }}>
+                      Продолжить
+                    </Link>
+                  </>
+                )}
               </Button>
             </Modal.Footer>
           </Modal.Dialog>

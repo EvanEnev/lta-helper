@@ -10,8 +10,8 @@ let hostname = 'lt.bubenev.su'
 let port = 5000
 
 if (dev) {
-  port = 80
-  hostname = '127.0.0.1'
+  port = 3000
+  hostname = 'localhost'
 } else if (test) {
   port = 5001
   hostname = 'lt-test.bubenev.su'

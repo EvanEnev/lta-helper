@@ -15,14 +15,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import {
-  Button,
-  Checkbox,
-  Code,
-  Divider,
-  Link,
-  semanticColors,
-} from '@heroui/react'
+import {Checkbox, Code, Divider, Link, semanticColors} from '@heroui/react'
+import {Disclosure, DisclosureGroup, Button} from '@heroui/react-beta'
 import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
 import PayrollCreateWorkerCell from '@/src/components/payrolls/create/PayrollCreateWorkerCell'
 import PayrollCreateLocationCell from '@/src/components/payrolls/create/PayrollCreateLocationCell'
@@ -288,78 +282,92 @@ export default function PayrollCreatePage({
 
   return (
     <main className="h-full w-full p-4">
-      <div
+      <Disclosure
+        id="1"
         ref={headerRef}
-        className="sticky top-2 z-1000 flex items-center gap-2 pb-4">
-        <Button
-          as={Link}
-          href="/payrolls"
-          startContent={
-            <Icon icon="solar:arrow-left-linear" width="24" height="24" />
-          }>
-          Назад
-        </Button>
-        <div className="glass p-2">{interval.toFormat('dd.MM.yyyy')}</div>
-        <div className="glass flex items-center gap-2 p-2">
-          Бонусы:{' '}
-          {bonuses ? (
-            <Icon
-              color={themeColors.success['500']}
-              icon="solar:check-circle-bold"
-              width="20"
-              height="20"
+        className="sticky top-2 z-1000 mb-2 w-full">
+        <Disclosure.Heading>
+          <Button
+            slot="trigger"
+            className="flex h-fit w-full items-center gap-2"
+            variant="tertiary">
+            <p className="underline">{interval.toFormat('dd.MM.yyyy')}</p>
+            <div className="glass flex items-center gap-2 p-2">
+              Бонусы:{' '}
+              {bonuses ? (
+                <Icon
+                  color={themeColors.success['500']}
+                  icon="solar:check-circle-bold"
+                  width="20"
+                  height="20"
+                />
+              ) : (
+                <Icon
+                  icon="solar:close-circle-bold"
+                  width="20"
+                  height="20"
+                  color={themeColors.danger['500']}
+                />
+              )}
+            </div>
+            <div className="glass flex items-center gap-2 p-2">
+              <p>Сотрудники:</p>
+              <Code color="success" className="flex items-center gap-2">
+                {payrollData.reduce(
+                  (acc, cur) =>
+                    acc +
+                    ((cur.fines || 0) +
+                      Number(cur.value || 0) +
+                      (cur.bonuses || 0) -
+                      (cur.external_payment || 0)),
+                  0,
+                )}
+                <Icon icon="solar:ruble-bold" width="24" height="24" />
+              </Code>
+            </div>
+            <div className="glass flex items-center gap-2 p-2">
+              <p>Площадки:</p>
+              <Code color="primary" className="flex items-center gap-2">
+                {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
+                <Icon icon="solar:ruble-bold" width="24" height="24" />
+              </Code>
+            </div>
+            <Disclosure.Indicator />
+          </Button>
+        </Disclosure.Heading>
+        <Disclosure.Content>
+          <Disclosure.Body className="glass">
+            <PayrollCreateNote
+              locations={locations}
+              locationsToHide={locationsToHide}
+              moneyOnLocations={moneyOnLocations}
+              payrollData={payrollData}
+              updateLocationMoneyCallback={updateLocationMoney}
+              sendDataCallback={sendData}
+              takeBy={takeBy}
+              setTakeBy={val => setTakeBy(val)}
             />
-          ) : (
-            <Icon
-              icon="solar:close-circle-bold"
-              width="20"
-              height="20"
-              color={themeColors.danger['500']}
-            />
-          )}
-        </div>
-        <div className="glass flex items-center gap-2 p-2">
-          <p>Сотрудники:</p>
-          <Code color="success" className="flex items-center gap-2">
-            {payrollData.reduce(
-              (acc, cur) =>
-                acc +
-                ((cur.fines || 0) +
-                  Number(cur.value || 0) +
-                  (cur.bonuses || 0) -
-                  (cur.external_payment || 0)),
-              0,
-            )}
-            <Icon icon="solar:ruble-bold" width="24" height="24" />
-          </Code>
-        </div>
-        <div className="glass flex items-center gap-2 p-2">
-          <p>Площадки:</p>
-          <Code color="primary" className="flex items-center gap-2">
-            {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
-            <Icon icon="solar:ruble-bold" width="24" height="24" />
-          </Code>
-        </div>
-      </div>
-      <div className="flex gap-4">
+          </Disclosure.Body>
+        </Disclosure.Content>
+      </Disclosure>
+      <div className="flex flex-col gap-4">
         <div className="bg-content1 flex flex-col gap-2 rounded-2xl">
           <div className="flex justify-end p-2">
             <Checkbox onValueChange={locationsFilter}>Пустые</Checkbox>
           </div>
           <div
-            className="bg-content2 sticky z-1000 flex items-center gap-2 rounded-xl p-2"
-            style={{top: `${headerRef?.current?.offsetHeight}px`}}>
+            className="bg-content2 sticky z-500 flex items-center gap-2 rounded-xl p-2"
+            style={{top: `${(headerRef?.current?.offsetHeight || 0) + 4}px`}}>
             <Button
+              variant="ghost"
               className="max-w-7 min-w-7"
               onPress={() => {
                 setLastSelectedRow(null)
                 setSelectedRows([])
               }}
-              startContent={
-                <Icon icon="solar:close-square-bold" width="24" height="24" />
-              }
-              isIconOnly
-            />
+              isIconOnly>
+              <Icon icon="solar:close-square-bold" width="24" height="24" />
+            </Button>
             <p className="min-w-32 flex-1 text-center">Сотрудник</p>
             <Divider orientation="vertical" />
             <div className="min-w-32 flex-1 text-center">
@@ -459,7 +467,7 @@ export default function PayrollCreatePage({
                     callback={handleUpdate}
                   />
                   <Divider orientation="vertical" />
-                  <div className="bg-content2 flex h-full min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
+                  <div className="bg-content2 flex h-10 min-w-32 flex-1 items-center justify-center gap-2 rounded-2xl">
                     <p>{separateNumber(summary)}</p>
                     <Icon icon="solar:ruble-bold" width="24" height="24" />
                   </div>
@@ -476,16 +484,6 @@ export default function PayrollCreatePage({
             )
           })}
         </div>
-        <PayrollCreateNote
-          locations={locations}
-          locationsToHide={locationsToHide}
-          moneyOnLocations={moneyOnLocations}
-          payrollData={payrollData}
-          updateLocationMoneyCallback={updateLocationMoney}
-          sendDataCallback={sendData}
-          takeBy={takeBy}
-          setTakeBy={val => setTakeBy(val)}
-        />
       </div>
     </main>
   )
