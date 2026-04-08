@@ -82,21 +82,6 @@ export default function PayrollCreateHeader({
                 )}
               </div>
               <div className="flex items-center gap-2 p-2">
-                <p>Сотрудники:</p>
-                <Code color="success" className="flex items-center gap-2">
-                  {payrollData.reduce(
-                    (acc, cur) =>
-                      acc +
-                      ((cur.fines || 0) +
-                        Number(cur.value || 0) +
-                        (cur.bonuses || 0) -
-                        (cur.external_payment || 0)),
-                    0,
-                  )}
-                  <Icon icon="solar:ruble-bold" width="24" height="24" />
-                </Code>
-              </div>
-              <div className="flex items-center gap-2 p-2">
                 <p>Площадки:</p>
                 <Code color="primary" className="flex items-center gap-2">
                   {moneyOnLocations.reduce((acc, cur) => acc + cur.value, 0)}
