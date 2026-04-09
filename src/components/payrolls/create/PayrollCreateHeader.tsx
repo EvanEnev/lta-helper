@@ -10,10 +10,11 @@ import {
 import {Icon} from '@iconify/react'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
 import {useTheme} from 'next-themes'
-import {useMemo} from 'react'
+import {Dispatch, SetStateAction, useCallback, useMemo} from 'react'
 import {Interval} from 'luxon'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import {parseDate} from '@internationalized/date'
+import LocationSelect from '@/src/components/global/LocationSelect'
 
 interface PayrollCreateHeaderProps {
   columns: PayrollColumn[]
@@ -30,6 +31,8 @@ interface PayrollCreateHeaderProps {
   sendData: (isPublished: boolean) => void
   takeBy: string
   setTakeBy: (date: string) => void
+  setPayrollData: Dispatch<SetStateAction<LTPayrollData[]>>
+  initialData: LTPayrollData[]
 }
 
 export default function PayrollCreateHeader({
@@ -44,6 +47,8 @@ export default function PayrollCreateHeader({
   sendData,
   takeBy,
   setTakeBy,
+  setPayrollData,
+  initialData,
 }: PayrollCreateHeaderProps) {
   const {theme} = useTheme()
   // @ts-ignore
@@ -53,11 +58,34 @@ export default function PayrollCreateHeader({
     return Interval.fromISO(`${dates.start}/${dates.end}`)
   }, [dates.start, dates.end])
 
+  const locationSelectCallback = useCallback(
+    (location: LTLocation | LTLocation[] | null) => {
+      if (!location) {
+        return setPayrollData(initialData)
+      }
+
+      if ((location as LTLocation).id === 0) {
+        return setPayrollData(initialData)
+      }
+      setPayrollData(
+        initialData.filter(d => d.location === (location as LTLocation).id),
+      )
+    },
+    [initialData, setPayrollData],
+  )
+
   return (
     <div className="bg-content1 sticky top-2 z-1000 flex flex-col rounded-2xl">
       <div className="flex gap-2">
         <Disclosure className="w-full">
           <Disclosure.Heading className="flex items-center gap-2 p-2">
+            <LocationSelect
+              className="h-fit"
+              showLabel={false}
+              callback={locationSelectCallback}
+              locationId={0}
+              includeAll={true}
+            />
             <Button
               slot="trigger"
               className="flex h-fit w-full items-center gap-2"

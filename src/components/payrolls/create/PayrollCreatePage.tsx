@@ -76,6 +76,10 @@ export default function PayrollCreatePage({
       }),
   )
 
+  const initialPayrollData = useMemo(() => {
+    return payrollData
+  }, [])
+
   const [takeBy, setTakeBy] = useState<string>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
       DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
@@ -454,6 +458,8 @@ export default function PayrollCreatePage({
       <div className="flex flex-col gap-4">
         <div className="bg-content1 flex flex-col gap-2 rounded-2xl">
           <PayrollCreateHeader
+            initialData={initialPayrollData}
+            setPayrollData={setPayrollData}
             locations={locations}
             dates={dates}
             bonuses={bonuses}
