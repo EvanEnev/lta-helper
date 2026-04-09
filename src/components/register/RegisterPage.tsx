@@ -1,18 +1,15 @@
 'use client'
 
-import {addToast} from '@heroui/react'
 import {
-  Autocomplete,
   Button,
   FieldError,
   Form,
   Input,
   Label,
-  ListBox,
-  SearchField,
   TextField,
-} from '@heroui/react-beta'
-import {Activity, FormEvent} from 'react'
+  toast,
+} from '@heroui/react'
+import {FormEvent} from 'react'
 import {useRouter} from 'next/navigation'
 import {LTWorker} from '@/src/utils/types'
 import {withMask} from 'use-mask-input'
@@ -46,18 +43,15 @@ export default function RegisterPage({worker, workers}: RegisterPageProps) {
     } catch {}
 
     if (result.ok) {
-      addToast({
-        title: 'Успешно!',
+      toast('Успешно!', {
         description: message || 'Регистрация завершена',
         timeout: 8000,
-        color: 'success',
-        shouldShowTimeoutProgress: true,
+        variant: 'success',
       })
     } else {
-      addToast({
-        title: 'Ошибка!',
+      toast('Ошибка!', {
         description: message || 'Неизвестная ошибка',
-        color: 'danger',
+        variant: 'danger',
       })
     }
 

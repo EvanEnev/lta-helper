@@ -1,13 +1,12 @@
 'use client'
 
 import {useCallback, useEffect, useMemo, useState} from 'react'
-import {DateValue, RangeValue} from '@heroui/react'
+import {DateValue, RangeValue, Key} from '@heroui/react'
 import RankIcon from '@/src/components/global/RankIcon'
 import {LTLocation, LTRank, LTSalarySummary} from '@/src/utils/types'
 import SummarizedHeader from '@/src/components/salary/summarized/SummarizedHeader'
 import separateNumber from '@/lib/functions/separateNumber'
 import SummarizedRow from '@/src/components/salary/summarized/SummarizedRow'
-import {Key} from '@heroui/react-beta'
 
 export interface SummaryColumn {
   title: string

@@ -1,4 +1,4 @@
-import {Card, Separator} from '@heroui/react-beta'
+import {Card, Separator} from '@heroui/react'
 
 export default function PaymentData({
   data,
@@ -12,20 +12,20 @@ export default function PaymentData({
     if (!location && data.name === 'Самозанятый') return null
 
     return (
-      <Card className="bg-content2" key={index}>
+      <Card className="bg-surface" key={index}>
         <Card.Header>Внешняя выплата</Card.Header>
-        <Separator className="bg-content3" />
+        <Separator className="bg-default" />
         <Card.Content className="flex flex-col gap-2">
           <div className="flex gap-2">
             <p>Тип:</p>
             {data.name}
           </div>
-          <Separator className="bg-content3" />
+          <Separator className="bg-default" />
           <div className="flex gap-2">
             <p>Сумма:</p>
             {data.value}
           </div>
-          <Separator className="bg-content3" />
+          <Separator className="bg-default" />
           <div className="flex gap-2">
             <p>Комментарий:</p>
             {data.comment}

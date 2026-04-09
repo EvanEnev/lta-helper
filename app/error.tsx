@@ -1,6 +1,6 @@
 'use client'
 
-import {Button} from '@heroui/react-beta'
+import {Button} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 

@@ -1,21 +1,13 @@
 import {LTPayroll, LTWorker} from '@/src/utils/types'
 import {DateTime, Interval} from 'luxon'
-import {
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Code,
-  semanticColors,
-} from '@heroui/react'
-import {Button} from '@heroui/react-beta'
+import {Card, Button} from '@heroui/react'
 import Link from 'next/link'
-import {useTheme} from 'next-themes'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import DeleteButton from '@/src/components/global/DeleteButton'
 import {useCallback, useMemo} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import {Icon} from '@iconify/react'
+import useColors from '@/src/hooks/useColors'
 
 interface PayrollCardProps {
   data: LTPayroll
@@ -28,7 +20,7 @@ export default function PayrollCard({
   onDelete,
   worker,
 }: PayrollCardProps) {
-  const {theme} = useTheme()
+  const colors = useColors()
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)
   const takeBy = DateTime.fromISO(data.takeBy)
@@ -36,9 +28,6 @@ export default function PayrollCard({
     () => DateTime.now().set({hour: 0, minute: 0, second: 0}),
     [],
   )
-
-  // @ts-ignore
-  const themeColors = semanticColors[theme || 'dark']
 
   const canViewAllData = checkPermissions(
     ['view_all_payrolls', 'edit_payrolls'],
@@ -55,8 +44,8 @@ export default function PayrollCard({
   return (
     <Card
       className={`h-72 w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
-      <CardHeader>{interval.toFormat('dd.MM.yyyy')}</CardHeader>
-      <CardBody className="flex flex-col gap-2">
+      <Card.Header>{interval.toFormat('dd.MM.yyyy')}</Card.Header>
+      <Card.Content className="flex flex-col gap-2">
         {canViewAllData && (
           <>
             {!data.isPublished && (
@@ -71,15 +60,15 @@ export default function PayrollCard({
         )}
         <div>
           <span>Можно забрать до: </span>
-          <Code color={takeBy >= today ? 'success' : 'danger'}>
+          <p className={`${takeBy >= today ? 'text-success' : 'text-danger'}`}>
             {takeBy.toFormat('dd.MM.yyyy')}
-          </Code>
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <p>Бонусы: </p>
           {data.bonuses ? (
             <Icon
-              color={themeColors.success['500']}
+              color={colors?.success}
               icon="solar:check-circle-bold"
               width="20"
               height="20"
@@ -89,12 +78,12 @@ export default function PayrollCard({
               icon="solar:close-circle-bold"
               width="20"
               height="20"
-              color={themeColors.danger['500']}
+              color={colors?.danger}
             />
           )}
         </div>
-      </CardBody>
-      <CardFooter className="flex gap-2">
+      </Card.Content>
+      <Card.Footer className="flex gap-2">
         <Button
           onPress={() => {
             if (!data.isPublished) {
@@ -144,7 +133,7 @@ export default function PayrollCard({
             label={'Удалить'}
           />
         )}
-      </CardFooter>
+      </Card.Footer>
     </Card>
   )
 }

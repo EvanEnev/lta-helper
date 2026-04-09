@@ -1,6 +1,5 @@
 import {LTFaceIdData, SalaryData} from '@/src/utils/types'
-import {Divider, Tooltip} from '@heroui/react'
-import {TimeField, DateField} from '@heroui/react-beta'
+import {Separator, Tooltip, TimeField, DateField} from '@heroui/react'
 import {parseTime} from '@internationalized/date'
 import CellChip from '@/src/components/salary/CellChip'
 import {evaluate} from 'mathjs'
@@ -30,7 +29,7 @@ export default function CellBody({
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Проведение
           </CellChip>
-          <CellChip className="text-foreground text-small col-span-full flex justify-between">
+          <CellChip className="text-foreground bg-default text-small col-span-full flex justify-between">
             {(data.oneGames?.value || 0) +
               (data.twoGames?.value || 0) +
               (data.threeGames?.value || 0)}{' '}
@@ -39,7 +38,7 @@ export default function CellBody({
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Актёрские
           </CellChip>
-          <CellChip className="text-foreground text-small col-span-full flex justify-between">
+          <CellChip className="bg-default text-foreground text-small col-span-full flex justify-between">
             {data.actorGames?.value || 0}{' '}
             <Icon icon="solar:ruble-bold" width="24" height="24" />
           </CellChip>
@@ -176,7 +175,7 @@ export default function CellBody({
               </DateField.Group>
             </TimeField>
             <CellChip
-              className={`text-foreground text-small col-span-2 flex justify-between`}>
+              className={`text-foreground bg-default text-small col-span-2 flex justify-between`}>
               {data.overworkValue?.toString() || ''}{' '}
               <Icon
                 icon="solar:ruble-bold"
@@ -189,7 +188,7 @@ export default function CellBody({
         )}
       </div>
       {!data.type && (
-        <Divider orientation="vertical" className="bg-foreground" />
+        <Separator orientation="vertical" className="bg-foreground" />
       )}
       {!data.type && (
         <div className="grid-rows-auto grid grid-flow-row grid-cols-2 gap-2">
@@ -198,13 +197,13 @@ export default function CellBody({
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Вход
           </CellChip>
-          <CellChip className="text-small col-span-full">
+          <CellChip className="bg-default text-small col-span-full">
             {data.faceId && data.faceId[0]?.timestamp}
           </CellChip>
           <CellChip className="col-span-full border-2 bg-transparent text-inherit">
             Выход
           </CellChip>
-          <CellChip className="text-small col-span-full">
+          <CellChip className="bg-default text-small col-span-full">
             {data.faceId && data.faceId[data.faceId.length - 1]?.timestamp}
           </CellChip>
         </div>
@@ -215,10 +214,15 @@ export default function CellBody({
             <Icon icon="solar:bill-check-bold" width="22" height="22" />
             <p>Бонусы</p>
           </CellChip>
-          <Tooltip className="w-full" content={<p>{data.bonuses || ''}</p>}>
-            <div className="bg-default-100 rounded-medium text-foreground relative col-span-full inline-flex h-10 min-h-10 w-full items-center justify-self-end px-3 text-start">
-              {evaluate(data.bonuses || '')}
-            </div>
+          <Tooltip>
+            <Tooltip.Trigger>
+              <div className="bg-default relative col-span-full inline-flex h-10 min-h-10 w-full items-center justify-self-end rounded-2xl px-3 text-start">
+                {evaluate(data.bonuses || '')}
+              </div>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <p>{data.bonuses || ''}</p>
+            </Tooltip.Content>
           </Tooltip>
         </div>
         <div className="flex w-full flex-col gap-2">
@@ -226,10 +230,15 @@ export default function CellBody({
             <Icon icon="solar:bill-cross-bold" width="22" height="22" />
             <p>Штрафы</p>
           </CellChip>
-          <Tooltip content={<p>{data.fines || ''}</p>}>
-            <div className="bg-default-100 rounded-medium text-foreground relative col-span-full inline-flex h-10 min-h-10 w-full items-center justify-self-end px-3 text-start">
-              {evaluate(data.fines || '')}
-            </div>
+          <Tooltip>
+            <Tooltip.Trigger>
+              <div className="bg-default text-foreground relative col-span-full inline-flex h-10 min-h-10 w-full items-center justify-self-end rounded-2xl px-3 text-start">
+                {evaluate(data.fines || '')}
+              </div>
+            </Tooltip.Trigger>
+            <Tooltip.Content>
+              <p>{data.fines || ''}</p>
+            </Tooltip.Content>
           </Tooltip>
         </div>
       </div>

@@ -1,10 +1,10 @@
 import {
   Avatar,
   Button,
-  Divider,
   Popover,
   PopoverContent,
   PopoverTrigger,
+  Separator,
 } from '@heroui/react'
 import {useTheme} from 'next-themes'
 import {authClient} from '@/lib/auth/authClient'
@@ -21,41 +21,38 @@ export default function User({worker}: UserProps) {
   const {theme, setTheme} = useTheme()
 
   return (
-    <Popover backdrop="opaque">
-      <PopoverTrigger>
+    <Popover>
+      <Popover.Trigger>
         <Button
           aria-label="Профиль"
           className="flex h-fit items-center p-2 text-3xl"
           variant="ghost">
-          <Avatar src={worker?.photoUrl || undefined} size="lg" />
+          <Avatar size="lg">
+            <Avatar.Image src={worker?.photoUrl || undefined} />
+          </Avatar>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="flex flex-col gap-1 py-4 text-2xl">
+      </Popover.Trigger>
+      <Popover.Content className="flex flex-col items-center gap-1 p-4 text-2xl">
         {worker?.name || ''}
-        <Divider />
+        <Separator />
         Тема
         <div className="flex gap-2">
           <Button
-            color={theme === 'dark' ? 'primary' : 'default'}
-            onPress={() => setTheme('dark')}
-            startContent={
-              <Icon icon="solar:moon-linear" width="24" height="24" />
-            }>
+            variant={theme === 'dark' ? 'primary' : 'outline'}
+            onPress={() => setTheme('dark')}>
+            <Icon icon="solar:moon-linear" width="24" height="24" />
             Тёмная
           </Button>
           <Button
-            color={theme === 'light' ? 'primary' : 'default'}
-            onPress={() => setTheme('light')}
-            startContent={
-              <Icon icon="solar:sun-2-linear" width="24" height="24" />
-            }>
+            variant={theme === 'light' ? 'primary' : 'outline'}
+            onPress={() => setTheme('light')}>
+            <Icon icon="solar:sun-2-linear" width="24" height="24" />
             Светлая
           </Button>
         </div>
-        <Divider />
+        <Separator />
         <Button
-          variant="ghost"
-          color="danger"
+          variant="danger-soft"
           className="w-full"
           onPress={async () =>
             await authClient.signOut(
@@ -68,9 +65,9 @@ export default function User({worker}: UserProps) {
               },
             )
           }>
-          Выйти
+          Выйти из аккаунта
         </Button>
-      </PopoverContent>
+      </Popover.Content>
     </Popover>
   )
 }

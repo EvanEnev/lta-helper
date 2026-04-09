@@ -1,14 +1,14 @@
 import {SalaryData} from '@/src/utils/types'
-import {Textarea} from '@heroui/react'
+import {TextArea} from '@heroui/react'
 
-export default function CellBodyEditable({data}: {data: SalaryData}) {
+export default function CellFooter({data}: {data: SalaryData}) {
   return (
-    <Textarea
+    <TextArea
+      variant="secondary"
       aria-label="Комментарий"
-      classNames={{input: 'max-h-[4.5rem] min-h-[4.5rem]'}}
-      className="col-span-2"
+      className="col-span-2 w-full"
       value={data.comment || ''}
-      isReadOnly
+      readOnly
     />
   )
 }

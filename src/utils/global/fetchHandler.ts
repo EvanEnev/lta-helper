@@ -1,4 +1,4 @@
-import {addToast} from '@heroui/react'
+import {toast} from '@heroui/react'
 
 interface FetchHandlerProps {
   url: string
@@ -27,12 +27,11 @@ export default async function fetchHandler({
   } catch {}
 
   if (response.ok) {
-    addToast({color: 'success', title: 'Успешно!'})
+    toast('Успешно!', {variant: 'success'})
     return json
   } else {
-    addToast({
-      color: 'danger',
-      title: 'Ошибка!',
+    toast('Ошибка!', {
+      variant: 'danger',
       description: json.message || 'Неизвестная ошибка',
     })
 

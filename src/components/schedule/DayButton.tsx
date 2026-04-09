@@ -1,5 +1,5 @@
 import {Day, LTLocation} from '@/src/utils/types'
-import {Badge, Button, Skeleton} from '@heroui/react'
+import {Badge, Button} from '@heroui/react'
 import {useMemo, useState} from 'react'
 import {useAtom, useSetAtom} from 'jotai'
 import {selectedDatesAtom, selectedDayAtom} from '@/src/utils/global/atoms'
@@ -23,22 +23,13 @@ export default function DayButton(props: DayButtonProps) {
 
   const [isLongPress, setIsLongPress] = useState(false)
 
+  const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
+  const setSelectedDay = useSetAtom(selectedDayAtom)
+
   const longPress = useLongPress(() => {
     setIsLongPress(true)
     setSelectedDates(prev => (day.date ? [...prev, day.date] : prev))
   }, 300)
-
-  const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
-  const setSelectedDay = useSetAtom(selectedDayAtom)
-
-  let color: 'default' | 'success' | 'danger' | 'warning' = 'default'
-  if (
-    day.value === '+' ||
-    locations.find(l => l.name.toLowerCase() === day.value?.toLowerCase())
-  )
-    color = 'success'
-  if (day.value === '-') color = 'danger'
-  if (day.value === '+/-') color = 'warning'
 
   const handler = () => {
     if (isLongPress) {
@@ -68,10 +59,6 @@ export default function DayButton(props: DayButtonProps) {
     })
   }
 
-  const weekday = useMemo(() => {
-    return day.date?.toFormat('EEE', {locale: 'ru-RU'})
-  }, [day.date])
-
   const today = DateTime.now()
 
   const isSelected = useMemo(() => {
@@ -81,51 +68,58 @@ export default function DayButton(props: DayButtonProps) {
           undefined
   }, [selectedDates, props.isSelected, day.date])
 
-  return !day.date ? (
-    <Skeleton className="h-12 w-28 rounded-[14px]" />
-  ) : (
-    <Badge
-      variant="solid"
-      color="primary"
-      content=""
-      placement="top-left"
-      size="md"
-      isInvisible={!isSelected}
-      classNames={{
-        base: props.className || '',
-        badge: 'justify-center items-center',
-      }}>
-      <Badge
-        variant="solid"
-        color="success"
-        content="+"
-        size="md"
-        isInvisible={!day.locationData?.length}
-        classNames={{
-          base: props.className || '',
-          badge: 'justify-center items-center',
-        }}>
-        <AnimatedBorder
-          isDisabled={
-            today.toFormat('yyyy-MM-dd') !== day.date?.toFormat('yyyy-MM-dd')
-          }
-          className={props.className || ''}>
-          <Button
-            isDisabled={props.disabled}
-            size="lg"
-            className={`w-28 ${props.className || ''} text-lg ${
-              isSelected ? '' : 'opacity-60'
-            }`}
-            color={props.color || color}
-            variant={isSelected ? 'shadow' : 'solid'}
-            {...longPress}
-            onPress={handler}>
-            <span className="h-fit w-fit">
-              {day.date.toFormat('dd.MM')}, {weekday}
-            </span>
-          </Button>
-        </AnimatedBorder>
-      </Badge>
-    </Badge>
+  let bg = ''
+
+  switch (props.day.value) {
+    case '+':
+      bg = 'bg-success text-success-foreground'
+      break
+    case '-':
+      bg = 'bg-danger text-danger-foreground'
+      break
+    case '+/-':
+      bg = 'bg-warning text-warning-foreground'
+      break
+  }
+
+  if (locations.find(l => l.name.toLowerCase() === day.value?.toLowerCase())) {
+    bg = 'bg-accent text-accent-foreground'
+  }
+  return (
+    <Badge.Anchor className="grow">
+      {isSelected && (
+        <Badge
+          className="z-100"
+          size="sm"
+          placement="top-left"
+          color="accent"
+        />
+      )}
+      {day.locationData && day.locationData.length > 0 && (
+        <Badge
+          className="z-100"
+          size="sm"
+          placement="top-right"
+          color="success">
+          +
+        </Badge>
+      )}
+      <AnimatedBorder
+        isDisabled={
+          today.toFormat('yyyy-MM-dd') !== day.date?.toFormat('yyyy-MM-dd')
+        }
+        className={props.className || ''}>
+        <Button
+          isDisabled={props.disabled}
+          className={`${props.className || ''} text-lg ${bg}`}
+          variant={isSelected ? 'tertiary' : 'tertiary'}
+          {...longPress}
+          onPress={handler}>
+          <span className="h-fit w-fit">
+            {day.date?.toFormat('dd.MM, EEE', {locale: 'ru-RU'})}
+          </span>
+        </Button>
+      </AnimatedBorder>
+    </Badge.Anchor>
   )
 }

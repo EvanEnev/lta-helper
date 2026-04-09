@@ -1,9 +1,8 @@
-import {Button, Code, Divider, Link} from '@heroui/react'
-import {Fragment, useMemo} from 'react'
+import {Separator, Tooltip} from '@heroui/react'
+import {useMemo} from 'react'
 import Location from '@/src/components/global/Location'
 import {LTMoneyOnLocationsData, LTWorkerPayrollData} from '@/src/utils/types'
 import separateNumber from '@/lib/functions/separateNumber'
-import {Icon} from '@iconify/react'
 
 interface PayrollsDetailsNoteProps {
   locationsData: LTMoneyOnLocationsData[]
@@ -27,67 +26,69 @@ export default function PayrollsDetailsNote({
   }, [data])
 
   return (
-    <div className="sticky top-2 flex h-fit w-fit min-w-fit flex-col gap-2">
-      <div className="flex w-full items-center gap-2">
-        <Button
-          className="w-full"
-          as={Link}
-          href="/payrolls"
-          startContent={
-            <Icon icon="solar:arrow-left-linear" width="24" height="24" />
-          }>
-          Назад
-        </Button>
-      </div>
-      <div className="glass grid w-fit auto-rows-auto grid-cols-4 gap-2 rounded-2xl p-2">
-        <p className="text-center">Локация</p>
-        <Code color="primary" className="text-center">
-          Выделено
-        </Code>
-        <Code className="text-center">К выдаче</Code>
-        <Code color="success" className="text-center">
-          Выдано
-        </Code>
-        {locationsData.map((locationData, index) => {
-          const locationIssued = data
-            .filter(d => d.location_id === locationData.location_id)
-            .reduce((acc, cur) => acc + (cur.taken || 0), 0)
+    <div className="grid grid-flow-col grid-rows-1 gap-2 p-2">
+      {locationsData.map(locationData => {
+        const locationIssued = data
+          .filter(d => d.location_id === locationData.location_id)
+          .reduce((acc, cur) => acc + (cur.taken || 0), 0)
 
-          const locationToTake = data
-            .filter(d => d.location_id === locationData.location_id)
-            .reduce(
-              (acc, cur) =>
-                acc +
-                cur.value +
-                (cur.bonuses || 0) -
-                (cur.external_payment || 0),
-              0,
-            )
-
-          return (
-            <Fragment key={index}>
-              <Divider className="col-span-full" />
-              <Location
-                className="w-fit break-all"
-                locationName={locationData.location}
-              />
-              <Code className="w-full min-w-fit" color="primary">
-                {separateNumber(locationData.value)}
-              </Code>
-              <Code className="w-full min-w-fit">
-                {separateNumber(locationToTake)}
-              </Code>
-              <Code className="w-full min-w-fit" color="success">
-                {separateNumber(locationIssued)}
-              </Code>
-            </Fragment>
+        const locationToTake = data
+          .filter(d => d.location_id === locationData.location_id)
+          .reduce(
+            (acc, cur) =>
+              acc +
+              cur.value +
+              (cur.bonuses || 0) -
+              (cur.external_payment || 0),
+            0,
           )
-        })}
-      </div>
-      <div className="glass flex w-full flex-col gap-2 p-2">
+
+        return (
+          <div
+            className="bg-default flex w-full flex-col gap-2 rounded-2xl p-2"
+            key={locationData.location_id}>
+            <Location
+              className="w-fit break-all"
+              iconClassName="w-[24px] h-[24px]"
+              locationName={locationData.location}
+            />
+            <Separator className="bg-default-foreground" />
+            <Tooltip>
+              <Tooltip.Trigger>
+                <p className="text-accent">
+                  {separateNumber(locationData.value)}
+                </p>
+              </Tooltip.Trigger>
+              <Tooltip.Content offset={10} placement="left">
+                <Tooltip.Arrow />
+                Выделено
+              </Tooltip.Content>
+            </Tooltip>
+            <Tooltip>
+              <Tooltip.Trigger>
+                <p>{separateNumber(locationToTake)}</p>
+              </Tooltip.Trigger>
+              <Tooltip.Content offset={10} placement="left">
+                <Tooltip.Arrow />
+                Выдано
+              </Tooltip.Content>
+            </Tooltip>
+            <Tooltip>
+              <Tooltip.Trigger>
+                <p className="text-success">{separateNumber(locationIssued)}</p>
+              </Tooltip.Trigger>
+              <Tooltip.Content offset={10} placement="left">
+                <Tooltip.Arrow />
+                Остаток
+              </Tooltip.Content>
+            </Tooltip>
+          </div>
+        )
+      })}
+      <div className="bg-default flex w-full flex-col gap-2 rounded-2xl p-2">
         <p>Общий остаток</p>
-        <Divider />
-        <Code color="success">{separateNumber(summaryBalance)}</Code>
+        <Separator className="bg-default-foreground" />
+        <p className="text-success">{separateNumber(summaryBalance)}</p>
       </div>
     </div>
   )

@@ -11,9 +11,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import PayrollsDetailsRow from '@/src/components/payrolls/details/PayrollsDetailsRow'
 import {io, Socket} from 'socket.io-client'
-import PayrollsDetailsNote from '@/src/components/payrolls/details/PayrollsDetailsNote'
 import PayrollsDetailsHeader from '@/src/components/payrolls/details/PayrollsDetailsHeader'
-import {useTheme} from 'next-themes'
 
 interface PayrollsDetailsPageProps {
   data: LTWorkerPayrollData[]
@@ -35,7 +33,6 @@ export default function PayrollsDetailsPage({
   payroll,
   worker,
 }: PayrollsDetailsPageProps) {
-  const {theme} = useTheme()
   const [filters, setFilters] = useState<Filter[]>([])
   const [data, setData] = useState<LTWorkerPayrollData[]>(initialData)
   const socketRef = useRef<Socket | null>(null)
@@ -136,10 +133,16 @@ export default function PayrollsDetailsPage({
   return (
     <main className="flex h-full w-full gap-2 p-4">
       <div className="flex h-fit w-full flex-col gap-2">
-        <PayrollsDetailsHeader
-          filterChangeCallback={filterChangeCallback}
-          theme={theme!}
-        />
+        {checkPermissions(
+          ['view_all_payrolls', 'view_location_payrolls'],
+          worker,
+        ) && (
+          <PayrollsDetailsHeader
+            filterChangeCallback={filterChangeCallback}
+            locationsData={locationsData}
+            data={data}
+          />
+        )}
         {filteredData.map(item => {
           return (
             <PayrollsDetailsRow
@@ -155,10 +158,6 @@ export default function PayrollsDetailsPage({
           )
         })}
       </div>
-      {checkPermissions(
-        ['view_all_payrolls', 'view_location_payrolls'],
-        worker,
-      ) && <PayrollsDetailsNote locationsData={locationsData} data={data} />}
     </main>
   )
 }

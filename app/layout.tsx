@@ -49,7 +49,7 @@ export default async function RootLayout({
           strategy="afterInteractive"
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className + ' background'}>
         {
           // @ts-ignore
           worker.trueId === 9 && <ImpersonateBox users={users} />

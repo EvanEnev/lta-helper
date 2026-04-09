@@ -11,11 +11,15 @@ import {
   Select,
   Separator,
   TextField,
-} from '@heroui/react-beta'
+  DateValue,
+  DatePicker,
+  DateField,
+  Calendar,
+} from '@heroui/react'
 import {LTPayment, LTPaymentType, LTWorker} from '@/src/utils/types'
-import {CalendarDate, DatePicker} from '@heroui/react'
-import {parseDate} from '@internationalized/date'
+import {parseDate, today} from '@internationalized/date'
 import {Icon} from '@iconify/react'
+import {DateTime} from 'luxon'
 
 interface PaymentCardProps {
   paymentsTypes: LTPaymentType[]
@@ -37,25 +41,57 @@ export default function PaymentsRow({
   const [payment, setPayment] = useState<LTPayment>(paymentData)
   const [editMode, setEditMode] = useState(!!payment.editMode)
 
-  const parseDatePicker = useCallback((value: CalendarDate | null): string => {
+  const parseDatePicker = useCallback((value: DateValue | null): string => {
     if (!value) return ''
     return `${value.year}-${value.month >= 10 ? value.month : `0${value.month}`}-${value.day >= 10 ? value.day : `0${value.day}`}`
   }, [])
 
   return (
-    <div className="bg-content1 flex w-full items-center gap-2 rounded-xl p-2">
+    <div className="bg-surface flex w-full items-center gap-2 rounded-xl p-2">
       <DatePicker
-        onChange={v =>
-          // @ts-ignore
-          setPayment(prev => ({...prev, date: parseDatePicker(v)}))
-        }
-        label="Дата"
-        labelPlacement="outside"
-        className="w-fit"
         isReadOnly={!editMode}
-        // @ts-ignore
+        name="date"
         value={payment.date ? parseDate(payment.date) : null}
-      />
+        onChange={v =>
+          setPayment(prev => ({...prev, date: parseDatePicker(v)}))
+        }>
+        <Label>Дата</Label>
+        <DateField.Group fullWidth variant="secondary">
+          <DateField.Input>
+            {segment => <DateField.Segment segment={segment} />}
+          </DateField.Input>
+          <DateField.Suffix>
+            <DatePicker.Trigger>
+              <DatePicker.TriggerIndicator />
+            </DatePicker.Trigger>
+          </DateField.Suffix>
+        </DateField.Group>
+        <DatePicker.Popover>
+          <Calendar aria-label="Дата">
+            <Calendar.Header>
+              <Calendar.YearPickerTrigger>
+                <Calendar.YearPickerTriggerHeading />
+                <Calendar.YearPickerTriggerIndicator />
+              </Calendar.YearPickerTrigger>
+              <Calendar.NavButton slot="previous" />
+              <Calendar.NavButton slot="next" />
+            </Calendar.Header>
+            <Calendar.Grid>
+              <Calendar.GridHeader>
+                {day => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}
+              </Calendar.GridHeader>
+              <Calendar.GridBody>
+                {date => <Calendar.Cell date={date} />}
+              </Calendar.GridBody>
+            </Calendar.Grid>
+            <Calendar.YearPickerGrid>
+              <Calendar.YearPickerGridBody>
+                {({year}) => <Calendar.YearPickerCell year={year} />}
+              </Calendar.YearPickerGridBody>
+            </Calendar.YearPickerGrid>
+          </Calendar>
+        </DatePicker.Popover>
+      </DatePicker>
       <div className="flex w-40 flex-col gap-1">
         <Label>Позывной</Label>
         {editMode ? (
@@ -83,7 +119,7 @@ export default function PaymentsRow({
             </ComboBox.Popover>
           </ComboBox>
         ) : (
-          <div className="bg-content2 flex h-10 flex-col gap-2 rounded-xl p-2 px-4">
+          <div className="bg-default flex h-10 flex-col gap-2 rounded-xl p-2 px-4">
             {payment.worker?.name}
           </div>
         )}
@@ -115,7 +151,7 @@ export default function PaymentsRow({
       ) : (
         <div className="flex w-50 flex-col">
           <p>Тип</p>
-          <div className="bg-content2 h-10 rounded-xl p-2">
+          <div className="bg-default h-10 rounded-xl p-2">
             <p>{payment.type}</p>
           </div>
         </div>

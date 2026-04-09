@@ -4,22 +4,21 @@ import {
   Button,
   DatePicker,
   DateValue,
-  Divider,
+  Separator,
   Drawer,
-  DrawerBody,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  NumberInput,
-  Textarea,
-  useDisclosure,
+  NumberField,
+  TextArea,
+  DateField,
+  TimeField,
+  TimeValue,
+  Label,
+  Calendar,
 } from '@heroui/react'
-import {DateField, TimeField, TimeValue} from '@heroui/react-beta'
 import {LTGamePayment, LTLocation, SalaryData} from '@/src/utils/types'
 import Location from '@/src/components/global/Location'
 import {DateTime} from 'luxon'
 import {useCallback, useMemo} from 'react'
-import {parseDate, parseTime} from '@internationalized/date'
+import {parseDate, parseTime, today} from '@internationalized/date'
 import DeleteButton from '@/src/components/global/DeleteButton'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import LocationSelect from '@/src/components/global/LocationSelect'
@@ -50,7 +49,6 @@ export default function EditDrawer({
   overworkTime,
   workerId,
 }: EditDrawerProps) {
-  const {isOpen, onOpen, onOpenChange} = useDisclosure()
   const isMobile = useIsMobile()
 
   const salaryDate = useMemo(
@@ -166,35 +164,32 @@ export default function EditDrawer({
 
   return (
     <>
-      <Button
-        startContent={<Icon icon="solar:eye-bold" width="24" height="24" />}
-        variant="faded"
-        className="w-full"
-        onPress={() => onOpen()}>
-        Подробнее
-      </Button>
-      <Drawer
-        placement={isMobile ? 'bottom' : 'right'}
-        isOpen={isOpen}
-        size="3xl"
-        classNames={{wrapper: 'z-10000', backdrop: 'z-10000'}}
-        className="min-h-[80%]"
-        onOpenChange={onOpenChange}>
-        <DrawerContent>
-          {onClose => (
-            <>
-              <DrawerHeader
-                className="flex flex-col gap-2"
+      <Drawer>
+        <Button slot="icon" variant="tertiary" className="w-full">
+          <Icon icon="solar:eye-bold" width="24" height="24" />
+          Подробнее
+        </Button>
+        <Drawer.Backdrop className="z-1000">
+          <Drawer.Content
+            className="min-h-[80%]"
+            placement={isMobile ? 'bottom' : 'right'}>
+            <Drawer.Dialog>
+              <Drawer.Handle />
+              <Drawer.CloseTrigger />
+              <Drawer.Header
+                className="flex flex-col gap-2 rounded-2xl p-2"
                 style={{backgroundColor: data.location.color}}>
-                <div className="flex items-center gap-2">
-                  <Location locationName={data.location.name || ''} />
-                  <p>{data.date}</p>
-                </div>
-                <p className="text-foreground-500 text-s">
-                  Проставлена: {data.createdBy} {data.createdAt}
-                </p>
-              </DrawerHeader>
-              <DrawerBody className="grid grid-flow-row auto-rows-min grid-cols-2 gap-2">
+                <Drawer.Heading>
+                  <div className="flex items-center gap-2">
+                    <Location locationName={data.location.name || ''} />
+                    <p>{data.date}</p>
+                  </div>
+                  <p className="text-foreground-500 text-s">
+                    Проставлена: {data.createdBy} {data.createdAt}
+                  </p>
+                </Drawer.Heading>
+              </Drawer.Header>
+              <Drawer.Body className="grid grid-flow-row auto-rows-min grid-cols-2 gap-2">
                 <div className="col-span-full flex items-center gap-1">
                   <Icon
                     icon="solar:clock-circle-linear"
@@ -204,7 +199,6 @@ export default function EditDrawer({
                   <p>Смена</p>
                 </div>
                 <TimeField
-                  // @ts-ignore
                   value={times.start}
                   onChange={value => update(value, 'startTime')}
                   isReadOnly={isReadOnly}
@@ -218,7 +212,6 @@ export default function EditDrawer({
                   </DateField.Group>
                 </TimeField>
                 <TimeField
-                  // @ts-ignore
                   value={times.end}
                   onChange={value => update(value, 'endTime')}
                   isReadOnly={isReadOnly}
@@ -231,26 +224,26 @@ export default function EditDrawer({
                     </DateField.Input>
                   </DateField.Group>
                 </TimeField>
-                <NumberInput
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
                   isWheelDisabled
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Сумма"
                   className="text-foreground col-span-2"
                   value={data.value ? Number(data.value) : 0}
-                  onValueChange={value => update(value.toString(), 'value')}
-                  minValue={0}
-                  endContent={
+                  onChange={value => update(value.toString(), 'value')}
+                  minValue={0}>
+                  <Label>Сумма</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
                     <Icon icon="solar:ruble-bold" width="24" height="24" />
-                  }
-                />
-                <Divider className="col-span-full w-full" />
+                  </NumberField.Group>
+                </NumberField>
+                <Separator className="col-span-full w-full" />
                 <div className="col-span-full flex items-center gap-1">
                   <Icon icon="solar:history-bold" width="22" height="22" />
                   <p>Переработка</p>
                 </div>
                 <TimeField
-                  // @ts-ignore
                   value={times.overworkStart}
                   onChange={value => update(value, 'overworkStart')}
                   isReadOnly={isReadOnly}
@@ -264,7 +257,6 @@ export default function EditDrawer({
                   </DateField.Group>
                 </TimeField>
                 <TimeField
-                  // @ts-ignore
                   value={times.overworkEnd}
                   onChange={value => update(value, 'overworkEnd')}
                   isReadOnly={isReadOnly}
@@ -277,35 +269,33 @@ export default function EditDrawer({
                     </DateField.Input>
                   </DateField.Group>
                 </TimeField>
-                <NumberInput
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
                   isWheelDisabled
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Сумма"
-                  className="text-foreground col-span-2 w-full justify-self-end text-end text-xs"
+                  className="text-foreground col-span-2"
                   value={data.overworkValue ? Number(data.overworkValue) : 0}
-                  minValue={0}
-                  onValueChange={value =>
-                    update(value.toString(), 'overworkValue')
-                  }
-                  endContent={
+                  onChange={value => update(value.toString(), 'overworkValue')}
+                  minValue={0}>
+                  <Label>Сумма</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
                     <Icon icon="solar:ruble-bold" width="24" height="24" />
-                  }
-                />
-                <Divider className="col-span-full" />
+                  </NumberField.Group>
+                </NumberField>
+                <Separator className="col-span-full" />
                 <div className="col-span-full flex items-center gap-1">
                   <Icon icon="solar:gamepad-bold" width="22" height="22" />
                   <p>Игры</p>
                 </div>
                 <p className="col-span-full">1 часовые</p>
-                <NumberInput
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Кол-во"
-                  minValue={0}
                   isWheelDisabled
+                  className="text-foreground col-span-2"
                   value={data.oneGames?.number || 0}
-                  onValueChange={value => {
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'oneGames',
                     )
@@ -319,14 +309,20 @@ export default function EditDrawer({
                       'oneGames',
                     )
                   }}
-                />
-                <NumberInput
+                  minValue={0}>
+                  <Label>Кол-во</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Сумма"
-                  minValue={0}
                   isWheelDisabled
-                  onValueChange={value => {
+                  className="text-foreground col-span-2"
+                  value={data.oneGames?.value}
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'oneGames',
                     )
@@ -340,17 +336,21 @@ export default function EditDrawer({
                       'oneGames',
                     )
                   }}
-                  value={data.oneGames?.value}
-                />
+                  minValue={0}>
+                  <Label>Сумма</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
                 <p className="col-span-full">2-х часовые</p>
-                <NumberInput
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Кол-во"
-                  minValue={0}
                   isWheelDisabled
+                  className="text-foreground col-span-2"
                   value={data.twoGames?.number || 0}
-                  onValueChange={value => {
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'twoGames',
                     )
@@ -364,14 +364,20 @@ export default function EditDrawer({
                       'twoGames',
                     )
                   }}
-                />
-                <NumberInput
+                  minValue={0}>
+                  <Label>Кол-во</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Сумма"
-                  minValue={0}
                   isWheelDisabled
-                  onValueChange={value => {
+                  className="text-foreground col-span-2"
+                  value={data.twoGames?.value}
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'twoGames',
                     )
@@ -385,17 +391,21 @@ export default function EditDrawer({
                       'twoGames',
                     )
                   }}
-                  value={data.twoGames?.value || 0}
-                />
+                  minValue={0}>
+                  <Label>Сумма</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
                 <p className="col-span-full">3-х часовые</p>
-                <NumberInput
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Кол-во"
-                  minValue={0}
                   isWheelDisabled
+                  className="text-foreground col-span-2"
                   value={data.threeGames?.number || 0}
-                  onValueChange={value => {
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'threeGames',
                     )
@@ -409,14 +419,20 @@ export default function EditDrawer({
                       'threeGames',
                     )
                   }}
-                />
-                <NumberInput
+                  minValue={0}>
+                  <Label>Кол-во</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Сумма"
-                  minValue={0}
                   isWheelDisabled
-                  onValueChange={value => {
+                  className="text-foreground col-span-2"
+                  value={data.threeGames?.value}
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'threeGames',
                     )
@@ -430,17 +446,21 @@ export default function EditDrawer({
                       'threeGames',
                     )
                   }}
-                  value={data.threeGames?.value || 0}
-                />
+                  minValue={0}>
+                  <Label>Сумма</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
                 <p className="col-span-full">Актёрские</p>
-                <NumberInput
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Кол-во"
-                  minValue={0}
                   isWheelDisabled
+                  className="text-foreground col-span-2"
                   value={data.actorGames?.number || 0}
-                  onValueChange={value => {
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'actorGames',
                     )
@@ -454,14 +474,20 @@ export default function EditDrawer({
                       'actorGames',
                     )
                   }}
-                />
-                <NumberInput
+                  minValue={0}>
+                  <Label>Кол-во</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
+                <NumberField
+                  variant="secondary"
                   isReadOnly={isReadOnly}
-                  classNames={{stepperButton: 'hidden'}}
-                  label="Сумма"
-                  minValue={0}
                   isWheelDisabled
-                  onValueChange={value => {
+                  className="text-foreground col-span-2"
+                  value={data.actorGames?.value}
+                  onChange={value => {
                     const paymentData = gamesPayments.find(
                       d => d.key === 'actorGames',
                     )
@@ -475,9 +501,14 @@ export default function EditDrawer({
                       'actorGames',
                     )
                   }}
-                  value={data.actorGames?.value || 0}
-                />
-                <Divider className="col-span-full" />
+                  minValue={0}>
+                  <Label>Сумма</Label>
+                  <NumberField.Group className="flex px-2">
+                    <NumberField.Input className="flex-1" />
+                    <Icon icon="solar:ruble-bold" width="24" height="24" />
+                  </NumberField.Group>
+                </NumberField>
+                <Separator className="col-span-full" />
                 <div className="col-span-full flex items-center gap-1">
                   <Icon icon="solar:bill-check-bold" width="22" height="22" />
                   <p>Бонусы</p>
@@ -506,7 +537,7 @@ export default function EditDrawer({
                   }}
                   value={data.fines || ''}
                 />
-                <Divider className="col-span-full" />
+                <Separator className="col-span-full" />
                 <p className="col-span-full w-full">
                   <Icon
                     icon="solar:chat-round-line-bold"
@@ -516,17 +547,14 @@ export default function EditDrawer({
                   />
                   Комментарий
                 </p>
-                <Textarea
-                  isReadOnly={isReadOnly}
+                <TextArea
+                  variant="secondary"
+                  readOnly={isReadOnly}
                   aria-label="Комментарий"
-                  classNames={{
-                    innerWrapper: 'min-h-[4.5rem] items-center justify-center',
-                    input: 'h-full',
-                  }}
                   style={{height: 'fit-content'}}
                   className="col-span-2"
                   value={data.comment || ''}
-                  onValueChange={value => update(value, 'comment')}
+                  onChange={e => update(e.target.value, 'comment')}
                 />
                 <p className="col-span-full w-full">
                   <Icon
@@ -539,22 +567,61 @@ export default function EditDrawer({
                 </p>
                 {data.faceId?.map(data => (
                   <>
-                    <CellChip>
+                    <CellChip className="bg-default">
                       <Location locationName={data.location.name} />
                     </CellChip>
-                    <CellChip>{data.timestamp}</CellChip>
+                    <CellChip className="bg-default">{data.timestamp}</CellChip>
                   </>
                 ))}
                 {!isReadOnly && (
                   <>
-                    <Divider className="col-span-full" />
+                    <Separator className="col-span-full" />
                     <DatePicker
-                      label="Дата смены"
+                      name="date"
                       className="col-span-2"
-                      onChange={value => update(value, 'date')}
-                      // @ts-ignore
                       value={parseDate(salaryDate.toFormat('yyyy-MM-dd'))}
-                    />
+                      onChange={value => update(value, 'date')}>
+                      <Label>Дата смены</Label>
+                      <DateField.Group fullWidth variant="secondary">
+                        <DateField.Input>
+                          {segment => <DateField.Segment segment={segment} />}
+                        </DateField.Input>
+                        <DateField.Suffix>
+                          <DatePicker.Trigger>
+                            <DatePicker.TriggerIndicator />
+                          </DatePicker.Trigger>
+                        </DateField.Suffix>
+                      </DateField.Group>
+                      <DatePicker.Popover>
+                        <Calendar aria-label="Дата">
+                          <Calendar.Header>
+                            <Calendar.YearPickerTrigger>
+                              <Calendar.YearPickerTriggerHeading />
+                              <Calendar.YearPickerTriggerIndicator />
+                            </Calendar.YearPickerTrigger>
+                            <Calendar.NavButton slot="previous" />
+                            <Calendar.NavButton slot="next" />
+                          </Calendar.Header>
+                          <Calendar.Grid>
+                            <Calendar.GridHeader>
+                              {day => (
+                                <Calendar.HeaderCell>{day}</Calendar.HeaderCell>
+                              )}
+                            </Calendar.GridHeader>
+                            <Calendar.GridBody>
+                              {date => <Calendar.Cell date={date} />}
+                            </Calendar.GridBody>
+                          </Calendar.Grid>
+                          <Calendar.YearPickerGrid>
+                            <Calendar.YearPickerGridBody>
+                              {({year}) => (
+                                <Calendar.YearPickerCell year={year} />
+                              )}
+                            </Calendar.YearPickerGridBody>
+                          </Calendar.YearPickerGrid>
+                        </Calendar>
+                      </DatePicker.Popover>
+                    </DatePicker>
                     <DeleteButton
                       callback={() => update('', 'delete')}
                       className="col-span-2 h-full w-full"
@@ -571,19 +638,15 @@ export default function EditDrawer({
                     </div>
                   </>
                 )}
-              </DrawerBody>
-              <DrawerFooter>
-                <Button
-                  className="w-full"
-                  color="danger"
-                  variant="ghost"
-                  onPress={onClose}>
+              </Drawer.Body>
+              <Drawer.Footer>
+                <Button className="w-full" variant="danger-soft" slot="close">
                   Закрыть
                 </Button>
-              </DrawerFooter>
-            </>
-          )}
-        </DrawerContent>
+              </Drawer.Footer>
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
       </Drawer>
     </>
   )

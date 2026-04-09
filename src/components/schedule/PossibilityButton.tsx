@@ -1,12 +1,4 @@
-import {ChevronDownIcon} from '@/public/icons/ChevronDownIcon'
-import {
-  ButtonGroup,
-  Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from '@heroui/react'
+import {ButtonGroup, Button, Dropdown} from '@heroui/react'
 import {useState} from 'react'
 import LocationIcon from '@/src/components/global/LocationIcon'
 import {Icon} from '@iconify/react'
@@ -32,45 +24,52 @@ export default function PossibilityButton({
   return (
     <ButtonGroup>
       <Button
-        startContent={
-          selectedOption === 'Могу' || !selectedOption ? (
-            <Icon icon="solar:add-circle-linear" width="24" height="24" />
-          ) : (
-            <LocationIcon locationName={location || ''} />
-          )
-        }
         isDisabled={isDisabled}
-        className="h-14 w-full"
+        className={`h-14 w-full ${selectedValue === (selectedOption === 'Могу' ? '+' : location) ? 'bg-success text-success-foreground' : ''}`}
         size="lg"
-        color={
-          selectedValue === (selectedOption === 'Могу' ? '+' : location)
-            ? 'success'
-            : 'default'
-        }
+        slot="icon"
+        variant="tertiary"
         onPress={() => {
           handler(selectedOption === 'Могу' ? '+' : selectedOption)
         }}>
+        {selectedOption === 'Могу' || !selectedOption ? (
+          <Icon icon="solar:add-circle-linear" width="24" height="24" />
+        ) : (
+          <LocationIcon locationName={location || ''} />
+        )}
         {selectedOption}
       </Button>
       {isAdmin && (
-        <Dropdown placement="bottom-end" isDisabled={isDisabled}>
-          <DropdownTrigger className="h-14">
-            <Button isIconOnly>
-              <ChevronDownIcon />
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu
-            disallowEmptySelection
-            aria-label="Location Options"
-            selectedKeys={selectedOption}
-            selectionMode="single"
-            onSelectionChange={selected =>
-              setSelectedOption(Array.from(selected)[0].toString())
-            }
-            className="max-w-[300px]">
-            <DropdownItem key="Могу">Могу</DropdownItem>
-            <DropdownItem key={location || ''}>{location}</DropdownItem>
-          </DropdownMenu>
+        <Dropdown>
+          <Button
+            slot="icon"
+            variant="tertiary"
+            className="h-14 w-14"
+            isIconOnly>
+            <ButtonGroup.Separator />
+            <Icon icon="solar:alt-arrow-down-linear" width="24" height="24" />
+          </Button>
+          <Dropdown.Popover>
+            <Dropdown.Menu
+              disallowEmptySelection
+              aria-label="Location Options"
+              selectedKeys={selectedOption}
+              selectionMode="single"
+              onSelectionChange={selected =>
+                setSelectedOption(Array.from(selected)[0].toString())
+              }
+              className="max-w-75">
+              <Dropdown.Item isDisabled={isDisabled} id="Могу" key="Могу">
+                Могу
+              </Dropdown.Item>
+              <Dropdown.Item
+                id={location || ''}
+                isDisabled={isDisabled}
+                key={location || ''}>
+                {location}
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown.Popover>
         </Dropdown>
       )}
     </ButtonGroup>

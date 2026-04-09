@@ -1,6 +1,6 @@
 'use client'
 
-import {LTLocation, LTPayroll, LTWorker} from '@/src/utils/types'
+import {LTPayroll, LTWorker} from '@/src/utils/types'
 import {Fragment, useCallback, useState} from 'react'
 import PayrollCard from '@/src/components/payrolls/PayrollCard'
 import PayrollCreateCard from '@/src/components/payrolls/PayrollsCreateCard'
@@ -8,13 +8,11 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 
 interface PayrollsPageProps {
   data: LTPayroll[]
-  locations: LTLocation[]
   worker: LTWorker
 }
 
 export default function PayrollsPage({
   data: initialData,
-  locations,
   worker,
 }: PayrollsPageProps) {
   const [data, setData] = useState(initialData)
@@ -26,9 +24,7 @@ export default function PayrollsPage({
   return (
     <main className="p-4">
       <div className="flex flex-row flex-wrap gap-4">
-        {checkPermissions(['edit_payrolls'], worker) && (
-          <PayrollCreateCard locations={locations} />
-        )}
+        {checkPermissions(['edit_payrolls'], worker) && <PayrollCreateCard />}
         {data.map(payroll => {
           return (
             <Fragment key={payroll.id}>

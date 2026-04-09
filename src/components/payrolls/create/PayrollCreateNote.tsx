@@ -1,4 +1,4 @@
-import {Input} from '@heroui/react-beta'
+import {Input} from '@heroui/react'
 import Location from '@/src/components/global/Location'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import separateNumber from '@/lib/functions/separateNumber'
@@ -52,7 +52,7 @@ export default function PayrollCreateNote({
 
           return (
             <div
-              className="bg-content1 flex flex-col rounded-2xl p-2"
+              className="bg-surface flex flex-col rounded-2xl p-2"
               key={location.id}>
               <Location
                 iconClassName="w-6"
@@ -73,7 +73,7 @@ export default function PayrollCreateNote({
                     updateLocationMoneyCallback(location.id, event.target.value)
                   }
                 />
-                <div className="bg-content2 flex h-10 w-20 items-center rounded-xl px-2 text-center text-sm">
+                <div className="bg-default flex h-10 w-20 items-center rounded-xl px-2 text-center text-sm">
                   <p
                     className={`${(locationMoney || 0) - usedMoney < 0 ? 'text-danger' : ''} truncate`}>
                     {separateNumber((locationMoney || 0) - usedMoney)}

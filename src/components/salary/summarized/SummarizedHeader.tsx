@@ -1,5 +1,4 @@
 import {SummaryColumn} from '@/src/components/salary/summarized/SummarizedPage'
-import {DateValue, RangeValue} from '@heroui/react'
 import {Dispatch, SetStateAction, useCallback} from 'react'
 import {
   Select,
@@ -9,7 +8,9 @@ import {
   ListBox,
   Label,
   Key,
-} from '@heroui/react-beta'
+  DateValue,
+  RangeValue,
+} from '@heroui/react'
 import {LTLocation, LTRank} from '@/src/utils/types'
 import LocationSelect from '@/src/components/global/LocationSelect'
 
@@ -41,7 +42,7 @@ export default function SummarizedHeader({
 
   return (
     <div className="sticky top-2 flex flex-col gap-1">
-      <div className="bg-content1 flex h-fit w-full gap-2 rounded-2xl p-2">
+      <div className="bg-surface flex h-fit w-full gap-2 rounded-2xl p-2">
         <DateRangePicker onChange={val => setDateRange(val)}>
           <DateField.Group lang="ru" variant="secondary">
             <DateField.Input slot="start">
@@ -118,10 +119,10 @@ export default function SummarizedHeader({
           includeAll
         />
       </div>
-      <div className="bg-content1 flex h-fit w-full gap-2 rounded-2xl p-2">
+      <div className="bg-surface flex h-fit w-full gap-2 rounded-2xl p-2">
         {columns.map(col => (
           <div
-            className="bg-content2 flex flex-1 flex-col items-center justify-center rounded-xl p-2"
+            className="bg-default flex flex-1 flex-col items-center justify-center rounded-xl p-2"
             key={col.title}>
             <p>{col.title}</p>
             <p className="text-foreground-500">{col.sumFn()}</p>

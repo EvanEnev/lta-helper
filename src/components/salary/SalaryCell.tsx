@@ -4,14 +4,7 @@ import {
   LTLocation,
   SalaryData,
 } from '@/src/utils/types'
-import {
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Divider,
-  Tooltip,
-} from '@heroui/react'
+import {Card, CardFooter, CardHeader, Separator, Tooltip} from '@heroui/react'
 import CellBody from '@/src/components/salary/CellBody'
 import CellFooter from '@/src/components/salary/CellFooter'
 import isDark from '@/lib/functions/isDark'
@@ -61,26 +54,28 @@ export default function SalaryCell({
     <div>
       {!!data.location && (
         <Card
-          style={{backgroundColor: data.location?.color}}
-          className={`${canViewFull ? '' : 'min-h-60'} mb-2 max-h-full w-fit min-w-[20rem]`}>
-          <CardHeader
-            className={`grid-rows-auto grid grid-flow-row grid-cols-2 items-start gap-2 ${textColorClass}`}>
+          className={`${canViewFull ? '' : 'min-h-60'} max-h-full w-fit min-w-[20rem]`}>
+          <Card.Header
+            style={{backgroundColor: data.location?.color}}
+            className={`grid-rows-auto grid grid-flow-row grid-cols-2 items-start gap-2 rounded-2xl p-2 ${textColorClass}`}>
             <div className="col-span-full flex w-fit items-center gap-1">
-              <Tooltip
-                content={
+              <Tooltip>
+                <Tooltip.Trigger>
+                  <div className="text-large flex items-center gap-2">
+                    <LocationIcon locationName={data.location?.name} />
+                    <p>{data.location?.name}</p>
+                  </div>
+                </Tooltip.Trigger>
+                <Tooltip.Content>
                   <p className="whitespace-nowrap">
                     {data.createdBy} {data.createdAt}
                   </p>
-                }>
-                <div className="text-large flex items-center gap-2">
-                  <LocationIcon locationName={data.location?.name} />
-                  <p>{data.location?.name}</p>
-                </div>
+                </Tooltip.Content>
               </Tooltip>
             </div>
-          </CardHeader>
-          <CardBody
-            className={`[&>div>hr[role=separator]]:bg-foreground grid-rows-auto rounded-t-large border-content1 bg-content1 grid grid-flow-row grid-cols-[1fr_1px_1fr] items-start gap-2 border-t-2`}>
+          </Card.Header>
+          <Card.Content
+            className={`[&>div>hr[role=separator]]:bg-foreground grid-rows-auto rounded-t-large border-surface bg-surface grid grid-flow-row grid-cols-[1fr_1px_1fr] items-start gap-2 border-t-2`}>
             <CellBody
               isReviewMode={isReviewMode}
               faceId={faceIdData}
@@ -92,10 +87,10 @@ export default function SalaryCell({
                   : null
               }
             />
-          </CardBody>
-          <CardFooter
-            className={`${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} bg-content1 h-fit max-h-fit flex-col text-center`}>
-            <Divider className="bg-foreground w-full" />
+          </Card.Content>
+          <Card.Footer
+            className={`flex ${canViewFull ? 'gap-1 py-1.5' : 'gap-2'} bg-surface h-fit max-h-fit flex-col text-center`}>
+            <Separator className="bg-foreground w-full" />
             <CellFooter data={data} />
             <EditDrawer
               time={{start: data.startTime, end: data.endTime}}
@@ -111,7 +106,7 @@ export default function SalaryCell({
               isReadOnly={!canEdit}
               workerId={workerId}
             />
-          </CardFooter>
+          </Card.Footer>
         </Card>
       )}
 
