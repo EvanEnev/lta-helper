@@ -148,6 +148,10 @@ html {
 }
 
 @layer components {
+    .button--success {
+        @apply bg-success text-success-foreground;
+    }
+
     .disclosure__indicator {
         @apply h-6! w-6!;
     }

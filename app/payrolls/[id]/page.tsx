@@ -63,7 +63,7 @@ left join ranks r3 on w3.rank_id = r3.id
 where p.id = ${id}`
 
   let moneyOnLocationsQuery = `
-    select l.short_name as location, l.id as location_id, coalesce(lm.value, 0) as value
+    select l.name as location, l.id as location_id, coalesce(lm.value, 0) as value
     from (select distinct(location_id) from relations.workers_payrolls where payroll_id = ${id}) lp
            left join locations l on l.id = lp.location_id
            left join payrolls.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = ${id}`

@@ -5,7 +5,7 @@ import {
   LTWorkerPayrollData,
 } from '@/src/utils/types'
 import RankIcon from '@/src/components/global/RankIcon'
-import {Button, Separator, NumberField} from '@heroui/react'
+import {Button, Separator, NumberField, Label} from '@heroui/react'
 import {DateTime} from 'luxon'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import {memo, RefObject, useCallback, useState} from 'react'
@@ -38,8 +38,6 @@ function PayrollsDetailsRow({
   socketRef,
   worker,
 }: PayrollsDetailsRowProps) {
-  console.log('row render', worker.id)
-
   const headerSizes = useAtomValue(headerSizesAtom)
   const isMobile = useIsMobile()
   const [loading, setLoading] = useState(false)
@@ -88,7 +86,7 @@ function PayrollsDetailsRow({
 
   return (
     <>
-      <fieldset className="glass relative flex flex-col items-center gap-2 rounded-2xl p-2">
+      <fieldset className="glass relative flex flex-col items-stretch gap-2 rounded-2xl p-2">
         <legend
           className="sticky left-2 flex translate-y-1 items-center justify-start gap-2"
           style={{
@@ -98,48 +96,53 @@ function PayrollsDetailsRow({
           <p className="mx-auto">{data.worker.name}</p>
         </legend>
         <div className="flex items-center gap-2">
-          <NumberInput
-            label="ЗП"
-            labelPlacement="outside"
-            classNames={{stepperButton: 'hidden'}}
+          <NumberField
+            variant="secondary"
             isReadOnly={!canEdit}
-            onValueChange={(value: number) => {
-              updateCallback('value', value)
-            }}
-            isWheelDisabled
-            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
             className="min-w-36 flex-1"
             value={data.value || 0}
-          />
-          <Separator orientation="vertical" />
-          <NumberInput
-            label="Бонусы"
-            labelPlacement="outside"
-            classNames={{stepperButton: 'hidden'}}
-            isReadOnly={!canEdit}
             isWheelDisabled
-            onValueChange={(value: number) => {
-              updateCallback('bonuses', value)
-            }}
-            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
+            onChange={value => {
+              updateCallback('value', value)
+            }}>
+            <Label>ЗП</Label>
+            <NumberField.Group className="flex px-2">
+              <NumberField.Input className="flex-1" />
+              <Icon icon="solar:ruble-bold" width="24" height="24" />
+            </NumberField.Group>
+          </NumberField>
+          <Separator orientation="vertical" />
+          <NumberField
+            variant="secondary"
+            isReadOnly={!canEdit}
             className="min-w-36 flex-1"
             value={data.bonuses || 0}
-          />
-          <Separator orientation="vertical" />
-          <NumberInput
-            label="Внешняя выплата"
-            labelPlacement="outside"
-            classNames={{stepperButton: 'hidden'}}
-            isReadOnly={!canEdit}
             isWheelDisabled
-            minValue={0}
-            onValueChange={(value: number) => {
-              updateCallback('external_payment', value)
-            }}
-            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
+            onChange={value => {
+              updateCallback('bonuses', value)
+            }}>
+            <Label>Бонусы</Label>
+            <NumberField.Group className="flex px-2">
+              <NumberField.Input className="flex-1" />
+              <Icon icon="solar:ruble-bold" width="24" height="24" />
+            </NumberField.Group>
+          </NumberField>
+          <Separator orientation="vertical" />
+          <NumberField
+            variant="secondary"
+            isReadOnly={!canEdit}
             className="min-w-36 flex-1"
             value={data.external_payment || 0}
-          />
+            isWheelDisabled
+            onChange={value => {
+              updateCallback('external_payment', value)
+            }}>
+            <Label>Внешняя выплата</Label>
+            <NumberField.Group className="flex px-2">
+              <NumberField.Input className="flex-1" />
+              <Icon icon="solar:ruble-bold" width="24" height="24" />
+            </NumberField.Group>
+          </NumberField>
           <Separator orientation="vertical" />
           <LocationSelect
             isReadOnly={!canEdit}
@@ -155,26 +158,24 @@ function PayrollsDetailsRow({
             locations={locations}
           />
           <Separator orientation="vertical" />
-          <NumberInput
-            readOnly
-            variant="bordered"
-            label="Сумма"
-            labelPlacement="outside"
-            classNames={{stepperButton: 'hidden'}}
-            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
+          <NumberField
+            variant="secondary"
+            isReadOnly
             className="min-w-36 flex-1"
             value={
               data.value + (data.bonuses || 0) - (data.external_payment || 0)
             }
-          />
+            isWheelDisabled>
+            <Label>Сумма</Label>
+            <NumberField.Group className="flex px-2">
+              <NumberField.Input className="flex-1" />
+              <Icon icon="solar:ruble-bold" width="24" height="24" />
+            </NumberField.Group>
+          </NumberField>
           <Separator orientation="vertical" />
-          <NumberInput
-            readOnly
-            variant="bordered"
-            label="Остаток"
-            labelPlacement="outside"
-            classNames={{stepperButton: 'hidden'}}
-            endContent={<Icon icon="solar:ruble-bold" width="24" height="24" />}
+          <NumberField
+            variant="secondary"
+            isReadOnly
             className="min-w-36 flex-1"
             value={
               data.value +
@@ -182,21 +183,27 @@ function PayrollsDetailsRow({
               (data.taken || 0) -
               (data.external_payment || 0)
             }
-          />
+            isWheelDisabled>
+            <Label>Остаток</Label>
+            <NumberField.Group className="flex px-2">
+              <NumberField.Input className="flex-1" />
+              <Icon icon="solar:ruble-bold" width="24" height="24" />
+            </NumberField.Group>
+          </NumberField>
         </div>
         <div className="flex w-full items-center gap-2">
           {canIssue && (
             <>
               <Button
-                isLoading={loading}
+                isPending={loading}
                 className="h-full min-w-36"
                 onPress={issuePayroll}
-                color={
+                variant={
                   data.issue_confirmed
                     ? 'primary'
                     : data.taken
-                      ? 'success'
-                      : 'default'
+                      ? 'tertiary'
+                      : 'secondary'
                 }
                 isDisabled={
                   !(
@@ -211,9 +218,9 @@ function PayrollsDetailsRow({
                 <>
                   <div className="min-w-36">
                     <p>Выдано:</p>
-                    <Code className="w-full" color="success">
+                    <p className="text-success w-full">
                       {separateNumber(data.taken)}
-                    </Code>
+                    </p>
                   </div>
                   <Separator orientation="vertical" />
                   <div>
@@ -242,9 +249,9 @@ function PayrollsDetailsRow({
                   <div className="min-w-36">
                     <p>К выдаче:</p>
                     {data.to_take ? (
-                      <Code className="text-medium w-full" color="primary">
+                      <p className="text-medium text-accent w-full">
                         {separateNumber(data.to_take)}
-                      </Code>
+                      </p>
                     ) : (
                       <i>Не указано</i>
                     )}

@@ -72,7 +72,7 @@ export default function PayrollCreateHeader({
   )
 
   return (
-    <div className="bg-content1 sticky top-2 z-1000 flex flex-col rounded-2xl">
+    <div className="bg-surface sticky top-2 z-1000 flex flex-col rounded-2xl">
       <div className="flex gap-2">
         <Disclosure className="w-full">
           <Disclosure.Heading className="flex items-center gap-2 p-2">
@@ -185,7 +185,7 @@ export default function PayrollCreateHeader({
       <div className="flex h-fit w-full gap-2 p-2">
         {columns.map(col => (
           <div
-            className="bg-content2 flex flex-1 flex-col items-center justify-center rounded-xl p-2"
+            className="bg-default flex flex-1 flex-col items-center justify-center rounded-xl p-2"
             key={col.title}>
             <p>{col.title}</p>
             <p className="text-foreground-500">{col.sumFn()}</p>

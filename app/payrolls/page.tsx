@@ -1,7 +1,6 @@
 import {LTPayroll} from '@/src/utils/types'
 import db from '@/lib/database'
 import PayrollsPage from '@/src/components/payrolls/PayrollsPage'
-import getLocations from '@/lib/functions/getLocations'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import checkPermissions from '@/lib/functions/checkPermissions'
@@ -37,7 +36,5 @@ export default async function Payrolls() {
     takeBy: d.takeBy.toISO(),
   }))
 
-  const locations = await getLocations()
-
-  return <PayrollsPage worker={worker} data={data} locations={locations} />
+  return <PayrollsPage worker={worker} data={data} />
 }

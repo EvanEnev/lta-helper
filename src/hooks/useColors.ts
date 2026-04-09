@@ -9,6 +9,7 @@ export type SemanticColor =
   | 'warning'
   | 'danger'
   | 'default'
+  | 'accent'
 
 export type SemanticColors = Record<SemanticColor, string>
 
@@ -19,6 +20,7 @@ const KEYS: SemanticColor[] = [
   'warning',
   'danger',
   'default',
+  'accent',
 ]
 
 function normalizeColor(raw: string): string {

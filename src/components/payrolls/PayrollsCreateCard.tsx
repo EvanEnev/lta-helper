@@ -10,18 +10,11 @@ import {
 import {DateTime} from 'luxon'
 import {useEffect, useMemo, useState} from 'react'
 import {parseDate} from '@internationalized/date'
-import {LTLocation} from '@/src/utils/types'
 import Link from 'next/link'
 import {Icon} from '@iconify/react'
 import CalendarPicker from '@/src/components/payrolls/CalendarPicker'
 
-interface PayrollsCreateCardProps {
-  locations: LTLocation[]
-}
-
-export default function PayrollCreateCard({
-  locations,
-}: PayrollsCreateCardProps) {
+export default function PayrollCreateCard() {
   const [isPending, setIsPending] = useState(false)
   const state = useOverlayState()
 

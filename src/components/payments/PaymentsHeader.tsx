@@ -83,31 +83,6 @@ export default function PaymentsHeader({
           Создать
         </Button>
       )}
-      <Select
-        placeholder="Выберите тип"
-        onChange={type => {
-          if (String(type) === 'all') return setType(null)
-          setType(type ? String(type) : null)
-        }}
-        value={type}
-        selectionMode="single">
-        <Select.Trigger>
-          <Select.Value />
-          <Select.Indicator />
-        </Select.Trigger>
-        <Select.Popover>
-          <ListBox>
-            <ListBox.Item key="all" id="all">
-              Все
-            </ListBox.Item>
-            {paymentsTypes.map(d => (
-              <ListBox.Item key={d.name} id={d.name}>
-                {d.name}
-              </ListBox.Item>
-            ))}
-          </ListBox>
-        </Select.Popover>
-      </Select>
       <DateRangePicker onChange={parseDateRange}>
         <DateField.Group lang="ru" variant="secondary">
           <DateField.Input slot="start">
@@ -146,6 +121,31 @@ export default function PaymentsHeader({
           </RangeCalendar>
         </DateRangePicker.Popover>
       </DateRangePicker>
+      <Select
+        placeholder="Выберите тип"
+        onChange={type => {
+          if (String(type) === 'all') return setType(null)
+          setType(type ? String(type) : null)
+        }}
+        value={type}
+        selectionMode="single">
+        <Select.Trigger>
+          <Select.Value />
+          <Select.Indicator />
+        </Select.Trigger>
+        <Select.Popover>
+          <ListBox>
+            <ListBox.Item key="all" id="all">
+              Все
+            </ListBox.Item>
+            {paymentsTypes.map(d => (
+              <ListBox.Item key={d.name} id={d.name}>
+                {d.name}
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </Select.Popover>
+      </Select>
       <Input
         placeholder="Позывной"
         id="nameInput"

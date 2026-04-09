@@ -1,5 +1,5 @@
 import {Day, LTLocation} from '@/src/utils/types'
-import {Badge, Button, Skeleton} from '@heroui/react'
+import {Badge, Button} from '@heroui/react'
 import {useMemo, useState} from 'react'
 import {useAtom, useSetAtom} from 'jotai'
 import {selectedDatesAtom, selectedDayAtom} from '@/src/utils/global/atoms'
@@ -23,22 +23,13 @@ export default function DayButton(props: DayButtonProps) {
 
   const [isLongPress, setIsLongPress] = useState(false)
 
+  const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
+  const setSelectedDay = useSetAtom(selectedDayAtom)
+
   const longPress = useLongPress(() => {
     setIsLongPress(true)
     setSelectedDates(prev => (day.date ? [...prev, day.date] : prev))
   }, 300)
-
-  const [selectedDates, setSelectedDates] = useAtom(selectedDatesAtom)
-  const setSelectedDay = useSetAtom(selectedDayAtom)
-
-  let color: 'default' | 'success' | 'danger' | 'warning' = 'default'
-  if (
-    day.value === '+' ||
-    locations.find(l => l.name.toLowerCase() === day.value?.toLowerCase())
-  )
-    color = 'success'
-  if (day.value === '-') color = 'danger'
-  if (day.value === '+/-') color = 'warning'
 
   const handler = () => {
     if (isLongPress) {
@@ -81,7 +72,7 @@ export default function DayButton(props: DayButtonProps) {
 
   switch (props.day.value) {
     case '+':
-      bg = 'bg-accent text-accent-foreground'
+      bg = 'bg-success text-success-foreground'
       break
     case '-':
       bg = 'bg-danger text-danger-foreground'

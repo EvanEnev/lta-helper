@@ -1,12 +1,4 @@
-import {ChevronDownIcon} from '@/public/icons/ChevronDownIcon'
-import {
-  ButtonGroup,
-  Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from '@heroui/react'
+import {ButtonGroup, Button, Dropdown} from '@heroui/react'
 import {useState} from 'react'
 import LocationIcon from '@/src/components/global/LocationIcon'
 import {Icon} from '@iconify/react'
@@ -33,14 +25,10 @@ export default function PossibilityButton({
     <ButtonGroup>
       <Button
         isDisabled={isDisabled}
-        className="h-14 w-full"
+        className={`h-14 w-full ${selectedValue === (selectedOption === 'Могу' ? '+' : location) ? 'bg-success text-success-foreground' : ''}`}
         size="lg"
         slot="icon"
-        variant={
-          selectedValue === (selectedOption === 'Могу' ? '+' : location)
-            ? 'primary'
-            : 'tertiary'
-        }
+        variant="tertiary"
         onPress={() => {
           handler(selectedOption === 'Могу' ? '+' : selectedOption)
         }}>
