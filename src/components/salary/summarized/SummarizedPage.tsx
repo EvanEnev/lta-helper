@@ -194,10 +194,23 @@ export default function SummarizedPage({
       }
 
       setSelectedRanks(newKeys)
-      setData(initialData.filter(d => newKeys.includes(d.rank)))
     },
-    [initialData, ranks, selectedRanks],
+    [ranks, selectedRanks],
   )
+
+  useEffect(() => {
+    let newData = [...initialData]
+
+    newData = newData.filter(d => selectedRanks.includes(d.rank))
+
+    if (!selectedLocations.includes(0)) {
+      newData = newData.filter(
+        d => d.value || d.bonuses || d.fines || d.overwork,
+      )
+    }
+
+    setData(newData)
+  }, [selectedRanks, selectedLocations, initialData])
 
   return (
     <main className="flex w-full flex-col gap-4 p-2">
