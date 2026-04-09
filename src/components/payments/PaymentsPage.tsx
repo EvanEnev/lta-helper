@@ -44,6 +44,15 @@ export default function PaymentsPage({
       const typeFilter = filters.find(d => d.name === 'type')
       const datesFilter = filters.find(d => d.name === 'dates')
 
+      if (datesFilter?.value) {
+        const res = await fetch('/api/payments/get', {
+          method: 'POST',
+          body: JSON.stringify({dates: datesFilter.value}),
+        })
+
+        filteredData = (await res.json()).data
+      }
+
       if (nameFilter?.value) {
         filteredData = filteredData.filter(d =>
           d.worker?.name
@@ -57,17 +66,6 @@ export default function PaymentsPage({
         filteredData = filteredData.filter(d => d.type === typeFilter.value)
       }
 
-      if (datesFilter?.value) {
-        const res = await fetch('/api/payments/get', {
-          method: 'POST',
-          body: JSON.stringify({dates: datesFilter.value}),
-        })
-
-        filteredData = (await res.json()).data
-        console.debug(res, filteredData)
-      }
-
-      console.debug(filteredData)
       setPayments(filteredData)
     })()
   }, [filters, initialPayments])
