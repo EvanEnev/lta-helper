@@ -1,17 +1,14 @@
 import {DateTime} from 'luxon'
 import {
   Autocomplete,
-  Header,
   Label,
   ListBox,
   SearchField,
   Select,
-  Separator,
   useFilter,
 } from '@heroui/react'
 import {useCallback} from 'react'
 import capitalize from '@/lib/functions/capitalize'
-import RankIcon from '@/src/components/global/RankIcon'
 
 export default function MonthSelect({
   dates,
@@ -64,7 +61,9 @@ export default function MonthSelect({
             </SearchField>
             <ListBox>
               {datetimes.map(date => (
-                <ListBox.Item key={date.toFormat('yyyy-MM-dd')}>
+                <ListBox.Item
+                  id={date.toFormat('yyyy-MM-dd')}
+                  key={date.toFormat('yyyy-MM-dd')}>
                   {capitalize(date.toFormat('LLLL', {locale: 'ru-RU'}))}
                 </ListBox.Item>
               ))}
@@ -106,6 +105,7 @@ export default function MonthSelect({
           <ListBox>
             {datetimes.map(date => (
               <ListBox.Item
+                id={date.toFormat('yyyy-MM-dd')}
                 key={date.toFormat('yyyy-MM-dd')}
                 className="w-full">
                 {capitalize(date.toFormat('LLLL, yyyy', {locale: 'ru-RU'}))}
