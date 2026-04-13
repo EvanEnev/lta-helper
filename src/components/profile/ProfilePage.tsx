@@ -1,16 +1,25 @@
 'use client'
 
 import {LTWorker} from '@/src/utils/types'
-import {Avatar} from '@heroui/react'
+import {Avatar, Button} from '@heroui/react'
 import useIsMobile from '@/src/hooks/useIsMobile'
 import Navigation from '@/src/components/profile/Navigation'
+import providers from '@/src/utils/providers'
+import {authClient} from '@/lib/auth/authClient'
+import {Icon} from '@iconify/react'
+import capitalize from '@/lib/functions/capitalize'
+import {useState} from 'react'
 
 interface ProfilePageProps {
   worker: LTWorker
   userProviders: string[]
 }
 
-export default function ProfilePage({worker, userProviders}: ProfilePageProps) {
+export default function ProfilePage({
+  worker,
+  userProviders: initialProviders,
+}: ProfilePageProps) {
+  const [userProviders, setUserProviders] = useState(initialProviders)
   const isMobile = useIsMobile()
 
   return (
@@ -21,21 +30,55 @@ export default function ProfilePage({worker, userProviders}: ProfilePageProps) {
           <Avatar.Fallback>аватар</Avatar.Fallback>
         </Avatar>
         <p className="text-3xl">{worker.name}</p>
-        {/*<TextField value={worker.phoneNumber || ''}>*/}
-        {/*  <Label>Номер телефона</Label>*/}
-        {/*  <Input />*/}
-        {/*</TextField>*/}
       </div>
       {isMobile && <Navigation worker={worker} />}
-      {/*<div>*/}
-      {/*  {providers.map(provider => (*/}
-      {/*    <div*/}
-      {/*      key={provider.name}*/}
-      {/*      className={`${userProviders.includes(provider.name.toLowerCase()) ? 'bg-success' : ''}`}>*/}
-      {/*      {provider.name}*/}
-      {/*    </div>*/}
-      {/*  ))}*/}
-      {/*</div>*/}
+      <div className="bg-surface flex flex-wrap gap-4 rounded-3xl p-4">
+        {providers.map(provider => {
+          const isLinked = userProviders.includes(provider.name)
+
+          return (
+            <div
+              key={provider.name}
+              className="bg-default flex flex-col gap-2 rounded-2xl p-4">
+              <div className="mx-auto flex items-center gap-2">
+                <Icon
+                  icon={`logos:${provider.icon}`}
+                  className="w-fit p-1"
+                  width="24"
+                  height="24"
+                />
+                <p>{capitalize(provider.name)}</p>
+              </div>
+              <p className={`${isLinked ? 'text-success' : ''}`}>
+                {isLinked ? 'Привязан' : 'Не привязан'}
+              </p>
+              <Button
+                slot="icon"
+                key={provider.name}
+                className="w-full"
+                variant={isLinked ? 'danger-soft' : 'primary'}
+                onPress={async () => {
+                  if (isLinked) {
+                    await authClient.unlinkAccount({
+                      providerId: provider.name,
+                    })
+
+                    setUserProviders(prev =>
+                      prev.filter(p => p !== provider.name),
+                    )
+                  } else {
+                    await authClient.linkSocial({
+                      provider: provider.name,
+                      callbackURL: '/profile',
+                    })
+                  }
+                }}>
+                {isLinked ? 'Отвязать' : 'Привязать'}
+              </Button>
+            </div>
+          )
+        })}
+      </div>
     </main>
   )
 }

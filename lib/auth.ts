@@ -1,7 +1,8 @@
-import {betterAuth} from 'better-auth'
+import jwt from 'jsonwebtoken'
+import {betterAuth, OAuth2Tokens} from 'better-auth'
 import {nextCookies} from 'better-auth/next-js'
 import {Pool} from 'pg'
-import {customSession, oneTap} from 'better-auth/plugins'
+import {customSession, genericOAuth, oneTap} from 'better-auth/plugins'
 import generateCustomSession from '@/lib/auth/generateCustomSession'
 
 export const auth = betterAuth({
@@ -42,6 +43,31 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    genericOAuth({
+      config: [
+        {
+          providerId: 'telegram',
+          clientId: '7488909327',
+          clientSecret:
+            'N2_PqtvTAHkKH_Njiyea270scVMaK50ESkqGvLRzAdhawjp_dinNdQ',
+          discoveryUrl:
+            'https://oauth.telegram.org/.well-known/openid-configuration',
+          pkce: true,
+          scopes: ['openid', 'profile', 'phone', 'telegram:bot_access'],
+          getUserInfo: async (tokens: OAuth2Tokens) => {
+            const decoded = jwt.decode(tokens.idToken || '') as any
+
+            return {
+              id: decoded.sub,
+              email: `${decoded.id}@telegram.local`,
+              name: decoded.preferred_username,
+              image: decoded.picture,
+              emailVerified: true,
+            }
+          },
+        },
+      ],
+    }),
     nextCookies(),
     oneTap(),
     customSession(async ({user, session}) => {

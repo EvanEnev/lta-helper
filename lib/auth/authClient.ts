@@ -1,8 +1,9 @@
 import {createAuthClient} from 'better-auth/react'
-import {oneTapClient} from 'better-auth/client/plugins'
+import {genericOAuthClient, oneTapClient} from 'better-auth/client/plugins'
 
 const auth = createAuthClient({
   plugins: [
+    genericOAuthClient(),
     oneTapClient({
       clientId: process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID as string,
       autoSelect: false,

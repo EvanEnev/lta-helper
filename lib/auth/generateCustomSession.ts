@@ -92,6 +92,7 @@ export default async function generateCustomSession({
 
   let data = await getData(authId, session.userId, !!impersonate)
 
+  console.debug(user, session)
   if (!data.worker.id) {
     const email = user.email
     data = await getData(email, session.userId, false)
