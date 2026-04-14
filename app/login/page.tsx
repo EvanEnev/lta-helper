@@ -1,19 +1,12 @@
 'use client'
 
 import {useSearchParams} from 'next/navigation'
-import {
-  Form,
-  Label,
-  TextField,
-  Input,
-  FieldError,
-  Button,
-  Separator,
-} from '@heroui/react'
+import {Button, Separator} from '@heroui/react'
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'
 import providers from '@/src/utils/global/providers'
+import Link from 'next/link'
 
 export default function Register() {
   const params = useSearchParams()
@@ -21,74 +14,35 @@ export default function Register() {
   const redirect = params.get('redirect')
   const callbackURL = redirect ? (redirect === '/' ? '/' : `/${redirect}`) : '/'
 
-  const onsubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.currentTarget)
-    const data: Record<string, string> = {}
-
-    formData.forEach((value, key) => {
-      data[key] = value.toString()
-    })
-
-    await authClient.signIn.email({
-      email: data.email,
-      password: data.password,
-      rememberMe: true,
-      callbackURL,
-    })
-  }
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
       <div className="flex w-fit flex-col flex-wrap justify-center gap-4">
-        <Form className="flex flex-col gap-4" onSubmit={onsubmit}>
-          <TextField isRequired name="email" type="email">
-            <Label>Почта</Label>
-            <Input placeholder="john@example.com" />
-            <FieldError />
-          </TextField>
-
-          <TextField isRequired minLength={8} name="password" type="password">
-            <Label>Пароль</Label>
-            <Input placeholder="Введите пароль" />
-            <FieldError />
-          </TextField>
-          <div className="flex gap-2">
-            <Button className="w-full" type="submit" variant="secondary">
-              Войти
-            </Button>
-            <Button className="w-full" type="reset" variant="tertiary">
-              Сбросить
-            </Button>
-          </div>
-        </Form>
+        {providers.map(provider => (
+          <Button
+            key={provider.name}
+            className="w-full justify-start gap-4"
+            slot="icon"
+            variant="tertiary"
+            onPress={async () => {
+              const data = await authClient.signIn.social({
+                provider: provider.name,
+              })
+              console.debug(data)
+            }}>
+            <Icon icon={`logos:${provider.icon}`} width="24" height="24" />
+            <p>Войти с {capitalize(provider.name)}</p>
+          </Button>
+        ))}
         <div className="flex max-w-full items-center gap-2">
           <Separator className="flex-1" />
           <p>или</p>
           <Separator className="flex-1" />
         </div>
-        {providers.map(provider => (
-          <Button
-            key={provider.name}
-            className="w-full"
-            variant="tertiary"
-            onPress={async () => {
-              await authClient.signIn.social({
-                provider: provider.name,
-                callbackURL,
-              })
-            }}>
-            <Icon
-              icon={`logos:${provider.icon}`}
-              className="w-fit p-1"
-              width="256"
-              height="262"
-            />
-            Войти с {capitalize(provider.name)}
-          </Button>
-        ))}
+        <Button className="w-full" slot="icon">
+          <Icon icon="solar:user-plus-linear" width="24" height="24" />
+          <Link href="/register">Регистрация</Link>
+        </Button>
       </div>
     </main>
   )
