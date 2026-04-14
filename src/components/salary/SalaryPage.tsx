@@ -430,7 +430,7 @@ export default function SalaryPage({
                   variant="secondary"
                   id="hide"
                   className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
-                  isSelected={isReviewMode}
+                  isSelected={hideEmptyFilter}
                   onChange={value => {
                     handleHideFilter(value)
                   }}>
