@@ -56,6 +56,7 @@ const types = [
   'Премия',
   'Отпуск',
   'Больничный',
+  'Корректировка смен',
 ]
 
 export default function WorkData({
@@ -527,9 +528,12 @@ export default function WorkData({
                           })
                         }}>
                         <Label>{d.description}</Label>
-                        <NumberField.Group className="h-full w-fit min-w-0">
+                        <NumberField.Group className="flex h-full w-fit min-w-0">
                           <NumberField.DecrementButton />
-                          <NumberField.Input placeholder="0" className="w-20" />
+                          <NumberField.Input
+                            placeholder="0"
+                            className="w-20 flex-1"
+                          />
                           <NumberField.IncrementButton />
                         </NumberField.Group>
                       </NumberField>
@@ -556,10 +560,10 @@ export default function WorkData({
                           })
                         }}>
                         <Label>Результат</Label>
-                        <NumberField.Group className="h-full w-fit min-w-0">
+                        <NumberField.Group className="flex">
                           <NumberField.Input
                             placeholder="0"
-                            className="w-full"
+                            className="w-full flex-1"
                           />
                         </NumberField.Group>
                       </NumberField>
