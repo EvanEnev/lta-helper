@@ -50,6 +50,7 @@ export interface LTWorker {
   photoUrl?: string | null
   permissions: Permission[]
   todayLocation?: LTLocation['id'] | null
+  isApproved: boolean
 }
 
 export interface LTWorkType {

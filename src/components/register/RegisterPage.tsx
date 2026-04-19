@@ -1,15 +1,18 @@
 'use client'
 
 import {
+  Autocomplete,
   Button,
   FieldError,
   Form,
   Input,
   Label,
+  ListBox,
+  SearchField,
   TextField,
   toast,
 } from '@heroui/react'
-import {FormEvent} from 'react'
+import {Activity, FormEvent} from 'react'
 import {useRouter} from 'next/navigation'
 import {LTWorker} from '@/src/utils/types'
 import {withMask} from 'use-mask-input'
@@ -17,7 +20,7 @@ import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 
 interface RegisterPageProps {
-  worker: LTWorker
+  worker?: LTWorker
   workers: {id: number; name: string}[]
 }
 
@@ -84,29 +87,29 @@ export default function RegisterPage({worker, workers}: RegisterPageProps) {
           Войти с Google
         </Button>
         <Form className="flex w-full flex-col gap-2" onSubmit={handler}>
-          <TextField isRequired defaultValue={worker.name || ''}>
+          <TextField isRequired defaultValue={worker?.name}>
             <Label>Позывной</Label>
             <Input name="name" />
             <FieldError>Поле обязательно</FieldError>
           </TextField>
-          <TextField isRequired defaultValue={worker.lastName || ''}>
+          <TextField isRequired defaultValue={worker?.lastName || undefined}>
             <Label>Фамилия</Label>
             <Input name="last_name" />
             <FieldError>Поле обязательно</FieldError>
           </TextField>
-          <TextField isRequired defaultValue={worker.firstName || ''}>
+          <TextField isRequired defaultValue={worker?.firstName || undefined}>
             <Label>Имя</Label>
             <Input name="first_name" />
             <FieldError>Поле обязательно</FieldError>
           </TextField>
-          <TextField isRequired defaultValue={worker.middleName || ''}>
+          <TextField isRequired defaultValue={worker?.middleName || undefined}>
             <Label>Отчество</Label>
             <Input name="middle_name" />
           </TextField>
           <TextField
             type="tel"
             isRequired
-            defaultValue={worker.phoneNumber || ''}>
+            defaultValue={worker?.phoneNumber || undefined}>
             <Label>Номер телефона</Label>
             <Input
               placeholder="+7 ___ ___-__-__"
@@ -118,40 +121,44 @@ export default function RegisterPage({worker, workers}: RegisterPageProps) {
             />
             <FieldError>Поле обязательно</FieldError>
           </TextField>
-          <TextField type="email" isRequired defaultValue={worker.email || ''}>
+          <TextField
+            type="email"
+            isRequired
+            defaultValue={worker?.email || undefined}>
             <Label>Google почта</Label>
             <Input name="email" />
             <FieldError>Неверная почта</FieldError>
           </TextField>
-          {/*<Activity*/}
-          {/*  mode={worker.isApproved || worker.id ? 'hidden' : 'visible'}>*/}
-          {/*  <Autocomplete>*/}
-          {/*    <Label>Куратор при обучении</Label>*/}
-          {/*    <Autocomplete.Trigger>*/}
-          {/*      <Autocomplete.Value />*/}
-          {/*      <Autocomplete.ClearButton />*/}
-          {/*      <Autocomplete.Indicator />*/}
-          {/*    </Autocomplete.Trigger>*/}
-          {/*    <Autocomplete.Popover>*/}
-          {/*      <Autocomplete.Filter>*/}
-          {/*        <SearchField>*/}
-          {/*          <SearchField.Group>*/}
-          {/*            <SearchField.SearchIcon />*/}
-          {/*            <SearchField.Input />*/}
-          {/*          </SearchField.Group>*/}
-          {/*        </SearchField>*/}
-          {/*        <ListBox>*/}
-          {/*          {workers.map(({id, name}) => (*/}
-          {/*            <ListBox.Item key={id}>*/}
-          {/*              <Label>{name}</Label>*/}
-          {/*              <ListBox.ItemIndicator />*/}
-          {/*            </ListBox.Item>*/}
-          {/*          ))}*/}
-          {/*        </ListBox>*/}
-          {/*      </Autocomplete.Filter>*/}
-          {/*    </Autocomplete.Popover>*/}
-          {/*  </Autocomplete>*/}
-          {/*</Activity>*/}
+          <Activity
+            mode={worker?.isApproved || worker?.id ? 'hidden' : 'visible'}>
+            <Autocomplete isRequired>
+              <Label>Куратор при обучении</Label>
+              <Autocomplete.Trigger>
+                <Autocomplete.Value />
+                <Autocomplete.ClearButton />
+                <Autocomplete.Indicator />
+              </Autocomplete.Trigger>
+              <Autocomplete.Popover>
+                <Autocomplete.Filter>
+                  <SearchField>
+                    <SearchField.Group>
+                      <SearchField.SearchIcon />
+                      <SearchField.Input />
+                    </SearchField.Group>
+                  </SearchField>
+                  <ListBox>
+                    {workers.map(({id, name}) => (
+                      <ListBox.Item key={id}>
+                        <Label>{name}</Label>
+                        <ListBox.ItemIndicator />
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Autocomplete.Filter>
+              </Autocomplete.Popover>
+              <FieldError>Поле обязательно</FieldError>
+            </Autocomplete>
+          </Activity>
 
           <Button
             className="mt-8 h-16 w-full"

@@ -40,8 +40,12 @@ export default function Register() {
           <Separator className="flex-1" />
         </div>
         <Button className="w-full" slot="icon">
-          <Icon icon="solar:user-plus-linear" width="24" height="24" />
-          <Link href="/register">Регистрация</Link>
+          <Link
+            href="/register"
+            className="flex h-full w-full items-center justify-center gap-2">
+            <Icon icon="solar:user-plus-linear" width="24" height="24" />
+            Регистрация
+          </Link>
         </Button>
       </div>
     </main>

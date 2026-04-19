@@ -25,7 +25,7 @@ async function getData(authId: string, userId: string, impersonate: boolean) {
                    w.photo_url,
                    w.is_fired,
                    w.is_former,
---                    w.is_approved,
+                   coalesce(w.is_approved, false) as is_approved,
                    admins.location_id as today_location
                  FROM workers w
                         LEFT JOIN ranks r ON r.id = w.rank_id
@@ -65,7 +65,7 @@ async function getData(authId: string, userId: string, impersonate: boolean) {
     permissions:
       workerResult.is_fired || workerResult.is_former ? [] : permissions,
     email: workerResult.email || authId.includes('@') ? authId : null,
-    // isApproved: workerResult.is_approved || false,
+    isApproved: workerResult.is_approved,
   }
 
   if (workerResult?.today_location) {

@@ -41,7 +41,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="ru" className="dark overflow-auto!">
+    <html lang="ru" className="dark overflow-auto!" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-title" content="LTA Helper" />
         <Script
