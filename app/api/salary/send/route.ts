@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
     if (data.deleted) {
       queries.push(
         `DELETE FROM salary.list
-       WHERE worker_id = (SELECT id from workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
-         AND location_id = (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
-         AND date = '${date.toFormat('yyyy-MM-dd')}'`,
+         WHERE worker_id = (SELECT id from workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
+           AND location_id = (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
+           AND date = '${date.toFormat('yyyy-MM-dd')}'`,
       )
 
       continue
@@ -94,11 +94,13 @@ export async function POST(req: NextRequest) {
     const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
 
+    const isTyped = data.location === 'Другое'
+
     const salary = getSalaryData({
       gamesPayments,
       worker,
       rank: rankData,
-      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+      workingHours: isTyped ? '10-19' : data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
       comment: data.comment,
@@ -120,8 +122,8 @@ export async function POST(req: NextRequest) {
         number: data.actorGames?.number || 0,
       },
       override: {
-        value: data.value,
-        overwork: data.location === 'Другое' ? 0 : data.overwork,
+        value: isTyped ? (data.value ? data.value : 0) : data.value,
+        overwork: isTyped ? 0 : data.overwork,
         oneGames: data.oneGames?.value,
         twoGames: data.twoGames?.value,
         threeGames: data.threeGames?.value,
@@ -135,9 +137,9 @@ export async function POST(req: NextRequest) {
 
     if (data.withoutDate) {
       const query = `SELECT date FROM salary.list WHERE
-                                   worker_id = (SELECT id FROM workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
-                                   AND date BETWEEN '${date.startOf('month').toFormat('yyyy-MM-dd')}'
-                                     AND '${date.endOf('month').toFormat('yyyy-MM-dd')}'`
+        worker_id = (SELECT id FROM workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
+                                                    AND date BETWEEN '${date.startOf('month').toFormat('yyyy-MM-dd')}'
+          AND '${date.endOf('month').toFormat('yyyy-MM-dd')}'`
       const result = await db.query(query)
 
       const dates = result.rows.map(row => row.date)
@@ -168,10 +170,10 @@ export async function POST(req: NextRequest) {
       !KONSOL_DISABLED_RANKS.includes(rankData?.id || 1)
     ) {
       const userDataQuery = `select
-                              id,
+                               id,
                                replace(replace(phone_number, ' ', ''), '-', '') as phone
-                            from workers
-                            where name ilike '${data.worker}'`
+                             from workers
+                             where name ilike '${data.worker}'`
 
       const userData = await db.query(userDataQuery)
 
@@ -218,24 +220,24 @@ export async function POST(req: NextRequest) {
     if (!data.comment?.toLowerCase().includes('под игру')) {
       queries.push(
         `insert into relations.workers_requirements
-         (requirement_id, worker_id, value)
-       select
-         r.id,
-         w.id,
-         1
-       from workers w
-              join ranks.requirements r
-                   on r.rank_id = w.rank_id
-       where w.id = (select id FROM workers WHERE name ilike '${data.worker}')
-         and (r.meta ->> 'auto')::bool = true
+           (requirement_id, worker_id, value)
+         select
+           r.id,
+           w.id,
+           1
+         from workers w
+                join ranks.requirements r
+                     on r.rank_id = w.rank_id
+         where w.id = (select id FROM workers WHERE name ilike '${data.worker}')
+           and (r.meta ->> 'auto')::bool = true
 
-       on conflict (requirement_id, worker_id)
-         do update
-         set value = relations.workers_requirements.value + 1
-      where not exists(
-        select 1 from salary.list where worker_id = relations.workers_requirements.worker_id and date = '${date.toFormat('yyyy-MM-dd')}'
-      )
-      `,
+         on conflict (requirement_id, worker_id)
+           do update
+           set value = relations.workers_requirements.value + 1
+         where not exists(
+           select 1 from salary.list where worker_id = relations.workers_requirements.worker_id and date = '${date.toFormat('yyyy-MM-dd')}'
+         )
+        `,
       )
     }
 
@@ -294,7 +296,7 @@ export async function POST(req: NextRequest) {
                             : 'NULL'
                         },
                         ${data.workTypes?.length ? `array[${data.workTypes}]` : 'NULL'},
-                     ${isConfirmed}
+                        ${isConfirmed}
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET
