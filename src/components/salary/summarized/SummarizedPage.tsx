@@ -154,10 +154,19 @@ export default function SummarizedPage({
           getIndividualSum(workerId, ['bonuses', 'fines']),
       },
       {
-        title: 'Внешняя выплата',
-        sumFn: () => getSum(['external']),
-        accessorFn: (workerId: number) =>
-          getIndividualSum(workerId, ['external']),
+        title: 'Оф. труд.',
+        sumFn: () => getSum(['of']),
+        accessorFn: (workerId: number) => getIndividualSum(workerId, ['of']),
+      },
+      {
+        title: 'Самозянятость',
+        sumFn: () => getSum(['self']),
+        accessorFn: (workerId: number) => getIndividualSum(workerId, ['self']),
+      },
+      {
+        title: 'Выдано',
+        sumFn: () => getSum(['taken']),
+        accessorFn: (workerId: number) => getIndividualSum(workerId, ['taken']),
       },
       {
         title: 'Итог',

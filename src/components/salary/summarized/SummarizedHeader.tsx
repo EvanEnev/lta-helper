@@ -172,6 +172,10 @@ export default function SummarizedHeader({
           <Excel width={40} height={40} />
           Скачать по сотрудникам
         </Button>
+        {/*<Button variant="tertiary" onPress={() => download('summary')}>*/}
+        {/*  <Excel width={40} height={40} />*/}
+        {/*  Скачать сводную по месяцам*/}
+        {/*</Button>*/}
       </div>
       <div className="bg-surface flex h-fit w-full gap-2 rounded-2xl p-2">
         {columns.map(col => (
@@ -179,7 +183,7 @@ export default function SummarizedHeader({
             className="bg-default flex flex-1 flex-col items-center justify-center rounded-xl p-2"
             key={col.title}>
             <p>{col.title}</p>
-            <p className="text-foreground-500">{col.sumFn()}</p>
+            <p className="text-foreground/60">{col.sumFn()}</p>
           </div>
         ))}
       </div>

@@ -188,7 +188,7 @@ export default function PayrollCreateHeader({
             className="bg-default flex flex-1 flex-col items-center justify-center rounded-xl p-2"
             key={col.title}>
             <p>{col.title}</p>
-            <p className="text-foreground-500">{col.sumFn()}</p>
+            <p className="text-foreground/60">{col.sumFn()}</p>
           </div>
         ))}
       </div>
