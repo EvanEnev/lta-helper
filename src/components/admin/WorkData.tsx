@@ -57,6 +57,7 @@ const types = [
   'Отпуск',
   'Больничный',
   'Корректировка смен',
+  'Компенсация НПД',
 ]
 
 export default function WorkData({
