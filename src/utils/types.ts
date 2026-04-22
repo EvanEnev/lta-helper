@@ -405,6 +405,8 @@ export interface LTWorkerData {
     sortingWeight: number
   }
   rankData: RankRequirement[]
+  invitedBy: number | null
+  isApproved: boolean
 }
 
 export interface RankRequirement {

@@ -18,6 +18,7 @@ export default async function fetchHandler({
     options.body = JSON.stringify(body)
   }
 
+  console.debug(options)
   const response = await fetch(url, options)
 
   let json: any = {}

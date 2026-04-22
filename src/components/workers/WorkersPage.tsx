@@ -1,6 +1,6 @@
 'use client'
 
-import {LTWorker, LTWorkerData, RankUpdateData} from '@/src/utils/types'
+import {LTRank, LTWorker, LTWorkerData, RankUpdateData} from '@/src/utils/types'
 import WorkersRow from '@/src/components/workers/WorkersRow'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
@@ -10,11 +10,13 @@ import fetchHandler from '@/src/utils/global/fetchHandler'
 interface WorkerPageProps {
   worker: LTWorker
   workers: LTWorkerData[]
+  ranks: LTRank[]
 }
 
 export default function WorkersPage({
   worker,
   workers: initialWorkers,
+  ranks,
 }: WorkerPageProps) {
   const [workers, setWorkers] = useState(initialWorkers)
   const socketRef = useRef<Socket | null>(null)
@@ -152,6 +154,7 @@ export default function WorkersPage({
       <div className="flex h-full flex-col gap-4">
         {workers.map(data => (
           <WorkersRow
+            ranks={ranks}
             canEdit={canEdit}
             maxRankId={maxRankId}
             minRankId={minRankId}

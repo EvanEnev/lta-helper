@@ -11,7 +11,7 @@ let port = 5000
 
 if (dev) {
   port = 3000
-  hostname = 'localhost'
+  hostname = '127.0.0.1'
 } else if (test) {
   port = 5001
   hostname = 'lt-test.bubenev.su'

@@ -4,7 +4,11 @@ import db from '@/lib/database'
 import {LTWorker} from '@/src/utils/types'
 import {cookies} from 'next/headers'
 
-async function getData(authId: string, userId: string, impersonate: boolean) {
+export async function getData(
+  authId: string,
+  userId: string,
+  impersonate: boolean,
+) {
   const date = convertTZ(new Date(), 'Europe/Moscow').toFormat('yyyy-MM-dd')
 
   const query = `SELECT
@@ -49,6 +53,7 @@ async function getData(authId: string, userId: string, impersonate: boolean) {
   const permissions = permissionsResult.rows
   const workerResult = result.rows[0] || {}
 
+  console.debug(authId, workerResult)
   const worker: LTWorker = {
     name: workerResult.name,
     id: workerResult.id,
@@ -92,7 +97,6 @@ export default async function generateCustomSession({
 
   let data = await getData(authId, session.userId, !!impersonate)
 
-  console.debug(user, session)
   if (!data.worker.id) {
     const email = user.email
     data = await getData(email, session.userId, false)

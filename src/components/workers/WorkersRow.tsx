@@ -1,4 +1,5 @@
 import {
+  LTRank,
   LTWorker,
   LTWorkerData,
   RankRequirement,
@@ -13,15 +14,26 @@ import {
   NumberField,
   ProgressBar,
   Label,
+  Modal,
+  TextField,
+  Input,
+  FieldError,
+  Autocomplete,
+  SearchField,
+  ListBox,
+  Form,
+  Select,
 } from '@heroui/react'
 import RankIcon from '@/src/components/global/RankIcon'
 import formatPhone from '@/lib/functions/formatPhone'
 import {Icon} from '@iconify/react'
 import {Activity, Fragment, useMemo} from 'react'
 import groupBy from '@/lib/functions/groupBy'
+import {withMask} from 'use-mask-input'
 
 interface WorkersRowProps {
   worker: LTWorker
+  ranks: LTRank[]
   data: LTWorkerData
   maxRankId: number
   minRankId: number
@@ -41,6 +53,7 @@ interface WorkersRowProps {
 
 export default function WorkersRow({
   worker,
+  ranks,
   data,
   maxRankId,
   minRankId,
@@ -48,6 +61,9 @@ export default function WorkersRow({
   updateCallback,
   updateWorkerRank,
 }: WorkersRowProps) {
+  if (data.name === 'A') {
+    console.debug(worker, data, worker.id === data.invitedBy)
+  }
   const categories = useMemo(
     () =>
       Array.from(
@@ -85,7 +101,8 @@ export default function WorkersRow({
   }, [data.rankData, groupedCategories])
 
   return (
-    <div className="bg-surface z-1000 flex items-center gap-2 rounded-2xl px-4 py-2">
+    <div
+      className={`bg-surface z-1000 flex items-center gap-2 rounded-2xl px-4 py-2 ${data.isApproved ? '' : 'border-danger border'} `}>
       <div className="flex w-20 flex-col gap-2 wrap-anywhere">
         <Avatar>
           <Avatar.Image src={data.photoUrl || ''} />
@@ -349,6 +366,117 @@ export default function WorkersRow({
       )}
       <div>{data.quests.map(d => d.name).join(', ')}</div>
       <div>{data.generations.map(d => d.name).join(', ')}</div>
+      <Activity mode={data.invitedBy === worker.id ? 'visible' : 'hidden'}>
+        <Modal>
+          <Button>Подтвердить</Button>
+          <Modal.Backdrop className="z-10000">
+            <Modal.Container>
+              <Modal.Dialog>
+                <Modal.CloseTrigger />
+                <Modal.Body className="p-2">
+                  <Form
+                    id="form"
+                    className="flex w-full flex-col gap-2"
+                    onSubmit={() => {
+                      console.debug('s')
+                    }}>
+                    <TextField
+                      variant="secondary"
+                      isRequired
+                      defaultValue={data?.name}>
+                      <Label>Позывной</Label>
+                      <Input name="name" />
+                      <FieldError>Поле обязательно</FieldError>
+                    </TextField>
+                    <TextField
+                      variant="secondary"
+                      isRequired
+                      defaultValue={data?.lastName || undefined}>
+                      <Label>Фамилия</Label>
+                      <Input name="last_name" />
+                      <FieldError>Поле обязательно</FieldError>
+                    </TextField>
+                    <TextField
+                      variant="secondary"
+                      isRequired
+                      defaultValue={data?.firstName || undefined}>
+                      <Label>Имя</Label>
+                      <Input name="first_name" />
+                      <FieldError>Поле обязательно</FieldError>
+                    </TextField>
+                    <TextField
+                      variant="secondary"
+                      isRequired
+                      defaultValue={data?.middleName || undefined}>
+                      <Label>Отчество</Label>
+                      <Input name="middle_name" />
+                    </TextField>
+                    <TextField
+                      variant="secondary"
+                      type="tel"
+                      isRequired
+                      defaultValue={data?.phoneNumber || undefined}>
+                      <Label>Номер телефона</Label>
+                      <Input
+                        placeholder="+7 ___ ___-__-__"
+                        ref={withMask('+7 999 999-99-99', {
+                          inputmode: 'numeric',
+                          placeholder: '_',
+                        })}
+                        name="phone"
+                      />
+                      <FieldError>Поле обязательно</FieldError>
+                    </TextField>
+                    <TextField
+                      variant="secondary"
+                      type="email"
+                      isRequired
+                      defaultValue={data?.email || undefined}>
+                      <Label>Google почта</Label>
+                      <Input name="email" />
+                      <FieldError>Неверная почта</FieldError>
+                    </TextField>
+                    <Select
+                      isRequired
+                      className="w-full"
+                      variant="secondary"
+                      selectionMode="multiple"
+                      defaultValue={[data.rank.name]}
+                      onChange={v => {}}>
+                      <Label>Ранг</Label>
+                      <Select.Trigger>
+                        <Select.Value className="truncate" />
+                        <Select.Indicator />
+                      </Select.Trigger>
+                      <Select.Popover>
+                        <ListBox>
+                          {ranks.map(rank => (
+                            <ListBox.Item
+                              textValue={rank.name}
+                              key={rank.name}
+                              id={rank.name}>
+                              <Label>{rank.name}</Label>
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                          ))}
+                        </ListBox>
+                      </Select.Popover>
+                    </Select>
+                  </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button slot="close" variant="secondary">
+                    Закрыть
+                  </Button>
+                  <Button form="form" slot="close" type="submit">
+                    Подтвердить
+                  </Button>
+                </Modal.Footer>
+              </Modal.Dialog>
+            </Modal.Container>
+          </Modal.Backdrop>
+        </Modal>
+      </Activity>
     </div>
   )
 }

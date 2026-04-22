@@ -12,11 +12,13 @@ export default function Register() {
   const params = useSearchParams()
 
   const redirect = params.get('redirect')
+  const error = params.get('error')
   const callbackURL = redirect ? (redirect === '/' ? '/' : `/${redirect}`) : '/'
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
+      {error === 'user_not_found' && <div>ОШИБКА ЛОХ НЕТ ЮЗЕРА СОСИ</div>}
       <div className="flex w-fit flex-col flex-wrap justify-center gap-4">
         {providers.map(provider => (
           <Button
@@ -25,10 +27,12 @@ export default function Register() {
             slot="icon"
             variant="tertiary"
             onPress={async () => {
-              const data = await authClient.signIn.social({
+              await authClient.signIn.social({
                 provider: provider.name,
+                additionalData: {
+                  from: 'login',
+                },
               })
-              console.debug(data)
             }}>
             <Icon icon={`logos:${provider.icon}`} width="24" height="24" />
             <p>Войти с {capitalize(provider.name)}</p>

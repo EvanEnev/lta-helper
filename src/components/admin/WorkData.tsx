@@ -173,7 +173,7 @@ export default function WorkData({
       gamesPayments,
       worker: user,
       rank,
-      workingHours: data.location === 'Другое' ? '10-19' : data.workingHours,
+      workingHours: isTyped ? '10-19' : data.workingHours,
       fines: data.fines,
       isHardTime: data.isHardTime,
       comment: data.comment,
