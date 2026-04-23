@@ -1,94 +1,67 @@
 'use client'
 
 import {useSearchParams} from 'next/navigation'
-import {
-  Form,
-  Label,
-  TextField,
-  Input,
-  FieldError,
-  Button,
-  Separator,
-} from '@heroui/react'
+import {Button, Separator, toast} from '@heroui/react'
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'
 import providers from '@/src/utils/global/providers'
+import Link from 'next/link'
+import {useEffect} from 'react'
 
 export default function Register() {
   const params = useSearchParams()
 
   const redirect = params.get('redirect')
+  const error = params.get('error')
   const callbackURL = redirect ? (redirect === '/' ? '/' : `/${redirect}`) : '/'
 
-  const onsubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.currentTarget)
-    const data: Record<string, string> = {}
-
-    formData.forEach((value, key) => {
-      data[key] = value.toString()
-    })
-
-    await authClient.signIn.email({
-      email: data.email,
-      password: data.password,
-      rememberMe: true,
-      callbackURL,
-    })
-  }
+  useEffect(() => {
+    if (error && error === 'user_not_found') {
+      authClient.signOut()
+      toast('Пользователь не найден', {
+        variant: 'danger',
+        timeout: 8000,
+      })
+    }
+  }, [error])
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
       <div className="flex w-fit flex-col flex-wrap justify-center gap-4">
-        <Form className="flex flex-col gap-4" onSubmit={onsubmit}>
-          <TextField isRequired name="email" type="email">
-            <Label>Почта</Label>
-            <Input placeholder="john@example.com" />
-            <FieldError />
-          </TextField>
-
-          <TextField isRequired minLength={8} name="password" type="password">
-            <Label>Пароль</Label>
-            <Input placeholder="Введите пароль" />
-            <FieldError />
-          </TextField>
-          <div className="flex gap-2">
-            <Button className="w-full" type="submit" variant="secondary">
-              Войти
-            </Button>
-            <Button className="w-full" type="reset" variant="tertiary">
-              Сбросить
-            </Button>
-          </div>
-        </Form>
-        <div className="flex max-w-full items-center gap-2">
-          <Separator className="flex-1" />
-          <p>или</p>
-          <Separator className="flex-1" />
-        </div>
         {providers.map(provider => (
           <Button
             key={provider.name}
-            className="w-full"
+            className="w-full justify-start gap-4"
+            slot="icon"
             variant="tertiary"
             onPress={async () => {
               await authClient.signIn.social({
                 provider: provider.name,
                 callbackURL,
+                additionalData: {
+                  from: 'login',
+                },
               })
             }}>
-            <Icon
-              icon={`logos:${provider.icon}`}
-              className="w-fit p-1"
-              width="256"
-              height="262"
-            />
-            Войти с {capitalize(provider.name)}
+            <Icon icon={`logos:${provider.icon}`} width="24" height="24" />
+            <p>Войти с {capitalize(provider.name)}</p>
           </Button>
         ))}
+        <div className="flex max-w-full items-center gap-2">
+          <Separator className="flex-1" />
+          <p>или</p>
+          <Separator className="flex-1" />
+        </div>
+        <Button className="w-full" slot="icon">
+          <Link
+            href="/register"
+            className="flex h-full w-full items-center justify-center gap-2">
+            <Icon icon="solar:user-plus-linear" width="24" height="24" />
+            Регистрация
+          </Link>
+        </Button>
       </div>
     </main>
   )

@@ -9,8 +9,6 @@ export default async function updateWorkersPayrolls({
 }: SocketUpdateProps) {
   const loggerData: any = {}
 
-  console.debug(data)
-
   const sessionQuery = `
   select
     "userId"
@@ -21,15 +19,11 @@ export default async function updateWorkersPayrolls({
   const sessionResult = await client.query(sessionQuery)
   const userId = sessionResult.rows[0]?.userId
 
-  const userQuery = `select email from auth.user where id = '${userId}'`
+  const userQuery = `select id from workers where auth_id = '${userId}'`
   const userResult = await client.query(userQuery)
-  const userEmail = userResult.rows[0]?.email
+  const id = userResult.rows[0]?.id
 
-  const telegramId = userEmail?.split('@')[0]
-
-  if (!telegramId) return
-
-  const queries = await authQueryGenerator(telegramId)
+  const queries = await authQueryGenerator(id)
 
   const result = await client.query(queries.worker)
   const permissionsResult = await client.query(queries.permissions)

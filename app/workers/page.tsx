@@ -3,6 +3,7 @@ import {LTWorkerData} from '@/src/utils/types'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import WorkersPage from '@/src/components/workers/WorkersPage'
+import getRanks from '@/lib/functions/getRanks'
 
 export default async function Workers() {
   const worker = (await auth.api.getSession({
@@ -18,6 +19,8 @@ select
   middle_name as "middleName",
   telegram_id as "telegramId",
   email,
+  invited_by as "invitedBy",
+  coalesce(is_approved, false) as "isApproved",
   coalesce(is_former, false) as "isFormer",
   coalesce(is_fired, false) as "isFired",
   photo_url as "photoUrl",
@@ -69,10 +72,11 @@ select
       ) g on true
     where coalesce(w.is_fired, false) = false
     group by w.id, w.name, first_name, last_name, middle_name, telegram_id, email, is_former, is_fired, photo_url, phone_number, role, location_id, w.rank_id , rr.rank_id, q.data, g.data
-    order by coalesce(w.is_former, false), (select sorting_weight from ranks where id = w.rank_id) desc, name`
+    order by "isApproved", coalesce(w.is_former, false), (select sorting_weight from ranks where id = w.rank_id) desc, name`
 
   const workersResult = await db.query(workersQuery)
   const workers: LTWorkerData[] = workersResult.rows
+  const ranks = await getRanks({addon: 'order by sorting_weight desc'})
 
-  return <WorkersPage worker={worker} workers={workers} />
+  return <WorkersPage ranks={ranks} worker={worker} workers={workers} />
 }
