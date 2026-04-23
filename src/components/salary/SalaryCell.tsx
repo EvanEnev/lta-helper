@@ -4,7 +4,7 @@ import {
   LTLocation,
   SalaryData,
 } from '@/src/utils/types'
-import {Card, CardFooter, CardHeader, Separator, Tooltip} from '@heroui/react'
+import {Card, Separator, Tooltip} from '@heroui/react'
 import CellBody from '@/src/components/salary/CellBody'
 import CellFooter from '@/src/components/salary/CellFooter'
 import isDark from '@/lib/functions/isDark'

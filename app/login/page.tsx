@@ -1,12 +1,13 @@
 'use client'
 
 import {useSearchParams} from 'next/navigation'
-import {Button, Separator} from '@heroui/react'
+import {Button, Separator, toast} from '@heroui/react'
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'
 import providers from '@/src/utils/global/providers'
 import Link from 'next/link'
+import {useEffect} from 'react'
 
 export default function Register() {
   const params = useSearchParams()
@@ -15,10 +16,19 @@ export default function Register() {
   const error = params.get('error')
   const callbackURL = redirect ? (redirect === '/' ? '/' : `/${redirect}`) : '/'
 
+  useEffect(() => {
+    if (error && error === 'user_not_found') {
+      authClient.signOut()
+      toast('Пользователь не найден', {
+        variant: 'danger',
+        timeout: 8000,
+      })
+    }
+  }, [error])
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-5xl font-bold">Необходимо войти</h1>
-      {error === 'user_not_found' && <div>ОШИБКА ЛОХ НЕТ ЮЗЕРА СОСИ</div>}
       <div className="flex w-fit flex-col flex-wrap justify-center gap-4">
         {providers.map(provider => (
           <Button
@@ -29,6 +39,7 @@ export default function Register() {
             onPress={async () => {
               await authClient.signIn.social({
                 provider: provider.name,
+                callbackURL,
                 additionalData: {
                   from: 'login',
                 },

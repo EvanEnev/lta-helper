@@ -22,5 +22,11 @@ export default async function Register() {
     workers = workersResult.rows
   }
 
-  return <RegisterPage worker={worker} workers={workers} />
+  const session = (
+    await auth.api.getSession({
+      headers: await headers(),
+    })
+  )?.session
+
+  return <RegisterPage session={session} worker={worker} workers={workers} />
 }

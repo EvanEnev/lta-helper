@@ -1,11 +1,4 @@
-import {
-  Avatar,
-  Button,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  Separator,
-} from '@heroui/react'
+import {Avatar, Button, Popover, Separator} from '@heroui/react'
 import {useTheme} from 'next-themes'
 import {authClient} from '@/lib/auth/authClient'
 import {useRouter} from 'next/navigation'

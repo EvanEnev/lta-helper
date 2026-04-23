@@ -3,7 +3,7 @@ import {DateTime} from 'luxon'
 import getDefaultDays from '@/lib/functions/getDefaultDays'
 
 interface WorkingDaysProps {
-  telegramId: number
+  id: number
 }
 
 interface WorkingDay {
@@ -23,9 +23,9 @@ interface WorkingDay {
 }
 
 export default async function getWorkingDays({
-  telegramId,
+  id,
 }: WorkingDaysProps): Promise<WorkingDay[]> {
-  const workerQuery = `select id, name from workers where telegram_id = ${telegramId}`
+  const workerQuery = `select id, name from workers where id = ${id}`
   const workerResult = await db.query(workerQuery)
   const workerId = workerResult.rows[0].id
   const workerName = workerResult.rows[0].name
@@ -36,7 +36,7 @@ export default async function getWorkingDays({
   s.value,
   s.comment
   FROM schedule.list s
-  LEFT JOIN workers w ON telegram_id = ${telegramId}
+  LEFT JOIN workers w ON w.id = ${id}
   LEFT JOIN config.dates dates ON dates.id = 2
   WHERE s.worker_id = w.id AND s.date BETWEEN dates.start_date AND dates.end_date`
 

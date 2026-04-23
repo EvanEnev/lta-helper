@@ -53,7 +53,6 @@ export async function getData(
   const permissions = permissionsResult.rows
   const workerResult = result.rows[0] || {}
 
-  console.debug(authId, workerResult)
   const worker: LTWorker = {
     name: workerResult.name,
     id: workerResult.id,

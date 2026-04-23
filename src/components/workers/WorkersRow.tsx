@@ -18,8 +18,6 @@ import {
   TextField,
   Input,
   FieldError,
-  Autocomplete,
-  SearchField,
   ListBox,
   Form,
   Select,
@@ -27,7 +25,7 @@ import {
 import RankIcon from '@/src/components/global/RankIcon'
 import formatPhone from '@/lib/functions/formatPhone'
 import {Icon} from '@iconify/react'
-import {Activity, Fragment, useMemo} from 'react'
+import {Activity, FormEvent, Fragment, useMemo} from 'react'
 import groupBy from '@/lib/functions/groupBy'
 import {withMask} from 'use-mask-input'
 
@@ -49,6 +47,10 @@ interface WorkersRowProps {
     workerId: number,
     type: 'promote' | 'demote',
   ) => Promise<void>
+  approveCallback: (
+    e: FormEvent<HTMLFormElement>,
+    workerId: number,
+  ) => Promise<void>
 }
 
 export default function WorkersRow({
@@ -60,10 +62,8 @@ export default function WorkersRow({
   canEdit,
   updateCallback,
   updateWorkerRank,
+  approveCallback,
 }: WorkersRowProps) {
-  if (data.name === 'A') {
-    console.debug(worker, data, worker.id === data.invitedBy)
-  }
   const categories = useMemo(
     () =>
       Array.from(
@@ -377,8 +377,8 @@ export default function WorkersRow({
                   <Form
                     id="form"
                     className="flex w-full flex-col gap-2"
-                    onSubmit={() => {
-                      console.debug('s')
+                    onSubmit={async e => {
+                      await approveCallback(e, data.id)
                     }}>
                     <TextField
                       variant="secondary"
@@ -437,12 +437,13 @@ export default function WorkersRow({
                       <FieldError>Неверная почта</FieldError>
                     </TextField>
                     <Select
+                      name="rank_id"
                       isRequired
                       className="w-full"
                       variant="secondary"
-                      selectionMode="multiple"
-                      defaultValue={[data.rank.name]}
-                      onChange={v => {}}>
+                      selectionMode="single"
+                      // @ts-ignore
+                      defaultValue={[data.rank.id]}>
                       <Label>Ранг</Label>
                       <Select.Trigger>
                         <Select.Value className="truncate" />
@@ -454,7 +455,7 @@ export default function WorkersRow({
                             <ListBox.Item
                               textValue={rank.name}
                               key={rank.name}
-                              id={rank.name}>
+                              id={rank.id}>
                               <Label>{rank.name}</Label>
                               <ListBox.ItemIndicator />
                             </ListBox.Item>

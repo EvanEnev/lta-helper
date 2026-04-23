@@ -12,13 +12,9 @@ export async function GET() {
     return NextResponse.json({message: 'Пользователь не найден'}, {status: 500})
   }
 
-  const telegramId = worker.telegramId
+  const id = worker.id
 
-  if (!telegramId) {
-    return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
-  }
-
-  const workingDays = await getWorkingDays({telegramId})
+  const workingDays = await getWorkingDays({id})
 
   return NextResponse.json({workingDays, worker})
 }

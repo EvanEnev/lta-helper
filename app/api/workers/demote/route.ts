@@ -31,11 +31,11 @@ export async function POST(req: NextRequest) {
   let newRank
   try {
     const res = await db.query(queries)
-    newRank = res.rows[0].rank
+    // @ts-ignore
+    newRank = res[0].rows[0].rank
   } catch (e) {
-    console.error(e)
     return NextResponse.json({message: 'Ошибка в запросе'}, {status: 500})
   }
 
-  return NextResponse.json({}, {status: 200})
+  return NextResponse.json({newRank}, {status: 200})
 }

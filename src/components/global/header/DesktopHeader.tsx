@@ -1,16 +1,9 @@
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  Link,
-} from '@heroui/react'
+import {Button, Dropdown, Link} from '@heroui/react'
 import {usePathname} from 'next/navigation'
 import buttons from '@/src/utils/global/pathButtons'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import User from '@/src/components/global/header/User'
-import {Ref, useEffect, useState} from 'react'
+import {Ref} from 'react'
 import {LTWorker} from '@/src/utils/types'
 import {Icon} from '@iconify/react'
 
@@ -26,19 +19,6 @@ export default function DesktopHeader({
   className = '',
 }: DesktopHeaderProps) {
   const path = usePathname()
-  const [permanentHovers, setPermanentHovers] = useState<number[]>([])
-  const [rawHover, setRawHover] = useState<number | null>(null)
-  const [isHover, setIsHover] = useState<number | null>(null)
-
-  useEffect(() => {
-    console.debug(rawHover)
-    if (isHover === rawHover) return
-    const timeout = setTimeout(() => {
-      setIsHover(rawHover)
-    }, 50)
-
-    return () => clearTimeout(timeout)
-  }, [isHover, rawHover])
 
   return (
     <header

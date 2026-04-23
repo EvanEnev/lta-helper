@@ -1,7 +1,6 @@
 import {Day, LocationData, LTWorker} from '@/src/utils/types'
 import {
   Accordion,
-  AccordionItem,
   Button,
   Card,
   Input,

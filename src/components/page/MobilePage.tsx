@@ -3,8 +3,6 @@ import RankIcon from '@/src/components/global/RankIcon'
 import {ShortSalary} from '@/app/page'
 import UpcomingSalary from '@/src/components/page/UpcomingSalary'
 import {Day, LTWorker, RankDescription} from '@/src/utils/types'
-import Carousel from '@/src/components/global/Carousel'
-import RankDataCard from '@/src/components/page/RankDataCard'
 
 interface MobilePageProps {
   worker: LTWorker

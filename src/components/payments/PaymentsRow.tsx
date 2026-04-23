@@ -17,9 +17,8 @@ import {
   Calendar,
 } from '@heroui/react'
 import {LTPayment, LTPaymentType, LTWorker} from '@/src/utils/types'
-import {parseDate, today} from '@internationalized/date'
+import {parseDate} from '@internationalized/date'
 import {Icon} from '@iconify/react'
-import {DateTime} from 'luxon'
 
 interface PaymentCardProps {
   paymentsTypes: LTPaymentType[]

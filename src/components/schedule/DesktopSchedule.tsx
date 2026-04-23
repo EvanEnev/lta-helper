@@ -1,11 +1,4 @@
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-  Checkbox,
-  Separator,
-  Skeleton,
-} from '@heroui/react'
+import {Card, Checkbox, Separator} from '@heroui/react'
 import DayInfo from './DayInfo'
 import SendButton from './SendButton'
 import {Day, LTWorker} from '@/src/utils/types'
@@ -239,7 +232,7 @@ export default function DesktopSchedule({
               )
             })}
         </Card.Content>
-        <CardFooter>
+        <Card.Footer>
           <SendButton
             worker={worker}
             days={days.filter(day => {
@@ -254,7 +247,7 @@ export default function DesktopSchedule({
               )
             })}
           />
-        </CardFooter>
+        </Card.Footer>
       </Card>
     </div>
   )

@@ -2,7 +2,14 @@
 
 import {LTRank, LTWorker, LTWorkerData, RankUpdateData} from '@/src/utils/types'
 import WorkersRow from '@/src/components/workers/WorkersRow'
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {io, Socket} from 'socket.io-client'
 import fetchHandler from '@/src/utils/global/fetchHandler'
@@ -89,6 +96,49 @@ export default function WorkersPage({
     }
   }, [])
 
+  const approve = useCallback(
+    async (e: FormEvent<HTMLFormElement>, workerId: number) => {
+      e.preventDefault()
+      const data = {...Object.fromEntries(new FormData(e.currentTarget))}
+
+      data.workerId = workerId.toString()
+
+      const result = await fetchHandler({
+        url: '/api/register/approve',
+        method: 'POST',
+        body: {data},
+      })
+
+      if (result) {
+        setWorkers(prev => {
+          const newList = prev.map(w =>
+            w.id === workerId ? {...w, ...result} : w,
+          )
+
+          newList.sort((a, b) => {
+            const formerA = a.isFormer ?? false
+            const formerB = b.isFormer ?? false
+
+            if (formerA !== formerB) return Number(formerA) - Number(formerB)
+
+            const weightA = a.rank.sortingWeight ?? 0
+            const weightB = b.rank.sortingWeight ?? 0
+
+            if (weightB !== weightA) return weightB - weightA
+
+            return a.name.localeCompare(b.name)
+          })
+
+          console.debug(
+            result,
+            newList.find(d => d.name === 'A'),
+          )
+          return [...newList]
+        })
+      }
+    },
+    [],
+  )
   const updateCallback = useCallback(
     ({
       requirementId,
@@ -125,7 +175,7 @@ export default function WorkersPage({
       if (res.newRank) {
         setWorkers(prev => {
           const newList = prev.map(w =>
-            w.id === workerId ? {...w, rank: res.newRanks} : w,
+            w.id === workerId ? {...w, rank: res.newRank} : w,
           )
 
           newList.sort((a, b) => {
@@ -163,6 +213,7 @@ export default function WorkersPage({
             data={data}
             updateCallback={updateCallback}
             updateWorkerRank={updateWorkerRank}
+            approveCallback={approve}
           />
         ))}
       </div>

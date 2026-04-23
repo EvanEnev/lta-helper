@@ -4,7 +4,7 @@ import db from '@/lib/database'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
 import getWorkingDays from '@/lib/functions/getWorkingDays'
-import {RankDescription, RankRequirement} from '@/src/utils/types'
+import {RankDescription} from '@/src/utils/types'
 
 interface SalaryData {
   sum: number
@@ -175,7 +175,7 @@ export default async function Home() {
   const ranksResult = await db.query(ranksQuery)
   const ranksData: RankDescription[] = ranksResult.rows
 
-  const workingDays = await getWorkingDays({telegramId: worker.telegramId})
+  const workingDays = await getWorkingDays({id: worker.id})
 
   return (
     <MainPage

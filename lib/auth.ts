@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken'
-import {APIError, betterAuth, OAuth2Tokens} from 'better-auth'
+import {betterAuth, OAuth2Tokens} from 'better-auth'
 import {nextCookies} from 'better-auth/next-js'
 import {Pool} from 'pg'
-import {customSession, genericOAuth, oneTap} from 'better-auth/plugins'
+import {customSession, genericOAuth} from 'better-auth/plugins'
 import generateCustomSession from '@/lib/auth/generateCustomSession'
 import {createAuthMiddleware, getOAuthState} from 'better-auth/api'
 import db from '@/lib/database'
@@ -44,24 +44,6 @@ export const auth = betterAuth({
       maxAge: 5 * 60, // Cache duration in seconds
     },
   },
-  databaseHooks: {
-    account: {
-      create: {
-        after: async d => {
-          console.debug('ACCOUNT')
-          console.debug(d)
-        },
-      },
-    },
-    user: {
-      create: {
-        after: async user => {
-          console.debug('USER')
-          console.debug(user)
-        },
-      },
-    },
-  },
   hooks: {
     after: createAuthMiddleware(async ctx => {
       const isOAuth =
@@ -78,18 +60,14 @@ export const auth = betterAuth({
 
         const result = await db.query(query)
 
-        console.debug(result, query)
         if (!result.rows[0]?.id) {
           const query = `delete from auth."user" where id = '${session?.session.userId}'`
 
-          console.debug(query)
           await db.query(query)
 
           ctx.redirect('/login?error=user_not_found')
         }
       }
-      console.debug(ctx, ctx.path, state, ctx.context.newSession)
-      // throw new APIError('NOT_FOUND', {message: 'sosi'})
     }),
   },
   plugins: [
@@ -97,9 +75,8 @@ export const auth = betterAuth({
       config: [
         {
           providerId: 'telegram',
-          clientId: '7488909327',
-          clientSecret:
-            'N2_PqtvTAHkKH_Njiyea270scVMaK50ESkqGvLRzAdhawjp_dinNdQ',
+          clientId: process.env.TELEGRAM_CLIENT_ID!,
+          clientSecret: process.env.TELEGRAM_CLIENT_SECRET,
           discoveryUrl:
             'https://oauth.telegram.org/.well-known/openid-configuration',
           pkce: true,
@@ -119,7 +96,6 @@ export const auth = betterAuth({
       ],
     }),
     nextCookies(),
-    oneTap(),
     customSession(async ({user, session}) => {
       return generateCustomSession({user, session})
     }),

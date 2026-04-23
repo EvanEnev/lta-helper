@@ -72,7 +72,7 @@ select
       ) g on true
     where coalesce(w.is_fired, false) = false
     group by w.id, w.name, first_name, last_name, middle_name, telegram_id, email, is_former, is_fired, photo_url, phone_number, role, location_id, w.rank_id , rr.rank_id, q.data, g.data
-    order by coalesce(w.is_former, false), (select sorting_weight from ranks where id = w.rank_id) desc, name`
+    order by "isApproved", coalesce(w.is_former, false), (select sorting_weight from ranks where id = w.rank_id) desc, name`
 
   const workersResult = await db.query(workersQuery)
   const workers: LTWorkerData[] = workersResult.rows

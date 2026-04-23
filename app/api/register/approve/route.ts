@@ -1,11 +1,8 @@
 import db from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
 import capitalize from '@/lib/functions/capitalize'
-import {GoogleSpreadsheetRow} from 'google-spreadsheet'
-import google from '@/lib/google'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
-import {getData} from '@/lib/auth/generateCustomSession'
 
 export async function POST(req: NextRequest) {
   const sessionData = await auth.api.getSession({
@@ -13,7 +10,6 @@ export async function POST(req: NextRequest) {
   })
 
   const user = sessionData?.user
-  const session = sessionData?.session
 
   const body = await req.json()
 
@@ -21,6 +17,10 @@ export async function POST(req: NextRequest) {
 
   if (!user) {
     return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
+  }
+
+  if (!data.workerId) {
+    return NextResponse.json({message: 'Сотрудник не указан'}, {status: 500})
   }
 
   if (!data.name) {
@@ -43,63 +43,98 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Почта не указана'}, {status: 500})
   }
 
-  if (!data.authId) {
-    return NextResponse.json({message: 'Соц. сеть не привязана'}, {status: 500})
+  if (!data.rank_id) {
+    return NextResponse.json({message: 'Не указан ранг'}, {status: 500})
   }
 
-  if (!data.invited_by) {
-    return NextResponse.json({message: 'Не указан куратор'}, {status: 500})
-  }
-
-  const providers = await auth.api.listUserAccounts({headers: await headers()})
-
-  let telegramId: null | number = null
-  if (providers[0].id === 'telegram') {
-    const query = `select email from auth."user" where id = '${providers[0].userId}'`
-    const result = await db.query(query)
-
-    if (result.rows[0]?.email) {
-      telegramId = Number(result.rows[0].email)
-    }
-  }
-
+  const name = capitalize(data.name.trim())
   const firstName = capitalize(data.first_name.trim())
   const lastName = capitalize(data.last_name.trim())
   const middleName = capitalize(data.middle_name.trim())
+  const email = data.email.trim()
+  const rankId = data.rank_id
 
-  await google.schedule.loadInfo()
-
-  const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
-  await sheet.loadHeaderRow(1)
-  const rows = await sheet.getRows()
-
-  const row = rows.find(
-    (row: GoogleSpreadsheetRow) =>
-      row.get('Позывной')?.split('-')[0]?.trim().toLowerCase() ===
-      data.name.toLowerCase(),
-  )
-
-  const rank = row?.get('Ранг')
-
-  const query = `INSERT
-                 INTO workers
-                     (name, telegram_id, first_name, last_name, middle_name, email, phone_number, rank_id, auth_id, invited_by)
-                 VALUES ('${capitalize(data.name.trim())}',
-                         ${telegramId},
-                        '${firstName}',
-                        '${lastName}',
-                        '${middleName}',
-                         '${data.email}',
-                         '${data.phone}',
-                         (select id from ranks where unaccent(name) ilike unaccent('${capitalize(rank) || 'Актёр'}')),
-                         '${data.authId}',
-                         ${data.invited_by}
-                        )
-                 `
+  const query = `update workers set
+  name = '${name}',
+  first_name = '${firstName}',
+  last_name = '${lastName}',
+  middle_name = '${middleName}',
+  email = '${email}',
+  rank_id = '${rankId}',
+  phone_number = '${data.phone}',
+  is_approved = true,
+  invited_by = null
+  where id = ${data.workerId}`
 
   await db.query(query)
 
-  const worker = await getData(session!.userId, session!.userId, false)
+  const workerQuery = `
+  select
+  w.id,
+    w.name,
+    first_name as "firstName",
+    last_name as "lastName",
+    middle_name as "middleName",
+    telegram_id as "telegramId",
+    email,
+    invited_by as "invitedBy",
+    coalesce(is_approved, false) as "isApproved",
+    coalesce(is_former, false) as "isFormer",
+    coalesce(is_fired, false) as "isFired",
+    photo_url as "photoUrl",
+    phone_number as "phoneNumber",
+    role,
+    functions.get_location(location_id) as location,
+    functions.get_rank(w.rank_id) as rank,
+    q.data as quests,
+    g.data as generations,
+case when rr.rank_id is not null then jsonb_agg(jsonb_build_object(
+    'id',rr.id,
+    'name', rr.name,
+    'description', description,
+    'limit', "limit",
+    'type', type,
+    'category', category,
+    'meta', meta,
+    'value', wr.value,
+    'immutable', coalesce(rr.immutable, false),
+    'done', (
+case
+  when meta ? 'questId' then exists((select id from relations.workers_quests where worker_id = w.id and quest_id = (meta->>'questId')::int))
+  when meta ? 'generationId' then exists((select id from relations.workers_generations where worker_id = w.id and generation_id = (meta->>'generationId')::int))
+  when rr.type = 'number' then (coalesce(wr.value >= "limit", false))
+else (wr.id is not null)
+  end
+)
+) order by rr.name, rr.category is not null, rr.name) else '[]'::jsonb end as "rankData"
+  from workers w
+  left join ranks.requirements rr on rr.rank_id = w.rank_id
+  left join relations.workers_requirements wr on rr.id = wr.requirement_id and worker_id = w.id
+  left join lateral (
+    select   coalesce(jsonb_agg(
+    jsonb_build_object(
+      'id', wq.quest_id,
+      'name', (select name from quests where id = wq.quest_id)
+)
+), '[]'::jsonb) as data
+  from relations.workers_quests wq where worker_id = w.id
+) q on true
+  left join lateral (
+    select  coalesce( jsonb_agg(
+    jsonb_build_object(
+      'id', wg.generation_id,
+      'name', (select name from generations where id = wg.generation_id)
+)
+), '[]'::jsonb) as data
+  from relations.workers_generations wg where worker_id = w.id
+) g on true
+  where w.id = ${data.workerId}
+  group by w.id, w.name, first_name, last_name, middle_name, telegram_id, email, is_former, is_fired, photo_url, phone_number, role, location_id, w.rank_id , rr.rank_id, q.data, g.data
+  order by coalesce(w.is_former, false), (select sorting_weight from ranks where id = w.rank_id) desc, name
+  `
 
-  return NextResponse.json({worker}, {status: 200})
+  const workerData = await db.query(workerQuery)
+  const worker = workerData.rows[0]
+
+  return NextResponse.json(worker, {status: 200})
 }
