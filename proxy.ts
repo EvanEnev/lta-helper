@@ -7,6 +7,13 @@ export async function proxy(request: NextRequest) {
     headers: await headers(),
   })
 
+  console.debug(
+    request.nextUrl.pathname,
+    session,
+    (!session || !session.user.id) &&
+      request.nextUrl.pathname !== '/login' &&
+      request.nextUrl.pathname !== '/register',
+  )
   if (
     (!session || !session.user.id) &&
     request.nextUrl.pathname !== '/login' &&
@@ -39,8 +46,10 @@ export async function proxy(request: NextRequest) {
 
     return NextResponse.redirect(url)
   } else if (
-    request.nextUrl.pathname === '/register' ||
-    request.nextUrl.pathname == '/login'
+    session &&
+    session.user.isApproved &&
+    (request.nextUrl.pathname === '/register' ||
+      request.nextUrl.pathname == '/login')
   ) {
     const host = request.headers.get('host') || '127.0.0.1'
 
