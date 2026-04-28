@@ -25,6 +25,14 @@ export default function PayrollsDetailsNote({
     )
   }, [data])
 
+  const summaryValue = locationsData.reduce((acc, cur) => acc + cur.value, 0)
+  const summaryIssued = data.reduce((acc, cur) => acc + (cur.taken || 0), 0)
+  const summaryToTake = data.reduce(
+    (acc, cur) =>
+      acc + cur.value + (cur.bonuses || 0) - (cur.external_payment || 0),
+    0,
+  )
+
   return (
     <div className="grid grid-flow-col grid-rows-1 gap-2 p-2">
       {locationsData.map(locationData => {
@@ -48,7 +56,7 @@ export default function PayrollsDetailsNote({
             className="bg-default flex w-full flex-col gap-2 rounded-2xl p-2"
             key={locationData.location_id}>
             <Location
-              className="w-fit break-all"
+              className="w-fit text-sm break-all"
               iconClassName="w-[24px] h-[24px]"
               locationName={locationData.location}
             />
@@ -69,8 +77,7 @@ export default function PayrollsDetailsNote({
                 <p>{separateNumber(locationToTake)}</p>
               </Tooltip.Trigger>
               <Tooltip.Content offset={10} placement="left">
-                <Tooltip.Arrow />
-                Выдано
+                <Tooltip.Arrow />К выдаче
               </Tooltip.Content>
             </Tooltip>
             <Tooltip>
@@ -79,16 +86,50 @@ export default function PayrollsDetailsNote({
               </Tooltip.Trigger>
               <Tooltip.Content offset={10} placement="left">
                 <Tooltip.Arrow />
-                Остаток
+                Выдано
               </Tooltip.Content>
             </Tooltip>
           </div>
         )
       })}
       <div className="bg-default flex w-full flex-col gap-2 rounded-2xl p-2">
-        <p>Общий остаток</p>
+        <p className="text-sm">Общее</p>
         <Separator className="bg-default-foreground" />
-        <p className="text-success">{separateNumber(summaryBalance)}</p>
+        <Tooltip>
+          <Tooltip.Trigger>
+            <p className="text-accent">{separateNumber(summaryValue)}</p>
+          </Tooltip.Trigger>
+          <Tooltip.Content offset={10} placement="left">
+            <Tooltip.Arrow />
+            Выделено
+          </Tooltip.Content>
+        </Tooltip>
+        <Tooltip>
+          <Tooltip.Trigger>
+            <p>{separateNumber(summaryToTake)}</p>
+          </Tooltip.Trigger>
+          <Tooltip.Content offset={10} placement="left">
+            <Tooltip.Arrow />К выдаче
+          </Tooltip.Content>
+        </Tooltip>
+        <Tooltip>
+          <Tooltip.Trigger>
+            <p className="text-success">{separateNumber(summaryIssued)}</p>
+          </Tooltip.Trigger>
+          <Tooltip.Content offset={10} placement="left">
+            <Tooltip.Arrow />
+            Выдано
+          </Tooltip.Content>
+        </Tooltip>
+        <Tooltip>
+          <Tooltip.Trigger>
+            <p className="">{separateNumber(summaryBalance)}</p>
+          </Tooltip.Trigger>
+          <Tooltip.Content offset={10} placement="left">
+            <Tooltip.Arrow />
+            Общий остаток
+          </Tooltip.Content>
+        </Tooltip>
       </div>
     </div>
   )
