@@ -5,6 +5,8 @@ import {
   DatePicker,
   Calendar,
   DateField,
+  Checkbox,
+  Label,
 } from '@heroui/react'
 import {Icon} from '@iconify/react'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
@@ -55,6 +57,17 @@ export default function PayrollCreateHeader({
     return Interval.fromISO(`${dates.start}/${dates.end}`)
   }, [dates.start, dates.end])
 
+  const emptyFilter = useCallback(
+    (value: boolean) => {
+      if (!value) {
+        setPayrollData(initialData)
+      } else {
+        setPayrollData(prev => prev.filter(d => d.location === -1))
+      }
+    },
+    [initialData, setPayrollData],
+  )
+
   const locationSelectCallback = useCallback(
     (location: LTLocation | LTLocation[] | null) => {
       if (!location) {
@@ -64,6 +77,7 @@ export default function PayrollCreateHeader({
       if ((location as LTLocation).id === 0) {
         return setPayrollData(initialData)
       }
+
       setPayrollData(
         initialData.filter(d => d.location === (location as LTLocation).id),
       )
@@ -77,12 +91,24 @@ export default function PayrollCreateHeader({
         <Disclosure className="w-full">
           <Disclosure.Heading className="flex items-center gap-2 p-2">
             <LocationSelect
-              className="h-fit"
+              className="h-full"
               showLabel={false}
               callback={locationSelectCallback}
               locationId={0}
               includeAll={true}
             />
+            <Checkbox
+              onChange={emptyFilter}
+              variant="secondary"
+              className="h-full cursor-pointer rounded-xl border-2 p-2"
+              id="empty">
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Content>
+                <Label htmlFor="empty">Пустые</Label>
+              </Checkbox.Content>
+            </Checkbox>
             <Button
               slot="trigger"
               className="flex h-fit w-full items-center gap-2"

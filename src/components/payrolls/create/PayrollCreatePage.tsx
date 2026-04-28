@@ -76,16 +76,16 @@ export default function PayrollCreatePage({
       }),
   )
 
-  const initialPayrollData = useMemo(() => {
-    return payrollData
-  }, [])
+  const [initialPayrollData, setInitialPayrollData] = useState(payrollData)
+
+  // const initialPayrollData = useMemo(() => {
+  //   return payrollData
+  // }, [payrollData])
 
   const [takeBy, setTakeBy] = useState<string>(
     JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
       DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
   )
-  const [selectedRows, setSelectedRows] = useState<number[]>([])
-  const [lastSelectedRow, setLastSelectedRow] = useState<number | null>(null)
   const [moneyOnLocations, setMoneyOnLocations] = useState<
     {
       location: LTLocation['id']
@@ -190,26 +190,15 @@ export default function PayrollCreatePage({
         value = -value
       }
 
-      const index = data.findIndex(d => d.id === workerId)
+      setPayrollData(prev =>
+        prev.map(d => (d.workerId === workerId ? {...d, [type]: value} : d)),
+      )
 
-      if (selectedRows.length && selectedRows.includes(index)) {
-        const dataToCheck = data.filter((_, index) =>
-          selectedRows.includes(index),
-        )
-        setPayrollData(prev =>
-          prev.map(d =>
-            dataToCheck.find(d2 => d2.id === d.workerId) !== undefined
-              ? {...d, [type]: value}
-              : d,
-          ),
-        )
-      } else {
-        setPayrollData(prev =>
-          prev.map(d => (d.workerId === workerId ? {...d, [type]: value} : d)),
-        )
-      }
+      setInitialPayrollData(prev =>
+        prev.map(d => (d.workerId === workerId ? {...d, [type]: value} : d)),
+      )
     },
-    [data, selectedRows],
+    [],
   )
 
   // const checkboxChange = useCallback(
