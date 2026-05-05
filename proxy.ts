@@ -7,13 +7,6 @@ export async function proxy(request: NextRequest) {
     headers: await headers(),
   })
 
-  console.debug(
-    request.nextUrl.pathname,
-    session,
-    (!session || !session.user.id) &&
-      request.nextUrl.pathname !== '/login' &&
-      request.nextUrl.pathname !== '/register',
-  )
   if (
     (!session || !session.user.id) &&
     request.nextUrl.pathname !== '/login' &&
