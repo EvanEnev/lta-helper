@@ -18,7 +18,9 @@ import {Interval} from 'luxon'
 import Excel from '@/public/icons/Excel'
 
 interface SummarizedHeaderProps {
+  allColumns: SummaryColumn[]
   columns: SummaryColumn[]
+  setUserColumns: Dispatch<SetStateAction<string[]>>
   setDateRange: Dispatch<SetStateAction<RangeValue<DateValue> | null>>
   dateRange: RangeValue<DateValue> | null
   updateRank: (keys: Key[]) => void
@@ -28,7 +30,9 @@ interface SummarizedHeaderProps {
 }
 
 export default function SummarizedHeader({
+  allColumns,
   columns,
+  setUserColumns,
   setDateRange,
   updateRank,
   dateRange,
@@ -176,6 +180,30 @@ export default function SummarizedHeader({
         {/*  <Excel width={40} height={40} />*/}
         {/*  Скачать сводную по месяцам*/}
         {/*</Button>*/}
+        <Select
+          className="w-60"
+          value={columns.map(c => c.title)}
+          variant="secondary"
+          selectionMode="multiple"
+          onChange={v => setUserColumns(v.map(c => String(c)))}>
+          <Select.Trigger>
+            <Select.Value className="truncate" />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover className="max-w-32">
+            <ListBox>
+              {allColumns.map(col => (
+                <ListBox.Item
+                  textValue={col.title}
+                  key={col.title}
+                  id={col.title}>
+                  <Label>{col.title}</Label>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
       </div>
       <div className="bg-surface flex h-fit w-full gap-2 rounded-2xl p-2">
         {columns.map(col => (
