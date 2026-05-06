@@ -3,7 +3,12 @@
 import {useCallback, useEffect, useMemo, useState} from 'react'
 import {DateValue, Key, RangeValue} from '@heroui/react'
 import RankIcon from '@/src/components/global/RankIcon'
-import {LTLocation, LTRank, LTSalarySummary} from '@/src/utils/types'
+import {
+  LTLocation,
+  LTRank,
+  LTSalarySummary,
+  LTWorkType,
+} from '@/src/utils/types'
 import SummarizedHeader from '@/src/components/salary/summarized/SummarizedHeader'
 import separateNumber from '@/lib/functions/separateNumber'
 import SummarizedRow from '@/src/components/salary/summarized/SummarizedRow'
@@ -17,9 +22,11 @@ export interface SummaryColumn {
 export default function SummarizedPage({
   ranks,
   locations,
+  workTypes,
 }: {
   ranks: LTRank[]
   locations: LTLocation[]
+  workTypes: LTWorkType[]
 }) {
   const [dateRange, setDateRange] = useState<RangeValue<DateValue> | null>(null)
   const [initialData, setInitialData] = useState<LTSalarySummary[]>([])
@@ -27,6 +34,10 @@ export default function SummarizedPage({
   const [selectedRanks, setSelectedRanks] = useState<string[]>([
     'all',
     ...ranks.map(r => r.name),
+  ])
+  const [selectedWorkTypes, setSelectedWorkTypes] = useState<number[]>([
+    -1,
+    ...workTypes.map(d => d.id),
   ])
   const [selectedLocations, setSelectedLocations] = useState<number[]>([
     ...locations.map(l => l.id),
@@ -51,6 +62,7 @@ export default function SummarizedPage({
         startString,
         endString,
         locations: selectedLocations,
+        workTypes: selectedWorkTypes,
       }),
     }).then(async res => {
       if (res.ok) {
@@ -62,7 +74,7 @@ export default function SummarizedPage({
         }
       }
     })
-  }, [dateRange, selectedLocations])
+  }, [dateRange, selectedLocations, selectedWorkTypes])
 
   const getSum = useCallback(
     (names: string[]) => {
@@ -317,6 +329,35 @@ export default function SummarizedPage({
     [ranks, selectedRanks],
   )
 
+  const updateWorkTypes = useCallback(
+    (keys: Key[]) => {
+      let newKeys = Array.from(keys) as number[]
+
+      const removeAll = !newKeys.includes(-1) && selectedWorkTypes.includes(-1)
+
+      if (
+        newKeys.length === ranks.length &&
+        !newKeys.includes(-1) &&
+        !removeAll
+      ) {
+        newKeys.push(-1)
+      }
+
+      if (newKeys.includes(-1)) {
+        if (!selectedWorkTypes.includes(-1)) {
+          newKeys = [-1, ...workTypes.map(r => r.id)]
+        }
+      }
+
+      if (removeAll) {
+        newKeys = []
+      }
+
+      setSelectedWorkTypes(newKeys)
+    },
+    [ranks.length, selectedWorkTypes, workTypes],
+  )
+
   useEffect(() => {
     let newData = [...initialData]
 
@@ -346,6 +387,9 @@ export default function SummarizedPage({
   return (
     <main className="flex w-full flex-col gap-4 p-2">
       <SummarizedHeader
+        selectedWorkTypes={selectedWorkTypes}
+        updateWorkTypes={updateWorkTypes}
+        workTypes={workTypes}
         setUserColumns={setUserColumns}
         allColumns={allColumns}
         dateRange={dateRange}

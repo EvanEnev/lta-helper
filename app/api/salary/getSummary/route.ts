@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
   }
 
   const locations: number[] = body.locations || []
+  const workTypes: number[] = body.workTypes || []
 
   const query = `select
                    w.id as "workerId",
@@ -36,7 +37,8 @@ export async function POST(req: NextRequest) {
                                                                 '${endString}'::date,
                                                                 '${startString}'::date,
                                                                 '${endString}'::date,
-                                                                array[${locations}]
+                                                                array[${locations}],
+                                                                array[${workTypes}]
                                            ) s
                  where s.count != 0 or s.balance != 0
                  order by coalesce(w.is_former, false), r.id != 12 desc, w.name`
