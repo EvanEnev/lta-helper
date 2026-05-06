@@ -10,6 +10,7 @@ interface SalaryCardProps {
   value: number
   dates: string
   title: string
+  external: number
   isCurrent?: boolean
 }
 
@@ -21,6 +22,7 @@ export default function SalaryCard({
   dates,
   bonuses,
   value,
+  external,
   isCurrent,
 }: SalaryCardProps) {
   const colors = useColors()
@@ -45,6 +47,10 @@ export default function SalaryCard({
       <div className="bg-default flex items-center gap-2 rounded-xl p-2">
         <Icon icon="solar:banknote-2-outline" width="20" height="20" />
         <p>ЗП: {value}</p>
+      </div>
+      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
+        <Icon icon="solar:banknote-2-outline" width="20" height="20" />
+        <p>Внешние выплаты: {external}</p>
       </div>
       <div className="bg-default flex items-center gap-2 rounded-xl p-2">
         <Icon icon="solar:bill-check-outline" width="20" height="20" />
