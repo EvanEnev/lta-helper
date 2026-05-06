@@ -1,37 +1,66 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using LiteDB;
-using STJson = System.Text.Json.JsonSerializer;
+using Microsoft.Data.Sqlite;
 
-var path = args[0];
-var collections = new[] { "GameStatisticsData", "GameSessionStatiscticsData" };
+var liteDbPath = args[0];
+var sqlitePath = args[1];
 
-using var db = new LiteDatabase($"Filename={path};ReadOnly=true");
+using var db = new LiteDatabase($"Filename={liteDbPath};ReadOnly=true");
+using var sqlite = new SqliteConnection($"Data Source={sqlitePath}");
+sqlite.Open();
 
-var result = new Dictionary<string, object>();
+var collections = db.GetCollectionNames();
 
 foreach (var name in collections)
 {
     var col = db.GetCollection<BsonDocument>(name);
-    var docs = col.FindAll().Select(doc => (object)BsonToObject(doc)).ToList();
-    result[name] = docs;
+    var docs = col.FindAll().ToList();
+    if (!docs.Any()) continue;
+
+    var keys = docs.SelectMany(d => d.Keys).Distinct().Where(k => k != "_id").ToList();
+
+    var createCols = string.Join(", ", keys.Select(k => $"\"{k}\" TEXT"));
+    var cmd = sqlite.CreateCommand();
+    cmd.CommandText = $"CREATE TABLE IF NOT EXISTS \"{name}\" (\"_id\" TEXT PRIMARY KEY, {createCols})";
+    cmd.ExecuteNonQuery();
+
+    foreach (var doc in docs)
+    {
+        var idValue = doc["_id"].Type switch
+        {
+            BsonType.Int32    => doc["_id"].AsInt32.ToString(),
+            BsonType.Int64    => doc["_id"].AsInt64.ToString(),
+            BsonType.ObjectId => doc["_id"].AsObjectId.ToString(),
+            _                 => doc["_id"].AsString
+        };
+
+        var cols = new List<string> { "\"_id\"" };
+        var vals = new List<string> { $"'{idValue}'" };
+
+        foreach (var key in keys)
+        {
+            cols.Add($"\"{key}\"");
+            var val = doc.ContainsKey(key) ? SerializeValue(doc[key]) : "NULL";
+            vals.Add(val);
+        }
+
+        var insert = sqlite.CreateCommand();
+        insert.CommandText = $"INSERT OR REPLACE INTO \"{name}\" ({string.Join(", ", cols)}) VALUES ({string.Join(", ", vals)})";
+        insert.ExecuteNonQuery();
+    }
 }
 
-Console.WriteLine(STJson.Serialize(result));
+Console.WriteLine("ok");
 
-static object BsonToObject(BsonValue value) => value.Type switch
+static string SerializeValue(BsonValue value) => value.Type switch
 {
-    BsonType.Document => value.AsDocument
-        .ToDictionary(k => k.Key, v => BsonToObject(v.Value)),
-    BsonType.Array    => value.AsArray
-        .Select(item => BsonToObject(item)).ToList(),
-    BsonType.Int32    => (object)value.AsInt32,
-    BsonType.Int64    => (object)value.AsInt64,
-    BsonType.Double   => (object)value.AsDouble,
-    BsonType.Boolean  => (object)value.AsBoolean,
-    BsonType.DateTime => (object)value.AsDateTime.ToString("O"),
-    BsonType.Null     => (object)"null",
-    _                 => (object)value.AsString,
+    BsonType.Null     => "NULL",
+    BsonType.Int32    => value.AsInt32.ToString(),
+    BsonType.Int64    => value.AsInt64.ToString(),
+    BsonType.Double   => value.AsDouble.ToString(),
+    BsonType.Boolean  => value.AsBoolean ? "1" : "0",
+    BsonType.DateTime => $"'{value.AsDateTime:O}'",
+    _                 => $"'{value.ToString()?.Replace("'", "''")}'"
 };

@@ -192,9 +192,14 @@
 /home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/libhostpolicy.so
 /home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/libmscordaccore.so
 /home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/libmscordbi.so
-/home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/reader.csproj.CopyComplete
 /home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/reader.dll
 /home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/refint/reader.dll
 /home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/reader.pdb
 /home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/reader.genruntimeconfig.cache
 /home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/ref/reader.dll
+/home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/Microsoft.Data.Sqlite.dll
+/home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/SQLitePCLRaw.batteries_v2.dll
+/home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/SQLitePCLRaw.core.dll
+/home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/SQLitePCLRaw.provider.e_sqlite3.dll
+/home/evan/projects/lta/web/reader/bin/Release/net8.0/linux-x64/libe_sqlite3.so
+/home/evan/projects/lta/web/reader/obj/Release/net8.0/linux-x64/reader.csproj.Up2Date

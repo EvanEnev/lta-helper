@@ -14,6 +14,7 @@
     "@heroui/styles": "3.0.2",
     "@internationalized/date": "^3.12.0",
     "better-auth": "^1.5.6",
+    "better-sqlite3": "^12.9.0",
     "cookies-next": "^6.1.1",
     "dotenv": "^17.4.0",
     "exceljs": "^4.4.0",
@@ -44,6 +45,7 @@
   "devDependencies": {
     "@iconify/react": "^6.0.2",
     "@tailwindcss/postcss": "^4.2.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/luxon": "^3.7.1",
     "@types/node": "^24.12.0",
@@ -59,5 +61,10 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

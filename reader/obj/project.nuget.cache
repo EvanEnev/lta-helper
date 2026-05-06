@@ -1,16 +1,24 @@
 {
   "version": 2,
-  "dgSpecHash": "MwMtTO1Gq+6qq7GoQJcfNLLbLJboQYNvSQqamoIck6juAvookacLurVXLumer28BM4x6uYVGkNl2fM9CLrPi4Q==",
+  "dgSpecHash": "zvgNxX0J4iU=",
   "success": true,
   "projectFilePath": "/home/evan/projects/lta/web/reader/reader.csproj",
   "expectedPackageFiles": [
-    "/home/evan/.local/share/dotnet/.nuget/packages/litedb/5.0.21/litedb.5.0.21.nupkg.sha512",
-    "/home/evan/.local/share/dotnet/.nuget/packages/microsoft.net.illink.tasks/8.0.25/microsoft.net.illink.tasks.8.0.25.nupkg.sha512",
-    "/home/evan/.local/share/dotnet/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
-    "/home/evan/.local/share/dotnet/.nuget/packages/microsoft.netcore.app.runtime.linux-x64/8.0.25/microsoft.netcore.app.runtime.linux-x64.8.0.25.nupkg.sha512",
-    "/home/evan/.local/share/dotnet/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.25/microsoft.aspnetcore.app.ref.8.0.25.nupkg.sha512",
-    "/home/evan/.local/share/dotnet/.nuget/packages/microsoft.aspnetcore.app.runtime.linux-x64/8.0.25/microsoft.aspnetcore.app.runtime.linux-x64.8.0.25.nupkg.sha512",
-    "/home/evan/.local/share/dotnet/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.25/microsoft.netcore.app.host.linux-x64.8.0.25.nupkg.sha512"
+    "/home/evan/.nuget/packages/litedb/5.0.21/litedb.5.0.21.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.data.sqlite/8.0.0/microsoft.data.sqlite.8.0.0.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.data.sqlite.core/8.0.0/microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.net.illink.tasks/8.0.25/microsoft.net.illink.tasks.8.0.25.nupkg.sha512",
+    "/home/evan/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.6/sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
+    "/home/evan/.nuget/packages/sqlitepclraw.core/2.1.6/sqlitepclraw.core.2.1.6.nupkg.sha512",
+    "/home/evan/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.6/sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",
+    "/home/evan/.nuget/packages/sqlitepclraw.provider.e_sqlite3/2.1.6/sqlitepclraw.provider.e_sqlite3.2.1.6.nupkg.sha512",
+    "/home/evan/.nuget/packages/system.buffers/4.5.1/system.buffers.4.5.1.nupkg.sha512",
+    "/home/evan/.nuget/packages/system.memory/4.5.3/system.memory.4.5.3.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.netcore.app.ref/8.0.25/microsoft.netcore.app.ref.8.0.25.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.netcore.app.runtime.linux-x64/8.0.25/microsoft.netcore.app.runtime.linux-x64.8.0.25.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.25/microsoft.aspnetcore.app.ref.8.0.25.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.aspnetcore.app.runtime.linux-x64/8.0.25/microsoft.aspnetcore.app.runtime.linux-x64.8.0.25.nupkg.sha512",
+    "/home/evan/.nuget/packages/microsoft.netcore.app.host.linux-x64/8.0.25/microsoft.netcore.app.host.linux-x64.8.0.25.nupkg.sha512"
   ],
   "logs": []
 }

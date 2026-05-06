@@ -472,3 +472,15 @@ export interface LTSalarySummary {
   external: number
   [key: string]: number | string | LTWorker['isFormer']
 }
+
+export interface LTStatsSession {
+  id: number
+  startTime: string
+  endTime: string
+}
+
+export interface LTStatsData {
+  id: number
+  sessionId: LTStatsSession['id']
+  name: string
+}

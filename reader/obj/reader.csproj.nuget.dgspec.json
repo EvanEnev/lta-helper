@@ -10,11 +10,11 @@
         "projectUniqueName": "/home/evan/projects/lta/web/reader/reader.csproj",
         "projectName": "reader",
         "projectPath": "/home/evan/projects/lta/web/reader/reader.csproj",
-        "packagesPath": "/home/evan/.local/share/dotnet/.nuget/packages/",
+        "packagesPath": "/home/evan/.nuget/packages/",
         "outputPath": "/home/evan/projects/lta/web/reader/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/evan/.local/share/dotnet/.nuget/NuGet/NuGet.Config"
+          "/home/evan/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,7 +32,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -41,6 +47,10 @@
             "LiteDB": {
               "target": "Package",
               "version": "[5.0.21, )"
+            },
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
@@ -74,6 +84,10 @@
               "version": "[8.0.25, 8.0.25]"
             },
             {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.25, 8.0.25]"
+            },
+            {
               "name": "Microsoft.NETCore.App.Runtime.linux-x64",
               "version": "[8.0.25, 8.0.25]"
             }
@@ -83,7 +97,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/8.0.125/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.104/PortableRuntimeIdentifierGraph.json"
         }
       },
       "runtimes": {
