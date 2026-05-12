@@ -5,6 +5,5 @@ when:
 steps:
   - name: deploy
     image: docker
-
     commands:
-       - docker compose -f /home/evan/lta/web/docker-compose.yml up -d --build --no-deps web
+       - docker compose -f /home/evan/lta/docker-compose.yml up -d --build --no-deps web
