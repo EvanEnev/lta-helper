@@ -1,9 +1,10 @@
+when:
+  - event: push
+    branch: main
+
 steps:
   - name: deploy
     image: docker
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+
     commands:
-      - docker compose -f /home/evan/lta/web/docker-compose.yml down web
-      - docker compose -f /home/evan/lta/web/docker-compose.yml build web
-      - docker compose -f /home/evan/lta/web/docker-compose.yml up -d web
+       - docker compose -f /home/evan/lta/web/docker-compose.yml up -d --build --no-deps web
