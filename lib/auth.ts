@@ -9,12 +9,11 @@ import db from '@/lib/database'
 
 export const auth = betterAuth({
   database: new Pool({
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASSWORD,
+    user: process.env.AUTH_USER,
+    password: process.env.AUTH_PASSWORD,
     host: process.env.DATABASE_URL,
     port: parseInt(process.env.DATABASE_PORT!),
     database: process.env.DATABASE_NAME,
-    options: '-c search_path=auth',
   }),
   user: {
     additionalFields: {
