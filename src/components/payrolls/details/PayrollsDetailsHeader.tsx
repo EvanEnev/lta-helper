@@ -9,22 +9,27 @@ import {
 import unaccent from '@/lib/functions/unaccent'
 import useColors from '@/src/hooks/useColors'
 import PayrollsDetailsNote from '@/src/components/payrolls/details/PayrollsDetailsNote'
-import {useMemo} from 'react'
+import {useCallback, useMemo} from 'react'
 import Location from '@/src/components/global/Location'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface PayrollsDetailsHeaderProps {
+  payrollId: number
   filterChangeCallback: (
     filter: string,
     value: string | number | LTLocation | LTLocation[] | null,
   ) => void
   locationsData: LTMoneyOnLocationsData[]
   data: LTWorkerPayrollData[]
+  canEdit: boolean
 }
 
 export default function PayrollsDetailsHeader({
+  payrollId,
   locationsData,
   data,
   filterChangeCallback,
+  canEdit,
 }: PayrollsDetailsHeaderProps) {
   const colors = useColors()
 
@@ -47,6 +52,12 @@ export default function PayrollsDetailsHeader({
         ),
     [data, locationsData],
   )
+
+  const closePayroll = useCallback(async () => {
+    const url = `/api/payrolls/${payrollId}/close`
+
+    await fetchHandler({url, method: 'PATCH'})
+  }, [payrollId])
 
   return (
     <div className="bg-surface sticky top-2 z-1000 flex flex-col rounded-2xl">
@@ -170,6 +181,11 @@ export default function PayrollsDetailsHeader({
                   </span>
                 </p>
               </div>
+            )}
+            {canEdit && (
+              <Button variant="danger-soft" onPress={closePayroll}>
+                Закрыть ведомость
+              </Button>
             )}
           </Disclosure.Heading>
           <Disclosure.Content>

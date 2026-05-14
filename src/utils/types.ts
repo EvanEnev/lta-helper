@@ -472,3 +472,19 @@ export interface LTSalarySummary {
   external: number
   [key: string]: number | string | LTWorker['isFormer']
 }
+
+export interface LTSalarySummarized2 {
+  workerId: LTWorker['id']
+  workerName: LTWorker['name']
+  isFormer: LTWorker['isFormer']
+  rank: LTRank['name']
+  sum: number
+  value: number
+  overwork: number
+  games: number
+  bonuses: number
+  fines: number
+  balance: number
+  external: number
+  [key: string]: number | string | LTWorker['isFormer']
+}

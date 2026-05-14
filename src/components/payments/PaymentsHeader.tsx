@@ -12,9 +12,10 @@ import {
 import {LTPayment, LTPaymentType} from '@/src/utils/types'
 import {Dispatch, SetStateAction, useCallback, useEffect, useState} from 'react'
 import {PaymentsFilter} from '@/src/components/payments/PaymentsPage'
-import {DateTime} from 'luxon'
+import {DateTime, Interval} from 'luxon'
 import separateNumber from '@/lib/functions/separateNumber'
 import {Icon} from '@iconify/react'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface PaymentsHeaderProps {
   summary: number
@@ -23,6 +24,7 @@ interface PaymentsHeaderProps {
   setPayments: Dispatch<SetStateAction<LTPayment[]>>
   canEdit: boolean
   initialDates: string
+  getNewData: () => Promise<void>
 }
 
 export default function PaymentsHeader({
@@ -32,6 +34,7 @@ export default function PaymentsHeader({
   setPayments,
   canEdit,
   initialDates,
+  getNewData,
 }: PaymentsHeaderProps) {
   const [date, setDate] = useState<string | null>(initialDates || null)
   const [name, setName] = useState<string | null>(null)
@@ -62,9 +65,22 @@ export default function PaymentsHeader({
     setDate(`${parsedStart}T00:00:00.00/${parsedEnd}T23:00:00.00`)
   }, [])
 
+  const transfer = useCallback(async () => {
+    if (!date) return
+    const [startDate, endDate] = Interval.fromISO(date)
+      .toFormat('yyyy-MM-dd', {separator: '/'})
+      .split('/')
+
+    await fetchHandler({
+      url: '/api/payments/transfer',
+      body: {startDate, endDate},
+    })
+
+    await getNewData()
+  }, [date, getNewData])
+
   return (
-    <div
-      className={`scrolled sticky top-4 left-4 z-1000 flex max-w-[90vw] flex-wrap gap-2 p-2`}>
+    <div className="scrolled sticky top-4 left-4 z-1000 flex w-full flex-wrap gap-2 p-2">
       {canEdit && (
         <Button
           variant="secondary"
@@ -155,6 +171,9 @@ export default function PaymentsHeader({
       <div className="bg-surface h-full w-fit rounded-xl p-2">
         <p>Сумма: {separateNumber(summary)}</p>
       </div>
+      <Button onPress={transfer} variant="secondary">
+        Перенести из Консоли
+      </Button>
     </div>
   )
 }

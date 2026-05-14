@@ -1,6 +1,6 @@
 import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
-import {UserSalary, Filter} from '@/src/utils/types'
+import {UserSalary} from '@/src/utils/types'
 import {DateTime} from 'luxon'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
@@ -9,14 +9,12 @@ interface GetLocationSalaryDataProps {
   locationId?: number
   date: string | Set<string>
   allLocations?: boolean
-  filters?: Filter[]
 }
 
 export default async function getLocationSalaryData({
   locationId: selectedLocationId,
   date,
   allLocations = false,
-  filters = [],
 }: GetLocationSalaryDataProps): Promise<UserSalary[]> {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
@@ -168,8 +166,6 @@ export default async function getLocationSalaryData({
                                       s.three_games,
                                       s.actor_games,
                                       s.work_types,
-
-                                      -- payments
                                       COALESCE(p.payments, '[]'::jsonb)  AS payments
                                FROM salary_filtered s
                                       FULL JOIN payments_filtered p

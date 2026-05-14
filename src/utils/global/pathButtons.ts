@@ -63,6 +63,12 @@ const buttons: PathButton[] = [
         permission: 'view_full_salary',
       },
       {
+        name: 'Сводная 2',
+        href: '/salary/summarized2',
+        icon: 'solar:wallet-linear',
+        permission: 'view_full_salary',
+      },
+      {
         name: 'Выплаты',
         href: '/payments',
         icon: 'solar:wallet-linear',

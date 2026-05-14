@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server'
-import getLocationSalaryData from '@/app/salary/getLocationSalaryData'
+import getLocationSalaryData from '@/app/api/salary/getData/getLocationSalaryData'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -19,7 +19,6 @@ export async function POST(req: NextRequest) {
     locationId,
     date,
     allLocations: body.allLocations || false,
-    filters: body.filters || [],
   })
 
   return NextResponse.json({data})

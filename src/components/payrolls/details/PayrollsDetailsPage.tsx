@@ -14,6 +14,7 @@ import {io, Socket} from 'socket.io-client'
 import PayrollsDetailsHeader from '@/src/components/payrolls/details/PayrollsDetailsHeader'
 
 interface PayrollsDetailsPageProps {
+  payrollId: number
   data: LTWorkerPayrollData[]
   locationsData: LTMoneyOnLocationsData[]
   locations: LTLocation[]
@@ -27,6 +28,7 @@ interface Filter {
 }
 
 export default function PayrollsDetailsPage({
+  payrollId,
   data: initialData,
   locationsData,
   locations,
@@ -138,9 +140,11 @@ export default function PayrollsDetailsPage({
           worker,
         ) && (
           <PayrollsDetailsHeader
+            payrollId={payrollId}
             filterChangeCallback={filterChangeCallback}
             locationsData={locationsData}
             data={data}
+            canEdit={canEdit}
           />
         )}
         {filteredData.map(item => {

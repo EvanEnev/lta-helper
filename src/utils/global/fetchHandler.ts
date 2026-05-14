@@ -4,12 +4,14 @@ interface FetchHandlerProps {
   url: string
   method?: string
   body?: object
+  showNotification?: boolean
 }
 
 export default async function fetchHandler({
   url,
   method = 'GET',
   body = {},
+  showNotification = true,
 }: FetchHandlerProps): Promise<any | false> {
   const options: {method: string; body?: string} = {method}
 
@@ -18,7 +20,6 @@ export default async function fetchHandler({
     options.body = JSON.stringify(body)
   }
 
-  console.debug(options)
   const response = await fetch(url, options)
 
   let json: any = {}
@@ -28,7 +29,8 @@ export default async function fetchHandler({
   } catch {}
 
   if (response.ok) {
-    toast('Успешно!', {variant: 'success'})
+    if (showNotification) toast('Успешно!', {variant: 'success'})
+
     return json
   } else {
     toast('Ошибка!', {
