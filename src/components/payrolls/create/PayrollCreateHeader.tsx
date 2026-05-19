@@ -10,12 +10,13 @@ import {
 } from '@heroui/react'
 import {Icon} from '@iconify/react'
 import PayrollCreateNote from '@/src/components/payrolls/create/PayrollCreateNote'
-import {Dispatch, SetStateAction, useCallback, useMemo} from 'react'
-import {Interval} from 'luxon'
+import {Dispatch, SetStateAction, useCallback, useMemo, useState} from 'react'
+import {DateTime, Interval} from 'luxon'
 import {LTLocation, LTPayrollData} from '@/src/utils/types'
 import {parseDate} from '@internationalized/date'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import useColors from '@/src/hooks/useColors'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface PayrollCreateHeaderProps {
   columns: PayrollColumn[]
@@ -51,6 +52,7 @@ export default function PayrollCreateHeader({
   setPayrollData,
   initialData,
 }: PayrollCreateHeaderProps) {
+  const [loading, setLoading] = useState(false)
   const colors = useColors()
 
   const interval = useMemo(() => {
@@ -85,6 +87,71 @@ export default function PayrollCreateHeader({
     [initialData, setPayrollData],
   )
 
+  const distribute = useCallback(async () => {
+    // {
+    //   date: '2026-05-14',
+    //     employees: [
+    //   {
+    //     worker_id: 9,
+    //     amount: 50000,
+    //   },
+    //   {worker_id: 31, amount: 20000},
+    // ],
+    //   locations: [
+    //   {
+    //     location_id: 2,
+    //     value: 30000,
+    //     priority: 0,
+    //   },
+    //   {
+    //     location_id: 1,
+    //     value: 10000,
+    //     priority: 0,
+    //   },
+    // ],
+    // }
+
+    setLoading(true)
+    const body = {
+      date: DateTime.now()
+        .setZone('Europe/Moscow')
+        .plus({day: 1})
+        .toFormat('yyyy-MM-dd'),
+      workers: payrollData.map(d => ({
+        worker_id: d.workerId,
+        amount:
+          d.value +
+          (d.bonuses || 0) +
+          (d.fines || 0) +
+          d.balance -
+          (d.external_payment || 0),
+      })),
+      locations: moneyOnLocations.map(d => ({
+        location_id: d.location,
+        value: d.value,
+        priority: 0,
+      })),
+    }
+
+    const data = await fetchHandler({
+      url: '/api/payrolls/create/distribute',
+      body,
+    })
+
+    console.debug(data, body)
+    if (data) {
+      setPayrollData(data1 =>
+        data1.map(d => ({
+          ...d,
+          location:
+            data.find((d2: any) => d2.employee_id === d.workerId)
+              ?.location_id || -1,
+        })),
+      )
+    }
+    setLoading(false)
+  }, [moneyOnLocations, payrollData, setPayrollData])
+
   return (
     <div className="bg-surface sticky top-2 z-1000 flex flex-col rounded-2xl">
       <div className="flex gap-2">
@@ -109,6 +176,13 @@ export default function PayrollCreateHeader({
                 <Label htmlFor="empty">Пустые</Label>
               </Checkbox.Content>
             </Checkbox>
+            <Button
+              className="h-12"
+              variant="tertiary"
+              isPending={loading}
+              onPress={distribute}>
+              Распределить
+            </Button>
             <Button
               slot="trigger"
               className="flex h-fit w-full items-center gap-2"

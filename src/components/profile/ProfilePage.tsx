@@ -8,7 +8,9 @@ import providers from '@/src/utils/global/providers'
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'
-import {useState} from 'react'
+import {useCallback, useState} from 'react'
+import {LocationPicker} from '@/src/components/global/LocationPicker'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface ProfilePageProps {
   worker: LTWorker
@@ -22,6 +24,15 @@ export default function ProfilePage({
   const [userProviders, setUserProviders] = useState(initialProviders)
   const isMobile = useIsMobile()
 
+  const setLocationCallback = useCallback(
+    async ({lat, lng}: {lat: number; lng: number}) => {
+      const body = {lat, lng}
+
+      await fetchHandler({url: '/api/profile/setLocation', body})
+    },
+    [],
+  )
+
   return (
     <main className="flex flex-col gap-2 p-4">
       <div className="flex flex-col items-center gap-2 rounded-2xl p-4 sm:flex-row">
@@ -30,6 +41,17 @@ export default function ProfilePage({
           <Avatar.Fallback>аватар</Avatar.Fallback>
         </Avatar>
         <p className="text-3xl">{worker.name}</p>
+      </div>
+      <div className="bg-surface flex flex-col gap-2 rounded-3xl p-4">
+        <h1>Адрес</h1>
+        <p className="text-muted italic">
+          Данные используются для формирования ведомостей, учитывая расстояние
+          до локации. Данные не передаются третьим лицам и надёжно сохранены
+        </p>
+        <LocationPicker
+          onSelect={setLocationCallback}
+          defaultCoords={worker.coords}
+        />
       </div>
       {isMobile && <Navigation worker={worker} />}
       <div className="bg-surface flex flex-wrap gap-4 rounded-3xl p-4">

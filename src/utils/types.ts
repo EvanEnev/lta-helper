@@ -51,6 +51,10 @@ export interface LTWorker {
   permissions: Permission[]
   todayLocation?: LTLocation['id'] | null
   isApproved: boolean
+  coords: {
+    lat: number | null
+    lng: number | null
+  }
 }
 
 export interface LTWorkType {

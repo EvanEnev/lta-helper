@@ -21,6 +21,9 @@
     }
 }
 
+.leaflet-control-attribution {
+    @apply hidden;
+}
 
 .scrolled {
     backdrop-filter: blur(20px);
