@@ -147,17 +147,6 @@ export default function Summarized2Page({
           getIndividualSum(workerId, ['overwork']),
       },
       {
-        title: 'Бонусы',
-        sumFn: () => getSum(['bonuses']),
-        accessorFn: (workerId: number) =>
-          getIndividualSum(workerId, ['bonuses']),
-      },
-      {
-        title: 'Штрафы',
-        sumFn: () => getSum(['fines']),
-        accessorFn: (workerId: number) => getIndividualSum(workerId, ['fines']),
-      },
-      {
         title: 'Игры',
         sumFn: () => getSum(['games']),
         accessorFn: (workerId: number) => getIndividualSum(workerId, ['games']),
@@ -187,7 +176,30 @@ export default function Summarized2Page({
           getIndividualSum(workerId, ['actor_games']),
       },
       {
-        title: 'Итог',
+        title: 'Бонусы',
+        sumFn: () => getSum(['bonuses']),
+        accessorFn: (workerId: number) =>
+          getIndividualSum(workerId, ['bonuses']),
+      },
+      {
+        title: 'Штрафы',
+        sumFn: () => getSum(['fines']),
+        accessorFn: (workerId: number) => getIndividualSum(workerId, ['fines']),
+      },
+      {
+        title: 'Итог ЗП',
+        sumFn: () => getSum(['value', 'overwork', 'games']),
+        accessorFn: (workerId: number) =>
+          getIndividualSum(workerId, ['value', 'overwork', 'games']),
+      },
+      {
+        title: 'Итог ЗП + Бонусы',
+        sumFn: () => getSum(['value', 'overwork', 'games', 'bonuses']),
+        accessorFn: (workerId: number) =>
+          getIndividualSum(workerId, ['value', 'overwork', 'games', 'bonuses']),
+      },
+      {
+        title: 'Итог ЗП + Бонусы + Штрафы',
         sumFn: () =>
           getSum(['value', 'overwork', 'games', 'bonuses', 'fines', 'balance']),
         accessorFn: (workerId: number) =>
