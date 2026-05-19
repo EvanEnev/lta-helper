@@ -24,6 +24,9 @@ app.prepare().then(async () => {
   console.log(`> Next.js ready on port ${port}`)
   const httpServer = createServer(handler)
 
+  httpServer.keepAliveTimeout = 70000
+  httpServer.headersTimeout = 75000
+
   const io = new Server(httpServer)
   await socket(io)
 
