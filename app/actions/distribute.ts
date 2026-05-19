@@ -16,7 +16,9 @@ export async function distributeAction(
        WHERE id = ANY($1) AND lat IS NOT NULL`,
       [workerIds],
     ),
-    db.query(`SELECT id, lat, lng FROM locations WHERE lat IS NOT NULL`),
+    db.query(
+      `SELECT id, lat, lng FROM locations WHERE lat IS NOT NULL and can_issue is true`,
+    ),
     db.query(
       `SELECT worker_id, location_id, date FROM schedule.locations_schedule
        WHERE worker_id = ANY($1)
