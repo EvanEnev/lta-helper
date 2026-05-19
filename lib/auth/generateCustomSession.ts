@@ -30,11 +30,11 @@ export async function getData(
                    w.is_fired,
                    w.is_former,
                    coalesce(w.is_approved, false) as is_approved,
-                   admins.location_id as today_location,
-                   jsonb_build_object(
-                        'lat', w.lat,
-                        'lng', w.lng
-                   ) as coords
+                   admins.location_id as today_location
+--                    jsonb_build_object(
+--                         'lat', w.lat,
+--                         'lng', w.lng
+--                    ) as coords
                  FROM workers w
                         LEFT JOIN ranks r ON r.id = w.rank_id
                         LEFT JOIN locations l ON l.id = w.location_id
@@ -79,7 +79,7 @@ export async function getData(
       workerResult.is_fired || workerResult.is_former ? [] : permissions,
     email: workerResult.email || authId.includes('@') ? authId : null,
     isApproved: workerResult.is_approved,
-    coords: workerResult.coords,
+    // coords: workerResult.coords,
   }
 
   if (workerResult?.today_location) {
