@@ -30,11 +30,20 @@ export async function getData(
                    w.is_fired,
                    w.is_former,
                    coalesce(w.is_approved, false) as is_approved,
-                   admins.location_id as today_location
+                   admins.location_id as today_location,
+                   jsonb_build_object(
+                        'lat', w.lat,
+                        'lng', w.lng
+                   ) as coords
                  FROM workers w
                         LEFT JOIN ranks r ON r.id = w.rank_id
                         LEFT JOIN locations l ON l.id = w.location_id
-                        LEFT JOIN config.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
+                        LEFT JOIN (
+                   SELECT * FROM config.admins
+                   WHERE date::date = '${date}'
+                   order by date desc
+                   LIMIT 1
+                 ) admins ON admins.worker_id = w.id
                  WHERE ${impersonate ? `w.id = ${authId}` : `auth_id = '${authId}' or email = '${authId}'`}`
 
   const permissionsQuery = `SELECT
@@ -70,6 +79,7 @@ export async function getData(
       workerResult.is_fired || workerResult.is_former ? [] : permissions,
     email: workerResult.email || authId.includes('@') ? authId : null,
     isApproved: workerResult.is_approved,
+    coords: workerResult.coords,
   }
 
   if (workerResult?.today_location) {

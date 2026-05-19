@@ -84,6 +84,7 @@ export default async function generateTableWorkers({
       '',
       'Актёрские игры',
       '',
+      'Итог',
       'Тип выплаты',
       'Выплата по акту',
       'Комментарий акта',
@@ -121,6 +122,14 @@ export default async function generateTableWorkers({
         v.threeValue,
         v.actorCount,
         v.actorValue,
+        v.value +
+          v.overwork +
+          v.bonuses +
+          v.fines +
+          v.oneValue +
+          v.twoValue +
+          v.threeValue +
+          v.actorValue,
         v.type,
         v.act,
         v.comment,
