@@ -14,11 +14,11 @@ import {DateTime, Interval} from 'luxon'
 import {
   Button,
   Checkbox,
-  Dropdown,
   Input,
   Spinner,
   TextField,
   Label,
+  Popover,
 } from '@heroui/react'
 import MonthSelect from '@/src/components/salary/MonthSelect'
 import LocationSelect from '@/src/components/global/LocationSelect'
@@ -188,8 +188,6 @@ export default function SalaryPage({
     socket.on('salary:update', (newData: SalaryData) => {
       if (lastUpdatedId === newData.id) return
 
-      const date = DateTime.fromISO(newData.date)
-
       if (locationId && newData.location.id !== locationId) return
 
       const workerId =
@@ -342,39 +340,37 @@ export default function SalaryPage({
           />
           {canViewLocation &&
             (isMobile ? (
-              <Dropdown>
-                <Dropdown.Trigger>
-                  <Button slot="icon" variant="tertiary" isIconOnly>
+              <Popover>
+                <Popover.Trigger>
+                  <Button variant="tertiary" isIconOnly>
                     <Icon icon="solar:filter-bold" width="24" height="24" />
                   </Button>
-                </Dropdown.Trigger>
-                <Dropdown.Menu className="min-w-40">
-                  <Dropdown.Item key="location">
+                </Popover.Trigger>
+                <Popover.Content className="min-w-40">
+                  <Popover.Dialog
+                    key="location"
+                    className="flex flex-col gap-2">
                     <LocationSelect
                       labelPlacement="inside"
                       includeAll={true}
-                      className="w-fit"
+                      className="w-full"
                       callback={(location: LTLocation | LTLocation[] | null) =>
                         updateData('location', location as LTLocation)
                       }
                       dynamicLocationId
                       locationId={locationId}
                     />
-                  </Dropdown.Item>
-                  <Dropdown.Item key="name">
                     <TextField
                       variant="secondary"
-                      className="w-fit"
+                      className="w-full"
                       onChange={handleNameFilter}>
                       <Label>Позывной</Label>
                       <Input className="w-fit" />
                     </TextField>
-                  </Dropdown.Item>
-                  <Dropdown.Item key="hide">
                     <Checkbox
                       variant="secondary"
                       id="hide"
-                      className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
+                      className="border-surface-foreground/20 h-16 rounded-2xl border-2 px-2"
                       isSelected={hideEmptyFilter}
                       onChange={value => {
                         handleHideFilter(value)
@@ -386,27 +382,36 @@ export default function SalaryPage({
                         <Label htmlFor="hide">Скрыть пустые</Label>
                       </Checkbox.Content>
                     </Checkbox>
-                  </Dropdown.Item>
-                  {canViewFull ? (
-                    <Checkbox
-                      variant="secondary"
-                      id="check"
-                      className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
-                      isSelected={isReviewMode}
-                      onChange={value => {
-                        setReviewMode(value)
-                        localStorage.setItem('salaryReview', `${value}`)
-                      }}>
-                      <Checkbox.Control>
-                        <Checkbox.Indicator />
-                      </Checkbox.Control>
-                      <Checkbox.Content>
-                        <Label htmlFor="check">Проверка</Label>
-                      </Checkbox.Content>
-                    </Checkbox>
-                  ) : null}
-                </Dropdown.Menu>
-              </Dropdown>
+                    {canViewFull ? (
+                      <>
+                        <Checkbox
+                          variant="secondary"
+                          id="check"
+                          className="border-surface-foreground/20 h-16 rounded-2xl border-2 px-2"
+                          isSelected={isReviewMode}
+                          onChange={value => {
+                            setReviewMode(value)
+                            localStorage.setItem('salaryReview', `${value}`)
+                          }}>
+                          <Checkbox.Control>
+                            <Checkbox.Indicator />
+                          </Checkbox.Control>
+                          <Checkbox.Content>
+                            <Label htmlFor="check">Проверка</Label>
+                          </Checkbox.Content>
+                        </Checkbox>
+                        <Button
+                          className="w-full"
+                          variant="tertiary"
+                          onPress={() => download()}>
+                          <Excel width={32} height={32} />
+                          Скачать сводную
+                        </Button>
+                      </>
+                    ) : null}
+                  </Popover.Dialog>
+                </Popover.Content>
+              </Popover>
             ) : (
               <>
                 <LocationSelect
@@ -466,7 +471,7 @@ export default function SalaryPage({
               <Spinner /> Загрузка
             </>
           )}
-          {canViewFull && (
+          {canViewFull && !isMobile && (
             <Button
               slot="icon"
               className="h-fit"
