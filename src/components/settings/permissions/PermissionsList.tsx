@@ -52,7 +52,7 @@ function ExpiryDatePicker({
         onChange(date as CalendarDate | null)
       }
       aria-label="Срок действия">
-      <DateField.Group variant="secondary" className="w-36">
+      <DateField.Group variant="secondary">
         <DateField.Input>
           {segment => <DateField.Segment segment={segment} />}
         </DateField.Input>
@@ -62,7 +62,7 @@ function ExpiryDatePicker({
           </DatePicker.Trigger>
         </DateField.Suffix>
       </DateField.Group>
-      <DatePicker.Popover>
+      <DatePicker.Popover className="min-w-fit">
         <Calendar aria-label="Срок действия">
           <Calendar.Header>
             <Calendar.YearPickerTrigger>
