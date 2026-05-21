@@ -32,6 +32,26 @@ export interface Permission {
   id: number
 }
 
+export interface WorkerPermission {
+  permission_id: number
+  expires: string | null
+}
+
+export interface WorkerBasic {
+  id: number
+  name: string
+  photoUrl: string | null
+  rank: string | null
+  rankWeight: number | null
+}
+
+export interface DefaultPermission {
+  permission_id: number
+  rank_id: number
+  rank_name: string
+  rank_weight: number
+}
+
 export interface LTWorker {
   id: number
   name: string

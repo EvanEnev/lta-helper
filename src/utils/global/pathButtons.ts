@@ -41,6 +41,12 @@ const buttons: PathButton[] = [
     icon: 'solar:users-group-rounded-linear',
   },
   {
+    name: 'Права',
+    href: '/settings/permissions',
+    icon: 'solar:shield-keyhole-linear',
+    isDisabled: true,
+  },
+  {
     name: 'Деньги',
     href: '#',
     icon: 'solar:ruble-linear',

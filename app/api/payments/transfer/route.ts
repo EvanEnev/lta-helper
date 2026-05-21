@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
 
-  const startDate = body.start
-  const endDate = body.end
+  const startDate = body.startDate
+  const endDate = body.endDate
 
   if (!startDate || !endDate) {
     return NextResponse.json({message: 'Неверные даты'}, {status: 500})
@@ -46,6 +46,10 @@ export async function POST(req: NextRequest) {
   while (res === null || res.headers.get('x-has-next-page') === 'true') {
     page++
 
+    console.debug(
+      page,
+      `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
+    )
     res = await fetch(
       `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
       {
@@ -90,6 +94,8 @@ export async function POST(req: NextRequest) {
                                                                     value = excluded.value,
                                                                     comment = excluded.comment`)
   })
+
+  console.debug(queries, acts.length)
 
   try {
     await db.query(queries.join(';\n'))
