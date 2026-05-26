@@ -36,39 +36,43 @@ export default function PaymentsPage({
     },
   ])
 
+  const getNewData = useCallback(async () => {
+    let filteredData: LTPayment[] = initialPayments
+
+    const nameFilter = filters.find(d => d.name === 'name')
+    const typeFilter = filters.find(d => d.name === 'type')
+    const datesFilter = filters.find(d => d.name === 'dates')
+
+    if (datesFilter?.value) {
+      const res = await fetch('/api/payments/get', {
+        method: 'POST',
+        body: JSON.stringify({dates: datesFilter.value}),
+      })
+
+      filteredData = (await res.json()).data
+    }
+
+    if (nameFilter?.value) {
+      filteredData = filteredData.filter(d =>
+        d.worker?.name
+          .toLowerCase()
+          .trim()
+          .startsWith(nameFilter.value?.toLowerCase().trim() || ''),
+      )
+    }
+
+    if (typeFilter?.value) {
+      filteredData = filteredData.filter(d => d.type === typeFilter.value)
+    }
+
+    setPayments(filteredData)
+  }, [filters, initialPayments])
+
   useEffect(() => {
     ;(async () => {
-      let filteredData: LTPayment[] = initialPayments
-
-      const nameFilter = filters.find(d => d.name === 'name')
-      const typeFilter = filters.find(d => d.name === 'type')
-      const datesFilter = filters.find(d => d.name === 'dates')
-
-      if (datesFilter?.value) {
-        const res = await fetch('/api/payments/get', {
-          method: 'POST',
-          body: JSON.stringify({dates: datesFilter.value}),
-        })
-
-        filteredData = (await res.json()).data
-      }
-
-      if (nameFilter?.value) {
-        filteredData = filteredData.filter(d =>
-          d.worker?.name
-            .toLowerCase()
-            .trim()
-            .startsWith(nameFilter.value?.toLowerCase().trim() || ''),
-        )
-      }
-
-      if (typeFilter?.value) {
-        filteredData = filteredData.filter(d => d.type === typeFilter.value)
-      }
-
-      setPayments(filteredData)
+      await getNewData()
     })()
-  }, [filters, initialPayments])
+  }, [getNewData])
 
   const updateData = useCallback(
     async (payment: LTPayment) => {
@@ -104,13 +108,13 @@ export default function PaymentsPage({
   )
 
   const summary = useMemo(() => {
-    console.debug(payments)
     return payments?.reduce((acc, cur) => acc + (cur.value || 0), 0) || 0
   }, [payments])
 
   return (
     <main className="flex flex-col gap-2 p-4">
       <PaymentsHeader
+        getNewData={getNewData}
         summary={summary}
         canEdit={canEdit}
         paymentsTypes={paymentsTypes}

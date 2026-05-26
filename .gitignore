@@ -45,3 +45,5 @@ next-env.d.ts
 
 # Ignore app/api/test directory and all its contents
 /app/api/test/
+/dist/
+.vinext

@@ -32,6 +32,26 @@ export interface Permission {
   id: number
 }
 
+export interface WorkerPermission {
+  permission_id: number
+  expires: string | null
+}
+
+export interface WorkerBasic {
+  id: number
+  name: string
+  photoUrl: string | null
+  rank: string | null
+  rankWeight: number | null
+}
+
+export interface DefaultPermission {
+  permission_id: number
+  rank_id: number
+  rank_name: string
+  rank_weight: number
+}
+
 export interface LTWorker {
   id: number
   name: string
@@ -51,6 +71,10 @@ export interface LTWorker {
   permissions: Permission[]
   todayLocation?: LTLocation['id'] | null
   isApproved: boolean
+  coords: {
+    lat: number | null
+    lng: number | null
+  }
 }
 
 export interface LTWorkType {
@@ -458,6 +482,22 @@ export interface LTQuest {
 }
 
 export interface LTSalarySummary {
+  workerId: LTWorker['id']
+  workerName: LTWorker['name']
+  isFormer: LTWorker['isFormer']
+  rank: LTRank['name']
+  sum: number
+  value: number
+  overwork: number
+  games: number
+  bonuses: number
+  fines: number
+  balance: number
+  external: number
+  [key: string]: number | string | LTWorker['isFormer']
+}
+
+export interface LTSalarySummarized2 {
   workerId: LTWorker['id']
   workerName: LTWorker['name']
   isFormer: LTWorker['isFormer']

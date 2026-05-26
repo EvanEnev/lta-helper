@@ -53,14 +53,14 @@ export default function MobileHeader({
   return (
     <header
       ref={ref}
-      className={`fixed bottom-0 left-0 z-1000 w-dvw px-8 pb-2 ${className}`}>
-      <div className="glass mx-auto flex h-16 w-full items-center gap-2 rounded-4xl p-1">
+      className={`fixed bottom-0 left-0 z-1000 mx-auto w-dvw px-8 pb-2 ${className}`}>
+      <div className="glass mx-auto flex h-fit w-full items-center justify-around gap-2 rounded-4xl p-1">
         {buttons.map((button, index) => (
           <Fragment key={index}>
             <Link
               key={index}
               href={button.href}
-              className={`h-full flex-1 flex-col items-center justify-center gap-1 rounded-4xl px-6 py-4 text-center no-underline ${button.className} ${path === button.href ? 'bg-accent-soft-hover' : ''}`}
+              className={`h-fit flex-1 flex-col items-center justify-center gap-1 rounded-4xl px-4 py-2 text-center no-underline ${button.className} ${path === button.href ? 'bg-accent-soft-hover' : ''}`}
               slot="header">
               {button.icon && (
                 <Icon

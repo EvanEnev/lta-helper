@@ -70,6 +70,7 @@ export default async function generateTableWorkers({
     [
       'ФИО',
       'Позывной',
+      'Итог',
       'Дата',
       'Локация',
       'Смена',
@@ -107,6 +108,14 @@ export default async function generateTableWorkers({
       const row = [
         d.fio,
         d.name,
+        Number(v.value) +
+          Number(v.overwork) +
+          Number(v.bonuses) +
+          Number(v.fines) +
+          Number(v.oneValue) +
+          Number(v.twoValue) +
+          Number(v.threeValue) +
+          Number(v.actorValue),
         v.date,
         v.location,
         v.value,

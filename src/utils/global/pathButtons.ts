@@ -41,6 +41,12 @@ const buttons: PathButton[] = [
     icon: 'solar:users-group-rounded-linear',
   },
   {
+    name: 'Права',
+    href: '/settings/permissions',
+    icon: 'solar:shield-keyhole-linear',
+    isDisabled: true,
+  },
+  {
     name: 'Деньги',
     href: '#',
     icon: 'solar:ruble-linear',
@@ -59,6 +65,12 @@ const buttons: PathButton[] = [
       {
         name: 'Сводная',
         href: '/salary/summarized',
+        icon: 'solar:wallet-linear',
+        permission: 'view_full_salary',
+      },
+      {
+        name: 'Сводная 2',
+        href: '/salary/summarized2',
         icon: 'solar:wallet-linear',
         permission: 'view_full_salary',
       },

@@ -14,6 +14,7 @@ interface SalaryData {
   balance: number
   overwork: number
   games: number
+  external: number
 }
 
 export interface ShortSalary {
@@ -30,6 +31,8 @@ export interface ShortSalary {
   balance: number
   currentSum: number
   previousSum: number
+  currentExternal: number
+  previousExternal: number
 }
 
 export default async function Home() {
@@ -45,8 +48,8 @@ export default async function Home() {
   let currentSalaryTakeDate = ''
   let previousSalaryTakeDate = ''
 
-  if (date.day < 5 || date.day >= 20) {
-    if (date.day < 5) {
+  if (date.day < 10 || date.day >= 25) {
+    if (date.day < 10) {
       current[0] = current[0].minus({month: 1})
       current[1] = current[1].minus({month: 1})
 
@@ -64,12 +67,12 @@ export default async function Home() {
 
     currentSalaryTakeDate = current[1]
       .plus({month: 1})
-      .set({day: 5})
+      .set({day: 10})
       .toFormat('dd.MM')
-    previousSalaryTakeDate = previous[1].set({day: 20}).toFormat('dd.MM')
+    previousSalaryTakeDate = previous[1].set({day: 25}).toFormat('dd.MM')
   }
 
-  if (date.day >= 5 && date.day < 20) {
+  if (date.day >= 10 && date.day < 25) {
     current[0] = current[0].set({day: 1})
     current[1] = current[1].set({day: 15})
 
@@ -78,10 +81,10 @@ export default async function Home() {
       day: previous[1].minus({month: 1}).endOf('month').day,
     })
 
-    currentSalaryTakeDate = current[1].set({day: 20}).toFormat('dd.MM')
+    currentSalaryTakeDate = current[1].set({day: 25}).toFormat('dd.MM')
     previousSalaryTakeDate = previous[1]
       .plus({month: 1})
-      .set({day: 5})
+      .set({day: 10})
       .toFormat('dd.MM')
   }
 
@@ -150,6 +153,8 @@ export default async function Home() {
     balance: currentSalaryData.balance,
     currentSum: currentSalaryData.sum,
     previousSum: previousSalaryData.sum,
+    currentExternal: currentSalaryData.external,
+    previousExternal: previousSalaryData.external,
   }
 
   const ranksQuery = `

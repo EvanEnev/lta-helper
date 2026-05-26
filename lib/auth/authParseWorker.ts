@@ -23,6 +23,7 @@ export default async function authParseWorker(
     permissions,
     email: workerResult.email,
     isApproved: workerResult.isApproved,
+    coords: workerResult.coords,
   }
 
   if (workerResult?.today_location) {

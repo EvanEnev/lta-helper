@@ -1,7 +1,6 @@
 import {ShortSalary} from '@/app/page'
 import SalaryCard from '@/src/components/page/SalaryCard'
-import {useTheme} from 'next-themes'
-import {Button, Link} from '@heroui/react'
+import {Button, Description, Link} from '@heroui/react'
 import {Icon} from '@iconify/react'
 
 interface UpcomingSalaryProps {
@@ -9,8 +8,6 @@ interface UpcomingSalaryProps {
 }
 
 export default function UpcomingSalary({data}: UpcomingSalaryProps) {
-  const {theme} = useTheme()
-
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="flex w-full flex-col gap-4 sm:flex-row">
@@ -22,6 +19,7 @@ export default function UpcomingSalary({data}: UpcomingSalaryProps) {
           value={data.previousSalary}
           dates={data.previousDates}
           title={`Текущая выплата (${data.previousSalaryTakeDate})`}
+          external={data.previousExternal}
           isCurrent
         />
         <SalaryCard
@@ -31,9 +29,14 @@ export default function UpcomingSalary({data}: UpcomingSalaryProps) {
           bonuses={data.currentBonuses}
           value={data.currentSalary}
           dates={data.currentDates}
+          external={data.currentExternal}
           title={`Будущая выплата (${data.currentSalaryTakeDate})`}
         />
       </div>
+      <Description>
+        Остаток формируется после закрытия предыдущей ведомости и дублируется в
+        обеих карточках. Если он некорректный - нужно подождать некоторое время
+      </Description>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Link className="w-full flex-1 no-underline" href="/payrolls/issue">
           <Button className="flex-1" variant="tertiary">

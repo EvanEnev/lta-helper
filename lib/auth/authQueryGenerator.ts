@@ -24,11 +24,20 @@ export default async function authQueryGenerator(
                    w.email,
                    w.photo_url,
                    admins.location_id as today_location,
-                    coalesce(is_approved, false) as "isApproved"
+                    coalesce(is_approved, false) as "isApproved",
+                   jsonb_build_object(
+                     'lat', w.lat,
+                     'lng', w.lng
+                   ) as coords
                  FROM workers w
                         LEFT JOIN ranks r ON r.name = w.rank
                         LEFT JOIN locations l ON l.id = w.location_id
-                        LEFT JOIN config.admins admins ON admins.worker_id=w.id AND admins.date='${date}'
+                        LEFT JOIN (
+                   SELECT * FROM config.admins
+                   WHERE date::date = '${date}'
+                   order by date desc
+                   LIMIT 1
+                 ) admins ON admins.worker_id = w.id
                  WHERE w.id = ${id}`
 
   const permissionsQuery = `SELECT

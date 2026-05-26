@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
 
   const adminsQuery = `SELECT location_id
     FROM config.admins
-    WHERE date = '${date.toFormat('yyyy-MM-dd')}'
-    AND worker_id = ${user.id}`
+    WHERE date::date = '${date.toFormat('yyyy-MM-dd')}'
+    AND worker_id = ${user.id}
+    order by date desc
+    limit 1`
 
   const adminsResult = await db.query(adminsQuery)
   const adminsRows = adminsResult.rows

@@ -12,29 +12,39 @@ import {
   RangeValue,
   Button,
 } from '@heroui/react'
-import {LTLocation, LTRank} from '@/src/utils/types'
+import {LTLocation, LTRank, LTWorkType} from '@/src/utils/types'
 import LocationSelect from '@/src/components/global/LocationSelect'
 import {Interval} from 'luxon'
 import Excel from '@/public/icons/Excel'
 
 interface SummarizedHeaderProps {
+  allColumns: SummaryColumn[]
   columns: SummaryColumn[]
+  setUserColumns: Dispatch<SetStateAction<string[]>>
   setDateRange: Dispatch<SetStateAction<RangeValue<DateValue> | null>>
   dateRange: RangeValue<DateValue> | null
   updateRank: (keys: Key[]) => void
   ranks: LTRank[]
   selectedRanks: string[]
   updateLocations: Dispatch<SetStateAction<number[]>>
+  workTypes: LTWorkType[]
+  selectedWorkTypes: number[]
+  updateWorkTypes: (keys: Key[]) => void
 }
 
 export default function SummarizedHeader({
+  allColumns,
   columns,
+  setUserColumns,
   setDateRange,
   updateRank,
   dateRange,
   ranks,
   selectedRanks,
   updateLocations,
+  workTypes,
+  selectedWorkTypes,
+  updateWorkTypes,
 }: SummarizedHeaderProps) {
   const locationsCallback = useCallback(
     (locations: (LTLocation | LTLocation[]) | null) => {
@@ -125,7 +135,7 @@ export default function SummarizedHeader({
         </DateRangePicker>
 
         <Select
-          className="w-60"
+          className="w-40"
           value={selectedRanks}
           variant="secondary"
           selectionMode="multiple"
@@ -152,6 +162,31 @@ export default function SummarizedHeader({
             </ListBox>
           </Select.Popover>
         </Select>
+        <Select
+          className="w-40"
+          value={selectedWorkTypes}
+          variant="secondary"
+          selectionMode="multiple"
+          onChange={v => updateWorkTypes(v)}>
+          <Select.Trigger>
+            <Select.Value className="truncate" />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover className="max-w-32">
+            <ListBox>
+              <ListBox.Item textValue="Все" key={-1} id={-1}>
+                <Label>Все</Label>
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+              {workTypes.map(d => (
+                <ListBox.Item textValue={d.name} key={d.id} id={d.id}>
+                  <Label>{d.name}</Label>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
         <LocationSelect
           className="w-60"
           showLabel={false}
@@ -162,20 +197,44 @@ export default function SummarizedHeader({
         />
         <Button variant="tertiary" onPress={() => download('day')}>
           <Excel width={40} height={40} />
-          Скачать по дням
+          По дням
         </Button>
         <Button variant="tertiary" onPress={() => download('month')}>
           <Excel width={40} height={40} />
-          Скачать по месяцам
+          По месяцам
         </Button>
         <Button variant="tertiary" onPress={() => download('workers')}>
           <Excel width={40} height={40} />
-          Скачать по сотрудникам
+          По сотрудникам
         </Button>
         {/*<Button variant="tertiary" onPress={() => download('summary')}>*/}
         {/*  <Excel width={40} height={40} />*/}
         {/*  Скачать сводную по месяцам*/}
         {/*</Button>*/}
+        <Select
+          className="w-60"
+          value={columns.map(c => c.title)}
+          variant="secondary"
+          selectionMode="multiple"
+          onChange={v => setUserColumns(v.map(c => String(c)))}>
+          <Select.Trigger>
+            <Select.Value className="truncate" />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover className="max-w-32">
+            <ListBox>
+              {allColumns.map(col => (
+                <ListBox.Item
+                  textValue={col.title}
+                  key={col.title}
+                  id={col.title}>
+                  <Label>{col.title}</Label>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
       </div>
       <div className="bg-surface flex h-fit w-full gap-2 rounded-2xl p-2">
         {columns.map(col => (

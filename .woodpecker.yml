@@ -1,0 +1,9 @@
+when:
+  - event: push
+    branch: main
+
+steps:
+  - name: deploy
+    image: docker
+    commands:
+       - docker compose -f /main/lta/docker-compose.yml up -d --build --no-deps web
