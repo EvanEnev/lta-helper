@@ -197,13 +197,13 @@ export default function PayrollCreateCard() {
                         pathname: '/payrolls/create',
                         query: {
                           dates: JSON.stringify({
-                            start: dateRange?.start.toString().length,
-                            end: dateRange?.end.toString().length,
+                            start: dateRange?.start.toString(),
+                            end: dateRange?.end.toString(),
                           }),
                           moneyOnLocations: JSON.stringify([]),
                           bonuses:
-                            workersBonusesRange?.start.toString() &&
-                            workersBonusesRange?.end.toString(),
+                            workersBonusesRange?.start.toString().length &&
+                            workersBonusesRange?.end.toString().length,
                           workersBonusesRange: JSON.stringify({
                             start: workersBonusesRange?.start.toString().length
                               ? workersBonusesRange.start.toString()
