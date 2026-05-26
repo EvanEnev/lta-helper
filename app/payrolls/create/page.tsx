@@ -37,9 +37,10 @@ export default async function PayrollsCreate({
                                                                 case when r.id = 12 then '${actorsBonusesRange.end}'::date
                                                                      else ${workersBonusesRange.end ? `'${workersBonusesRange.end}'::date` : null} end
                                            ) s
-                 where s.count != 0 or s.balance != 0
+                 where s.count != 0 or s.balance != 0 or s.bonuses != 0 or s.fines != 0
                  order by coalesce(w.is_former, false), r.id != 12 desc, w.name`
 
+  console.debug(workersBonusesRange, query)
   const locations = await getLocations()
 
   const data = (await db.query(query)).rows
