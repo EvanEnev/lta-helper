@@ -202,8 +202,10 @@ export default function PayrollCreateCard() {
                           }),
                           moneyOnLocations: JSON.stringify([]),
                           bonuses:
-                            workersBonusesRange?.start.toString().length &&
-                            workersBonusesRange?.end.toString().length,
+                            Boolean(
+                              workersBonusesRange?.start.toString().length,
+                            ) &&
+                            Boolean(workersBonusesRange?.end.toString().length),
                           workersBonusesRange: JSON.stringify({
                             start: workersBonusesRange?.start.toString().length
                               ? workersBonusesRange.start.toString()
