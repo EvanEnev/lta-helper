@@ -172,7 +172,7 @@ export default function PayrollCreatePage({
         body: dataToSend,
       })
 
-      if (result?.id) {
+      if (result?.id && isPublished) {
         localStorage.removeItem('payrollsCreate')
         router.push(`/payrolls/${result.id}`)
       }

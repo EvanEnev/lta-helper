@@ -29,7 +29,15 @@ export default async function fetchHandler({
   } catch {}
 
   if (response.ok) {
-    if (showNotification) toast('Успешно!', {variant: 'success'})
+    if (json.warning && showNotification) {
+      toast('Предупреждение!', {
+        timeout: 10000,
+        description: json.warning,
+        variant: 'warning',
+      })
+    } else if (showNotification) {
+      toast('Успешно!', {variant: 'success'})
+    }
 
     return json
   } else {

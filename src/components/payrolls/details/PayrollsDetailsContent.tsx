@@ -88,6 +88,7 @@ where p.id = ${id}`
   moneyOnLocationsQuery += `\norder by l.name`
   workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
 
+  console.debug(moneyOnLocationsQuery)
   const [locations, moneyOnLocationsResult, payrollResult, result] =
     await Promise.all([
       getLocations(),

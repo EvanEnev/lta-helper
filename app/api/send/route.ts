@@ -121,6 +121,8 @@ export async function POST(req: NextRequest) {
     await db.query(query)
   }
 
+  const errors: string[] = []
+
   const telegramPromises = [
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -129,7 +131,7 @@ export async function POST(req: NextRequest) {
         chat_id: telegramId,
         text: `Успешно ✅\n\n${changesTexts.join('\n')}`,
       }),
-    }),
+    }).catch(e => errors.push('отправка личного сообщения')),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -140,7 +142,7 @@ export async function POST(req: NextRequest) {
         parse_mode: 'Markdown',
         disable_notification: true,
       }),
-    }),
+    }).catch(e => errors.push('отправка сообщения в группу')),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -150,10 +152,17 @@ export async function POST(req: NextRequest) {
         parse_mode: 'Markdown',
         text: locationsTexts,
       }),
-    }),
+    }).catch(e => errors.push('отправка сообщения админам')),
   ]
 
   await Promise.all(telegramPromises)
 
-  return NextResponse.json({}, {status: 200})
+  return NextResponse.json(
+    {
+      warning: errors.length
+        ? `Смены проставились, но есть ошибки: ${errors.join(', ')}`
+        : '',
+    },
+    {status: 200},
+  )
 }
