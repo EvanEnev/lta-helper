@@ -54,7 +54,8 @@ export default async function getLocationSalaryData({
     }
 
     const query = `
-      with params as (select ${workerId}::int                                               as worker_filter,
+      with params as (select ${worker?.id || null}::int                                       as current_worker,
+                             ${workerId}::int                                               as worker_filter,
                              ${locationId}::int                                             as location_filter,
                              '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}'::date as date_from,
                              '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'::date   as date_to),
@@ -69,15 +70,22 @@ export default async function getLocationSalaryData({
                          from salary.list s
                                 cross join params p
                          where s.date BETWEEN p.date_from and p.date_to
-                           and (p.worker_filter is null or s.worker_id = p.worker_filter)
-                           and (p.location_filter is null or s.location_id = p.location_filter)),
+                           and (
+                           (s.worker_id = p.current_worker
+                             and (p.worker_filter is null or p.worker_filter = p.current_worker))
+                             or ((p.worker_filter is null or s.worker_id = p.worker_filter)
+                             and (p.location_filter is null or s.location_id = p.location_filter))
+                           )),
            locations_face as (select distinct f.location_id
                               from face_id f
                                      cross join params p
                               where f.date BETWEEN p.date_from and p.date_to
-                                and (p.worker_filter is null or f.worker_id = p.worker_filter)
-                                and (p.location_filter is null or f.location_id = p.location_filter)
-                             ),
+                                and (
+                                (f.worker_id = p.current_worker
+                                  and (p.worker_filter is null or p.worker_filter = p.current_worker))
+                                  or ((p.worker_filter is null or f.worker_id = p.worker_filter)
+                                  and (p.location_filter is null or f.location_id = p.location_filter))
+                                )),
            all_locations as (select distinct location_id
                              from locations
                              union
@@ -97,8 +105,12 @@ export default async function getLocationSalaryData({
                                join location_map lm on lm.location_id = f.location_id
                                cross join params p
                         where f.date BETWEEN p.date_from and p.date_to
-                          and (p.worker_filter is null or f.worker_id = p.worker_filter)
-                          and (p.location_filter is null or f.location_id = p.location_filter)
+                          and (
+                          (f.worker_id = p.current_worker
+                            and (p.worker_filter is null or p.worker_filter = p.current_worker))
+                            or ((p.worker_filter is null or f.worker_id = p.worker_filter)
+                            and (p.location_filter is null or f.location_id = p.location_filter))
+                          )
                         group by f.worker_id, f.date::date),
            salary_filtered AS (SELECT s.id,
                                       s.worker_id,
@@ -124,10 +136,13 @@ export default async function getLocationSalaryData({
                                FROM salary.list s
                                       CROSS JOIN params p
                                WHERE s.date BETWEEN p.date_from AND p.date_to
-                                 AND (p.worker_filter IS NULL OR s.worker_id = p.worker_filter)
-                                 AND (p.location_filter IS NULL OR
-                                      (s.worker_id = ${workerId} or s.location_id = p.location_filter))
-                                 and coalesce(s.is_confirmed, false) = true),
+                                 and coalesce(s.is_confirmed, false) = true
+                                 and (
+                                 (s.worker_id = p.current_worker
+                                   and (p.worker_filter is null or p.worker_filter = p.current_worker))
+                                   or ((p.worker_filter IS NULL OR s.worker_id = p.worker_filter)
+                                   and (p.location_filter IS NULL OR s.location_id = p.location_filter))
+                                 )),
            payments_filtered AS (SELECT p.worker_id,
                                         p.date::date AS p_date,
                                         jsonb_agg(
@@ -144,9 +159,8 @@ export default async function getLocationSalaryData({
                                  WHERE p.date BETWEEN pa.date_from AND pa.date_to
                                    AND (pa.worker_filter IS NULL OR p.worker_id = pa.worker_filter)
                                  GROUP BY p.worker_id, p.date::date),
-           salary_payments AS (SELECT
-                                      coalesce(s.worker_id, p.worker_id) as worker_id,
-                                      coalesce(s.date, p.p_date) as date,
+           salary_payments AS (SELECT coalesce(s.worker_id, p.worker_id) as worker_id,
+                                      coalesce(s.date, p.p_date)         as date,
                                       s.id,
                                       s.start_time,
                                       s.end_time,
@@ -185,8 +199,7 @@ export default async function getLocationSalaryData({
                    'date', to_char(sp.date, 'DD.MM.YYYY'),
                    'startTime', to_char(sp.start_time, 'HH24:MI'),
                    'endTime', to_char(sp.end_time, 'HH24:MI'),
-                   'overworkStart',
-                   case when sp.overwork_start is not null then to_char(sp.overwork_start, 'HH24:MI') end,
+                   'overworkStart', case when sp.overwork_start is not null then to_char(sp.overwork_start, 'HH24:MI') end,
                    'overworkEnd', case when sp.overwork_end is not null then to_char(sp.overwork_end, 'HH24:MI') end,
                    'value', coalesce(sp.value, 0),
                    'overworkValue', coalesce(sp.overwork, 0),

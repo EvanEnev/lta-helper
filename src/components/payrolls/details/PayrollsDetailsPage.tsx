@@ -138,15 +138,16 @@ export default function PayrollsDetailsPage({
         {checkPermissions(
           ['view_all_payrolls', 'view_location_payrolls'],
           worker,
-        ) && (
-          <PayrollsDetailsHeader
-            payrollId={payrollId}
-            filterChangeCallback={filterChangeCallback}
-            locationsData={locationsData}
-            data={data}
-            canEdit={canEdit}
-          />
-        )}
+        ) &&
+          locationsData.length !== 0 && (
+            <PayrollsDetailsHeader
+              payrollId={payrollId}
+              filterChangeCallback={filterChangeCallback}
+              locationsData={locationsData}
+              data={data}
+              canEdit={canEdit}
+            />
+          )}
         {filteredData.map(item => {
           return (
             <PayrollsDetailsRow

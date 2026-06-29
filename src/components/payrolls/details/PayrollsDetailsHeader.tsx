@@ -35,21 +35,28 @@ export default function PayrollsDetailsHeader({
 
   const locationIssued = useMemo(
     () =>
-      data
-        .filter(d => d.location_id === locationsData[0].location_id)
-        .reduce((acc, cur) => acc + (cur.taken || 0), 0),
+      locationsData.length > 1
+        ? data
+            .filter(d => d.location_id === locationsData[0].location_id)
+            .reduce((acc, cur) => acc + (cur.taken || 0), 0)
+        : 0,
     [data, locationsData],
   )
 
   const locationToTake = useMemo(
     () =>
-      data
-        .filter(d => d.location_id === locationsData[0].location_id)
-        .reduce(
-          (acc, cur) =>
-            acc + cur.value + (cur.bonuses || 0) - (cur.external_payment || 0),
-          0,
-        ),
+      locationsData.length > 1
+        ? data
+            .filter(d => d.location_id === locationsData[0].location_id)
+            .reduce(
+              (acc, cur) =>
+                acc +
+                cur.value +
+                (cur.bonuses || 0) -
+                (cur.external_payment || 0),
+              0,
+            )
+        : 0,
     [data, locationsData],
   )
 

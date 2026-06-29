@@ -68,17 +68,13 @@ where p.id = ${id}`
   if (!checkPermissions(['view_payrolls'], worker)) {
     workersPayrollDataQuery += `\nand p.id = -1`
     moneyOnLocationsQuery += `\nwhere lm.payroll_id = -1`
-  }
-
-  if (
+  } else if (
     !checkPermissions(['view_all_payrolls'], worker) &&
     checkPermissions(['view_location_payrolls'], worker)
   ) {
     workersPayrollDataQuery += `\nand (wp.location_id = ${worker?.locationId} or wp.worker_id = ${worker?.id})`
     moneyOnLocationsQuery += `\nwhere lm.location_id = ${worker?.locationId}`
-  }
-
-  if (
+  } else if (
     !checkPermissions(['view_all_payrolls', 'view_location_payrolls'], worker)
   ) {
     workersPayrollDataQuery += `\nand wp.worker_id = ${worker?.id}`
@@ -88,7 +84,6 @@ where p.id = ${id}`
   moneyOnLocationsQuery += `\norder by l.name`
   workersPayrollDataQuery += `\norder by wp.taken is not null, wp.issue_confirmed, r.sorting_weight desc, w.name`
 
-  console.debug(moneyOnLocationsQuery)
   const [locations, moneyOnLocationsResult, payrollResult, result] =
     await Promise.all([
       getLocations(),
@@ -106,6 +101,7 @@ where p.id = ${id}`
     takeBy: payrollResult.rows[0].takeBy.toISO(),
     dates: payrollResult.rows[0].dates.toISO(),
   }
+
   return (
     <PayrollsDetailsPage
       payrollId={id}
