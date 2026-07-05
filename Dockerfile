@@ -41,6 +41,4 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/lib ./lib
 COPY --from=builder /app/server.ts ./server.ts
 
-COPY .env .env.production
-
 CMD ["pnpm", "start"]
