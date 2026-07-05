@@ -4,18 +4,9 @@ import {Server} from 'socket.io'
 import socket from './lib/socket/socket'
 
 const dev = process.env.NODE_ENV === 'development'
-const test = process.env.NODE_ENV === 'test'
 
-let hostname = 'lt.bubenev.su'
-let port = 5000
-
-if (dev) {
-  port = 3000
-  hostname = '127.0.0.1'
-} else if (test) {
-  port = 5001
-  hostname = 'lt-test.bubenev.su'
-}
+const hostname = process.env.HOSTNAME!
+const port = Number(process.env.PORT!)
 
 const app = next({dev, hostname, port})
 const handler = app.getRequestHandler()
