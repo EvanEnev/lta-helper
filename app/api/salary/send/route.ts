@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
 
   const promises: Promise<boolean>[] = []
   const queries = []
+  const warnings = []
 
   const isConfirmed = date.diff(DateTime.now(), 'days').days <= 0
 
@@ -85,6 +86,19 @@ export async function POST(req: NextRequest) {
            AND date = '${date.toFormat('yyyy-MM-dd')}'`,
       )
 
+      continue
+    }
+
+    const existedDataQuery = `SELECT id, (select name from locations where id = location_id) as location FROM salary.list
+                              WHERE worker_id = (SELECT id from workers WHERE name ilike '${data.worker}')
+                                and location_id != (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
+                                AND date = '${date.toFormat('yyyy-MM-dd')}'`
+
+    const existedDataResult = await db.query(existedDataQuery)
+    const existedData = existedDataResult.rows[0]
+
+    if (existedData.id) {
+      warnings.push(`${data.worker}: ${existedData.location}`)
       continue
     }
 
@@ -472,7 +486,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  if (queries.length) {
+  if (queries.length && !warnings.length) {
     const queriesPromises = queries.map(query => db.query(query))
     try {
       await Promise.all([...promises, ...queriesPromises])
@@ -482,5 +496,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({}, {status: 200})
+  return NextResponse.json(
+    {
+      warning: warnings.length
+        ? `У сотрудников уже стоят смены в этот день: ${warnings.join(', ')}`
+        : '',
+    },
+    {status: 200},
+  )
 }

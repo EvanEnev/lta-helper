@@ -16,6 +16,7 @@ import {
 import {useEffect, useMemo, useState} from 'react'
 import {DateTime} from 'luxon'
 import {toast} from '@heroui/react'
+import fetchHandler from '@/src/utils/global/fetchHandler'
 
 interface AdminPageProps {
   worker: LTWorker
@@ -130,35 +131,16 @@ export default function AdminPage({
 
     setLoading(true)
 
-    const response = await fetch('/api/salary/send', {
+    const response = await fetchHandler({
+      url: '/api/salary/send',
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data,
     })
 
-    let message = ''
-
-    try {
-      const json = await response.json()
-      if (json.message) {
-        message = json.message
-      }
-    } catch {}
-
-    if (response.ok) {
-      toast('Успешно!', {
-        description: message || 'Данные отправлены',
-        timeout: 8000,
-        variant: 'success',
-      })
-
+    if (response) {
       if (!worker.locationId) {
         setSalaryData([defaultSalaryData])
       }
-    } else {
-      toast('Ошибка!', {
-        description: message || 'Неизвестная ошибка',
-        variant: 'danger',
-      })
     }
 
     setLoading(false)
