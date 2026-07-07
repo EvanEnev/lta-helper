@@ -12,7 +12,7 @@ const app = next({dev, hostname, port})
 const handler = app.getRequestHandler()
 
 app.prepare().then(async () => {
-  console.log(`> Next.js ready on port ${port}`)
+  console.log(`[Next.js] Ready on http://${hostname}:${port}`)
   const httpServer = createServer(handler)
 
   httpServer.keepAliveTimeout = 70000
@@ -27,6 +27,6 @@ app.prepare().then(async () => {
       process.exit(1)
     })
     .listen(port, () => {
-      console.log(`> WebSocker ready on port ${port}`)
+      console.log(`[WebSocker] Ready on port ${port}`)
     })
 })
