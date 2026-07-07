@@ -10,7 +10,7 @@ RUN corepack enable
 RUN pnpm config set registry https://registry.npmmirror.com
 
 # Только зависимости
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 # Исходники
@@ -32,7 +32,7 @@ RUN pnpm config set registry https://registry.npmmirror.com
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
 RUN pnpm install --frozen-lockfile --prod
 
