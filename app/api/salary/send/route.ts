@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       const existedDataResult = await db.query(existedDataQuery)
       const existedData = existedDataResult.rows[0]
 
-      if (existedData.id) {
+      if (existedData?.id) {
         warnings.push(`${data.worker}: ${existedData.location}`)
         continue
       }
