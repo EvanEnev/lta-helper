@@ -89,17 +89,19 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    const existedDataQuery = `SELECT id, (select name from locations where id = location_id) as location FROM salary.list
+    if (!data.withoutDate) {
+      const existedDataQuery = `SELECT id, (select name from locations where id = location_id) as location FROM salary.list
                               WHERE worker_id = (SELECT id from workers WHERE name ilike '${data.worker}')
                                 and location_id != (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
                                 AND date = '${date.toFormat('yyyy-MM-dd')}'`
 
-    const existedDataResult = await db.query(existedDataQuery)
-    const existedData = existedDataResult.rows[0]
+      const existedDataResult = await db.query(existedDataQuery)
+      const existedData = existedDataResult.rows[0]
 
-    if (existedData.id) {
-      warnings.push(`${data.worker}: ${existedData.location}`)
-      continue
+      if (existedData.id) {
+        warnings.push(`${data.worker}: ${existedData.location}`)
+        continue
+      }
     }
 
     const workerQuery = `SELECT r.name as rank FROM workers w left join ranks r on r.id = w.rank_id WHERE w.name ilike '${data.worker}'`
