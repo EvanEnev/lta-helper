@@ -41,7 +41,7 @@ interface PayrollCreatePageProps {
     [key: string]: number | string | LTWorker['name'] | LTWorker['id']
   }[]
   dates: {start: string; end: string}
-  workersBonusesRange: {start: string; end: string}[]
+  workersBonusesRange: {start: string; end: string}
   bonuses: boolean
   moneyOnLocations: {
     location: LTLocation['id']

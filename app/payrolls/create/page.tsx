@@ -52,6 +52,7 @@ export default async function PayrollsCreate({
       moneyOnLocations={moneyOnLocations}
       locations={locations}
       data={data}
+      workersBonusesRange={workersBonusesRange}
     />
   )
 }
