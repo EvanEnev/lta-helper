@@ -112,8 +112,8 @@ export default function PayrollCard({
                     moneyOnLocations: JSON.stringify([]),
                     bonuses: data.meta.withBonuses,
                     workersBonusesRange: JSON.stringify({
-                      start: data.meta.dates?.start.toString(),
-                      end: data.meta.dates?.end.toString(),
+                      start: data.meta.workersBonusesRange?.start.toString(),
+                      end: data.meta.workersBonusesRange?.end.toString(),
                     }),
                     actorsBonusesRange: JSON.stringify({
                       start: data.meta.dates?.start.toString(),

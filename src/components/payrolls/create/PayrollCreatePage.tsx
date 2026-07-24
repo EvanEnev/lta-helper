@@ -41,6 +41,7 @@ interface PayrollCreatePageProps {
     [key: string]: number | string | LTWorker['name'] | LTWorker['id']
   }[]
   dates: {start: string; end: string}
+  workersBonusesRange: {start: string; end: string}[]
   bonuses: boolean
   moneyOnLocations: {
     location: LTLocation['id']
@@ -54,6 +55,7 @@ const locationsToHide = ['выезд', 'отдел продаж']
 export default function PayrollCreatePage({
   data: initialData,
   dates: initialDates,
+  workersBonusesRange,
   bonuses: initialBonuses,
   moneyOnLocations: initialMoney,
   locations,
@@ -144,11 +146,19 @@ export default function PayrollCreatePage({
       workersData: payrollData,
       takeBy,
       dates,
+      workersBonusesRange,
       moneyOnLocations,
     }
 
     localStorage.setItem('payrollsCreate', JSON.stringify(data))
-  }, [bonuses, dates, moneyOnLocations, payrollData, takeBy])
+  }, [
+    bonuses,
+    dates,
+    moneyOnLocations,
+    payrollData,
+    takeBy,
+    workersBonusesRange,
+  ])
 
   const sendData = useCallback(
     async (isPublished: boolean) => {
@@ -200,53 +210,6 @@ export default function PayrollCreatePage({
     },
     [],
   )
-
-  // const checkboxChange = useCallback(
-  //   (e: React.ChangeEvent<HTMLInputElement>, rowIndex: number) => {
-  //     // @ts-ignore
-  //     const withShift = e.nativeEvent.shiftKey
-  //
-  //     if (lastSelectedRow !== null && withShift) {
-  //       let selected = [...selectedRows]
-  //       for (let i = lastSelectedRow + 1; i <= rowIndex; i++) {
-  //         if (selected.includes(i)) {
-  //           selected = selected.filter(d => d !== i)
-  //         } else {
-  //           selected.push(i)
-  //         }
-  //       }
-  //
-  //       const newSelected = new Set(selected)
-  //
-  //       setSelectedRows(Array.from(newSelected))
-  //       setLastSelectedRow(null)
-  //     } else {
-  //       if (!selectedRows.includes(rowIndex)) {
-  //         setSelectedRows(prev => [...prev, rowIndex])
-  //       } else {
-  //         setSelectedRows(prev => prev.filter(d => d !== rowIndex))
-  //       }
-  //
-  //       setLastSelectedRow(rowIndex)
-  //     }
-  //   },
-  //   [lastSelectedRow, selectedRows],
-  // )
-  //
-  // const locationsFilter = useCallback(
-  //   (value: boolean) => {
-  //     if (!value) {
-  //       setData(initialData)
-  //     } else {
-  //       setData(prev =>
-  //         prev.filter(
-  //           d => payrollData.find(d2 => d2.workerId === d.id)?.location === -1,
-  //         ),
-  //       )
-  //     }
-  //   },
-  //   [initialData, payrollData],
-  // )
 
   const getSum = useCallback(
     (names: string[]) => {
