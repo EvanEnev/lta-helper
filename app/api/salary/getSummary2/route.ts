@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
                                                                 array[${locations}],
                                                                 array[${workTypes}]
                                            ) s
-                        join lateral (
+                        left join lateral (
                    select value -
                           coalesce(taken, 0) +
                           coalesce(bonuses, 0) -
