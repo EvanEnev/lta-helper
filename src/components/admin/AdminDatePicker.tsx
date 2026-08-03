@@ -64,7 +64,7 @@ export default function AdminDatePicker({
           </DatePicker.Trigger>
         </DateField.Suffix>
       </DateField.Group>
-      <DatePicker.Popover>
+      <DatePicker.Popover className="min-w-fit">
         <Calendar aria-label="Дата">
           <Calendar.Header>
             <Calendar.YearPickerTrigger>

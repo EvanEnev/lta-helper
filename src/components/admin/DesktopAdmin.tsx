@@ -190,6 +190,8 @@ export default function DesktopAdmin({
                   comment: '',
                   isHardTime: false,
                   gamesCount: 1,
+                  workTypes: prev[prev.length - 1]?.workTypes || [],
+                  type: prev[prev.length - 1]?.type || '',
                 },
               ])
             }}>
@@ -198,7 +200,7 @@ export default function DesktopAdmin({
           </Button>
         </div>
       </div>
-      <Card className="sticky top-2 z-1000 h-fit w-fit">
+      <Card className="sticky top-2 z-1000 h-fit w-72">
         <Card.Content className="gap-4">
           <AdminDatePicker callback={updateDate} canEdit={canEdit} />
           <Button
@@ -218,6 +220,8 @@ export default function DesktopAdmin({
                   comment: '',
                   isHardTime: false,
                   gamesCount: 1,
+                  workTypes: prev[prev.length - 1]?.workTypes || [],
+                  type: prev[prev.length - 1]?.type || '',
                 },
               ])
             }>

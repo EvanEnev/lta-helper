@@ -75,7 +75,8 @@ export default function WorkData({
   const {contains} = useFilter({sensitivity: 'base'})
   const [selectedKeys, setSelectedKeys] = useState<
     Key | Key[] | null | undefined
-  >()
+  >((data.type ? data.type : data.workTypes) || undefined)
+
   const worker = workers.find(
     (worker: {name: string}) =>
       worker.name?.toLowerCase() === data.worker?.toLowerCase(),
@@ -215,7 +216,6 @@ export default function WorkData({
     data.isHardTime,
     data.comment,
     data.bonuses,
-    data.location,
     data.value,
     data.overwork,
     data.oneGames?.id,

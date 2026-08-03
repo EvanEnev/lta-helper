@@ -43,6 +43,7 @@ const defaultSalaryData: WorkerSalary = {
   threeGames: null,
   actorGames: null,
   workTypes: [],
+  type: '',
   sorting_weight: 0,
   taskId: null,
   isConfirmed: false,

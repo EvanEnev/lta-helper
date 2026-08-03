@@ -71,12 +71,14 @@ export default function MobileAdmin({
       ...prev,
       {
         worker: '',
-        workingHours: '',
-        location: '',
+        workingHours: prev[prev.length - 1]?.workingHours || '',
+        location: prev[prev.length - 1]?.location || '',
         bonuses: '',
         comment: '',
         isHardTime: false,
         gamesCount: 1,
+        workTypes: prev[prev.length - 1]?.workTypes || [],
+        type: prev[prev.length - 1]?.type || '',
       },
     ])
 
