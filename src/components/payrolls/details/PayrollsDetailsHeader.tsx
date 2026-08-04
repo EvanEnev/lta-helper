@@ -12,6 +12,7 @@ import PayrollsDetailsNote from '@/src/components/payrolls/details/PayrollsDetai
 import {useCallback, useMemo} from 'react'
 import Location from '@/src/components/global/Location'
 import fetchHandler from '@/src/utils/global/fetchHandler'
+import Excel from '@/public/icons/Excel'
 
 interface PayrollsDetailsHeaderProps {
   payrollId: number
@@ -64,6 +65,29 @@ export default function PayrollsDetailsHeader({
     const url = `/api/payrolls/${payrollId}/close`
 
     await fetchHandler({url, method: 'PATCH'})
+  }, [payrollId])
+
+  const download = useCallback(async () => {
+    const response = await fetch('/api/excel', {
+      method: 'POST',
+      body: JSON.stringify({
+        id: payrollId,
+        type: 'payroll',
+      }),
+    })
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+
+    let name = 'Ведомость'
+
+    a.download = `${name}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
   }, [payrollId])
 
   return (
@@ -190,9 +214,15 @@ export default function PayrollsDetailsHeader({
               </div>
             )}
             {canEdit && (
-              <Button variant="danger-soft" onPress={closePayroll}>
-                Закрыть ведомость
-              </Button>
+              <>
+                <Button variant="tertiary" onPress={download}>
+                  <Excel width={40} height={40} />
+                  Скачать
+                </Button>
+                <Button variant="danger-soft" onPress={closePayroll}>
+                  Закрыть ведомость
+                </Button>
+              </>
             )}
           </Disclosure.Heading>
           <Disclosure.Content>

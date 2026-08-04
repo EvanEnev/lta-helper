@@ -4,17 +4,23 @@ import generateTableByDays from '@/app/api/excel/generateTableByDays'
 import generateTableByMonths from '@/app/api/excel/generateTableByMonths'
 import generateTableByWorkers from '@/app/api/excel/generateTableByWorkers'
 import generateTableWorkers from '@/app/api/excel/generateTableWorkers'
+import generateTablePayroll from '@/app/api/excel/generateTablePayroll'
 
 export async function POST(req: NextRequest) {
   const body: {
-    start_date: string
-    end_date: string
-    bonuses: boolean
-    type: 'day' | 'month' | 'workers' | 'salary'
+    start_date?: string
+    end_date?: string
+    bonuses?: boolean
+    id?: number
+    type: 'day' | 'month' | 'workers' | 'salary' | 'payroll'
   } = await req.json()
 
-  const startDate = DateTime.fromISO(body.start_date).setZone('Europe/Moscow')
-  const endDate = DateTime.fromISO(body.end_date).setZone('Europe/Moscow')
+  const startDate = DateTime.fromISO(body?.start_date || '').setZone(
+    'Europe/Moscow',
+  )
+  const endDate = DateTime.fromISO(body?.end_date || '').setZone(
+    'Europe/Moscow',
+  )
 
   const interval = Interval.fromDateTimes(startDate, endDate)
 
@@ -32,6 +38,8 @@ export async function POST(req: NextRequest) {
     buffer = await generateTableByWorkers({interval})
   } else if (body.type === 'salary') {
     buffer = await generateTableWorkers({interval})
+  } else if (body.type === 'payroll') {
+    buffer = await generateTablePayroll({id: body.id || -1})
   }
 
   return new Response(buffer, {
