@@ -43,7 +43,7 @@ export default function PayrollCard({
 
   return (
     <Card
-      className={`h-72 w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border-1'}`}>
+      className={`h-72 w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border'}`}>
       <Card.Header>{interval.toFormat('dd.MM.yyyy')}</Card.Header>
       <Card.Content className="flex flex-col gap-2">
         {canViewAllData && (
@@ -112,8 +112,8 @@ export default function PayrollCard({
                     moneyOnLocations: JSON.stringify([]),
                     bonuses: data.meta.withBonuses,
                     workersBonusesRange: JSON.stringify({
-                      start: data.meta.workersBonusesRange?.start.toString(),
-                      end: data.meta.workersBonusesRange?.end.toString(),
+                      start: data.meta.workersBonusesRange?.start?.toString(),
+                      end: data.meta.workersBonusesRange?.end?.toString(),
                     }),
                     actorsBonusesRange: JSON.stringify({
                       start: data.meta.dates?.start.toString(),
