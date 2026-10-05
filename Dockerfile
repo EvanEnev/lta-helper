@@ -7,7 +7,6 @@ FROM node:${CODE_VERSION} AS builder
 WORKDIR /app
 
 RUN corepack enable
-RUN pnpm config set registry https://registry.npmmirror.com
 
 # Только зависимости
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
@@ -15,6 +14,10 @@ RUN pnpm install --frozen-lockfile
 
 # Исходники
 COPY . .
+
+ENV BETTER_AUTH_SECRET=build-only-dummy-secret-0123456789abcdef \
+    BETTER_AUTH_URL=http://localhost:3000 \
+    DATABASE_URL=postgres://user:pass@localhost:5432/db
 
 # Собираем Next.js
 RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
@@ -27,7 +30,6 @@ FROM node:${CODE_VERSION} AS runner
 WORKDIR /app
 
 RUN corepack enable
-RUN pnpm config set registry https://registry.npmmirror.com
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
