@@ -1,6 +1,6 @@
 import convertTZ from '../functions/convertTZ'
 import db from '../database'
-import type {LTWorker} from '@/src/utils/types'
+import type {LTWorker} from '../../src/utils/types'
 
 export async function getData(
   authId: string,
