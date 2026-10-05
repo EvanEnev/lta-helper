@@ -1,12 +1,11 @@
-import {Skeleton} from '@heroui/react'
+import {Skeleton} from '@/components/ui/skeleton'
 
-const NUMBER = 20
-export default async function PayrollsDetailsSkeleton() {
+export default function PayrollsDetailsSkeleton() {
   return (
-    <main className="flex h-full w-full flex-col gap-2 p-4">
-      <Skeleton className="sticky top-2 z-1000 h-14 w-full rounded-2xl" />
-      {Array.from({length: NUMBER}).map((_, i) => (
-        <Skeleton key={i} className="h-45 w-full rounded-2xl" />
+    <main className="flex flex-col gap-2 p-4">
+      <Skeleton className="h-10 w-full" />
+      {Array.from({length: 8}, (_, i) => (
+        <Skeleton key={i} className="h-36 w-full" />
       ))}
     </main>
   )

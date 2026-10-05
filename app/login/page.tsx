@@ -1,13 +1,15 @@
 'use client'
 
 import {useSearchParams} from 'next/navigation'
-import {Button, Separator, toast} from '@heroui/react'
 import {authClient} from '@/lib/auth/authClient'
 import {Icon} from '@iconify/react'
 import capitalize from '@/lib/functions/capitalize'
 import providers from '@/src/utils/global/providers'
 import Link from 'next/link'
 import {useEffect} from 'react'
+import {Button} from '@/components/ui/button'
+import {toast} from '@/components/ui/toast'
+import {Separator} from '@/components/ui/separator'
 
 export default function Register() {
   const params = useSearchParams()
@@ -19,8 +21,9 @@ export default function Register() {
   useEffect(() => {
     if (error && error === 'user_not_found') {
       authClient.signOut()
-      toast('Пользователь не найден', {
-        variant: 'danger',
+      toast.add({
+        title: 'Пользователь не найден',
+        type: 'danger',
         timeout: 8000,
       })
     }
@@ -35,8 +38,8 @@ export default function Register() {
             key={provider.name}
             className="w-full justify-start gap-4"
             slot="icon"
-            variant="tertiary"
-            onPress={async () => {
+            variant="secondary"
+            onClick={async () => {
               await authClient.signIn.social({
                 provider: provider.name,
                 callbackURL,

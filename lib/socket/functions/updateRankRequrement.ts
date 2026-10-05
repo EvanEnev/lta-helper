@@ -1,57 +1,71 @@
 import {RankUpdateData, SocketUpdateProps} from '@/src/utils/types'
 
+const toId = (value: unknown) => {
+  const id = Number(value)
+
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
 export default async function updateRankRequrement({
   data: incoming,
   client,
 }: SocketUpdateProps) {
   const data: RankUpdateData = incoming
-  const loggerData: any = {}
 
-  loggerData.data = data
+  const requirementId = toId(data?.id)
+  const workerId = toId(data?.workerId)
+  if (requirementId === null || workerId === null) return
+
+  const generationId = toId(data.meta?.generationId)
+  const questId = toId(data.meta?.questId)
 
   if (data.delete) {
-    const query = `delete from relations.workers_requirements where requirement_id = ${data.id} and worker_id = ${data.workerId}`
-    await client.query(query)
+    await client.query(
+      'delete from relations.workers_requirements where requirement_id = $1 and worker_id = $2',
+      [requirementId, workerId],
+    )
 
-    if (data.meta?.generationId) {
-      const query = `delete from relations.workers_generations where worker_id = ${data.workerId} and generation_id = ${data.meta.generationId}`
-      await client.query(query)
+    if (generationId !== null) {
+      await client.query(
+        'delete from relations.workers_generations where worker_id = $1 and generation_id = $2',
+        [workerId, generationId],
+      )
     }
 
-    if (data.meta?.questId) {
-      const query = `delete from relations.workers_quests where worker_id = ${data.workerId} and quest_id = ${data.meta.questId}`
-      await client.query(query)
+    if (questId !== null) {
+      await client.query(
+        'delete from relations.workers_quests where worker_id = $1 and quest_id = $2',
+        [workerId, questId],
+      )
     }
     return
   }
 
-  const query = `insert into relations.workers_requirements (requirement_id, worker_id, value)
-values (
-        ${data.id},
-        ${data.workerId},
-        ${data.value}
-       )
-on conflict (requirement_id, worker_id) do update set value = ${data.value}`
+  const value =
+    data.value === null ||
+    data.value === undefined ||
+    !Number.isFinite(+data.value)
+      ? null
+      : Number(data.value)
 
-  if (data.meta?.generationId) {
-    const query = `insert into relations.workers_generations (worker_id, generation_id)
-values (
-        ${data.workerId},
-        ${data.meta.generationId}
-       )`
-
-    await client.query(query)
+  if (generationId !== null) {
+    await client.query(
+      'insert into relations.workers_generations (worker_id, generation_id) values ($1, $2) on conflict do nothing',
+      [workerId, generationId],
+    )
   }
 
-  if (data.meta?.questId) {
-    let query = `insert into relations.workers_quests (worker_id, quest_id) values (${data.workerId}, ${data.meta.questId})`
-
-    await client.query(query)
+  if (questId !== null) {
+    await client.query(
+      'insert into relations.workers_quests (worker_id, quest_id) values ($1, $2) on conflict do nothing',
+      [workerId, questId],
+    )
   }
 
-  loggerData.query = query
-  // logger.info('Update user salary', {data: loggerData})
-  console.log(loggerData)
-
-  await client.query(query)
+  await client.query(
+    `insert into relations.workers_requirements (requirement_id, worker_id, value)
+     values ($1, $2, $3)
+     on conflict (requirement_id, worker_id) do update set value = $3`,
+    [requirementId, workerId, value],
+  )
 }

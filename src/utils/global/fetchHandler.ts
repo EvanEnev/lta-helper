@@ -1,4 +1,4 @@
-import {toast} from '@heroui/react'
+import {toast} from '@/components/ui/toast'
 
 interface FetchHandlerProps {
   url: string
@@ -30,19 +30,21 @@ export default async function fetchHandler({
 
   if (response.ok) {
     if (json.warning && showNotification) {
-      toast('Предупреждение!', {
+      toast.add({
+        title: 'Предупреждение!',
         timeout: 10000,
         description: json.warning,
-        variant: 'warning',
+        type: 'warning',
       })
     } else if (showNotification) {
-      toast('Успешно!', {variant: 'success'})
+      toast.add({title: 'Успешно!', type: 'success'})
     }
 
     return json
   } else {
-    toast('Ошибка!', {
-      variant: 'danger',
+    toast.add({
+      title: 'Ошибка!',
+      type: 'danger',
       description: json.message || 'Неизвестная ошибка',
     })
 

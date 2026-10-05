@@ -3,8 +3,7 @@
 import useIsMobile from '@/src/hooks/useIsMobile'
 import {usePathname} from 'next/navigation'
 import MobileHeader from './MobileHeader'
-import DesktopHeader from './DesktopHeader'
-import {useEffect, useLayoutEffect, useRef, useState} from 'react'
+import {useEffect, useLayoutEffect, useRef} from 'react'
 import {LTWorker} from '@/src/utils/types'
 import {useSession} from '@/lib/auth/authClient'
 import {useSetAtom} from 'jotai'
@@ -17,8 +16,6 @@ export default function Header() {
   const setToastOffset = useSetAtom(toastOffsetAtom)
   const isMobile = useIsMobile()
   const path = usePathname()
-
-  const [scrolled, setScrolled] = useState(false)
 
   useLayoutEffect(() => {
     if (!ref.current) return
@@ -62,30 +59,13 @@ export default function Header() {
     }
   }, [])
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10
-      setScrolled(prev => {
-        if (prev !== isScrolled) return isScrolled
-        return prev
-      })
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    window.addEventListener('touchmove', handleScroll)
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('touchmove', handleScroll)
-    }
-  }, [])
-
   if (path === '/login') return ''
   if (path === '/register') return ''
 
   return (
     <>
       <MobileHeader ref={ref} worker={worker} className="block sm:hidden" />
-      <DesktopHeader ref={ref} worker={worker} className="hidden sm:block" />
+      {/*<DesktopHeader ref={ref} worker={worker} className="hidden sm:block" />*/}
     </>
   )
 }

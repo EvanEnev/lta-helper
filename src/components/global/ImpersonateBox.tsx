@@ -1,37 +1,105 @@
 'use client'
 
-import {ComboBox, Input, ListBox} from '@heroui/react'
-import {setCookie, getCookie} from 'cookies-next/client'
+import {useEffect, useState, useTransition} from 'react'
+import {UserCog} from 'lucide-react'
+import {
+  Combobox,
+  ComboboxCollection,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxList,
+} from '@/components/ui/combobox'
+import {getImpersonationData, setImpersonation} from '@/app/actions/impersonate'
+import {useSession} from '@/lib/auth/authClient'
+import {IMPERSONATOR_ID} from '@/lib/auth/impersonation'
 
-interface ImpersonateBoxProps {
-  users: {name: string; id: number}[]
+interface ImpersonateUser {
+  id: number
+  name: string
 }
 
-export default function ImpersonateBox({users}: ImpersonateBoxProps) {
-  const impersonateId = getCookie('impersonate')?.valueOf()
+interface ImpersonateItemGroup {
+  value: string
+  items: ImpersonateUser[]
+}
+
+// Видимость здесь - только удобство. Настоящая защита на сервере:
+// Server Actions и generateCustomSession сами проверяют, что запрос
+// пришёл от IMPERSONATOR_ID, а список пользователей не попадает в HTML
+function ImpersonateCombobox({className}: {className?: string}) {
+  const [groups, setGroups] = useState<ImpersonateItemGroup[]>([])
+  const [current, setCurrent] = useState<ImpersonateUser | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    getImpersonationData()
+      .then(data => {
+        setGroups(data.groups.map(g => ({value: g.rank, items: g.users})))
+        setCurrent(
+          data.groups
+            .flatMap(g => g.users)
+            .find(user => user.id === data.current) ?? null,
+        )
+      })
+      .catch(() => {})
+  }, [])
 
   return (
-    <ComboBox
-      className="max-w-50"
-      selectedKey={Number(impersonateId) || null}
-      onSelectionChange={async id => {
-        setCookie('impersonate', String(id))
-        sessionStorage.removeItem('worker')
-        window.location.reload()
+    <Combobox
+      items={groups}
+      value={current}
+      disabled={pending}
+      itemToStringLabel={(user: ImpersonateUser) => user.name}
+      isItemEqualToValue={(a: ImpersonateUser, b: ImpersonateUser) =>
+        a.id === b.id
+      }
+      onValueChange={(user: ImpersonateUser | null) => {
+        setCurrent(user)
+        startTransition(async () => {
+          await setImpersonation(user?.id ?? null)
+          sessionStorage.removeItem('worker')
+          window.location.reload()
+        })
       }}>
-      <ComboBox.InputGroup>
-        <Input />
-        <ComboBox.Trigger />
-      </ComboBox.InputGroup>
-      <ComboBox.Popover className="h-100">
-        <ListBox>
-          {users.map(({name, id}) => (
-            <ListBox.Item key={id} id={id} textValue={name}>
-              {name}
-            </ListBox.Item>
-          ))}
-        </ListBox>
-      </ComboBox.Popover>
-    </ComboBox>
+      <ComboboxInput
+        className={className}
+        placeholder="Войти как..."
+        showClear={!!current}
+      />
+      <ComboboxContent side="top">
+        <ComboboxEmpty>Никого не найдено</ComboboxEmpty>
+        <ComboboxList>
+          {(group: ImpersonateItemGroup) => (
+            <ComboboxGroup key={group.value} items={group.items}>
+              <ComboboxLabel>{group.value}</ComboboxLabel>
+              <ComboboxCollection>
+                {(user: ImpersonateUser) => (
+                  <ComboboxItem key={user.id} value={user}>
+                    {user.name}
+                  </ComboboxItem>
+                )}
+              </ComboboxCollection>
+            </ComboboxGroup>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
+  )
+}
+
+export default function ImpersonateBox({className}: {className?: string}) {
+  const user = useSession().data?.user as {trueId?: number} | undefined
+
+  if (user?.trueId !== IMPERSONATOR_ID) return null
+
+  return (
+    <div className="flex items-center gap-2">
+      <UserCog className="text-muted-foreground size-4 shrink-0" />
+      <ImpersonateCombobox className={className} />
+    </div>
   )
 }

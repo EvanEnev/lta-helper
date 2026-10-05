@@ -1,36 +1,43 @@
 'use client'
 
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {useRouter} from 'next/navigation'
+import {DateTime, Interval} from 'luxon'
+import {Button} from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {Skeleton} from '@/components/ui/skeleton'
+import {safeEvaluate} from '@/src/components/global/FormulaField'
+import fetchHandler from '@/src/utils/global/fetchHandler'
+import separateNumber from '@/lib/functions/separateNumber'
+import {cn} from '@/lib/utils'
+import type {
   LTLocation,
   LTPayrollCreateData,
   LTPayrollData,
   LTRank,
   LTWorker,
 } from '@/src/utils/types'
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import PayrollCreateValueCell from '@/src/components/payrolls/create/PayrollCreateValueCell'
-import PayrollCreateLocationCell from '@/src/components/payrolls/create/PayrollCreateLocationCell'
-import {DateTime} from 'luxon'
-import fetchHandler from '@/src/utils/global/fetchHandler'
-import {evaluate} from 'mathjs'
-import {useRouter} from 'next/navigation'
-import separateNumber from '@/lib/functions/separateNumber'
-import RankIcon from '@/src/components/global/RankIcon'
-import PayrollCreateHeader from '@/src/components/payrolls/create/PayrollCreateHeader'
-import PayrollCreateRow from '@/src/components/payrolls/create/PayrollCreateRow'
-
-export interface PayrollColumn {
-  title: string
-  sumFn: () => string | null
-  accessorFn: (workerId: number) => string | React.ReactNode
-}
+import CreateTable, {
+  rowTotal,
+  type CreateRowData,
+  type EditableField,
+} from './CreateTable'
+import CreateToolbar from './CreateToolbar'
+import LocationsMoney, {type LocationMoney} from './LocationsMoney'
 
 interface PayrollCreatePageProps {
   data: {
     name: LTWorker['name']
+    fio: string
     id: LTWorker['id']
     rank: LTRank['name']
-    sum: number
     balance: number
     value: number
     overwork: number
@@ -43,396 +50,379 @@ interface PayrollCreatePageProps {
   dates: {start: string; end: string}
   workersBonusesRange: {start: string; end: string}
   bonuses: boolean
-  moneyOnLocations: {
-    location: LTLocation['id']
-    value: number
-  }[]
+  moneyOnLocations: {location: LTLocation['id']; value: number}[]
   locations: LTLocation[]
 }
 
-const locationsToHide = ['выезд', 'отдел продаж']
+const DRAFT_KEY = 'payrollsCreate'
+const HIDDEN_ON_MONEY = ['выезд', 'отдел продаж']
+// на эти площадки сотрудника выдача не назначается
+const HIDDEN_FOR_WORKERS = ['другое', 'выезд', 'отдел продаж']
+const ALL: LTLocation = {
+  id: 0,
+  name: 'Все',
+  shortName: 'Все',
+  color: '',
+  konsol_id: null,
+}
+
+interface Draft {
+  workersData?: LTPayrollData[]
+  takeBy?: string
+  moneyOnLocations?: LocationMoney[]
+  dates?: {start: string; end: string}
+}
+
+const readDraft = (): Draft => {
+  try {
+    return JSON.parse(localStorage.getItem(DRAFT_KEY) || '{}') ?? {}
+  } catch {
+    return {}
+  }
+}
 
 export default function PayrollCreatePage({
-  data: initialData,
+  data,
   dates: initialDates,
   workersBonusesRange,
-  bonuses: initialBonuses,
+  bonuses,
   moneyOnLocations: initialMoney,
   locations,
 }: PayrollCreatePageProps) {
   const router = useRouter()
-  const [data, setData] = useState(initialData)
 
-  const [payrollData, setPayrollData] = useState<LTPayrollData[]>(
-    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.workersData ||
-      data.map(d => {
-        return {
-          workerId: d.id,
-          external_payment: d.external,
-          location: -1,
-          value: d.value + d.overwork + d.games,
-          fines: d.fines,
-          bonuses: d.bonuses,
-          balance: d.balance,
-        }
-      }),
-  )
-
-  const [initialPayrollData, setInitialPayrollData] = useState(payrollData)
-
-  // const initialPayrollData = useMemo(() => {
-  //   return payrollData
-  // }, [payrollData])
-
-  const [takeBy, setTakeBy] = useState<string>(
-    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.takeBy ||
-      DateTime.now().plus({day: 7}).toFormat('yyyy-MM-dd'),
-  )
-  const [moneyOnLocations, setMoneyOnLocations] = useState<
-    {
-      location: LTLocation['id']
-      value: number
-      error?: boolean
-    }[]
-  >(
-    JSON.parse(localStorage.getItem('payrollsCreate') || '{}')
-      ?.moneyOnLocations || initialMoney,
-  )
-
-  const dates = useMemo(
+  const baseRows = useMemo<LTPayrollData[]>(
     () =>
-      JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.dates ||
-      initialDates,
-    [initialDates],
+      data.map(d => ({
+        workerId: d.id,
+        external_payment: d.external,
+        location: -1,
+        value: d.value + d.overwork + d.games,
+        fines: d.fines,
+        bonuses: d.bonuses,
+        balance: d.balance,
+      })),
+    [data],
   )
 
-  const bonuses = useMemo(
-    () =>
-      JSON.parse(localStorage.getItem('payrollsCreate') || '{}')?.bonuses ||
-      initialBonuses,
-    [initialBonuses],
+  // ВАЖНО: payrollData - то, что уйдёт на сервер. Фильтры ниже его не меняют
+  // (раньше фильтр по локации подменял эти данные, и публиковалась только их часть)
+  const [payrollData, setPayrollData] = useState(baseRows)
+  const [takeBy, setTakeBy] = useState(
+    DateTime.now().plus({days: 7}).toFormat('yyyy-MM-dd'),
   )
+  const [money, setMoney] = useState<LocationMoney[]>(initialMoney)
+  const [dates, setDates] = useState(initialDates)
+  const [ready, setReady] = useState(false)
 
-  const updateLocationMoney = useCallback(
-    (locationId: number, rawValue: string) => {
-      let value = null
-      try {
-        value = evaluate(rawValue || '0')
-      } catch {}
+  const [locationFilter, setLocationFilter] = useState(0)
+  const [onlyEmpty, setOnlyEmpty] = useState(false)
+  const [moneyOpen, setMoneyOpen] = useState(false)
+  const [isDistributing, setDistributing] = useState(false)
+  const [isSaving, setSaving] = useState(false)
+  const [confirmPublish, setConfirmPublish] = useState(false)
 
-      setMoneyOnLocations(prev =>
-        prev.find(d => d.location === locationId)
-          ? prev.map(d =>
-              d.location === locationId
-                ? value === null
-                  ? {location: locationId, value: d.value, error: true}
-                  : {location: locationId, value}
-                : d,
-            )
-          : [
-              ...prev,
-              value === null
-                ? {location: locationId, value: undefined, error: true}
-                : {location: locationId, value},
-            ],
-      )
-    },
-    [],
-  )
-
+  // черновик читаем после монтирования: на сервере localStorage нет
   useEffect(() => {
-    const data = {
-      withBonuses: bonuses,
-      workersData: payrollData,
-      takeBy,
-      dates,
-      workersBonusesRange,
-      moneyOnLocations,
-    }
+    const draft = readDraft()
 
-    localStorage.setItem('payrollsCreate', JSON.stringify(data))
-  }, [
-    bonuses,
-    dates,
-    moneyOnLocations,
-    payrollData,
-    takeBy,
-    workersBonusesRange,
-  ])
+    if (draft.workersData?.length) setPayrollData(draft.workersData)
+    if (draft.takeBy) setTakeBy(draft.takeBy)
+    if (draft.moneyOnLocations) setMoney(draft.moneyOnLocations)
+    if (draft.dates) setDates(draft.dates)
 
-  const sendData = useCallback(
-    async (isPublished: boolean) => {
-      const dataToSend: LTPayrollCreateData = {
-        withBonuses: bonuses,
-        workersData: payrollData,
-        takeBy,
-        dates,
-        moneyOnLocations,
-        isPublished,
-        meta: null,
-      }
+    setReady(true)
+  }, [])
 
-      if (!isPublished) {
-        dataToSend.meta = localStorage.getItem('payrollsCreate') || {}
-      }
+  // автосохранение черновика (с небольшой задержкой)
+  useEffect(() => {
+    if (!ready) return
 
-      const result = await fetchHandler({
-        url: '/api/payrolls/create',
-        method: 'POST',
-        body: dataToSend,
-      })
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_KEY,
+          JSON.stringify({
+            withBonuses: bonuses,
+            workersData: payrollData,
+            takeBy,
+            dates,
+            workersBonusesRange,
+            moneyOnLocations: money,
+          }),
+        )
+      } catch {}
+    }, 400)
 
-      if (result?.id && isPublished) {
-        localStorage.removeItem('payrollsCreate')
-        router.push(`/payrolls/${result.id}`)
-      }
-    },
-    [bonuses, dates, moneyOnLocations, payrollData, router, takeBy],
+    return () => clearTimeout(timer)
+  }, [ready, bonuses, payrollData, takeBy, dates, workersBonusesRange, money])
+
+  const interval = useMemo(
+    () => Interval.fromISO(`${dates.start}/${dates.end}`),
+    [dates.start, dates.end],
   )
 
-  const handleUpdate = useCallback(
-    (
-      workerId: LTWorker['id'],
-      value: number,
-      type: 'location' | 'bonuses' | 'fines' | 'value' | 'external_payment',
-    ) => {
-      if (type === 'fines' && value > 0) {
-        value = -value
-      }
+  const info = useMemo(
+    () =>
+      new Map(
+        data.map(
+          d => [d.id, {name: d.name, fio: d.fio, rank: d.rank}] as const,
+        ),
+      ),
+    [data],
+  )
+
+  const updateMoney = useCallback((locationId: number, raw: string) => {
+    const value = safeEvaluate(raw || '0')
+
+    setMoney(prev => {
+      const next: LocationMoney =
+        value === null
+          ? {
+              location: locationId,
+              value: prev.find(d => d.location === locationId)?.value ?? 0,
+              error: true,
+            }
+          : {location: locationId, value}
+
+      return prev.some(d => d.location === locationId)
+        ? prev.map(d => (d.location === locationId ? next : d))
+        : [...prev, next]
+    })
+  }, [])
+
+  const update = useCallback(
+    (workerId: number, field: EditableField, value: number) => {
+      // штрафы всегда хранятся отрицательными
+      const next = field === 'fines' && value > 0 ? -value : value
 
       setPayrollData(prev =>
-        prev.map(d => (d.workerId === workerId ? {...d, [type]: value} : d)),
-      )
-
-      setInitialPayrollData(prev =>
-        prev.map(d => (d.workerId === workerId ? {...d, [type]: value} : d)),
+        prev.map(d => (d.workerId === workerId ? {...d, [field]: next} : d)),
       )
     },
     [],
   )
 
-  const getSum = useCallback(
-    (names: string[]) => {
-      let sum = payrollData.reduce(
-        // @ts-ignore
-        (acc, data) =>
-          acc +
-          names
-            .map(n => {
-              // @ts-ignore
-              let value = data[n] || 0
+  const distribute = useCallback(async () => {
+    setDistributing(true)
 
-              if (n === 'external_payment' && names.length > 1) {
-                value *= -1
-              }
-
-              return value
-            })
-            .reduce((a, b) => a + b, 0),
-        0,
-      )
-
-      return separateNumber(sum)
-    },
-    [payrollData],
-  )
-
-  const getIndividualSum = useCallback(
-    (workerId: number, names: string[]) => {
-      const row = payrollData.find(r => r.workerId === workerId)
-      if (!row) return '0'
-
-      let sum = names.reduce((acc, n) => {
-        // @ts-ignore
-        let value = row[n] || 0
-
-        if (n === 'external_payment' && names.length > 1) {
-          value *= -1
-        }
-        return acc + value
-      }, 0)
-
-      return separateNumber(sum)
-    },
-    [payrollData],
-  )
-
-  const getName = useCallback(
-    (workerId: number) => {
-      const row = data.find(r => r.id === workerId)
-      if (!row) return ''
-
-      return (
-        <div className="flex items-center gap-2">
-          <RankIcon rank={row.rank} />
-          <p>{row.name}</p>
-        </div>
-      )
-    },
-    [data],
-  )
-
-  const getFi = useCallback(
-    (workerId: number) => {
-      const row = data.find(r => r.id === workerId)
-      if (!row) return ''
-
-      return (
-        <div className="flex items-center justify-center gap-2 text-center whitespace-break-spaces">
-          <p>{row.fio}</p>
-        </div>
-      )
-    },
-    [data],
-  )
-
-  const columns: PayrollColumn[] = useMemo(() => {
-    return [
-      {
-        title: 'Сотрудник',
-        sumFn: () => null,
-        accessorFn: (workerId: number) => getName(workerId),
-      },
-      {
-        title: 'ФИ',
-        sumFn: () => null,
-        accessorFn: (workerId: number) => getFi(workerId),
-      },
-      {
-        title: 'Остаток',
-        sumFn: () => getSum(['balance']),
-        accessorFn: (workerId: number) =>
-          getIndividualSum(workerId, ['balance']),
-      },
-      {
-        title: 'Сумма',
-        sumFn: () => getSum(['value']),
-        accessorFn: (workerId: number) => (
-          <PayrollCreateValueCell
-            data={Number(
-              getIndividualSum(workerId, ['value']).replaceAll(' ', ''),
-            )}
-            workerId={workerId}
-            callback={handleUpdate}
-            type="value"
-          />
-        ),
-      },
-      {
-        title: 'Бонусы',
-        sumFn: () => getSum(['bonuses']),
-        accessorFn: (workerId: number) => (
-          <PayrollCreateValueCell
-            data={Number(
-              getIndividualSum(workerId, ['bonuses']).replaceAll(' ', ''),
-            )}
-            workerId={workerId}
-            callback={handleUpdate}
-            type="bonuses"
-          />
-        ),
-      },
-      {
-        title: 'Штрафы',
-        sumFn: () => getSum(['fines']),
-        accessorFn: (workerId: number) => (
-          <PayrollCreateValueCell
-            data={Number(
-              getIndividualSum(workerId, ['fines']).replaceAll(' ', ''),
-            )}
-            workerId={workerId}
-            callback={handleUpdate}
-            type="fines"
-          />
-        ),
-      },
-      {
-        title: 'Внешняя выплата',
-        sumFn: () => getSum(['external_payment']),
-        accessorFn: (workerId: number) => (
-          <PayrollCreateValueCell
-            data={Number(
-              getIndividualSum(workerId, ['external_payment']).replaceAll(
-                ' ',
-                '',
-              ),
-            )}
-            workerId={workerId}
-            callback={handleUpdate}
-            type="external_payment"
-          />
-        ),
-      },
-      {
-        title: 'Итог',
-        sumFn: () =>
-          getSum(['fines', 'bonuses', 'value', 'external_payment', 'balance']),
-        accessorFn: (workerId: number) =>
-          getIndividualSum(workerId, [
-            'fines',
-            'bonuses',
-            'value',
-            'external_payment',
-            'balance',
-          ]),
-      },
-      {
-        title: 'Локация',
-        sumFn: () => null,
-        accessorFn: (workerId: number) => {
-          const payrollWorkerData = payrollData.find(
-            d => d.workerId === workerId,
-          )
-
-          return (
-            <PayrollCreateLocationCell
-              locationId={payrollWorkerData?.location || -1}
-              locations={locations}
-              callback={handleUpdate}
-              workerId={workerId}
-            />
-          )
+    try {
+      const result = await fetchHandler({
+        url: '/api/payrolls/create/distribute',
+        body: {
+          date: DateTime.now()
+            .setZone('Europe/Moscow')
+            .plus({days: 1})
+            .toFormat('yyyy-MM-dd'),
+          workers: payrollData.map(d => ({
+            worker_id: d.workerId,
+            amount: rowTotal(d),
+          })),
+          locations: money.map(d => ({
+            location_id: d.location,
+            value: d.value,
+            priority: 0,
+          })),
         },
-      },
-    ]
-  }, [
-    getFi,
-    getIndividualSum,
-    getName,
-    getSum,
-    handleUpdate,
-    locations,
-    payrollData,
-  ])
+      })
+
+      if (result) {
+        setPayrollData(prev =>
+          prev.map(d => ({
+            ...d,
+            location:
+              result.find(
+                (r: {employee_id: number; location_id: number}) =>
+                  r.employee_id === d.workerId,
+              )?.location_id ?? -1,
+          })),
+        )
+      }
+    } finally {
+      setDistributing(false)
+    }
+  }, [money, payrollData])
+
+  const send = useCallback(
+    async (isPublished: boolean) => {
+      setSaving(true)
+
+      try {
+        const body: LTPayrollCreateData = {
+          withBonuses: bonuses,
+          workersData: payrollData,
+          takeBy,
+          dates,
+          // флаг ошибки формулы - служебный, на сервер не уходит
+          moneyOnLocations: money.map(({location, value}) => ({
+            location,
+            value,
+          })),
+          isPublished,
+          meta: null,
+        }
+
+        if (!isPublished) {
+          try {
+            body.meta = localStorage.getItem(DRAFT_KEY) || {}
+          } catch {}
+        }
+
+        const result = await fetchHandler({
+          url: '/api/payrolls/create',
+          method: 'POST',
+          body,
+        })
+
+        if (result?.id && isPublished) {
+          try {
+            localStorage.removeItem(DRAFT_KEY)
+          } catch {}
+          router.push(`/payrolls/${result.id}`)
+        }
+      } finally {
+        setSaving(false)
+        setConfirmPublish(false)
+      }
+    },
+    [bonuses, dates, money, payrollData, router, takeBy],
+  )
+
+  // ---------- отображаемое (фильтры не влияют на данные для отправки) ----------
+  const locationOptions = useMemo(() => [ALL, ...locations], [locations])
+  const selectableLocations = useMemo(
+    () =>
+      locations.filter(l => !HIDDEN_FOR_WORKERS.includes(l.name.toLowerCase())),
+    [locations],
+  )
+
+  const rows = useMemo<CreateRowData[]>(
+    () =>
+      payrollData
+        .filter(
+          d =>
+            (locationFilter === 0 || d.location === locationFilter) &&
+            (!onlyEmpty || d.location === -1),
+        )
+        .flatMap(entry => {
+          const row = info.get(entry.workerId)
+
+          return row ? [{entry, info: row}] : []
+        }),
+    [payrollData, info, locationFilter, onlyEmpty],
+  )
+
+  const included = payrollData.filter(d => d.location !== -1)
+  const withoutLocation = payrollData.length - included.length
+  const payTotal = included.reduce((sum, d) => sum + rowTotal(d), 0)
+  const moneyTotal = money.reduce((sum, d) => sum + (d.value || 0), 0)
+
+  if (!ready) {
+    return (
+      <main className="flex flex-col gap-2 p-4">
+        {Array.from({length: 8}, (_, i) => (
+          <Skeleton key={i} className="h-12 w-full" />
+        ))}
+      </main>
+    )
+  }
 
   return (
-    <main className="h-full w-full p-4">
-      <div className="flex flex-col gap-4">
-        <div className="bg-content1 flex flex-col gap-2 rounded-2xl">
-          <PayrollCreateHeader
-            initialData={initialPayrollData}
-            setPayrollData={setPayrollData}
-            locations={locations}
-            dates={dates}
-            bonuses={bonuses}
-            moneyOnLocations={moneyOnLocations}
-            payrollData={payrollData}
-            locationsToHide={locationsToHide}
-            updateLocationMoney={updateLocationMoney}
-            sendData={sendData}
-            takeBy={takeBy}
-            setTakeBy={setTakeBy}
-            columns={columns}
-          />
-          {payrollData.map(data => (
-            <PayrollCreateRow
-              key={data.workerId}
-              data={data}
-              columns={columns}
+    <main
+      className={cn(
+        'flex min-w-0 flex-col gap-3 p-4',
+        'max-sm:h-[calc(100dvh-4rem)] sm:h-dvh',
+      )}>
+      <div className="flex shrink-0 flex-col gap-3">
+        <CreateToolbar
+          locationOptions={locationOptions}
+          locationName={
+            locationOptions.find(l => l.id === locationFilter)?.name ?? 'Все'
+          }
+          onLocationChange={name =>
+            setLocationFilter(
+              locationOptions.find(l => l.name === name)?.id ?? 0,
+            )
+          }
+          onlyEmpty={onlyEmpty}
+          onOnlyEmptyChange={setOnlyEmpty}
+          isDistributing={isDistributing}
+          onDistribute={distribute}
+          periodLabel={interval.toFormat('dd.MM.yyyy')}
+          bonuses={bonuses}
+          moneyTotal={moneyTotal}
+          moneyOpen={moneyOpen}
+          onMoneyToggle={() => setMoneyOpen(open => !open)}
+          takeBy={takeBy}
+          onTakeByChange={setTakeBy}
+          isSaving={isSaving}
+          onSave={() => send(false)}
+          onPublish={() => setConfirmPublish(true)}
+        />
+        {moneyOpen && (
+          <div className="max-h-56 overflow-y-auto">
+            <LocationsMoney
+              locations={locations}
+              hidden={HIDDEN_ON_MONEY}
+              money={money}
+              payrollData={payrollData}
+              onChange={updateMoney}
             />
-          ))}
-        </div>
+          </div>
+        )}
       </div>
+
+      <CreateTable
+        rows={rows}
+        locations={selectableLocations}
+        onUpdate={update}
+      />
+
+      <Dialog open={confirmPublish} onOpenChange={setConfirmPublish}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Опубликовать ведомость?</DialogTitle>
+            <DialogDescription>
+              После публикации изменить состав ведомости нельзя.
+            </DialogDescription>
+          </DialogHeader>
+          <ul className="flex flex-col gap-1.5 text-sm">
+            <li className="flex justify-between">
+              <span className="text-muted-foreground">В ведомость попадёт</span>
+              <span className="font-medium tabular-nums">
+                {included.length} сотр.
+              </span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-muted-foreground">Сумма к выдаче</span>
+              <span className="font-medium tabular-nums">
+                {separateNumber(payTotal)} ₽
+              </span>
+            </li>
+            <li className="flex justify-between">
+              <span className="text-muted-foreground">
+                Выделено на площадки
+              </span>
+              <span className="font-medium tabular-nums">
+                {separateNumber(moneyTotal)} ₽
+              </span>
+            </li>
+            {withoutLocation > 0 && (
+              <li className="text-warning">
+                {withoutLocation} сотр. без площадки в ведомость не попадут
+              </li>
+            )}
+          </ul>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmPublish(false)}>
+              Отмена
+            </Button>
+            <Button disabled={isSaving} onClick={() => send(true)}>
+              Опубликовать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

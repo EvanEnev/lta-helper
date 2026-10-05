@@ -7,39 +7,48 @@ import {headers} from 'next/headers'
 import {Interval} from 'luxon'
 
 export async function POST(req: NextRequest) {
-  const worker = (await auth.api.getSession({
-    headers: await headers(),
-  }))!.user
+  const worker = (await auth.api.getSession({headers: await headers()}))?.user
 
-  const body = await req.json()
+  if (!worker) {
+    return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
+  }
+
+  const body = await req.json().catch(() => null)
   const dates = body?.dates
-  if (!dates) {
-    return NextResponse.json({message: 'Не указаны даты'}, {status: 500})
+  if (typeof dates !== 'string') {
+    return NextResponse.json({message: 'Не указаны даты'}, {status: 400})
   }
 
   const interval = Interval.fromISO(dates)
-
-  let paymentsQuery = `select
-                           pl.id,
-                           functions.get_worker(worker_id) as worker,
-                           (select name from payments.types where id = payment_type) as type,
-                           value,
-                           comment,
-                           date::text
-from payments.list pl
-left join workers w on w.id = worker_id
-left join ranks r on r.id = w.rank_id
-where pl.date between '${interval.start!.toFormat('yyyy-MM-dd')}' and '${interval.end!.toFormat('yyyy-MM-dd')}'
-`
-
-  if (!checkPermissions(['view_all_payments'], worker)) {
-    paymentsQuery += `\nand pl.worker_id = ${worker?.id}\n`
+  if (!interval.isValid) {
+    return NextResponse.json({message: 'Некорректные даты'}, {status: 400})
   }
 
-  paymentsQuery += `\norder by date desc, r.sorting_weight desc, w.name`
+  // без права view_all_payments - только свои выплаты
+  const onlyOwn = !checkPermissions(['view_all_payments'], worker)
 
-  const paymentsResult = await db.query(paymentsQuery)
-  const payments: LTPayment[] = paymentsResult.rows
+  const result = await db.query(
+    `select
+       pl.id,
+       functions.get_worker(worker_id) as worker,
+       (select name from payments.types where id = payment_type) as type,
+       value,
+       comment,
+       date::text
+     from payments.list pl
+            left join workers w on w.id = worker_id
+            left join ranks r on r.id = w.rank_id
+     where pl.date between $1::date and $2::date
+       and ($3::int is null or pl.worker_id = $3::int)
+     order by date desc, r.sorting_weight desc, w.name`,
+    [
+      interval.start!.toFormat('yyyy-MM-dd'),
+      interval.end!.toFormat('yyyy-MM-dd'),
+      onlyOwn ? worker.id : null,
+    ],
+  )
+
+  const payments: LTPayment[] = result.rows
 
   return NextResponse.json({data: payments}, {status: 200})
 }

@@ -1,69 +1,106 @@
-import {Icon} from '@iconify/react'
-import AnimatedInnerShadow from '@/src/components/global/AnimatedInnerShadow'
-import useColors from '@/src/hooks/useColors'
+import {Badge} from '@/components/ui/badge'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {Separator} from '@/components/ui/separator'
+import {cn} from '@/lib/utils'
 
 interface SalaryCardProps {
   sum: number
-  balance: number
   fines: number
   bonuses: number
   value: number
   dates: string
   title: string
+  takeDate: string
   external: number
   isCurrent?: boolean
 }
 
+const rub = new Intl.NumberFormat('ru-RU', {
+  style: 'currency',
+  currency: 'RUB',
+  maximumFractionDigits: 0,
+})
+
+interface RowProps {
+  label: string
+  value: number
+  sign?: '+' | '−'
+  className?: string
+}
+
+function Row({label, value, sign, className}: RowProps) {
+  const isZero = value === 0
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          'font-medium tabular-nums',
+          isZero ? 'text-muted-foreground' : className,
+        )}>
+        {!isZero && sign}
+        {rub.format(Math.abs(value))}
+      </span>
+    </div>
+  )
+}
+
 export default function SalaryCard({
   sum,
-  balance,
   fines,
   title,
   dates,
+  takeDate,
   bonuses,
   value,
   external,
   isCurrent,
 }: SalaryCardProps) {
-  const colors = useColors()
   return (
-    <div
-      className={`bg-surface relative flex flex-1 flex-col gap-2 rounded-2xl border-2 p-4 ${isCurrent ? 'border-success' : 'border-accent'}`}>
-      {isCurrent && (
-        <AnimatedInnerShadow
-          className="rounded-2xl"
-          color={colors?.success || ''}
-        />
-      )}
-      <p className="text-xl font-bold">{title}</p>
-      <div className="flex items-center gap-2">
-        <Icon icon="solar:calendar-outline" width="18" height="18" />
-        <p className="text-foreground-500">За период {dates}</p>
-      </div>
-      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
-        <Icon icon="solar:ruble-outline" width="20" height="20" />
-        <p>Сумма: {sum}</p>
-      </div>
-      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
-        <Icon icon="solar:banknote-2-outline" width="20" height="20" />
-        <p>ЗП: {value}</p>
-      </div>
-      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
-        <Icon icon="solar:banknote-2-outline" width="20" height="20" />
-        <p>Внешние выплаты: {external}</p>
-      </div>
-      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
-        <Icon icon="solar:bill-check-outline" width="20" height="20" />
-        <p>Бонусы: {bonuses}</p>
-      </div>
-      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
-        <Icon icon="solar:bill-cross-outline" width="20" height="20" />
-        <p>Штрафы: {fines}</p>
-      </div>
-      <div className="bg-default flex items-center gap-2 rounded-xl p-2">
-        <Icon icon="solar:wallet-money-outline" width="20" height="20" />
-        <p>Остаток: {balance}</p>
-      </div>
-    </div>
+    <Card className={cn('min-w-0', isCurrent && 'ring-primary/40')}>
+      <CardHeader>
+        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardDescription>
+          За период {dates} · выплата {takeDate}
+        </CardDescription>
+        <CardAction>
+          <Badge variant={isCurrent ? 'default' : 'secondary'}>
+            {isCurrent ? 'К выдаче' : 'В расчёте'}
+          </Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <div>
+          <p className="text-3xl font-semibold tabular-nums">
+            {rub.format(sum)}
+          </p>
+          <p className="text-muted-foreground text-sm">Итого к выплате</p>
+        </div>
+        <Separator />
+        <div className="flex flex-col gap-2">
+          <Row label="ЗП" value={value} />
+          <Row
+            label="Бонусы"
+            value={bonuses}
+            sign="+"
+            className="text-success"
+          />
+          <Row
+            label="Штрафы"
+            value={fines}
+            sign="−"
+            className="text-destructive"
+          />
+          <Row label="Внешние выплаты" value={external} />
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,61 +1,65 @@
 import {SalaryData, SocketUpdateProps} from '@/src/utils/types'
 import {DateTime} from 'luxon'
 
+const toId = (value: unknown) => {
+  const id = Number(value)
+
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
 export default async function updateSalary({
   data: incoming,
   client,
 }: SocketUpdateProps) {
   const data: SalaryData = incoming
-  const loggerData: any = {}
 
-  loggerData.data = data
+  const id = toId(data?.id)
+  if (id === null) return
 
   // @ts-ignore
   if (data.delete) {
-    const query = `DELETE FROM salary.list
-                WHERE
-                    id = ${data.id}
-                `
-
-    loggerData.query = query
-    // logger.info('Update user salary', {data: loggerData})
-    console.log(loggerData)
-    return await client.query(query)
+    await client.query('DELETE FROM salary.list WHERE id = $1', [id])
+    return
   }
 
-  const overworkStart =
-    data.overworkStart === null ? 'NULL' : `'${data.overworkStart}'`
+  const date = DateTime.fromFormat(data.date, 'dd.MM.yyyy')
+  const locationId = toId(data.location?.id)
+  if (!date.isValid || locationId === null) return
 
-  const overworkEnd =
-    data.overworkEnd === null ? 'NULL' : `'${data.overworkEnd}'`
+  // SET собираем динамически, но значения всегда уходят параметрами
+  const values: unknown[] = []
+  const sets: string[] = []
+  const set = (column: string, value: unknown) => {
+    values.push(value)
+    sets.push(`${column} = $${values.length}`)
+  }
 
-  const date = DateTime.fromFormat(data.date, 'dd.MM.yyyy').toFormat(
-    'yyyy-MM-dd',
+  set('value', data.value)
+  set('bonuses', data.bonuses)
+  set('fines', data.fines)
+  set('comment', data.comment)
+  set('start_time', data.startTime)
+  set('end_time', data.endTime)
+  set('overwork_start', data.overworkStart ?? null)
+  set('overwork_end', data.overworkEnd ?? null)
+
+  if (data.oneGames) set('one_games', JSON.stringify(data.oneGames))
+  if (data.twoGames) set('two_games', JSON.stringify(data.twoGames))
+  if (data.threeGames) set('three_games', JSON.stringify(data.threeGames))
+  if (data.actorGames) set('actor_games', JSON.stringify(data.actorGames))
+
+  set('overwork', data.overworkValue || null)
+  set('date', date.toFormat('yyyy-MM-dd'))
+
+  values.push(locationId)
+  sets.push(
+    `location_id = (SELECT id FROM locations WHERE id = $${values.length})`,
   )
-  const query = `UPDATE salary.list
-                SET
-                  value = ${data.value},
-                    bonuses = '${data.bonuses}',
-                    fines = '${data.fines}',
-                    comment = '${data.comment}',
-                    start_time = '${data.startTime}',
-                    end_time = '${data.endTime}',
-                    overwork_start = ${overworkStart},
-                    overwork_end = ${overworkEnd},
-                    ${data.oneGames ? `one_games = '${JSON.stringify(data.oneGames)}',` : ''}
-                    ${data.twoGames ? `two_games = '${JSON.stringify(data.twoGames)}',` : ''}
-                    ${data.threeGames ? `three_games = '${JSON.stringify(data.threeGames)}',` : ''}
-                    ${data.actorGames ? `actor_games = '${JSON.stringify(data.actorGames)}',` : ''}
-                  overwork = ${data.overworkValue || 'NULL'},
-                    date = '${date}',
-                    location_id = (SELECT id FROM locations WHERE id = ${data.location.id})                  
-                    WHERE
-                   id = ${data.id}
-                `
 
-  loggerData.query = query
-  // logger.info('Update user salary', {data: loggerData})
-  console.log(loggerData)
+  values.push(id)
 
-  await client.query(query)
+  await client.query(
+    `UPDATE salary.list SET ${sets.join(', ')} WHERE id = $${values.length}`,
+    values,
+  )
 }

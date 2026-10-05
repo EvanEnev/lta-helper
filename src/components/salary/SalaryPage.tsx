@@ -1,237 +1,244 @@
 'use client'
 
-import {
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import dynamic from 'next/dynamic'
+import {io, Socket} from 'socket.io-client'
+import {DateTime, Interval} from 'luxon'
+import {Skeleton} from '@/components/ui/skeleton'
+import {cn} from '@/lib/utils'
+import {useIsMobile} from '@/hooks/use-mobile'
+import checkPermissions from '@/lib/functions/checkPermissions'
+import unaccent from '@/lib/functions/unaccent'
+import fetchHandler from '@/src/utils/global/fetchHandler'
+import type {
   LTGamePayment,
   LTLocation,
   LTWorker,
-  LTWorkType,
   SalaryData,
   UserSalary,
 } from '@/src/utils/types'
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import {io, Socket} from 'socket.io-client'
-import {DateTime, Interval} from 'luxon'
+import SalaryCalendar from './SalaryCalendar'
+import SalaryList from './SalaryList'
+import SalaryTable from './SalaryTable'
+import SalaryToolbar from './SalaryToolbar'
 import {
-  Button,
-  Checkbox,
-  Input,
-  Spinner,
-  TextField,
-  Label,
-  Popover,
-} from '@heroui/react'
-import MonthSelect from '@/src/components/salary/MonthSelect'
-import LocationSelect from '@/src/components/global/LocationSelect'
-import fetchHandler from '@/src/utils/global/fetchHandler'
-import useIsMobile from '@/src/hooks/useIsMobile'
-import checkPermissions from '@/lib/functions/checkPermissions'
-import {useAtomValue} from 'jotai'
-import {headerSizesAtom} from '@/src/utils/global/atoms'
-import {useTheme} from 'next-themes'
-import SalaryRow from '@/src/components/salary/SalaryRow'
-import SalaryDaysRow from '@/src/components/salary/SalaryDaysRow'
-import unaccent from '@/lib/functions/unaccent'
-import Excel from '@/public/icons/Excel'
-import {Icon} from '@iconify/react'
+  ZONE,
+  applyRemoteUpdate,
+  dayKeys,
+  editKey,
+  indexByDay,
+  monthStart,
+  removeDay,
+  replaceDay,
+  todayKey,
+  type SalaryUpdatePayload,
+  visibleLocations,
+} from './utils'
 
-export default function SalaryPage({
-  worker,
-  canViewFull,
-  canEdit,
-  dates: defaultDates,
-  gamesPayments,
-  locations,
-  workTypes,
-}: {
+// Панель деталей с формами нужна только после первого клика по ячейке
+const DetailsSheet = dynamic(() => import('./DetailsSheet'), {ssr: false})
+
+interface SalaryPageProps {
   worker: LTWorker
   canViewFull: boolean
   canEdit: boolean
   dates: string[]
   gamesPayments: LTGamePayment[]
   locations: LTLocation[]
-  workTypes: LTWorkType[]
-}) {
-  const {theme} = useTheme()
-  const [lastUpdatedId, setLastUpdatedId] = useState<number | null>(null)
-  const [isReviewMode, setReviewMode] = useState<boolean>(
-    localStorage.getItem('salaryReview')
-      ? JSON.parse(localStorage.getItem('salaryReview')!)
-      : false,
-  )
+}
 
-  const socketRef = useRef<Socket | null>(null)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const [initialData, setInitialData] = useState<UserSalary[]>([])
-  const [data, setData] = useState<UserSalary[]>([])
-  const [date, setDate] = useState<string>(
-    localStorage.getItem('salaryDate')
-      ? localStorage.getItem('salaryDate')!
-      : DateTime.fromISO(defaultDates[defaultDates.length - 1]).toFormat(
-          'yyyy-MM-dd',
-        ),
-  )
-  const headerSizes = useAtomValue(headerSizesAtom)
-  const [nameFilter, setNameFilter] = useState<string>('')
-  const [hideEmptyFilter, setHideEmptyFilter] = useState<boolean>(false)
-  const [locationId, setLocationId] = useState<number>(
-    localStorage.getItem('salaryLocationId')
-      ? parseInt(localStorage.getItem('salaryLocationId')!)
-      : data
-          ?.find((d: UserSalary) => d.dates.length)
-          ?.dates.find(d => d?.location?.id)?.location.id ||
-          worker.locationId ||
-          2,
-  )
-  const [loading, setLoading] = useState<boolean>(false)
+const ALL_LOCATIONS: LTLocation = {
+  id: 0,
+  name: 'Все',
+  shortName: 'Все',
+  color: '',
+  konsol_id: null,
+}
+
+// Свои правки по сокету вернутся эхом - в течение этого времени их пропускаем
+const ECHO_MS = 2000
+
+const readStorage = (key: string) => {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+const writeStorage = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value)
+  } catch {}
+}
+
+export default function SalaryPage({
+  worker,
+  canViewFull,
+  canEdit,
+  dates: availableMonths,
+  gamesPayments,
+  locations,
+}: SalaryPageProps) {
   const isMobile = useIsMobile()
 
-  const today = useMemo(() => DateTime.now().setZone('Europe/Moscow'), [])
-
-  const dates: string[] = useMemo(() => {
-    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd')
-    const month = datetime.toFormat('MM')
-
-    const dates = []
-    for (let i = 0; i < datetime.daysInMonth!; i++) {
-      dates.push(`${i + 1 < 10 ? `0${i + 1}` : `${i + 1}`}.${month}`)
-    }
-
-    return dates
-  }, [date])
-
-  const updateData = useCallback(
-    async (
-      key: 'date' | 'location' | null,
-      value: string | LTLocation | null,
-    ) => {
-      setLoading(true)
-
-      let newLocationId = locationId
-      let newDate = date
-
-      if (key === 'date') {
-        newDate = value as string
-        localStorage.setItem('salaryDate', newDate)
-        setDate(newDate)
-      } else if (key === 'location') {
-        newLocationId = (value as LTLocation).id
-        setLocationId(newLocationId)
-        if (newLocationId !== 0) {
-          localStorage.setItem('salaryLocationId', newLocationId.toString())
-        }
-      }
-
-      const data = await fetchHandler({
-        url: '/api/salary/getData',
-        body: {
-          locationId: newLocationId || 1,
-          date: newDate,
-          allLocations: newLocationId === 0,
-        },
-      })
-
-      if (data.data) {
-        let filtered = data.data
-        if (nameFilter) {
-          filtered = data.data.filter((row: UserSalary) =>
-            unaccent(row.worker.name)
-              .toLowerCase()
-              .trim()
-              .startsWith(unaccent(nameFilter).toLowerCase().trim()),
-          )
-        }
-
-        if (hideEmptyFilter) {
-          filtered = filtered.filter((row: UserSalary) => row.dates.length)
-        }
-
-        setData(filtered)
-
-        setInitialData(data.data)
-      }
-
-      setLoading(false)
-    },
-    [date, hideEmptyFilter, locationId, nameFilter],
+  const canViewLocation = useMemo(
+    () =>
+      checkPermissions(['view_location_salary', 'view_full_salary'], worker),
+    [worker],
   )
+
+  // месяцы приходят от новых к старым; по умолчанию - текущий, иначе самый свежий
+  const months = useMemo(
+    () =>
+      availableMonths.map(iso => DateTime.fromISO(iso).toFormat('yyyy-MM-dd')),
+    [availableMonths],
+  )
+  const defaultMonth = useMemo(() => {
+    const current = DateTime.now().setZone(ZONE).startOf('month')
+
+    return (
+      months.find(m => monthStart(m).hasSame(current, 'month')) ??
+      months[0] ??
+      current.toFormat('yyyy-MM-dd')
+    )
+  }, [months])
+
+  // сохранённый выбор читаем после монтирования: на сервере localStorage нет
+  const [ready, setReady] = useState(false)
+  const [month, setMonth] = useState(defaultMonth)
+  const [locationId, setLocationId] = useState<number>(worker.locationId || 2)
+  const [review, setReview] = useState(false)
+  // «Подробно» - все поля в ячейке (для проверок), «Кратко» - сумма и значки
+  const [density, setDensity] = useState<'full' | 'compact'>('full')
 
   useEffect(() => {
-    ;(async () => {
-      const data = await fetchHandler({
-        url: '/api/salary/getData',
-        body: {
-          locationId: locationId,
-          date: date,
-        },
-      })
+    const storedMonth = readStorage('salaryDate')
+    const storedLocation = readStorage('salaryLocationId')
 
-      if (data) {
-        setData(data.data)
-        setInitialData(data.data)
+    if (storedMonth) setMonth(storedMonth)
+    if (storedLocation) setLocationId(parseInt(storedLocation))
+    if (canViewFull && readStorage('salaryReview') === 'true') setReview(true)
+    if (readStorage('salaryDensity') === 'compact') setDensity('compact')
+
+    setReady(true)
+  }, [canViewFull])
+
+  const [rows, setRows] = useState<UserSalary[]>([])
+  const [isLoading, setLoading] = useState(true)
+  const [query, setQuery] = useState('')
+  const [hideEmpty, setHideEmpty] = useState(false)
+  const [selected, setSelected] = useState<{
+    workerId: number
+    dayKey: string
+  } | null>(null)
+  const [sheetUsed, setSheetUsed] = useState(false)
+  const [scrollSignal, setScrollSignal] = useState(0)
+
+  // ---------- загрузка ----------
+  const requestId = useRef(0)
+
+  const load = useCallback(
+    async (silent: boolean) => {
+      const id = ++requestId.current
+      if (!silent) setLoading(true)
+
+      try {
+        const json = await fetchHandler({
+          url: '/api/salary/getData',
+          body: {
+            locationId: locationId || 1,
+            date: month,
+            allLocations: locationId === 0,
+          },
+          showNotification: false,
+        })
+
+        // ответ на устаревший запрос (сменили месяц или локацию) отбрасываем
+        if (id === requestId.current && json?.data) setRows(json.data)
+      } finally {
+        if (id === requestId.current) setLoading(false)
       }
-    })()
-  }, [])
-
-  const checkTarget = useCallback(
-    (row: UserSalary, date: DateTime, data: any) => {
-      return row?.worker.id === data.worker_id
     },
-    [],
+    [month, locationId],
   )
 
-  // TODO: Переделать сокеты
+  const loadRef = useRef(load)
+  useEffect(() => {
+    loadRef.current = load
+  }, [load])
+
+  useEffect(() => {
+    if (ready) load(false)
+  }, [ready, load])
+
+  // ---------- сокет ----------
+  const socketRef = useRef<Socket | null>(null)
+  const locationRef = useRef(locationId)
+  const monthRef = useRef(month)
+  const recentEdits = useRef(new Map<string, number>())
+  const reloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    locationRef.current = locationId
+    monthRef.current = month
+  }, [locationId, month])
+
   useEffect(() => {
     const socket = io()
-
     socketRef.current = socket
 
-    socket.on('salary:update', (newData: SalaryData) => {
-      if (lastUpdatedId === newData.id) return
+    // Обработчик не зависит от состояния: данные берём из prev
+    socket.on('salary:update', (payload: SalaryUpdatePayload) => {
+      const key = editKey(payload.worker_id, payload.date, payload.location?.id)
+      const editedAt = recentEdits.current.get(key)
+      if (editedAt && Date.now() - editedAt < ECHO_MS) return
 
-      if (locationId && newData.location.id !== locationId) return
+      if (locationRef.current && payload.location?.id !== locationRef.current) {
+        return
+      }
 
-      const workerId =
-        data.find(row => row.dates.findIndex(d => d.id === newData.id) !== -1)
-          ?.worker.id || null
+      // чужой месяц нам не интересен
+      if (!payload.date.startsWith(monthRef.current.slice(0, 7))) return
 
-      setData((prev: UserSalary[]) =>
-        prev.map(row => {
-          if (row.worker.id !== workerId) return row
+      let found = true
+      setRows(prev => {
+        const result = applyRemoteUpdate(prev, payload)
+        found = result.found
+        return result.rows
+      })
 
-          let newRow = {...row}
-
-          const index = newRow.dates.findIndex(d => d.date === newData.date)
-
-          newRow.dates[index] = {...newData}
-
-          return newRow
-        }),
-      )
+      // Новая смена, которой в таблице ещё нет: тихо перечитываем данные
+      // (к моменту срабатывания таймера обновление состояния уже выполнено)
+      if (reloadTimer.current) clearTimeout(reloadTimer.current)
+      reloadTimer.current = setTimeout(() => {
+        if (!found) loadRef.current(true)
+      }, 800)
     })
 
     return () => {
       socket.off('salary:update')
       socket.disconnect()
+      if (reloadTimer.current) clearTimeout(reloadTimer.current)
     }
-  }, [checkTarget, locationId, worker.id])
+  }, [])
+
+  // свои правки вернутся событием БД: запоминаем и пропускаем
+  const markEdited = (workerId: number, data: SalaryData) => {
+    const iso = DateTime.fromFormat(data.date, 'dd.MM.yyyy').toFormat(
+      'yyyy-MM-dd',
+    )
+
+    recentEdits.current.set(
+      editKey(workerId, iso, data.location?.id),
+      Date.now(),
+    )
+  }
 
   const handleEdit = useCallback(
     (data: SalaryData, workerId: number) => {
-      setData((prev: UserSalary[]) =>
-        prev.map(row => {
-          if (row.worker.id !== workerId) return row
-
-          let newRow = {...row}
-
-          const index = newRow.dates.findIndex(d => d.date === data.date)
-
-          newRow.dates[index] = {...data}
-
-          return newRow
-        }),
-      )
-
-      setLastUpdatedId(data.id)
+      markEdited(workerId, data)
+      setRows(prev => replaceDay(prev, workerId, data))
 
       socketRef.current?.emit('update:user_salary', {
         ...data,
@@ -243,58 +250,92 @@ export default function SalaryPage({
 
   const handleDelete = useCallback(
     (data: SalaryData) => {
+      setRows(prev => removeDay(prev, data.id))
+      setSelected(null)
+
       socketRef.current?.emit('update:user_salary', {
         ...data,
         delete: true,
         updated_by: worker.id,
       })
     },
-    [worker],
+    [worker.id],
   )
 
-  const canViewLocation = useMemo(
-    () =>
-      checkPermissions(['view_location_salary', 'view_full_salary'], worker),
-    [worker],
+  const handleOpen = useCallback((workerId: number, dayKey: string) => {
+    setSheetUsed(true)
+    setSelected({workerId, dayKey})
+  }, [])
+
+  // ---------- производные данные ----------
+  const days = useMemo(() => dayKeys(month), [month])
+  const isCurrentMonth = monthStart(month).hasSame(
+    DateTime.now().setZone(ZONE),
+    'month',
   )
+  const today = isCurrentMonth ? todayKey() : null
 
-  const handleNameFilter = useCallback(
-    (value: string) => {
-      setNameFilter(value)
-      if (!value) return setData(initialData)
+  const filtered = useMemo(() => {
+    const text = unaccent(query).toLowerCase().trim()
 
-      setData(
-        initialData.filter(row =>
-          unaccent(row.worker.name)
+    return rows.filter(
+      row =>
+        (!text ||
+          unaccent(row.worker.name).toLowerCase().includes(text) ||
+          unaccent(row.worker.firstName ?? '')
             .toLowerCase()
-            .trim()
-            .startsWith(unaccent(value).toLowerCase().trim()),
-        ),
-      )
-    },
-    [initialData],
-  )
+            .includes(text)) &&
+        (!hideEmpty || row.dates.length > 0),
+    )
+  }, [rows, query, hideEmpty])
 
-  const handleHideFilter = useCallback(
-    (value: boolean) => {
-      setHideEmptyFilter(value)
-      if (!value) return setData(initialData)
-      setData(initialData.filter(row => row.dates.length))
-    },
-    [initialData],
-  )
+  const locationOptions = useMemo(() => {
+    const list = visibleLocations(locations, worker, canViewFull)
+
+    return canViewFull ? [ALL_LOCATIONS, ...list] : list
+  }, [locations, worker, canViewFull])
+
+  const locationName =
+    locationOptions.find(l => l.id === locationId)?.name ?? ''
+
+  const target = useMemo(() => {
+    if (!selected) return null
+
+    const row = rows.find(r => r.worker.id === selected.workerId)
+    const data = row && indexByDay(row.dates).get(selected.dayKey)
+
+    return row && data ? {worker: row.worker, data} : null
+  }, [rows, selected])
+
+  // ---------- действия ----------
+  const changeMonth = (next: string) => {
+    writeStorage('salaryDate', next)
+    setMonth(next)
+  }
+
+  const changeLocation = (name: string) => {
+    const location = locationOptions.find(l => l.name === name)
+    if (!location) return
+
+    if (location.id !== 0) writeStorage('salaryLocationId', String(location.id))
+    setLocationId(location.id)
+  }
+
+  const changeReview = (value: boolean) => {
+    writeStorage('salaryReview', String(value))
+    setReview(value)
+  }
+
+  const changeDensity = (value: 'full' | 'compact') => {
+    writeStorage('salaryDensity', value)
+    setDensity(value)
+  }
 
   const download = useCallback(async () => {
-    const datetime = DateTime.fromFormat(date, 'yyyy-MM-dd').setZone(
-      'Europe/Moscow',
-    )
-
-    console.debug(datetime.toISO())
-
-    const start = datetime.startOf('month')
-    const end = datetime.endOf('month')
-
-    console.debug(start.toString(), end.toString(), start.toISO())
+    const start = DateTime.fromFormat(month, 'yyyy-MM-dd')
+      .setZone(ZONE)
+      .startOf('month')
+    const end = start.endOf('month')
 
     const response = await fetch('/api/excel', {
       method: 'POST',
@@ -307,215 +348,103 @@ export default function SalaryPage({
 
     const blob = await response.blob()
     const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
+    const link = document.createElement('a')
+    const name = `Сводная сотрудников (${Interval.fromDateTimes(start, end).toFormat('dd.MM.yyyy')})`
 
-    const interval = Interval.fromDateTimes(start, end)
-
-    let name = `Сводная сотрудников (${interval.toFormat('dd.MM.yyyy')})`
-
-    a.download = `${name}.xlsx`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
+    link.href = url
+    link.download = `${name}.xlsx`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
     window.URL.revokeObjectURL(url)
-  }, [date])
+  }, [month])
+
+  const isTable = canViewLocation
 
   return (
-    <main className="h-fit">
-      <div className="relative h-full w-full">
-        <div
-          ref={wrapperRef}
-          style={{
-            left: `${headerSizes.width}px`,
-          }}
-          className="bg-surface sticky top-2 z-1000 mb-4 flex h-22 w-dvw flex-wrap items-center gap-2 rounded-2xl p-4 text-xl font-bold">
-          <MonthSelect
-            type="select"
-            labelPlacement="inside"
-            className="w-fit min-w-40"
-            dates={defaultDates}
-            date={date}
-            callback={(date: string) => updateData('date', date)}
-          />
-          {canViewLocation &&
-            (isMobile ? (
-              <Popover>
-                <Popover.Trigger>
-                  <Button variant="tertiary" isIconOnly>
-                    <Icon icon="solar:filter-bold" width="24" height="24" />
-                  </Button>
-                </Popover.Trigger>
-                <Popover.Content className="min-w-40">
-                  <Popover.Dialog
-                    key="location"
-                    className="flex flex-col gap-2">
-                    <LocationSelect
-                      labelPlacement="inside"
-                      includeAll={true}
-                      className="w-full"
-                      callback={(location: LTLocation | LTLocation[] | null) =>
-                        updateData('location', location as LTLocation)
-                      }
-                      dynamicLocationId
-                      locationId={locationId}
-                    />
-                    <TextField
-                      variant="secondary"
-                      className="w-full"
-                      onChange={handleNameFilter}>
-                      <Label>Позывной</Label>
-                      <Input className="w-fit" />
-                    </TextField>
-                    <Checkbox
-                      variant="secondary"
-                      id="hide"
-                      className="border-surface-foreground/20 h-16 rounded-2xl border-2 px-2"
-                      isSelected={hideEmptyFilter}
-                      onChange={value => {
-                        handleHideFilter(value)
-                      }}>
-                      <Checkbox.Control>
-                        <Checkbox.Indicator />
-                      </Checkbox.Control>
-                      <Checkbox.Content>
-                        <Label htmlFor="hide">Скрыть пустые</Label>
-                      </Checkbox.Content>
-                    </Checkbox>
-                    {canViewFull ? (
-                      <>
-                        <Checkbox
-                          variant="secondary"
-                          id="check"
-                          className="border-surface-foreground/20 h-16 rounded-2xl border-2 px-2"
-                          isSelected={isReviewMode}
-                          onChange={value => {
-                            setReviewMode(value)
-                            localStorage.setItem('salaryReview', `${value}`)
-                          }}>
-                          <Checkbox.Control>
-                            <Checkbox.Indicator />
-                          </Checkbox.Control>
-                          <Checkbox.Content>
-                            <Label htmlFor="check">Проверка</Label>
-                          </Checkbox.Content>
-                        </Checkbox>
-                        <Button
-                          className="w-full"
-                          variant="tertiary"
-                          onPress={() => download()}>
-                          <Excel width={32} height={32} />
-                          Скачать сводную
-                        </Button>
-                      </>
-                    ) : null}
-                  </Popover.Dialog>
-                </Popover.Content>
-              </Popover>
-            ) : (
-              <>
-                <LocationSelect
-                  labelPlacement="inside"
-                  includeAll={true}
-                  className="w-fit"
-                  callback={(location: LTLocation | LTLocation[] | null) =>
-                    updateData('location', location as LTLocation)
-                  }
-                  dynamicLocationId
-                  locationId={locationId}
-                />
-                <TextField
-                  variant="secondary"
-                  className="w-fit"
-                  onChange={handleNameFilter}>
-                  <Label>Позывной</Label>
-                  <Input className="w-fit" />
-                </TextField>
-                <Checkbox
-                  variant="secondary"
-                  id="hide"
-                  className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
-                  isSelected={hideEmptyFilter}
-                  onChange={value => {
-                    handleHideFilter(value)
-                  }}>
-                  <Checkbox.Control>
-                    <Checkbox.Indicator />
-                  </Checkbox.Control>
-                  <Checkbox.Content>
-                    <Label htmlFor="hide">Скрыть пустые</Label>
-                  </Checkbox.Content>
-                </Checkbox>
-                {canViewFull && (
-                  <Checkbox
-                    variant="secondary"
-                    id="check"
-                    className="border-surface-foreground/20 h-full rounded-2xl border-2 px-2"
-                    isSelected={isReviewMode}
-                    onChange={value => {
-                      setReviewMode(value)
-                      localStorage.setItem('salaryReview', `${value}`)
-                    }}>
-                    <Checkbox.Control>
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
-                    <Checkbox.Content>
-                      <Label htmlFor="check">Проверка</Label>
-                    </Checkbox.Content>
-                  </Checkbox>
-                )}
-              </>
-            ))}
-          {loading && (
-            <>
-              <Spinner /> Загрузка
-            </>
-          )}
-          {canViewFull && !isMobile && (
-            <Button
-              slot="icon"
-              className="h-fit"
-              variant="tertiary"
-              onPress={() => download()}>
-              <Excel width={32} height={32} />
-              Скачать сводную
-            </Button>
-          )}
-        </div>
-        <div
-          className="grid w-full auto-rows-auto gap-2"
-          style={{
-            gridTemplateColumns: `160px repeat(${dates.length}, minmax(320px, 1fr))`,
-          }}>
-          <SalaryDaysRow
-            today={
-              today.month === Number(date.slice(5, -3))
-                ? today.toFormat('dd.MM')
-                : null
-            }
-            dates={dates}
-            workTypes={workTypes}
-          />
-          {data.map(salary => (
-            <SalaryRow
-              days={dates}
-              key={salary.worker.id}
-              canEdit={canEdit}
-              canViewFull={canViewFull}
-              handleEdit={handleEdit}
-              handleDelete={handleDelete}
-              gamesPayments={gamesPayments}
-              locations={locations}
-              isReviewMode={isReviewMode}
-              theme={theme}
-              worker={salary.worker}
-              dates={salary.dates}
-              workTypes={workTypes}
-              workerId={worker.id}
-            />
+    <main
+      className={cn(
+        'flex min-w-0 flex-col gap-3 p-4',
+        // таблица занимает ровно высоту экрана (на телефоне минус нижняя панель)
+        isTable && 'max-sm:h-[calc(100dvh-4rem)] sm:h-dvh',
+      )}>
+      <SalaryToolbar
+        months={availableMonths}
+        month={month}
+        onMonthChange={changeMonth}
+        locations={locationOptions}
+        locationName={locationName}
+        onLocationChange={changeLocation}
+        canViewLocation={canViewLocation}
+        canViewFull={canViewFull}
+        query={query}
+        onQueryChange={setQuery}
+        hideEmpty={hideEmpty}
+        onHideEmptyChange={setHideEmpty}
+        review={review}
+        onReviewChange={changeReview}
+        density={density}
+        onDensityChange={changeDensity}
+        isLoading={isLoading && ready}
+        showToday={isTable && isCurrentMonth}
+        onToday={() => setScrollSignal(n => n + 1)}
+        onDownload={download}
+      />
+
+      {!ready || (isLoading && rows.length === 0) ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({length: 6}, (_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
           ))}
         </div>
-      </div>
+      ) : isTable ? (
+        filtered.length ? (
+          <SalaryTable
+            rows={filtered}
+            days={days}
+            today={today}
+            review={review}
+            density={density}
+            scrollSignal={scrollSignal}
+            monthKey={month}
+            isLoading={isLoading}
+            onOpen={handleOpen}
+          />
+        ) : (
+          <p className="text-muted-foreground py-12 text-center text-sm">
+            Ничего не найдено
+          </p>
+        )
+      ) : density === 'full' ? (
+        <SalaryList
+          row={rows.find(r => r.worker.id === worker.id) ?? rows[0]}
+          date={month}
+          today={today}
+          review={review}
+          onOpen={handleOpen}
+        />
+      ) : (
+        <SalaryCalendar
+          row={rows.find(r => r.worker.id === worker.id) ?? rows[0]}
+          date={month}
+          today={today}
+          review={review}
+          onOpen={handleOpen}
+        />
+      )}
+
+      {sheetUsed && (
+        <DetailsSheet
+          target={target}
+          canEdit={canEdit}
+          side={isMobile ? 'bottom' : 'right'}
+          gamesPayments={gamesPayments}
+          locations={locations}
+          onClose={() => setSelected(null)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
     </main>
   )
 }

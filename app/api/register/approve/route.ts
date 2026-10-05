@@ -1,8 +1,21 @@
 import db from '@/lib/database'
 import {NextRequest, NextResponse} from 'next/server'
 import capitalize from '@/lib/functions/capitalize'
+import checkPermissions from '@/lib/functions/checkPermissions'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+
+const toId = (value: unknown) => {
+  const id = Number(value)
+
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
+const text = (value: unknown, max: number) =>
+  typeof value === 'string' ? value.trim().slice(0, max) : ''
+
+const fail = (message: string, status = 400) =>
+  NextResponse.json({message}, {status})
 
 export async function POST(req: NextRequest) {
   const sessionData = await auth.api.getSession({
@@ -11,62 +24,75 @@ export async function POST(req: NextRequest) {
 
   const user = sessionData?.user
 
-  const body = await req.json()
+  if (!user) return fail('Вход не произведён', 401)
 
-  const data = body.data
+  const data = (await req.json().catch(() => null))?.data ?? {}
 
-  if (!user) {
-    return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
+  const workerId = toId(data.workerId)
+  if (workerId === null) return fail('Сотрудник не указан')
+
+  const name = capitalize(text(data.name, 100))
+  const firstName = capitalize(text(data.first_name, 100))
+  const lastName = capitalize(text(data.last_name, 100))
+  const middleName = capitalize(text(data.middle_name, 100))
+  const phone = text(data.phone, 30)
+  const email = text(data.email, 200)
+  const rankId = toId(data.rank_id)
+
+  if (!name) return fail('Позывной не указан')
+  if (!firstName) return fail('Имя не указано')
+  if (!lastName) return fail('Фамилия не указана')
+  if (!phone) return fail('Телефон не указан')
+  if (!email) return fail('Почта не указана')
+  if (rankId === null) return fail('Не указан ранг')
+
+  // Подтверждать может пригласивший сотрудника (как и показывает интерфейс)
+  // или администратор
+  const target = await db.query(
+    'select invited_by from workers where id = $1',
+    [workerId],
+  )
+
+  if (!target.rowCount) return fail('Сотрудник не найден', 404)
+
+  const isAdmin = checkPermissions(['admin'], user)
+  const isInviter = Number(target.rows[0].invited_by) === user.id
+
+  if (!isAdmin && !isInviter) return fail('Нет прав', 403)
+
+  // Ранг должен существовать; выше собственного его может задать только
+  // тот, у кого есть право менять ранги
+  const ranks = await db.query(
+    `select
+       (select sorting_weight from ranks where id = $1) as target,
+       (select sorting_weight from ranks where name = $2) as own`,
+    [rankId, user.rank],
+  )
+  const {target: targetWeight, own: ownWeight} = ranks.rows[0]
+
+  if (targetWeight === null) return fail('Ранг не найден')
+
+  if (
+    !checkPermissions(['edit_worker_rank'], user) &&
+    targetWeight > (ownWeight ?? -Infinity)
+  ) {
+    return fail('Нельзя назначить ранг выше собственного', 403)
   }
 
-  if (!data.workerId) {
-    return NextResponse.json({message: 'Сотрудник не указан'}, {status: 500})
-  }
-
-  if (!data.name) {
-    return NextResponse.json({message: 'Позывной не указан'}, {status: 500})
-  }
-
-  if (!data.first_name) {
-    return NextResponse.json({message: 'Имя не указано'}, {status: 500})
-  }
-
-  if (!data.last_name) {
-    return NextResponse.json({message: 'Фамилия не указана'}, {status: 500})
-  }
-
-  if (!data.phone) {
-    return NextResponse.json({message: 'Телефон не указан'}, {status: 500})
-  }
-
-  if (!data.email) {
-    return NextResponse.json({message: 'Почта не указана'}, {status: 500})
-  }
-
-  if (!data.rank_id) {
-    return NextResponse.json({message: 'Не указан ранг'}, {status: 500})
-  }
-
-  const name = capitalize(data.name.trim())
-  const firstName = capitalize(data.first_name.trim())
-  const lastName = capitalize(data.last_name.trim())
-  const middleName = capitalize(data.middle_name.trim())
-  const email = data.email.trim()
-  const rankId = data.rank_id
-
-  const query = `update workers set
-  name = '${name}',
-  first_name = '${firstName}',
-  last_name = '${lastName}',
-  middle_name = '${middleName}',
-  email = '${email}',
-  rank_id = '${rankId}',
-  phone_number = '${data.phone}',
-  is_approved = true,
-  invited_by = null
-  where id = ${data.workerId}`
-
-  await db.query(query)
+  await db.query(
+    `update workers set
+       name = $1,
+       first_name = $2,
+       last_name = $3,
+       middle_name = $4,
+       email = $5,
+       rank_id = $6,
+       phone_number = $7,
+       is_approved = true,
+       invited_by = null
+     where id = $8`,
+    [name, firstName, lastName, middleName, email, rankId, phone, workerId],
+  )
 
   const workerQuery = `
   select
@@ -128,12 +154,12 @@ else (wr.id is not null)
 ), '[]'::jsonb) as data
   from relations.workers_generations wg where worker_id = w.id
 ) g on true
-  where w.id = ${data.workerId}
+  where w.id = $1
   group by w.id, w.name, first_name, last_name, middle_name, telegram_id, email, is_former, is_fired, photo_url, phone_number, role, location_id, w.rank_id , rr.rank_id, q.data, g.data
   order by coalesce(w.is_former, false), (select sorting_weight from ranks where id = w.rank_id) desc, name
   `
 
-  const workerData = await db.query(workerQuery)
+  const workerData = await db.query(workerQuery, [workerId])
   const worker = workerData.rows[0]
 
   return NextResponse.json(worker, {status: 200})

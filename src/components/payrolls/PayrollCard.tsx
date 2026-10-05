@@ -1,13 +1,30 @@
-import {LTPayroll, LTWorker} from '@/src/utils/types'
-import {DateTime, Interval} from 'luxon'
-import {Card, Button} from '@heroui/react'
+'use client'
+
+import {useState} from 'react'
 import Link from 'next/link'
+import {DateTime, Interval} from 'luxon'
+import {CircleCheck, CircleX, Trash2} from 'lucide-react'
+import {Badge} from '@/components/ui/badge'
+import {Button} from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import DeleteButton from '@/src/components/global/DeleteButton'
-import {useCallback, useMemo} from 'react'
 import fetchHandler from '@/src/utils/global/fetchHandler'
-import {Icon} from '@iconify/react'
-import useColors from '@/src/hooks/useColors'
+import {cn} from '@/lib/utils'
+import type {LTPayroll, LTWorker} from '@/src/utils/types'
 
 interface PayrollCardProps {
   data: LTPayroll
@@ -20,120 +37,156 @@ export default function PayrollCard({
   onDelete,
   worker,
 }: PayrollCardProps) {
-  const colors = useColors()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [isDeleting, setDeleting] = useState(false)
+
   const interval = Interval.fromISO(data.dates)
   const createdAt = DateTime.fromISO(data.createdAt)
   const takeBy = DateTime.fromISO(data.takeBy)
-  const today = useMemo(
-    () => DateTime.now().set({hour: 0, minute: 0, second: 0}),
-    [],
-  )
+  const today = DateTime.now().startOf('day')
 
   const canViewAllData = checkPermissions(
     ['view_all_payrolls', 'edit_payrolls'],
     worker,
   )
+  const canEdit = checkPermissions(['edit_payrolls'], worker)
+  const isOpen = takeBy >= today
 
-  const deletePayroll = useCallback(async () => {
-    const body = {payroll_id: data.id}
+  const remove = async () => {
+    setDeleting(true)
 
-    await fetchHandler({url: '/api/payrolls/delete', method: 'POST', body})
-    onDelete(data.id)
-  }, [data.id, onDelete])
+    try {
+      // из списка убираем только после успешного ответа сервера
+      const res = await fetchHandler({
+        url: '/api/payrolls/delete',
+        method: 'POST',
+        body: {payroll_id: data.id},
+      })
+
+      if (res) onDelete(data.id)
+    } finally {
+      setDeleting(false)
+      setConfirmDelete(false)
+    }
+  }
+
+  // черновик открывается на странице создания, опубликованная - в деталях
+  const href = data.isPublished
+    ? {pathname: `/payrolls/${data.id}`}
+    : {
+        pathname: '/payrolls/create',
+        query: {
+          dates: JSON.stringify({
+            start: data.meta?.dates?.start?.toString(),
+            end: data.meta?.dates?.end?.toString(),
+          }),
+          moneyOnLocations: JSON.stringify([]),
+          bonuses: data.meta?.withBonuses,
+          workersBonusesRange: JSON.stringify({
+            start: data.meta?.workersBonusesRange?.start?.toString(),
+            end: data.meta?.workersBonusesRange?.end?.toString(),
+          }),
+          actorsBonusesRange: JSON.stringify({
+            start: data.meta?.dates?.start?.toString(),
+            end: data.meta?.dates?.end?.toString(),
+          }),
+        },
+      }
 
   return (
-    <Card
-      className={`h-72 w-full sm:w-[20rem] ${takeBy < today ? 'opacity-90' : 'border'}`}>
-      <Card.Header>{interval.toFormat('dd.MM.yyyy')}</Card.Header>
-      <Card.Content className="flex flex-col gap-2">
+    <Card className={cn(!isOpen && 'opacity-80')}>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          {interval.toFormat('dd.MM.yyyy')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col gap-2 text-sm">
         {canViewAllData && (
           <>
             {!data.isPublished && (
-              <p className="text-danger mx-auto underline">Не опубликована</p>
+              <Badge variant="destructive" className="w-fit">
+                Не опубликована
+              </Badge>
             )}
-            <p>
+            <p className="text-muted-foreground">
               Создана: {createdAt.toFormat('dd.MM.yyyy HH:mm')},{' '}
-              {data.createdBy.name}
+              {data.createdBy?.name}
             </p>
-            <p>Кол-во сотрудников: {data.workersCount}</p>
+            <p className="text-muted-foreground">
+              Сотрудников: {data.workersCount}
+            </p>
           </>
         )}
-        <div>
-          <span>Можно забрать до: </span>
-          <p className={`${takeBy >= today ? 'text-success' : 'text-danger'}`}>
+        <p>
+          Можно забрать до:{' '}
+          <span
+            className={cn(
+              'font-medium',
+              isOpen ? 'text-success' : 'text-destructive',
+            )}>
             {takeBy.toFormat('dd.MM.yyyy')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <p>Бонусы: </p>
+          </span>
+        </p>
+        <p className="flex items-center gap-1.5">
+          Бонусы:{' '}
           {data.bonuses ? (
-            <Icon
-              color={colors?.success}
-              icon="solar:check-circle-bold"
-              width="20"
-              height="20"
-            />
+            <CircleCheck className="text-success size-4" />
           ) : (
-            <Icon
-              icon="solar:close-circle-bold"
-              width="20"
-              height="20"
-              color={colors?.danger}
-            />
+            <CircleX className="text-destructive size-4" />
           )}
-        </div>
-      </Card.Content>
-      <Card.Footer className="flex gap-2">
+        </p>
+      </CardContent>
+      <CardFooter className="gap-2">
         <Button
-          onPress={() => {
+          variant="secondary"
+          className="flex-1"
+          nativeButton={false}
+          onClick={() => {
             if (!data.isPublished) {
-              localStorage.setItem('payrollsCreate', JSON.stringify(data.meta))
+              try {
+                localStorage.setItem(
+                  'payrollsCreate',
+                  JSON.stringify(data.meta),
+                )
+              } catch {}
             }
           }}
-          variant="tertiary"
-          className={
-            checkPermissions(['edit_payrolls'], worker)
-              ? 'flex-1 sm:flex-none'
-              : 'flex-1'
-          }>
-          <Link
-            className="flex items-center gap-2"
-            href={{
-              pathname: data.isPublished
-                ? `/payrolls/${data.id}`
-                : `/payrolls/create`,
-              query: data.isPublished
-                ? undefined
-                : {
-                    dates: JSON.stringify({
-                      start: data.meta.dates?.start.toString(),
-                      end: data.meta.dates?.end.toString(),
-                    }),
-                    moneyOnLocations: JSON.stringify([]),
-                    bonuses: data.meta.withBonuses,
-                    workersBonusesRange: JSON.stringify({
-                      start: data.meta.workersBonusesRange?.start?.toString(),
-                      end: data.meta.workersBonusesRange?.end?.toString(),
-                    }),
-                    actorsBonusesRange: JSON.stringify({
-                      start: data.meta.dates?.start.toString(),
-                      end: data.meta.dates?.end.toString(),
-                    }),
-                  },
-            }}>
-            <Icon icon="solar:chat-line-bold" width="24" height="24" />
-            Подробнее
-          </Link>
+          render={<Link href={href} />}>
+          Подробнее
         </Button>
-        {checkPermissions(['edit_payrolls'], worker) && (
-          <DeleteButton
-            className="flex-1"
-            callback={deletePayroll}
-            showConfirmLabel={false}
-            label={'Удалить'}
-          />
+        {canEdit && (
+          <Button
+            variant="destructive"
+            size="icon"
+            aria-label="Удалить ведомость"
+            onClick={() => setConfirmDelete(true)}>
+            <Trash2 />
+          </Button>
         )}
-      </Card.Footer>
+      </CardFooter>
+
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Удалить ведомость?</DialogTitle>
+            <DialogDescription>
+              Ведомость за {interval.toFormat('dd.MM.yyyy')} будет удалена
+              вместе со всеми её данными. Действие нельзя отменить.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+              Нет
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={isDeleting}
+              onClick={remove}>
+              Да, удалить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

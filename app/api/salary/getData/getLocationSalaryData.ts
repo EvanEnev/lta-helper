@@ -31,6 +31,15 @@ export default async function getLocationSalaryData({
   let data: UserSalary[] = []
   const currentDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
 
+  // Значения приходят из тела запроса: невалидные даты и id отбрасываем
+  if (!currentDate.isValid) return data
+  if (
+    selectedLocationId !== undefined &&
+    !(Number.isInteger(selectedLocationId) && selectedLocationId >= 0)
+  ) {
+    return data
+  }
+
   let workerId: number | null = worker?.id || -1
   let locationId: number | null = null
 
@@ -54,11 +63,13 @@ export default async function getLocationSalaryData({
     }
 
     const query = `
-      with params as (select ${worker?.id || null}::int                                       as current_worker,
-                             ${workerId}::int                                               as worker_filter,
-                             ${locationId}::int                                             as location_filter,
-                             '${currentDate.startOf('month').toFormat('yyyy-MM-dd')}'::date as date_from,
-                             '${currentDate.endOf('month').toFormat('yyyy-MM-dd')}'::date   as date_to),
+      -- MATERIALIZED: без него планировщик встраивает CTE в LEFT JOIN и заново
+      -- сканирует salary.list для каждого из ~300 сотрудников (~1 с вместо ~0.1 с)
+      with params as (select $1::int  as current_worker,
+                             $2::int  as worker_filter,
+                             $3::int  as location_filter,
+                             $4::date as date_from,
+                             $5::date as date_to),
            ranks_data as (select id, name, sorting_weight
                           from ranks),
            workers_data as (select id, name, first_name, rank_id, is_former, is_fired
@@ -112,7 +123,7 @@ export default async function getLocationSalaryData({
                             and (p.location_filter is null or f.location_id = p.location_filter))
                           )
                         group by f.worker_id, f.date::date),
-           salary_filtered AS (SELECT s.id,
+           salary_filtered AS MATERIALIZED (SELECT s.id,
                                       s.worker_id,
                                       s.date::date,
                                       s.start_time,
@@ -143,7 +154,7 @@ export default async function getLocationSalaryData({
                                    or ((p.worker_filter IS NULL OR s.worker_id = p.worker_filter)
                                    and (p.location_filter IS NULL OR s.location_id = p.location_filter))
                                  )),
-           payments_filtered AS (SELECT p.worker_id,
+           payments_filtered AS MATERIALIZED (SELECT p.worker_id,
                                         p.date::date AS p_date,
                                         jsonb_agg(
                                           jsonb_build_object(
@@ -159,7 +170,7 @@ export default async function getLocationSalaryData({
                                  WHERE p.date BETWEEN pa.date_from AND pa.date_to
                                    AND (pa.worker_filter IS NULL OR p.worker_id = pa.worker_filter)
                                  GROUP BY p.worker_id, p.date::date),
-           salary_payments AS (SELECT coalesce(s.worker_id, p.worker_id) as worker_id,
+           salary_payments AS MATERIALIZED (SELECT coalesce(s.worker_id, p.worker_id) as worker_id,
                                       coalesce(s.date, p.p_date)         as date,
                                       s.id,
                                       s.start_time,
@@ -217,7 +228,7 @@ export default async function getLocationSalaryData({
                    'workTypes', sp.work_types,
                    'faceId', f.data,
                    'payments', sp.payments
-                 )
+                 ) order by sp.date, sp.id
                           ) filter (where sp.id is not null or sp.payments is not null),
                  '[]'::jsonb
              ) as dates
@@ -231,7 +242,13 @@ export default async function getLocationSalaryData({
       order by coalesce(w.is_former, false), r.sorting_weight DESC, w.name, w.first_name
     `
 
-    const results = await db.query(query)
+    const results = await db.query(query, [
+      worker?.id || null,
+      workerId,
+      locationId,
+      currentDate.startOf('month').toFormat('yyyy-MM-dd'),
+      currentDate.endOf('month').toFormat('yyyy-MM-dd'),
+    ])
     data = results.rows
   }
 

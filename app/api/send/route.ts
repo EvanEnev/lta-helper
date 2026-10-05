@@ -29,6 +29,20 @@ export async function POST(req: NextRequest) {
     date: DateTime.fromISO(`${day.date}`),
   }))
 
+  // value и comment уходят в БД и в сообщения: принимаем только строки разумной длины
+  selectedDays = selectedDays.filter(
+    day =>
+      day.date?.isValid &&
+      (day.value == null ||
+        (typeof day.value === 'string' && day.value.length <= 50)) &&
+      (day.comment == null ||
+        (typeof day.comment === 'string' && day.comment.length <= 1000)),
+  )
+
+  if (!selectedDays.length) {
+    return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
+  }
+
   const telegramId: number = worker.telegramId
 
   if (!worker.name) {
@@ -115,10 +129,22 @@ export async function POST(req: NextRequest) {
     ? process.env.ACTORS_THREAD_ID
     : process.env.WORKERS_THREAD_ID
 
-  const query = queries.join(';\n')
+  if (queries.length) {
+    // одной транзакцией, как раньше при выполнении общей строкой
+    const client = await db.connect()
 
-  if (query) {
-    await db.query(query)
+    try {
+      await client.query('begin')
+      for (const query of queries) {
+        await client.query(query.text, query.values)
+      }
+      await client.query('commit')
+    } catch (e) {
+      await client.query('rollback').catch(() => {})
+      throw e
+    } finally {
+      client.release()
+    }
   }
 
   const errors: string[] = []

@@ -1,12 +1,21 @@
 'use client'
 
-import {LTPayment, LTPaymentChangeData, LTPaymentType} from '@/src/utils/types'
-import {Separator} from '@heroui/react'
-import {DateTime, Interval} from 'luxon'
-import {useCallback, useEffect, useMemo, useState} from 'react'
-import PaymentsRow from '@/src/components/payments/PaymentsRow'
-import PaymentsHeader from '@/src/components/payments/PaymentsHeader'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {DateTime} from 'luxon'
+import {Building2, Hash, UserRound, Wallet} from 'lucide-react'
+import {Skeleton} from '@/components/ui/skeleton'
+import type {DatePeriod} from '@/src/components/global/DateRangePopover'
+import StatTile from '@/src/components/global/StatTile'
 import fetchHandler from '@/src/utils/global/fetchHandler'
+import separateNumber from '@/lib/functions/separateNumber'
+import {cn} from '@/lib/utils'
+import type {
+  LTPayment,
+  LTPaymentChangeData,
+  LTPaymentType,
+} from '@/src/utils/types'
+import PaymentRow, {ROW_GRID} from './PaymentRow'
+import PaymentsToolbar from './PaymentsToolbar'
 
 interface PaymentsPageProps {
   paymentsTypes: LTPaymentType[]
@@ -14,132 +23,275 @@ interface PaymentsPageProps {
   canEdit: boolean
 }
 
-export interface PaymentsFilter {
-  name: 'name' | 'type' | 'dates'
-  value: string | null
-}
+const ZONE = 'Europe/Moscow'
+
+// иконки плиток по типам выплат (по порядку появления)
+const TYPE_ICONS = [Building2, UserRound, Wallet]
+const ALL = 'all'
+
+// Выплаты идут по полумесяцам (1-15 и 16-конец), как и зарплата
+const halfMonth = (month: DateTime, half: 1 | 2): DatePeriod =>
+  half === 1
+    ? {
+        start: month.startOf('month'),
+        end: month.startOf('month').plus({days: 14}),
+      }
+    : {
+        start: month.startOf('month').plus({days: 15}),
+        end: month.endOf('month'),
+      }
 
 export default function PaymentsPage({
   paymentsTypes,
   workers,
   canEdit,
 }: PaymentsPageProps) {
-  const [initialPayments, setInitialPayments] = useState<LTPayment[]>([])
+  const now = DateTime.now().setZone(ZONE)
+  const [period, setPeriod] = useState<DatePeriod>(
+    halfMonth(now, now.day <= 15 ? 1 : 2),
+  )
   const [payments, setPayments] = useState<LTPayment[]>([])
-  const [filters, setFilters] = useState<PaymentsFilter[]>([
-    {
-      name: 'dates',
-      value: Interval.fromDateTimes(
-        DateTime.now().set({day: 1}),
-        DateTime.now().set({day: 14}),
-      ).toISO(),
+  const [isLoading, setLoading] = useState(true)
+  const [isTransferring, setTransferring] = useState(false)
+  const [type, setType] = useState(ALL)
+  const [query, setQuery] = useState('')
+
+  const extraPresets = useMemo(() => {
+    const prev = now.minus({months: 1})
+
+    return [
+      {label: '1–15', period: halfMonth(now, 1)},
+      {label: '16–конец', period: halfMonth(now, 2)},
+      {label: `Пред. 16–конец`, period: halfMonth(prev, 2)},
+    ]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [now.month, now.year])
+
+  // ---------- загрузка: только при смене периода (имя и тип фильтруются на месте) ----------
+  const requestId = useRef(0)
+
+  const load = useCallback(
+    async (silent = false) => {
+      const id = ++requestId.current
+      if (!silent) setLoading(true)
+
+      try {
+        // даты без часового пояса, как и раньше: сервер берёт из них только число
+        const dates = `${period.start.toFormat('yyyy-MM-dd')}T00:00:00/${period.end.toFormat('yyyy-MM-dd')}T23:00:00`
+
+        const json = await fetchHandler({
+          url: '/api/payments/get',
+          body: {dates},
+          showNotification: false,
+        })
+
+        if (id === requestId.current && json?.data) setPayments(json.data)
+      } finally {
+        if (id === requestId.current) setLoading(false)
+      }
     },
-  ])
-
-  const getNewData = useCallback(async () => {
-    let filteredData: LTPayment[] = initialPayments
-
-    const nameFilter = filters.find(d => d.name === 'name')
-    const typeFilter = filters.find(d => d.name === 'type')
-    const datesFilter = filters.find(d => d.name === 'dates')
-
-    if (datesFilter?.value) {
-      const res = await fetch('/api/payments/get', {
-        method: 'POST',
-        body: JSON.stringify({dates: datesFilter.value}),
-      })
-
-      filteredData = (await res.json()).data
-    }
-
-    if (nameFilter?.value) {
-      filteredData = filteredData.filter(d =>
-        d.worker?.name
-          .toLowerCase()
-          .trim()
-          .startsWith(nameFilter.value?.toLowerCase().trim() || ''),
-      )
-    }
-
-    if (typeFilter?.value) {
-      filteredData = filteredData.filter(d => d.type === typeFilter.value)
-    }
-
-    setPayments(filteredData)
-  }, [filters, initialPayments])
+    [period],
+  )
 
   useEffect(() => {
-    ;(async () => {
-      await getNewData()
-    })()
-  }, [getNewData])
+    load()
+  }, [load])
 
-  const updateData = useCallback(
+  // ---------- действия ----------
+  const create = () =>
+    setPayments(prev => [
+      {
+        id: -Date.now(), // временный id до ответа сервера
+        create: true,
+        date: DateTime.now().setZone(ZONE).toFormat('yyyy-MM-dd'),
+      },
+      ...prev,
+    ])
+
+  const save = useCallback(
     async (payment: LTPayment) => {
-      setPayments(prev => prev.map(d => (d.id === payment.id ? payment : d)))
-
-      const type = paymentsTypes.find(d => d.name === payment.type)?.id
-
-      const sendData: LTPaymentChangeData = {
+      const body: LTPaymentChangeData = {
         id: payment.id,
-        value: payment.value || null,
+        value: payment.value ?? null,
         comment: payment.comment || null,
         create: !!payment.create,
-        delete: !!payment.delete,
+        delete: false,
         date: payment.date,
         worker: payment.worker?.name || '',
-        type: type || null,
+        type: paymentsTypes.find(t => t.name === payment.type)?.id ?? null,
       }
 
       const res = await fetchHandler({
         url: '/api/payments/edit',
         method: 'POST',
-        body: sendData,
+        body,
       })
 
-      if (res) {
-        if (res.id !== payment.id && !sendData.delete) {
-          setPayments(prev => prev.filter(d => d.id !== payment.id))
-          setPayments(prev => [payment, ...prev])
-        }
-      }
+      if (!res) return false
+
+      setPayments(prev =>
+        prev.map(p =>
+          p.id === payment.id
+            ? {...payment, id: res.id ?? payment.id, create: false}
+            : p,
+        ),
+      )
+
+      return true
     },
     [paymentsTypes],
   )
 
-  const summary = useMemo(() => {
-    return payments?.reduce((acc, cur) => acc + (cur.value || 0), 0) || 0
-  }, [payments])
+  const remove = useCallback(async (payment: LTPayment) => {
+    const res = await fetchHandler({
+      url: '/api/payments/edit',
+      method: 'POST',
+      body: {
+        id: payment.id,
+        delete: true,
+        create: false,
+        date: payment.date,
+        worker: payment.worker?.name || '',
+        type: null,
+        value: null,
+        comment: null,
+      } satisfies LTPaymentChangeData,
+    })
+
+    if (res) setPayments(prev => prev.filter(p => p.id !== payment.id))
+  }, [])
+
+  const discardNew = useCallback(
+    (id: number) => setPayments(prev => prev.filter(p => p.id !== id)),
+    [],
+  )
+
+  const transfer = async () => {
+    setTransferring(true)
+
+    try {
+      const res = await fetchHandler({
+        url: '/api/payments/transfer',
+        body: {
+          startDate: period.start.toFormat('yyyy-MM-dd'),
+          endDate: period.end.toFormat('yyyy-MM-dd'),
+        },
+      })
+
+      if (res) await load(true)
+    } finally {
+      setTransferring(false)
+    }
+  }
+
+  // ---------- производные данные ----------
+  const visible = useMemo(() => {
+    const text = query.trim().toLowerCase()
+
+    return payments.filter(
+      p =>
+        (type === ALL || p.type === type) &&
+        (!text || (p.worker?.name ?? '').toLowerCase().includes(text)),
+    )
+  }, [payments, type, query])
+
+  const {sum, byType} = useMemo(() => {
+    const byType = new Map<string, number>()
+    let sum = 0
+
+    for (const payment of visible) {
+      const value = payment.value || 0
+      sum += value
+      if (payment.type) {
+        byType.set(payment.type, (byType.get(payment.type) ?? 0) + value)
+      }
+    }
+
+    return {sum, byType}
+  }, [visible])
 
   return (
-    <main className="flex flex-col gap-2 p-4">
-      <PaymentsHeader
-        getNewData={getNewData}
-        summary={summary}
-        canEdit={canEdit}
-        paymentsTypes={paymentsTypes}
-        setFilters={setFilters}
-        setPayments={setPayments}
-        initialDates={Interval.fromDateTimes(
-          DateTime.now().set({day: 1}),
-          DateTime.now().set({day: 14}),
-        ).toISO()}
-      />
-      <Separator />
-      <div className="flex flex-wrap gap-4">
-        {payments.map(payment => {
-          return (
-            <PaymentsRow
-              canEdit={canEdit}
-              workers={workers}
-              updateData={updateData}
-              paymentsTypes={paymentsTypes}
-              payment={payment}
-              setPayments={setPayments}
-              key={payment.id}
+    <main
+      className={cn(
+        'flex min-w-0 flex-col gap-3 p-4',
+        // страница занимает высоту экрана: фильтры закреплены, список прокручивается
+        'max-sm:h-[calc(100dvh-4rem)] sm:h-dvh',
+      )}>
+      <div className="shrink-0">
+        <PaymentsToolbar
+          period={period}
+          onPeriodChange={setPeriod}
+          extraPresets={extraPresets}
+          paymentsTypes={paymentsTypes}
+          type={type}
+          onTypeChange={setType}
+          query={query}
+          onQueryChange={setQuery}
+          canEdit={canEdit}
+          onCreate={create}
+          onTransfer={transfer}
+          isTransferring={isTransferring}
+          isLoading={isLoading}
+        />
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto [contain:inline-size]">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <StatTile
+            icon={Wallet}
+            value={`${separateNumber(sum)} ₽`}
+            label="Сумма"
+          />
+          <StatTile icon={Hash} value={visible.length} label="Выплат" />
+          {[...byType.entries()].map(([name, value], index) => (
+            <StatTile
+              key={name}
+              icon={TYPE_ICONS[index % TYPE_ICONS.length]}
+              value={`${separateNumber(value)} ₽`}
+              label={name}
             />
-          )
-        })}
+          ))}
+        </div>
+
+        {isLoading && payments.length === 0 ? (
+          <div className="flex flex-col gap-2">
+            {Array.from({length: 6}, (_, i) => (
+              <Skeleton key={i} className="h-14 w-full" />
+            ))}
+          </div>
+        ) : visible.length ? (
+          <div className={cn('flex flex-col gap-2', isLoading && 'opacity-60')}>
+            <div
+              aria-hidden
+              className={cn(
+                'text-muted-foreground bg-background sticky top-0 z-10 hidden gap-x-3 px-3.5 py-2 text-xs md:grid',
+                ROW_GRID,
+              )}>
+              <span>Дата</span>
+              <span>Сотрудник</span>
+              <span>Тип</span>
+              <span>Сумма</span>
+              <span>Комментарий</span>
+              <span />
+            </div>
+            {visible.map(payment => (
+              <PaymentRow
+                key={payment.id}
+                payment={payment}
+                paymentsTypes={paymentsTypes}
+                workers={workers}
+                canEdit={canEdit}
+                onSave={save}
+                onDelete={remove}
+                onDiscardNew={discardNew}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground py-12 text-center text-sm">
+            За выбранный период выплат нет
+          </p>
+        )}
       </div>
     </main>
   )

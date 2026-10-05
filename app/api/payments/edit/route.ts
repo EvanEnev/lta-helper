@@ -1,57 +1,106 @@
 import {NextRequest, NextResponse} from 'next/server'
+import {DateTime} from 'luxon'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {LTPaymentChangeData} from '@/src/utils/types'
 import db from '@/lib/database'
+
+const toId = (value: unknown) => {
+  const id = Number(value)
+
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
+const fail = (message: string, status = 400) =>
+  NextResponse.json({message}, {status})
 
 export async function POST(req: NextRequest) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
   })) || {user: null}
 
-  if (!worker) {
-    return NextResponse.json({message: 'Ошибка авторизации'}, {status: 500})
-  }
-
+  if (!worker) return fail('Вход не произведён', 401)
   if (!checkPermissions(['edit_payments'], worker)) {
-    return NextResponse.json({message: 'Недостаточно прав'}, {status: 500})
+    return fail('Недостаточно прав', 403)
   }
 
-  const body: LTPaymentChangeData = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body) return fail('Некорректный запрос')
 
-  if (!body.worker) {
-    return NextResponse.json({message: 'Сотрудник не указан'}, {status: 500})
-  }
+  try {
+    // ---------- удаление ----------
+    if (body.delete) {
+      const id = toId(body.id)
+      if (id === null) return fail('Не указана выплата')
 
-  let query: string
+      await db.query('delete from payments.list where id = $1', [id])
 
-  if (body.create) {
-    query = `insert into payments.list
-  (worker_id, payment_type, value, date, comment)
-  values
-    (
-     (select id from workers where name ilike '${body.worker}' limit 1),
-     ${body.type},
-     ${body.value},
-     '${body.date}',
-     '${body.comment}'
+      return NextResponse.json({id}, {status: 200})
+    }
+
+    // ---------- создание и правка ----------
+    const typeId = toId(body.type)
+    const value = Number(body.value)
+    const date = String(body.date ?? '')
+    const comment =
+      typeof body.comment === 'string' && body.comment.trim()
+        ? body.comment.trim().slice(0, 1000)
+        : null
+    const workerName = typeof body.worker === 'string' ? body.worker.trim() : ''
+
+    if (!workerName) return fail('Сотрудник не указан')
+    if (typeId === null) return fail('Не указан тип выплаты')
+    if (!Number.isInteger(value) || value === 0) return fail('Не указана сумма')
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !DateTime.fromISO(date).isValid) {
+      return fail('Некорректная дата')
+    }
+
+    const found = await db.query(
+      'select id from workers where lower(name) = lower($1) limit 1',
+      [workerName],
     )
-    returning id`
-  } else if (body.delete) {
-    query = `delete from payments.list where id = ${body.id}`
-  } else {
-    query = `update payments.list
-             set payment_type = ${body.type},
-                 value = ${body.value},
-                 date = '${body.date}',
-                 comment = ${body.comment ? `'${body.comment}'` : null}
-             where id = ${body.id}
-             returning id`
+    const workerId: number | undefined = found.rows[0]?.id
+
+    if (!workerId) return fail('Сотрудник не найден', 404)
+
+    const type = await db.query('select 1 from payments.types where id = $1', [
+      typeId,
+    ])
+    if (!type.rowCount) return fail('Тип выплаты не найден', 404)
+
+    if (body.create) {
+      const result = await db.query(
+        `insert into payments.list (worker_id, payment_type, value, date, comment)
+         values ($1, $2, $3, $4, $5)
+         returning id`,
+        [workerId, typeId, value, date, comment],
+      )
+
+      return NextResponse.json({id: result.rows[0]?.id}, {status: 200})
+    }
+
+    const id = toId(body.id)
+    if (id === null) return fail('Не указана выплата')
+
+    // сотрудник тоже меняется: раньше выбранное в форме имя молча игнорировалось
+    const result = await db.query(
+      `update payments.list
+       set worker_id = $1,
+           payment_type = $2,
+           value = $3,
+           date = $4,
+           comment = $5
+       where id = $6
+       returning id`,
+      [workerId, typeId, value, date, comment, id],
+    )
+
+    if (!result.rowCount) return fail('Выплата не найдена', 404)
+
+    return NextResponse.json({id: result.rows[0].id}, {status: 200})
+  } catch (e) {
+    console.error(e)
+
+    return fail(e instanceof Error ? e.message : 'Ошибка в запросе', 500)
   }
-
-  const result = await db.query(query)
-  const id = result.rows[0]?.id
-
-  return NextResponse.json({id}, {status: 200})
 }

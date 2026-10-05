@@ -1,10 +1,10 @@
 'use client'
 
-import {LTPayroll, LTWorker} from '@/src/utils/types'
-import {Fragment, useCallback, useState} from 'react'
-import PayrollCard from '@/src/components/payrolls/PayrollCard'
-import PayrollCreateCard from '@/src/components/payrolls/PayrollsCreateCard'
+import {useCallback, useState} from 'react'
 import checkPermissions from '@/lib/functions/checkPermissions'
+import type {LTPayroll, LTWorker} from '@/src/utils/types'
+import PayrollCard from './PayrollCard'
+import PayrollCreateDialog from './PayrollCreateDialog'
 
 interface PayrollsPageProps {
   data: LTPayroll[]
@@ -23,15 +23,16 @@ export default function PayrollsPage({
 
   return (
     <main className="p-4">
-      <div className="flex flex-row flex-wrap gap-4">
-        {checkPermissions(['edit_payrolls'], worker) && <PayrollCreateCard />}
-        {data.map(payroll => {
-          return (
-            <Fragment key={payroll.id}>
-              <PayrollCard worker={worker} data={payroll} onDelete={onDelete} />
-            </Fragment>
-          )
-        })}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,20rem),1fr))] gap-4">
+        {checkPermissions(['edit_payrolls'], worker) && <PayrollCreateDialog />}
+        {data.map(payroll => (
+          <PayrollCard
+            key={payroll.id}
+            worker={worker}
+            data={payroll}
+            onDelete={onDelete}
+          />
+        ))}
       </div>
     </main>
   )

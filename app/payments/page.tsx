@@ -21,15 +21,17 @@ export default async function Payments() {
 
   const paymentsTypes: LTPaymentType[] = paymentsTypesResult.rows
 
-  const workersQuery = `select w.name
+  const canEdit = checkPermissions(['edit_payments'], worker)
+
+  // список позывных нужен только для выбора сотрудника при правке выплат
+  const workers: string[] = canEdit
+    ? (
+        await db.query(`select w.name
 from workers w
     left join ranks r on r.id = w.rank_id
-    order by r.sorting_weight desc, w.name`
-
-  const workersResult = await db.query(workersQuery)
-  const workers: string[] = workersResult.rows.map(row => row.name)
-
-  const canEdit = checkPermissions(['edit_payments'], worker)
+    order by r.sorting_weight desc, w.name`)
+      ).rows.map(row => row.name)
+    : []
 
   return (
     <PaymentsPage

@@ -1,4 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server'
+import {DateTime} from 'luxon'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import checkPermissions from '@/lib/functions/checkPermissions'
@@ -15,95 +16,145 @@ interface Act {
   date: string
 }
 
+const DATE = /^\d{4}-\d{2}-\d{2}$/
+
+const fail = (message: string, status = 400) =>
+  NextResponse.json({message}, {status})
+
+// Перенос выплат самозанятым из Консоли (оплаченные акты) в payments.list
 export async function POST(req: NextRequest) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
   })) || {user: null}
 
-  if (!worker) {
-    return NextResponse.json({message: 'Ошибка авторизации'}, {status: 500})
-  }
-
+  if (!worker) return fail('Вход не произведён', 401)
   if (!checkPermissions(['edit_payments'], worker)) {
-    return NextResponse.json({message: 'Недостаточно прав'}, {status: 500})
+    return fail('Недостаточно прав', 403)
   }
 
-  const body = await req.json()
+  const body = await req.json().catch(() => ({}))
+  const {startDate, endDate} = body
 
-  const startDate = body.startDate
-  const endDate = body.endDate
-
-  if (!startDate || !endDate) {
-    return NextResponse.json({message: 'Неверные даты'}, {status: 500})
+  if (
+    !(
+      typeof startDate === 'string' &&
+      typeof endDate === 'string' &&
+      DATE.test(startDate) &&
+      DATE.test(endDate) &&
+      DateTime.fromISO(startDate).isValid &&
+      DateTime.fromISO(endDate).isValid
+    )
+  ) {
+    return fail('Неверные даты')
   }
 
-  let page = 0
-
-  let res = null
-
+  // ---------- акты из Консоли ----------
   const acts: Act[] = []
 
-  while (res === null || res.headers.get('x-has-next-page') === 'true') {
-    page++
+  try {
+    let page = 0
+    let hasNext = true
 
-    console.debug(
-      page,
-      `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
-    )
-    res = await fetch(
-      `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
-        },
-      },
-    )
+    while (hasNext) {
+      page++
 
-    const data = await res.json()
-    data.forEach((act: any) => {
-      if (act.status === 'paid') {
-        acts.push({
-          number: act.number,
-          id: act.id,
-          date: act.start_date,
-          amount: act.payment_amount,
-          contractor: {
-            first_name: act.contractor.first_name,
-            last_name: act.contractor.last_name,
-          },
-        })
+      const url = new URL('https://api.konsol.pro/v2/acts')
+      url.searchParams.set('date_from', startDate)
+      url.searchParams.set('date_to', endDate)
+      url.searchParams.set('page', String(page))
+
+      const res = await fetch(url, {
+        headers: {Authorization: `Bearer ${process.env.KONSOL_TOKEN}`},
+      })
+
+      if (!res.ok) return fail(`Консоль вернула ошибку ${res.status}`, 502)
+
+      const data = await res.json()
+
+      for (const act of Array.isArray(data) ? data : []) {
+        if (act.status === 'paid') {
+          acts.push({
+            number: act.number,
+            id: act.id,
+            date: act.start_date,
+            amount: act.payment_amount,
+            contractor: {
+              first_name: act.contractor.first_name,
+              last_name: act.contractor.last_name,
+            },
+          })
+        }
       }
-    })
+
+      hasNext = res.headers.get('x-has-next-page') === 'true'
+    }
+  } catch (e) {
+    console.error(e)
+
+    return fail('Не удалось получить данные из Консоли', 502)
   }
 
-  const queries: string[] = []
-
-  acts.forEach((act: Act) => {
-    queries.push(`insert into payments.list (worker_id, payment_type, date, act_id, value, paid, comment)
-                      values ((select id
-                               from workers
-                               where unaccent(first_name) ilike unaccent('${act.contractor.first_name}')
-                                 and unaccent(last_name) ilike unaccent('${act.contractor.last_name}')),
-                              2,
-                              '${act.date}',
-                              ${act.id},
-                              ${act.amount},
-                              true,
-                              'Выплата по акту №${act.number}')
-                      on conflict (worker_id, act_id) do update set date=excluded.date,
-                                                                    value = excluded.value,
-                                                                    comment = excluded.comment`)
-  })
-
-  console.debug(queries, acts.length)
+  // ---------- запись одной транзакцией ----------
+  const client = await db.connect()
+  const skipped: string[] = []
+  let imported = 0
 
   try {
-    await db.query(queries.join(';\n'))
-    return NextResponse.json({}, {status: 200})
+    await client.query('begin')
+
+    for (const act of acts) {
+      // сотрудник ищется по имени и фамилии; без однозначного совпадения
+      // запись пропускаем (раньше одна такая ломала весь перенос)
+      const match = await client.query(
+        `select id
+         from workers
+         where unaccent(first_name) ilike unaccent($1)
+           and unaccent(last_name) ilike unaccent($2)
+         limit 2`,
+        [act.contractor.first_name, act.contractor.last_name],
+      )
+
+      if (match.rowCount !== 1) {
+        skipped.push(
+          `${act.contractor.last_name} ${act.contractor.first_name}`.trim(),
+        )
+        continue
+      }
+
+      await client.query(
+        `insert into payments.list (worker_id, payment_type, date, act_id, value, paid, comment)
+         values ($1, 2, $2::date, $3, $4, true, $5)
+         on conflict (worker_id, act_id) do update set date = excluded.date,
+                                                       value = excluded.value,
+                                                       comment = excluded.comment`,
+        [
+          match.rows[0].id,
+          act.date,
+          act.id,
+          act.amount,
+          `Выплата по акту №${act.number}`,
+        ],
+      )
+      imported++
+    }
+
+    await client.query('commit')
   } catch (e) {
-    // @ts-ignore
-    console.error(e.message)
-    // @ts-ignore
-    return NextResponse.json({message: e.message}, {status: 500})
+    await client.query('rollback').catch(() => {})
+    console.error(e)
+
+    return fail(e instanceof Error ? e.message : 'Ошибка в запросе', 500)
+  } finally {
+    client.release()
   }
+
+  return NextResponse.json(
+    {
+      imported,
+      warning: skipped.length
+        ? `Не перенесены (сотрудник не найден или не однозначен): ${[...new Set(skipped)].join(', ')}`
+        : '',
+    },
+    {status: 200},
+  )
 }

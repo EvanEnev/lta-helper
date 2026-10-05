@@ -1,19 +1,10 @@
 import {NextRequest, NextResponse} from 'next/server'
-import {auth} from '@/lib/auth'
-import {headers} from 'next/headers'
-import checkPermissions from '@/lib/functions/checkPermissions'
+import requireManagePermissions from '@/lib/functions/requireManagePermissions'
 import db from '@/lib/database'
 
 export async function GET(_req: NextRequest) {
-  const worker = (await auth.api.getSession({headers: await headers()}))!.user
-
-  if (!worker) {
-    return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
-  }
-
-  if (!checkPermissions(['manage_permissions'], worker)) {
-    return NextResponse.json({message: 'Нет прав'}, {status: 403})
-  }
+  const denied = await requireManagePermissions()
+  if (denied) return denied
 
   try {
     const result = await db.query(

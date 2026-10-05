@@ -3,27 +3,36 @@ import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import db from '@/lib/database'
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const worker = (await auth.api.getSession({
-    headers: await headers(),
-  }))!.user
+const isCoord = (value: unknown, limit: number): value is number =>
+  typeof value === 'number' &&
+  Number.isFinite(value) &&
+  Math.abs(value) <= limit
 
-  if (!body.lat || !body.lng) {
-    return NextResponse.json({message: 'Не предоставлен адрес'}, {status: 500})
+export async function POST(req: NextRequest) {
+  const session = await auth.api.getSession({headers: await headers()})
+
+  if (!session) {
+    return NextResponse.json({message: 'Не авторизован'}, {status: 401})
   }
 
-  const query = `update workers
-  set lat = ${body.lat},
-      lng = ${body.lng}
-  where id = ${worker.id}`
+  const body = await req.json().catch(() => null)
+
+  if (!isCoord(body?.lat, 90) || !isCoord(body?.lng, 180)) {
+    return NextResponse.json({message: 'Не предоставлен адрес'}, {status: 400})
+  }
 
   try {
-    await db.query(query)
+    // меняется только адрес самого пользователя, значения - параметрами
+    await db.query('update workers set lat = $1, lng = $2 where id = $3', [
+      body.lat,
+      body.lng,
+      session.user.id,
+    ])
+
     return NextResponse.json({})
   } catch (e) {
     console.error(e)
-    // @ts-ignore
-    return NextResponse.json({message: e.message}, {status: 500})
+
+    return NextResponse.json({message: 'Не удалось сохранить'}, {status: 500})
   }
 }

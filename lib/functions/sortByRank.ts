@@ -1,4 +1,8 @@
-import {LTWorker} from '@/src/utils/types'
+interface Rankable {
+  name: string
+  rank?: string | null
+  isFormer?: boolean | null
+}
 
 const ranksMap: {[key: string]: number} = {
   советник: 10,
@@ -16,9 +20,7 @@ const ranksMap: {[key: string]: number} = {
   бывший: -2,
 }
 
-export default function sortByRank(
-  array: LTWorker[] | Omit<LTWorker, 'permissions' | 'permissionLevel'>[],
-) {
+export default function sortByRank<T extends Rankable>(array: T[]): T[] {
   return array.sort((worker1, worker2) => {
     let rank1 = worker1.rank
     let rank2 = worker2.rank

@@ -3,14 +3,15 @@ import db from '@/lib/database'
 import PayrollsPage from '@/src/components/payrolls/PayrollsPage'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import {redirect} from 'next/navigation'
 import checkPermissions from '@/lib/functions/checkPermissions'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Payrolls() {
-  const worker = (await auth.api.getSession({
-    headers: await headers(),
-  }))!.user
+  const worker = (await auth.api.getSession({headers: await headers()}))?.user
+
+  if (!worker) redirect('/login')
 
   const query = `select
   id,

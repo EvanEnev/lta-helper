@@ -1,18 +1,27 @@
 'use client'
 
-import type {FC} from 'react'
-import {useState, useCallback} from 'react'
-import type {CalendarDate} from '@internationalized/date'
+import {useCallback, useEffect, useRef, useState} from 'react'
+import {ChevronsUpDown} from 'lucide-react'
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent} from '@/components/ui/card'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs'
+import {useIsMobile} from '@/hooks/use-mobile'
 import type {
   DefaultPermission,
   Permission,
   WorkerBasic,
   WorkerPermission,
 } from '@/src/utils/types'
-import useIsMobile from '@/src/hooks/useIsMobile'
+import RankDefaults from './RankDefaults'
+import WorkerPermissions from './WorkerPermissions'
 import WorkersList from './WorkersList'
-import PermissionsList from './PermissionsList'
-import {Avatar, Label, ListBox, Select} from '@heroui/react'
 
 interface PermissionsPageProps {
   workers: WorkerBasic[]
@@ -21,199 +30,259 @@ interface PermissionsPageProps {
   defaultPermissions: DefaultPermission[]
 }
 
-const PermissionsPage: FC<PermissionsPageProps> = ({
+const JSON_HEADERS = {'Content-Type': 'application/json'}
+
+async function request(url: string, method: string, body: object) {
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: JSON_HEADERS,
+      body: JSON.stringify(body),
+    })
+
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+export default function PermissionsPage({
   workers,
   permissions,
   ranks,
   defaultPermissions: initialDefaults,
-}) => {
+}: PermissionsPageProps) {
   const isMobile = useIsMobile()
-  const [selectedWorker, setSelectedWorker] = useState<WorkerBasic | null>(null)
-  const [workerPermissions, setWorkerPermissions] = useState<WorkerPermission[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [search, setSearch] = useState('')
-  const [defaultPermissions, setDefaultPermissions] =
-    useState<DefaultPermission[]>(initialDefaults)
+  const [selected, setSelected] = useState<WorkerBasic | null>(null)
+  const [workerPermissions, setWorkerPermissions] = useState<
+    WorkerPermission[]
+  >([])
+  const [isLoading, setLoading] = useState(false)
+  const [defaults, setDefaults] = useState(initialDefaults)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const loadWorkerPermissions = useCallback(async (worker: WorkerBasic) => {
-    setSelectedWorker(worker)
-    setIsLoading(true)
+  // ответ на устаревший выбор сотрудника не должен перезаписать актуальный
+  const loadId = useRef(0)
+
+  useEffect(() => {
+    if (!error) return
+
+    const timer = setTimeout(() => setError(null), 5000)
+    return () => clearTimeout(timer)
+  }, [error])
+
+  const selectWorker = useCallback(async (worker: WorkerBasic) => {
+    const id = ++loadId.current
+
+    setSelected(worker)
+    setPickerOpen(false)
+    setLoading(true)
+
     try {
-      const res = await fetch(`/api/permissions/worker/${worker.id}`)
-      const data = await res.json()
-      setWorkerPermissions(data.permissions ?? [])
+      const response = await fetch(`/api/permissions/worker/${worker.id}`)
+      const data = await response.json()
+
+      if (id === loadId.current) {
+        setWorkerPermissions(response.ok ? (data.permissions ?? []) : [])
+        if (!response.ok) setError('Не удалось загрузить права сотрудника')
+      }
     } catch {
-      setWorkerPermissions([])
+      if (id === loadId.current) {
+        setWorkerPermissions([])
+        setError('Не удалось загрузить права сотрудника')
+      }
     } finally {
-      setIsLoading(false)
+      if (id === loadId.current) setLoading(false)
     }
   }, [])
 
-  const handleToggle = useCallback(
-    async (permId: number, currentEnabled: boolean) => {
-      if (!selectedWorker) return
+  // Изменение показываем сразу; если сервер отказал - возвращаем как было
+  const toggle = useCallback(
+    async (permissionId: number, enabled: boolean) => {
+      if (!selected) return
 
-      if (currentEnabled) {
-        setWorkerPermissions(prev =>
-          prev.filter(p => p.permission_id !== permId),
-        )
-        await fetch('/api/permissions/worker', {
-          method: 'DELETE',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            worker_id: selectedWorker.id,
-            permission_id: permId,
-          }),
-        })
-      } else {
-        setWorkerPermissions(prev => [
-          ...prev,
-          {permission_id: permId, expires: null},
-        ])
-        await fetch('/api/permissions/worker', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            worker_id: selectedWorker.id,
-            permission_id: permId,
+      const previous = workerPermissions
+      const body = {worker_id: selected.id, permission_id: permissionId}
+
+      setWorkerPermissions(
+        enabled
+          ? [...previous, {permission_id: permissionId, expires: null}]
+          : previous.filter(grant => grant.permission_id !== permissionId),
+      )
+
+      const ok = enabled
+        ? await request('/api/permissions/worker', 'POST', {
+            ...body,
             expires: null,
-          }),
-        })
+          })
+        : await request('/api/permissions/worker', 'DELETE', body)
+
+      if (!ok) {
+        setWorkerPermissions(previous)
+        setError('Не удалось сохранить изменение')
       }
     },
-    [selectedWorker],
+    [selected, workerPermissions],
   )
 
-  const handleDateChange = useCallback(
-    async (permId: number, date: CalendarDate | null) => {
-      if (!selectedWorker) return
+  const changeExpiry = useCallback(
+    async (permissionId: number, expires: string | null) => {
+      if (!selected) return
 
-      const expires = date ? date.toString() : null
-      setWorkerPermissions(prev =>
-        prev.map(p => (p.permission_id === permId ? {...p, expires} : p)),
+      const previous = workerPermissions
+
+      setWorkerPermissions(
+        previous.map(grant =>
+          grant.permission_id === permissionId ? {...grant, expires} : grant,
+        ),
       )
-      await fetch('/api/permissions/worker', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          worker_id: selectedWorker.id,
-          permission_id: permId,
-          expires,
-        }),
+
+      const ok = await request('/api/permissions/worker', 'POST', {
+        worker_id: selected.id,
+        permission_id: permissionId,
+        expires,
       })
+
+      if (!ok) {
+        setWorkerPermissions(previous)
+        setError('Не удалось сохранить срок')
+      }
     },
-    [selectedWorker],
+    [selected, workerPermissions],
   )
 
-  const handleDefaultChange = useCallback(
-    async (permId: number, rankId: number | null) => {
-      setDefaultPermissions(prev => {
-        const filtered = prev.filter(dp => dp.permission_id !== permId)
-        if (rankId === null) return filtered
-        const rank = ranks.find(r => r.id === rankId)
-        if (!rank) return filtered
-        return [
-          ...filtered,
-          {
-            permission_id: permId,
-            rank_id: rankId,
-            rank_name: rank.name,
-            rank_weight: rank.weight,
-          },
-        ]
+  const changeDefault = useCallback(
+    async (permissionId: number, rankId: number | null) => {
+      const previous = defaults
+      const rank = ranks.find(r => r.id === rankId)
+      const rest = previous.filter(rule => rule.permission_id !== permissionId)
+
+      setDefaults(
+        rank
+          ? [
+              ...rest,
+              {
+                permission_id: permissionId,
+                rank_id: rank.id,
+                rank_name: rank.name,
+                rank_weight: rank.weight,
+              },
+            ]
+          : rest,
+      )
+
+      const ok = await request('/api/permissions/defaults', 'POST', {
+        permission_id: permissionId,
+        rank_id: rankId,
       })
-      await fetch('/api/permissions/defaults', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({permission_id: permId, rank_id: rankId}),
-      })
+
+      if (!ok) {
+        setDefaults(previous)
+        setError('Не удалось сохранить правило')
+      }
     },
-    [ranks],
+    [defaults, ranks],
   )
 
-  if (isMobile) {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="border-divider shrink-0 border-b p-3">
-          <Select
-            selectedKey={selectedWorker ? String(selectedWorker.id) : null}
-            onSelectionChange={key => {
-              if (!key) return
-              const id = parseInt(key as string)
-              const w = workers.find(w => w.id === id)
-              if (w) loadWorkerPermissions(w)
-            }}
-            aria-label="Выбор сотрудника"
-            variant="secondary">
-            <Label>Сотрудник</Label>
-            <Select.Trigger>
-              <Select.Value />
-              <Select.Indicator />
-            </Select.Trigger>
-            <Select.Popover>
-              <ListBox>
-                {workers.map(w => (
-                  <ListBox.Item id={String(w.id)} key={w.id} textValue={w.name}>
-                    <div className="flex items-center gap-2 py-1">
-                      <Avatar size="sm">
-                        <Avatar.Image src={w.photoUrl || ''} />
-                        <Avatar.Fallback>{w.name.slice(0, 2)}</Avatar.Fallback>
-                      </Avatar>
-                      <span>{w.name}</span>
-                      <span className="text-default-400 ml-auto text-xs">
-                        {w.rank ?? ''}
-                      </span>
-                    </div>
-                  </ListBox.Item>
-                ))}
-              </ListBox>
-            </Select.Popover>
-          </Select>
-        </div>
-        <div className="flex h-full max-h-dvh">
-          <PermissionsList
-            worker={selectedWorker}
-            permissions={permissions}
-            workerPermissions={workerPermissions}
-            isLoading={isLoading}
-            onToggle={handleToggle}
-            onDateChange={handleDateChange}
-            ranks={ranks}
-            defaultPermissions={defaultPermissions}
-            onDefaultChange={handleDefaultChange}
-          />
-        </div>
-      </div>
-    )
-  }
+  const workerPanel = (
+    <WorkerPermissions
+      worker={selected}
+      permissions={permissions}
+      workerPermissions={workerPermissions}
+      defaultPermissions={defaults}
+      isLoading={isLoading}
+      onToggle={toggle}
+      onExpiry={changeExpiry}
+    />
+  )
 
   return (
-    <div className="flex h-full max-h-dvh gap-2 p-2">
-      <aside className="border-divider flex w-64 shrink-0 flex-col rounded-2xl">
-        <WorkersList
-          workers={workers}
-          selectedId={selectedWorker?.id ?? null}
-          search={search}
-          onSearchChange={setSearch}
-          onSelect={loadWorkerPermissions}
-        />
-      </aside>
+    <main className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-4 p-4">
+      {error && (
+        <div
+          role="alert"
+          className="border-destructive/40 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">
+          {error}
+        </div>
+      )}
 
-      <main className="bg-surface flex h-full w-full flex-col rounded-2xl">
-        <PermissionsList
-          worker={selectedWorker}
-          permissions={permissions}
-          workerPermissions={workerPermissions}
-          isLoading={isLoading}
-          onToggle={handleToggle}
-          onDateChange={handleDateChange}
-          ranks={ranks}
-          defaultPermissions={defaultPermissions}
-          onDefaultChange={handleDefaultChange}
-        />
-      </main>
-    </div>
+      <Tabs defaultValue="workers" className="gap-4">
+        <TabsList>
+          <TabsTrigger value="workers">Сотрудники</TabsTrigger>
+          <TabsTrigger value="ranks">Права по рангам</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="workers">
+          <div className="grid gap-4 md:grid-cols-[18rem_minmax(0,1fr)] md:items-start">
+            {/* телефон: выбор сотрудника в шторке */}
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12 justify-between md:hidden"
+              onClick={() => setPickerOpen(true)}>
+              {selected ? (
+                <span className="flex min-w-0 items-center gap-2">
+                  <Avatar size="sm">
+                    <AvatarImage src={selected.photoUrl || ''} />
+                    <AvatarFallback>{selected.name.slice(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <span className="truncate">{selected.name}</span>
+                </span>
+              ) : (
+                'Выбрать сотрудника'
+              )}
+              <ChevronsUpDown className="text-muted-foreground" />
+            </Button>
+
+            <Card className="hidden md:sticky md:top-4 md:flex md:max-h-[calc(100dvh-8rem)]">
+              <CardContent className="flex min-h-0 flex-1 flex-col">
+                <WorkersList
+                  workers={workers}
+                  selectedId={selected?.id ?? null}
+                  onSelect={selectWorker}
+                  className="flex-1"
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>{workerPanel}</CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ranks">
+          <Card>
+            <CardContent>
+              <RankDefaults
+                permissions={permissions}
+                ranks={ranks}
+                defaultPermissions={defaults}
+                onChange={changeDefault}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {isMobile && (
+        <Sheet open={pickerOpen} onOpenChange={setPickerOpen}>
+          <SheetContent side="bottom" className="max-h-[85dvh]">
+            <SheetHeader>
+              <SheetTitle>Сотрудник</SheetTitle>
+            </SheetHeader>
+            <div className="flex min-h-0 flex-1 flex-col px-4 pb-[calc(4rem+env(safe-area-inset-bottom))]">
+              <WorkersList
+                workers={workers}
+                selectedId={selected?.id ?? null}
+                onSelect={selectWorker}
+                className="flex-1"
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+    </main>
   )
 }
-
-export default PermissionsPage

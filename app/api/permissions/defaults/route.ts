@@ -1,19 +1,12 @@
 import {NextRequest, NextResponse} from 'next/server'
-import {auth} from '@/lib/auth'
-import {headers} from 'next/headers'
-import checkPermissions from '@/lib/functions/checkPermissions'
+import requireManagePermissions, {
+  toId,
+} from '@/lib/functions/requireManagePermissions'
 import db from '@/lib/database'
 
 export async function GET(_req: NextRequest) {
-  const worker = (await auth.api.getSession({headers: await headers()}))!.user
-
-  if (!worker) {
-    return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
-  }
-
-  if (!checkPermissions(['manage_permissions'], worker)) {
-    return NextResponse.json({message: 'Нет прав'}, {status: 403})
-  }
+  const denied = await requireManagePermissions()
+  if (denied) return denied
 
   try {
     const result = await db.query(
@@ -29,37 +22,45 @@ export async function GET(_req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const worker = (await auth.api.getSession({headers: await headers()}))!.user
+  const denied = await requireManagePermissions()
+  if (denied) return denied
 
-  if (!worker) {
-    return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
-  }
+  const body = await req.json().catch(() => null)
+  const permissionId = toId(body?.permission_id)
+  const rankId = body?.rank_id == null ? null : toId(body.rank_id)
 
-  if (!checkPermissions(['manage_permissions'], worker)) {
-    return NextResponse.json({message: 'Нет прав'}, {status: 403})
-  }
-
-  const body = await req.json()
-  const {permission_id, rank_id} = body
-
-  if (!permission_id) {
+  if (permissionId === null) {
     return NextResponse.json({message: 'Не указано право'}, {status: 400})
   }
 
+  if (body?.rank_id != null && rankId === null) {
+    return NextResponse.json({message: 'Некорректный ранг'}, {status: 400})
+  }
+
+  // Замена правила - одной транзакцией: иначе сбой между DELETE и INSERT
+  // оставил бы право без правила по рангу
+  const client = await db.connect()
+
   try {
-    await db.query(
+    await client.query('BEGIN')
+    await client.query(
       'DELETE FROM config.default_permissions WHERE permission_id = $1',
-      [permission_id],
+      [permissionId],
     )
-    if (rank_id != null) {
-      await db.query(
+    if (rankId !== null) {
+      await client.query(
         'INSERT INTO config.default_permissions (rank_id, permission_id) VALUES ($1, $2)',
-        [rank_id, permission_id],
+        [rankId, permissionId],
       )
     }
+    await client.query('COMMIT')
+
     return NextResponse.json({ok: true}, {status: 200})
   } catch (e) {
+    await client.query('ROLLBACK').catch(() => {})
     console.error(e)
     return NextResponse.json({message: 'Ошибка в запросе'}, {status: 500})
+  } finally {
+    client.release()
   }
 }

@@ -2,12 +2,42 @@
 
 import db from '@/lib/database'
 import {distribute} from '@/lib/functions/distribute'
+import {auth} from '@/lib/auth'
+import {headers} from 'next/headers'
+import checkPermissions from '@/lib/functions/checkPermissions'
 
 export async function distributeAction(
   targetDate: string,
   salaries: {worker_id: number; rank_id: number; amount: number}[],
   locationValues: {location_id: number; value: number; priority: number}[],
 ) {
+  // Server Action вызывается напрямую, минуя API-роут, поэтому право проверяем здесь
+  const session = await auth.api.getSession({headers: await headers()})
+
+  if (!session?.user || !checkPermissions(['edit_payrolls'], session.user)) {
+    return 'Недостаточно прав'
+  }
+
+  const isNumber = (value: unknown) =>
+    typeof value === 'number' && Number.isFinite(value)
+
+  if (
+    !Array.isArray(salaries) ||
+    !Array.isArray(locationValues) ||
+    !salaries.every(
+      s =>
+        isNumber(s.worker_id) && isNumber(s.rank_id ?? 0) && isNumber(s.amount),
+    ) ||
+    !locationValues.every(
+      l =>
+        isNumber(l.location_id) &&
+        isNumber(l.value ?? 0) &&
+        isNumber(l.priority ?? 0),
+    )
+  ) {
+    return 'Некорректные данные'
+  }
+
   const workerIds = salaries.map(s => s.worker_id)
 
   const [workers, locations, shifts] = await Promise.all([

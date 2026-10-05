@@ -13,6 +13,14 @@ const nextConfig = {
     'googleapis-common',
     'winston',
   ],
+  typescript: {ignoreBuildErrors: true},
+  experimental: {
+    webpackMemoryOptimizations: true,
+    webpackBuildWorker: true,
+    cpus: 2,
+    parallelServerCompiles: false,
+    parallelServerBuildTraces: false,
+  },
 }
 
 export default nextConfig

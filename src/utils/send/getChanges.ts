@@ -31,15 +31,21 @@ export default async function getChanges({
   const rowNumber = row.rowNumber
 
   const changes: Change[] = []
-  const queries: string[] = []
+  const queries: {text: string; values: unknown[]}[] = []
 
   const lastColumnLetter = sheet.lastColumnLetter
 
   await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
-  const commentsQuery = `select date, comment from schedule.list where worker_id = (select id from workers where name ilike '${workerName}') order by date`
-
-  const comments = (await db.query(commentsQuery)).rows
+  const comments = (
+    await db.query(
+      `select date, comment
+       from schedule.list
+       where worker_id = (select id from workers where lower(name) = lower($1))
+       order by date`,
+      [workerName],
+    )
+  ).rows
   const locations = await getLocations()
 
   for (const headerValue of headerValues.slice(10)) {
@@ -97,23 +103,23 @@ export default async function getChanges({
 
     const formattedDate = day.date?.toFormat('yyyy-MM-dd')
 
-    const query = `INSERT INTO schedule.list (worker_id, date, value, comment)
+    const query = {
+      text: `INSERT INTO schedule.list (worker_id, date, value, comment)
         SELECT w.id AS worker_id,
-          '${formattedDate}' AS date,
-          '${day?.value}' AS value,
-          '${day?.comment || ''}' AS comment
+          $1::date AS date,
+          $2::text AS value,
+          $3::text AS comment
         FROM workers w
-        LEFT JOIN locations l ON LOWER(l.name)='${
-          day.location?.toLowerCase() || 0
-        }'
-          WHERE LOWER(w.name)='${workerName.toLowerCase()}'
+          WHERE LOWER(w.name) = LOWER($4)
         ON CONFLICT (worker_id, date)
           DO UPDATE SET
           value=EXCLUDED.value,
           comment=EXCLUDED.comment
           WHERE schedule.list.date=EXCLUDED.date
           AND schedule.list.worker_id=EXCLUDED.worker_id
-          AND schedule.list.date = EXCLUDED.date`
+          AND schedule.list.date = EXCLUDED.date`,
+      values: [formattedDate, day.value, day.comment || '', workerName],
+    }
 
     queries.push(query)
   }

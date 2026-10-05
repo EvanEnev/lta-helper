@@ -2,7 +2,7 @@ import {auth} from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
-import SchedulePage from '@/src/components/schedule/ShedulePage'
+import SchedulePage from '@/src/components/schedule/SchedulePage'
 import getLocations from '@/lib/functions/getLocations'
 import {headers} from 'next/headers'
 import getWorkingDays from '@/lib/functions/getWorkingDays'
@@ -19,7 +19,6 @@ export default async function Schedule() {
     <SchedulePage
       locations={locations}
       worker={worker}
-      // @ts-ignore
       workingDays={workingDays}
     />
   )

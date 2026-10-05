@@ -3,59 +3,69 @@ import db from '@/lib/database'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import {toId} from '@/lib/payrolls/validate'
 
+const fail = (message: string, status = 400) =>
+  NextResponse.json({message}, {status})
+
+// Выдача зарплаты кассиром
 export async function POST(req: NextRequest) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
   })) || {user: null}
 
-  if (!worker) {
-    return NextResponse.json({message: 'Ошибка авторизации'}, {status: 500})
-  }
-
-  const body = await req.json()
+  if (!worker) return fail('Вход не произведён', 401)
 
   if (!checkPermissions(['issue_payrolls'], worker)) {
-    return NextResponse.json({message: 'Недостаточно прав'}, {status: 500})
+    return fail('Недостаточно прав', 403)
   }
 
-  if (!body?.worker_id) {
-    return NextResponse.json(
-      {message: 'Не предоставлен сотрудник'},
-      {status: 400},
+  const body = await req.json().catch(() => null)
+  const workerId = toId(body?.worker_id)
+  const payrollId = toId(body?.payroll_id)
+  const value = Number(body?.value)
+
+  if (workerId === null) return fail('Не предоставлен сотрудник')
+  if (payrollId === null) return fail('Не предоставлена ведомость')
+  if (!Number.isInteger(value) || value === 0) {
+    return fail('Не предоставлена сумма выдачи')
+  }
+
+  try {
+    // Условия те же, что в интерфейсе (кнопка «Выдать» активна только при них),
+    // но теперь проверяются и на сервере: выдача подтверждена сотрудником, кассир
+    // на той же площадке, сумма равна подтверждённой
+    const result = await db.query(
+      `update relations.workers_payrolls
+       set taken = $1,
+           taken_by = coalesce(to_take_by, worker_id),
+           taken_at = now()::timestamp(0),
+           issue_confirmed = false
+       where worker_id = $2
+         and payroll_id = $3
+         and issue_confirmed is true
+         and to_take = $1
+         and ($4::boolean or location_id = $5::int)`,
+      [
+        value,
+        workerId,
+        payrollId,
+        checkPermissions(['admin'], worker) === true,
+        worker.locationId ?? null,
+      ],
     )
+
+    if (!result.rowCount) {
+      return fail(
+        'Выдача недоступна: нет подтверждения, другая площадка или сумма изменилась',
+        409,
+      )
+    }
+
+    return NextResponse.json({}, {status: 200})
+  } catch (e) {
+    console.error(e)
+
+    return fail(e instanceof Error ? e.message : 'Ошибка в запросе', 500)
   }
-
-  if (!body?.payroll_id) {
-    return NextResponse.json(
-      {message: 'Не предоставлена ведомость'},
-      {status: 400},
-    )
-  }
-
-  if (!body?.value) {
-    return NextResponse.json(
-      {message: 'Не предоставлена сумма выдачи'},
-      {status: 400},
-    )
-  }
-
-  const updateWorkerPayrollQuery = `
-    update relations.workers_payrolls
-    set taken = ${body.value}, taken_by=coalesce(to_take_by, worker_id), taken_at=now()::timestamp(0), issue_confirmed=false 
-    where worker_id = ${body.worker_id} and payroll_id = ${body.payroll_id}
-  `
-
-  // const updateWorkersBalanceQuery = `
-  //   update workers
-  //   set balance = (select (value + coalesce(bonuses, 0)  - external_payment) - ${body.value || 0}
-  //                  from relations.workers_payrolls
-  //                  where worker_id = ${body.worker_id}
-  //                    and payroll_id = ${body.payroll_id})
-  //   where id = ${body.worker_id}`
-
-  await db.query(updateWorkerPayrollQuery)
-  // await db.query(updateWorkersBalanceQuery)
-
-  return NextResponse.json({}, {status: 200})
 }

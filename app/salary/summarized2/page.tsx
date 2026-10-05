@@ -1,24 +1,6 @@
-import Summarized2Page from '@/src/components/salary/summarized2/Summarized2Page'
-import getRanks from '@/lib/functions/getRanks'
-import getLocations from '@/lib/functions/getLocations'
-import db from '@/lib/database'
+import {redirect} from 'next/navigation'
 
-export const dynamic = 'force-dynamic'
-
-export default async function Summarized() {
-  const ranks = await getRanks({
-    addon: `where id not in (10)
-  order by sorting_weight desc`,
-  })
-  const locations = await getLocations()
-  const workTypesQuery = `select id, name from salary.types order by name`
-  const workTypesResult = await db.query(workTypesQuery)
-
-  return (
-    <Summarized2Page
-      workTypes={workTypesResult.rows}
-      ranks={ranks}
-      locations={locations}
-    />
-  )
+// «Сводная 2» объединена с «Сводной»: это пресет «Заработок» одной страницы
+export default function Summarized2() {
+  redirect('/salary/summarized?preset=earnings')
 }
