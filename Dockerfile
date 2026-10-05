@@ -15,10 +15,6 @@ RUN pnpm install --frozen-lockfile
 # Исходники
 COPY . .
 
-ENV BETTER_AUTH_SECRET=build-only-dummy-secret-0123456789abcdef \
-    BETTER_AUTH_URL=http://localhost:3000 \
-    DATABASE_URL=postgres://user:pass@localhost:5432/db
-
 # Собираем Next.js
 RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
 

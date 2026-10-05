@@ -2,23 +2,6 @@ import {JWT, GoogleAuth} from 'google-auth-library'
 import {GoogleSpreadsheet} from 'google-spreadsheet'
 import {google} from 'googleapis'
 
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      SCHEDULE_SHEET_ID: string
-      WORKERS_SHEET_ID: string
-      ACTORS_SHEET_ID: string
-      GOOGLE_CLIENT_EMAIL: string
-      GOOGLE_PRIVATE_KEY: string
-      GOOGLE_KEY: string
-      GOOGLE_PROJECT_ID?: string
-      GOOGLE_PRIVATE_KEY_ID?: string
-      GOOGLE_CLIENT_ID?: string
-      GOOGLE_CLIENT_CERT_URL?: string
-    }
-  }
-}
-
 interface GoogleCredentials {
   type: string
   project_id: string | undefined
@@ -40,53 +23,66 @@ export interface GoogleDocument {
   auth: GoogleAuth
 }
 
-const formattedPrivateKey = process.env.GOOGLE_KEY.replace(/\\n/g, '\n')
-
-const serviceAccountAuth = new JWT({
-  email: process.env.GOOGLE_CLIENT_EMAIL,
-  key: formattedPrivateKey,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-})
-
-const credentials: GoogleCredentials = {
-  type: 'service_account',
-  project_id: process.env.GOOGLE_PROJECT_ID,
-  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-  private_key: formattedPrivateKey,
-  client_email: process.env.GOOGLE_CLIENT_EMAIL,
-  client_id: process.env.GOOGLE_CLIENT_ID,
-  auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-  token_uri: 'https://oauth2.googleapis.com/token',
-  auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
-  client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL,
-  universe_domain: 'googleapis.com',
+function env(name: string): string {
+  const value = process.env[name]
+  if (!value) throw new Error(`Missing env variable: ${name}`)
+  return value
 }
 
-const auth = new google.auth.GoogleAuth({
-  credentials,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-})
+let cached: GoogleDocument | undefined
 
-const schedule = new GoogleSpreadsheet(
-  process.env.SCHEDULE_SHEET_ID,
-  serviceAccountAuth,
-)
+function init(): GoogleDocument {
+  const key = env('GOOGLE_KEY').replace(/\\n/g, '\n')
 
-const workers = new GoogleSpreadsheet(
-  process.env.WORKERS_SHEET_ID,
-  serviceAccountAuth,
-)
+  const serviceAccountAuth = new JWT({
+    email: env('GOOGLE_CLIENT_EMAIL'),
+    key,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  })
 
-const actors = new GoogleSpreadsheet(
-  process.env.ACTORS_SHEET_ID,
-  serviceAccountAuth,
-)
+  const credentials: GoogleCredentials = {
+    type: 'service_account',
+    project_id: env('GOOGLE_PROJECT_ID'),
+    private_key_id: env('GOOGLE_PRIVATE_KEY_ID'),
+    private_key: key,
+    client_email: env('GOOGLE_CLIENT_EMAIL'),
+    client_id: env('GOOGLE_CLIENT_ID'),
+    auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+    token_uri: 'https://oauth2.googleapis.com/token',
+    auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+    client_x509_cert_url: env('GOOGLE_CLIENT_CERT_URL'),
+    universe_domain: 'googleapis.com',
+  }
+
+  return {
+    schedule: new GoogleSpreadsheet(
+      env('SCHEDULE_SHEET_ID'),
+      serviceAccountAuth,
+    ),
+    workers: new GoogleSpreadsheet(env('WORKERS_SHEET_ID'), serviceAccountAuth),
+    actors: new GoogleSpreadsheet(env('ACTORS_SHEET_ID'), serviceAccountAuth),
+    auth: new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    }),
+  }
+}
+
+const get = () => (cached ??= init())
 
 const googleApi: GoogleDocument = {
-  schedule,
-  workers,
-  actors,
-  auth,
+  get schedule() {
+    return get().schedule
+  },
+  get workers() {
+    return get().workers
+  },
+  get actors() {
+    return get().actors
+  },
+  get auth() {
+    return get().auth
+  },
 }
 
 export default googleApi
