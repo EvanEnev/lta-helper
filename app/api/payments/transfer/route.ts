@@ -46,10 +46,6 @@ export async function POST(req: NextRequest) {
   while (res === null || res.headers.get('x-has-next-page') === 'true') {
     page++
 
-    console.debug(
-      page,
-      `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
-    )
     res = await fetch(
       `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
       {
@@ -76,34 +72,47 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  const queries: string[] = []
+  const failed: {act_id: number; number: string; error: string}[] = []
 
-  acts.forEach((act: Act) => {
-    queries.push(`insert into payments.list (worker_id, payment_type, date, act_id, value, paid, comment)
-                      values ((select id
-                               from workers
-                               where unaccent(first_name) ilike unaccent('${act.contractor.first_name}')
-                                 and unaccent(last_name) ilike unaccent('${act.contractor.last_name}')),
-                              2,
-                              '${act.date}',
-                              ${act.id},
-                              ${act.amount},
-                              true,
-                              'Выплата по акту №${act.number}')
-                      on conflict (worker_id, act_id) do update set date=excluded.date,
-                                                                    value = excluded.value,
-                                                                    comment = excluded.comment`)
-  })
+  for (const act of acts) {
+    try {
+      await db.query(
+        `insert into payments.list (worker_id, payment_type, date, act_id, value, paid, comment)
+       values ((select id
+                from workers
+                where unaccent(first_name) ilike unaccent($1)
+                  and unaccent(last_name) ilike unaccent($2)),
+               2, $3, $4, $5, true, $6)
+       on conflict (worker_id, act_id) do update
+         set date = excluded.date,
+             value = excluded.value,
+             comment = excluded.comment`,
+        [
+          act.contractor.first_name,
+          act.contractor.last_name,
+          act.date,
+          act.id,
+          Number(act.amount),
+          `Выплата по акту №${act.number}`,
+        ],
+      )
+    } catch (e) {
+      console.error(e)
+      failed.push({
+        act_id: act.id,
+        number: act.number,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
 
-  console.debug(queries, acts.length)
-
-  try {
-    await db.query(queries.join(';\n'))
+  if (failed.length) {
+    const text = failed.map(a => a.number).join(',\n ')
+    return NextResponse.json(
+      {warning: `Не всё перенесено:\n${text}`},
+      {status: 207},
+    )
+  } else {
     return NextResponse.json({}, {status: 200})
-  } catch (e) {
-    // @ts-ignore
-    console.error(e.message)
-    // @ts-ignore
-    return NextResponse.json({message: e.message}, {status: 500})
   }
 }
