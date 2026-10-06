@@ -35,7 +35,7 @@ export default async function getChanges({
 
   const lastColumnLetter = sheet.lastColumnLetter
 
-  await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
+  await sheet.loadCells(`F${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
   const commentsQuery = `select date, comment from schedule.list where worker_id = (select id from workers where name ilike '${workerName}') order by date`
 
