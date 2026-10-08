@@ -2,8 +2,6 @@ import db from '@/lib/database'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import type {LTWorker} from '@/src/utils/types'
 
-// Данные ведомости с учётом прав: без view_payrolls - ничего, с одной
-// view_location_payrolls - площадка и свои строки, иначе - только свои
 export default async function getPayrollDetails(id: number, worker: LTWorker) {
   const payrollDataQuery = `select
   p.id,
@@ -57,7 +55,6 @@ where p.id = $1`
            left join locations l on l.id = lp.location_id
            left join payrolls.locations_money lm on lm.location_id = lp.location_id and lm.payroll_id = $1`
 
-  // у запросов разные наборы параметров: добавляем их по мере надобности
   const workersParams: unknown[] = [id]
   const moneyParams: unknown[] = [id]
 

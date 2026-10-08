@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import type {LocationData} from '@/src/utils/types'
 
-// То, что приходит с сервера (getWorkingDays): дата - ISO-строка
 export interface ScheduleDayInput {
   date: string
   value?: string | null
@@ -17,7 +16,7 @@ export interface ScheduleDayInput {
 }
 
 export interface ScheduleDay {
-  key: string // yyyy-MM-dd, единственный способ сравнивать дни
+  key: string
   date: DateTime
   value: string
   comment: string
@@ -26,7 +25,6 @@ export interface ScheduleDay {
 
 export const toScheduleDays = (days: ScheduleDayInput[]): ScheduleDay[] =>
   days.map(day => {
-    // setZone: день не должен «съезжать» в часовом поясе браузера
     const date = DateTime.fromISO(day.date, {setZone: true}).startOf('day')
 
     return {
@@ -38,7 +36,6 @@ export const toScheduleDays = (days: ScheduleDayInput[]): ScheduleDay[] =>
     }
   })
 
-// Недели Пн-Вс; пустые слоты в начале и конце заполняются null
 export function groupWeeks(days: ScheduleDay[]) {
   const weeks: (ScheduleDay | null)[][] = []
   let current: (ScheduleDay | null)[] = []
@@ -72,9 +69,6 @@ export interface StatusMeta {
   tone: Tone
 }
 
-// Классы написаны целиком, чтобы Tailwind их увидел.
-// Выбранное состояние - тонированный фон и рамка, а не залитый цвет:
-// так текст остаётся читаемым в обеих темах
 export const TONE_CLASSES: Record<
   Tone,
   {soft: string; text: string; icon: string; active: string}
@@ -129,7 +123,6 @@ export const STATUSES: StatusMeta[] = [
   },
 ]
 
-// Администратор может поставить в value название своей площадки
 export const locationStatus = (name: string): StatusMeta => ({
   value: name,
   label: name,
@@ -152,13 +145,11 @@ export function getStatus(
   return location ? locationStatus(location) : null
 }
 
-// Для «не могу» актёрам причина не нужна, для «с ограничением» нужна всем
 export const needsComment = (value: string, rank?: string | null) =>
   value === '+/-' || (value === '-' && !!rank && rank.toLowerCase() !== 'актёр')
 
 export const COMMENT_TEMPLATES = ['Выходной', 'Болезнь', 'Учёба']
 
-// Сводка для шапки: «не заполнено» считаем только для сегодня и будущего
 export function summarize(
   days: ScheduleDay[],
   locationNames: string[],

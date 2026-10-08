@@ -15,6 +15,7 @@ const nextConfig = {
   ],
   typescript: {ignoreBuildErrors: true},
   experimental: {
+    turbopackMemoryLimit: 2 * 1024 * 1024 * 1024,
     webpackMemoryOptimizations: true,
     webpackBuildWorker: true,
     cpus: 2,

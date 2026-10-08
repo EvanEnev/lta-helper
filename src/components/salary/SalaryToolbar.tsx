@@ -13,7 +13,7 @@ interface SalaryToolbarProps {
   months: string[]
   month: string
   onMonthChange: (month: string) => void
-  locations: LTLocation[] // уже с «Все», если нужно
+  locations: LTLocation[]
   locationName: string
   onLocationChange: (name: string) => void
   canViewLocation: boolean
@@ -32,7 +32,6 @@ interface SalaryToolbarProps {
   onDownload: () => void
 }
 
-// Фильтры показываются в строке на десктопе и в поповере на телефоне
 function Filters(props: SalaryToolbarProps) {
   return (
     <>

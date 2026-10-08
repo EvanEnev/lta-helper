@@ -26,7 +26,6 @@ export default async function updateSalary({
   const locationId = toId(data.location?.id)
   if (!date.isValid || locationId === null) return
 
-  // SET собираем динамически, но значения всегда уходят параметрами
   const values: unknown[] = []
   const sets: string[] = []
   const set = (column: string, value: unknown) => {

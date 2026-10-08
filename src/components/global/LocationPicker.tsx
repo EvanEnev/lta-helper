@@ -38,7 +38,6 @@ export function LocationPicker({
   const [coords, setCoords] = useState(defaultCoords ?? null)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
-  // ответы поиска приходят не по порядку - учитываем только последний
   const requestId = useRef(0)
 
   const fetchSuggestions = async (value: string) => {
@@ -105,7 +104,6 @@ export function LocationPicker({
     )
   }
 
-  // сохранённый адрес показываем текстом, но заново не сохраняем
   useEffect(() => {
     if (defaultCoords?.lat && defaultCoords?.lng) {
       handleCoords({lat: defaultCoords.lat, lng: defaultCoords.lng}, false)

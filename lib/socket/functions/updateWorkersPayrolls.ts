@@ -6,7 +6,6 @@ const toId = (value: unknown) => {
   return Number.isInteger(id) && id > 0 ? id : null
 }
 
-// Право 'edit_payrolls' проверяет guarded() в socket.ts
 export default async function updateWorkersPayrolls({
   data,
   client,

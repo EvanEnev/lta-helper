@@ -13,12 +13,11 @@ import type {LTLocation} from '@/src/utils/types'
 
 interface LocationComboboxProps {
   locations: LTLocation[]
-  value: string // название локации
+  value: string
   onChange: (name: string) => void
   placeholder?: string
 }
 
-// Выбор одной локации с поиском и иконками (shadcn-версия LocationSelect)
 export default function LocationCombobox({
   locations,
   value,

@@ -19,7 +19,6 @@ interface DateRangePopoverProps {
   value: DatePeriod
   onChange: (value: DatePeriod) => void
   zone?: string
-  // дополнительные быстрые периоды (например, полумесяцы)
   extraPresets?: {label: string; period: DatePeriod}[]
 }
 
@@ -31,7 +30,6 @@ const fromDate = (date: Date, zone: string) =>
     {zone},
   )
 
-// Период выбирается календарём или быстрыми кнопками
 export default function DateRangePopover({
   value,
   onChange,
@@ -40,7 +38,6 @@ export default function DateRangePopover({
 }: DateRangePopoverProps) {
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
-  // пока выбрана только первая дата, держим черновик локально
   const [draft, setDraft] = useState<DateRange | undefined>()
 
   const now = DateTime.now().setZone(zone)
@@ -112,8 +109,7 @@ export default function DateRangePopover({
           numberOfMonths={isMobile ? 1 : 2}
           selected={selected}
           defaultMonth={toDate(value.start)}
-          onSelect={(range, triggerDate) => {
-            // первый клик начинает период, второй завершает его
+          onSelect={(_range, triggerDate) => {
             if (!draft?.from || (draft.from && draft.to)) {
               setDraft({from: triggerDate, to: undefined})
               return

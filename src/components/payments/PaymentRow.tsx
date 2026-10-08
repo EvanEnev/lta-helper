@@ -18,7 +18,6 @@ import separateNumber from '@/lib/functions/separateNumber'
 import {cn} from '@/lib/utils'
 import type {LTPayment, LTPaymentType} from '@/src/utils/types'
 
-// Колонки таблицы; на телефоне строка превращается в карточку
 export const ROW_GRID =
   'md:grid-cols-[9rem_minmax(10rem,14rem)_minmax(11rem,14rem)_9rem_minmax(8rem,1fr)_auto]'
 

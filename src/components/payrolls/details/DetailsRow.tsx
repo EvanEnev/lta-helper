@@ -71,7 +71,6 @@ export default memo(function DetailsRow({
     setIssuing(true)
 
     try {
-      // результат придёт событием из БД (taken, taken_by, taken_at...)
       await fetchHandler({
         url: '/api/payrolls/issue',
         method: 'POST',

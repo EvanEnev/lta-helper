@@ -9,13 +9,12 @@ import {Calendar} from '@/components/ui/calendar'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 
 interface DatePopoverProps {
-  value: string // yyyy-MM-dd
+  value: string
   onChange: (value: string) => void
   label?: string
   className?: string
 }
 
-// Calendar отдаёт локальные Date; наружу - строка yyyy-MM-dd
 export default function DatePopover({
   value,
   onChange,

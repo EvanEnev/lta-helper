@@ -60,7 +60,6 @@ export default function SchedulePage({
   const [baseline, setBaseline] = useState(initial)
   const [days, setDays] = useState(initial)
 
-  // новые данные с сервера сбрасывают черновик
   if (source !== workingDays) {
     setSource(workingDays)
     setBaseline(initial)
@@ -133,7 +132,6 @@ export default function SchedulePage({
       ),
     )
 
-  // статус из нижней панели; если нужна причина - открываем комментарий
   const setStatus = (value: string) => {
     patch({value})
 

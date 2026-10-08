@@ -23,7 +23,6 @@ export default async function Payments() {
 
   const canEdit = checkPermissions(['edit_payments'], worker)
 
-  // список позывных нужен только для выбора сотрудника при правке выплат
   const workers: string[] = canEdit
     ? (
         await db.query(`select w.name

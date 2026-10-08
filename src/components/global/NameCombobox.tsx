@@ -17,7 +17,6 @@ interface NameComboboxProps {
   label: string
 }
 
-// Выбор одного значения из списка строк (например, позывного) с поиском
 export default function NameCombobox({
   names,
   value,

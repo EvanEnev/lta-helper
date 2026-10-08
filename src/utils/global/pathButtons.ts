@@ -1,6 +1,5 @@
 import {
   LucideIcon,
-  PartyPopper,
   House,
   User,
   Clock,
@@ -17,8 +16,8 @@ interface ButtonBase {
   name: string
   href: string
   permission?: string
-  isDisabled?: boolean // Админы видят
-  hide?: boolean // Не видит никто
+  isDisabled?: boolean
+  hide?: boolean
   icon?: LucideIcon
   className?: string
 }
@@ -28,17 +27,6 @@ interface PathButton extends ButtonBase {
 }
 
 const buttons: PathButton[] = [
-  {
-    name: 'Итоги года',
-    href: '/wrapped',
-    className: `relative rounded-xl overflow-hidden
-            before:content-['']
-            before:absolute before:inset-0
-            before:shadow-[inset_0_0_20px_rgba(168,85,247,0.6)]
-            before:pointer-events-none`,
-    icon: PartyPopper,
-    hide: true,
-  },
   {name: 'Главная', href: '/', icon: House},
   {
     name: 'Профиль',

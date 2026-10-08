@@ -1,11 +1,8 @@
-// service worker version number
 const SW_VERSION = 1
 const IDB_VERSION = 1
 
-// cache name including version number
 const cacheName = `lta-web-cache-${SW_VERSION}`
 
-// static files to cache
 const staticFiles = [
   '/sw-registration.js',
   '/manifest.json',
@@ -14,10 +11,8 @@ const staticFiles = [
   '/icons/web-app-manifest-512x512.png',
 ]
 
-// routes to cache
 const routes = ['/', '/about']
 
-// combine static files and routes to cache
 const filesToCache = [...routes, ...staticFiles]
 
 const requestsToRetryWhenOffline = []
@@ -56,12 +51,8 @@ self.addEventListener('notificationclick', function (event) {
   event.waitUntil(clients.openWindow(url))
 })
 
-// returns if the app is offline
 const isOffline = () => !self.navigator.onLine
 
-// return if a request should be retried when offline, in this example, all POST, PUT, DELETE requests
-// and requests that are listed in the requestsToRetryWhenOffline array
-// you can adapt this function to your specific needs
 const isRequestEligibleForRetry = ({url, method}) => {
   return (
     ['POST', 'PUT', 'DELETE'].includes(method) ||
@@ -102,7 +93,6 @@ const getStoreFactory =
         const transaction = db.transaction(name, mode)
         const store = transaction.objectStore(name)
 
-        // return a proxy object for the IDBObjectStore, allowing for promise-based access to methods
         const storeProxy = new Proxy(store, {
           get(target, prop) {
             if (typeof target[prop] === 'function') {
@@ -128,7 +118,6 @@ const getStoreFactory =
 
 const openStore = getStoreFactory(IDBConfig.name)
 
-// serialize request headers for storage in IndexedDB
 const serializeHeaders = headers =>
   [...headers.entries()].reduce(
     (acc, [key, value]) => ({
@@ -138,7 +127,6 @@ const serializeHeaders = headers =>
     {},
   )
 
-// store the request in IndexedDB
 const storeRequest = async ({
   url,
   method,
@@ -150,7 +138,6 @@ const storeRequest = async ({
   const serializedHeaders = serializeHeaders(headers)
 
   try {
-    // Read the body stream and convert it to text or ArrayBuffer
     let storedBody = body
 
     if (body && body instanceof ReadableStream) {
@@ -171,7 +158,6 @@ const storeRequest = async ({
       credentials,
     })
 
-    // register a sync event for retrying failed requests if Background Sync is supported
     if ('sync' in self.registration) {
       console.log('register sync for retry request')
       await self.registration.sync.register(`retry-request`)
@@ -181,7 +167,6 @@ const storeRequest = async ({
   }
 }
 
-// get the names of the caches of the current Service Worker and any outdated ones
 const getCacheStorageNames = async () => {
   const cacheNames = (await caches.keys()) || []
   const outdatedCacheNames = cacheNames.filter(
@@ -192,8 +177,6 @@ const getCacheStorageNames = async () => {
   return {latestCacheName, outdatedCacheNames}
 }
 
-// update outdated caches with the content of the latest one so new content is served immediately
-// when the Service Worker is updated but it can't serve this new content yet on the first navigation or reload
 const updateLastCache = async () => {
   const {latestCacheName, outdatedCacheNames} = await getCacheStorageNames()
   if (!latestCacheName || !outdatedCacheNames?.length) {
@@ -214,7 +197,6 @@ const updateLastCache = async () => {
   }
 }
 
-// get all requests from IndexedDB that were stored when the app was offline
 const getRequests = async () => {
   try {
     const store = await openStore(IDBConfig.stores.requestStore, 'readwrite')
@@ -224,7 +206,6 @@ const getRequests = async () => {
   }
 }
 
-// retry failed requests that were stored in IndexedDB when the app was offline
 const retryRequests = async () => {
   const reqs = await getRequests()
   const requests = reqs.map(
@@ -245,7 +226,6 @@ const retryRequests = async () => {
   responses.forEach((response, index) => {
     const key = reqs[index][keyPath]
 
-    // remove the request from IndexedDB if the response was successful
     if (response.status === 'fulfilled') {
       requestStore.delete(key)
     } else {
@@ -256,8 +236,6 @@ const retryRequests = async () => {
   })
 }
 
-// cache all files and routes when the Service Worker is installed
-// add {cache: 'no-cache'} } to all requests to bypass the browser cache so content is always fetched from the server
 const installHandler = e => {
   e.waitUntil(
     caches
@@ -274,7 +252,6 @@ const installHandler = e => {
   )
 }
 
-// delete any outdated caches when the Service Worker is activated
 const activateHandler = e => {
   e.waitUntil(
     caches
@@ -289,8 +266,6 @@ const activateHandler = e => {
   )
 }
 
-// in case the caches response is a redirect, we need to clone it to set its "redirected" property to false
-// otherwise the Service Worker will throw an error since this is a security restriction
 const cleanRedirect = async response => {
   const clonedResponse = response.clone()
   const {headers, status, statusText} = clonedResponse
@@ -302,15 +277,12 @@ const cleanRedirect = async response => {
   })
 }
 
-// the fetch event handler for the Service Worker that is invoked for each request
 const fetchHandler = async e => {
   const {request} = e
 
   e.respondWith(
     (async () => {
       try {
-        // store requests to IndexedDB that are eligible for retry when offline and return the offline page
-        // as response so no error is logged
         if (isOffline() && isRequestEligibleForRetry(request)) {
           console.log('storing request', request)
           await storeRequest(request)
@@ -318,7 +290,6 @@ const fetchHandler = async e => {
           return await caches.match('/offline.html')
         }
 
-        // try to get the response from the cache
         const response = await caches.match(request, {
           ignoreVary: true,
           ignoreSearch: true,
@@ -327,20 +298,17 @@ const fetchHandler = async e => {
           return response.redirected ? cleanRedirect(response) : response
         }
 
-        // if not in the cache, try to fetch the response from the network
         const fetchResponse = await fetch(e.request)
         if (fetchResponse) {
           return fetchResponse
         }
       } catch (err) {
-        // a fetch error occurred, serve the offline page since we don't have a cached response
         return await caches.match('/offline.html')
       }
     })(),
   )
 }
 
-// message handler for communication between the main thread and the Service Worker through postMessage
 const messageHandler = async ({data}) => {
   const {type} = data
 
@@ -350,7 +318,6 @@ const messageHandler = async ({data}) => {
         includeUncontrolled: true,
       })
 
-      // if the Service Worker is serving 1 client at most, it can be safely skip waiting to update immediately
       if (clients.length < 2) {
         await self.skipWaiting()
         await self.clients.claim()
@@ -358,15 +325,11 @@ const messageHandler = async ({data}) => {
 
       break
 
-    // move the files of the new cache to the old one so when the user navigates to another page or reloads the
-    // current one, the new content will be served immediately
     case 'PREPARE_CACHES_FOR_UPDATE':
       await updateLastCache()
 
       break
 
-    // retry any requests that were stored in IndexedDB when the app was offline in browsers that don't
-    // support Background Sync
     case 'retry-requests':
       if (!('sync' in self.registration)) {
         console.log('retry requests when Background Sync is not supported')

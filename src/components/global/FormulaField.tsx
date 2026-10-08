@@ -9,13 +9,10 @@ interface FormulaFieldProps {
   value?: string
   readOnly?: boolean
   className?: string
-  // на каждое изменение текста
   callback?: (result: {text: string; value: number; error: boolean}) => void
-  // когда поле потеряло фокус и формула корректна (для сохранения без лишних записей)
   onCommit?: (text: string) => void
 }
 
-// Считает выражение; пустую строку и ошибки не считаем числом
 export const safeEvaluate = (text: string): number | null => {
   if (!text.trim()) return null
 
@@ -28,8 +25,6 @@ export const safeEvaluate = (text: string): number | null => {
   }
 }
 
-// Поле с формулой (например «500+250»): под ним виден результат,
-// а невалидное выражение подсвечивается и наружу не отдаётся
 export default function FormulaField({
   label,
   value: initialValue = '',
@@ -42,7 +37,6 @@ export default function FormulaField({
   const [text, setText] = useState(initialValue)
   const [hasError, setHasError] = useState(false)
 
-  // значение изменилось снаружи (например, пришло по сокету) - берём его
   const [syncedValue, setSyncedValue] = useState(initialValue)
   if (syncedValue !== initialValue) {
     setSyncedValue(initialValue)
@@ -53,7 +47,6 @@ export default function FormulaField({
     (next: string) => {
       setText(next)
 
-      // пустое поле - это «ноль», а не ошибка
       const result = next.trim() ? safeEvaluate(next) : 0
       const error = result === null
 

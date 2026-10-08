@@ -3,7 +3,11 @@ import {headers} from 'next/headers'
 import {redirect} from 'next/navigation'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
-import type {DefaultPermission, Permission, WorkerBasic} from '@/src/utils/types'
+import type {
+  DefaultPermission,
+  Permission,
+  WorkerBasic,
+} from '@/src/utils/types'
 import PermissionsPage from '@/src/components/settings/permissions/PermissionsPage'
 
 export default async function Page() {
@@ -39,9 +43,10 @@ export default async function Page() {
     id: row.id as number,
     name: row.name as string,
     photoUrl: (row.photoUrl ?? null) as string | null,
-    rank: typeof row.rank === 'object' && row.rank !== null
-      ? String((row.rank as {name: unknown}).name)
-      : (row.rank as string | null),
+    rank:
+      typeof row.rank === 'object' && row.rank !== null
+        ? String((row.rank as {name: unknown}).name)
+        : (row.rank as string | null),
     rankWeight: (row.rankWeight as number | null) ?? null,
   }))
 

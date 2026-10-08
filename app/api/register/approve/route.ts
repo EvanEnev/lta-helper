@@ -46,8 +46,6 @@ export async function POST(req: NextRequest) {
   if (!email) return fail('Почта не указана')
   if (rankId === null) return fail('Не указан ранг')
 
-  // Подтверждать может пригласивший сотрудника (как и показывает интерфейс)
-  // или администратор
   const target = await db.query(
     'select invited_by from workers where id = $1',
     [workerId],
@@ -60,8 +58,6 @@ export async function POST(req: NextRequest) {
 
   if (!isAdmin && !isInviter) return fail('Нет прав', 403)
 
-  // Ранг должен существовать; выше собственного его может задать только
-  // тот, у кого есть право менять ранги
   const ranks = await db.query(
     `select
        (select sorting_weight from ranks where id = $1) as target,

@@ -1,6 +1,6 @@
 'use client'
 
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {Minus, Plus} from 'lucide-react'
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
 import {Badge} from '@/components/ui/badge'
@@ -45,9 +45,12 @@ interface NumberStepperProps {
 function NumberStepper({value, limit, onCommit}: NumberStepperProps) {
   const current = value ?? 0
   const [draft, setDraft] = useState(String(current))
+  const [shown, setShown] = useState(current)
 
-  // значение могло измениться снаружи (сокет, другой пользователь)
-  useEffect(() => setDraft(String(current)), [current])
+  if (shown !== current) {
+    setShown(current)
+    setDraft(String(current))
+  }
 
   const commit = (raw: number) => {
     const next = Number.isFinite(raw) ? Math.max(0, Math.round(raw)) : current
@@ -95,7 +98,6 @@ interface RequirementRowProps {
 }
 
 function RequirementRow({req, canEdit, onChange}: RequirementRowProps) {
-  // тип select раньше тоже нигде не отображался
   if (req.type === 'select') return null
 
   const done = isRequirementDone(req)
@@ -226,7 +228,6 @@ export default function RequirementsSheet({
                 </div>
               ))}
 
-              {/* на телефоне нижняя навигация перекрывает шторку */}
               <div
                 aria-hidden
                 className="h-[calc(4rem+env(safe-area-inset-bottom))] shrink-0 md:hidden"

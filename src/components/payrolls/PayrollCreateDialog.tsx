@@ -22,9 +22,7 @@ const ZONE = 'Europe/Moscow'
 const fmt = (date: DateTime) => date.toFormat('yyyy-MM-dd')
 const period = (start: DateTime, end: DateTime): DatePeriod => ({start, end})
 
-// Диапазоны по умолчанию зависят от числа: с 26-го по 9-е - период 16-конец,
-// с 10-го по 25-е - период 1-15 (бонусы инструкторов за прошлый месяц)
-export function defaultRanges(now: DateTime) {
+function defaultRanges(now: DateTime) {
   if (now.day > 25 || now.day < 10) {
     const base = now.day < 5 ? now.minus({months: 1}) : now
     const dates = period(base.set({day: 16}), base.endOf('month'))
@@ -63,7 +61,6 @@ export default function PayrollCreateDialog() {
   const [actors, setActors] = useState<DatePeriod | null>(defaults.actors)
   const [workers, setWorkers] = useState<DatePeriod | null>(defaults.workers)
   const [isPending, setPending] = useState(false)
-  // черновик читаем при открытии: на сервере localStorage нет
   const [hasDraft, setHasDraft] = useState(false)
 
   const query = (bonuses: boolean) => ({

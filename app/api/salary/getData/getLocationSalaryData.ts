@@ -31,7 +31,6 @@ export default async function getLocationSalaryData({
   let data: UserSalary[] = []
   const currentDate = DateTime.fromFormat(date, 'yyyy-MM-dd')
 
-  // Значения приходят из тела запроса: невалидные даты и id отбрасываем
   if (!currentDate.isValid) return data
   if (
     selectedLocationId !== undefined &&
@@ -63,8 +62,6 @@ export default async function getLocationSalaryData({
     }
 
     const query = `
-      -- MATERIALIZED: без него планировщик встраивает CTE в LEFT JOIN и заново
-      -- сканирует salary.list для каждого из ~300 сотрудников (~1 с вместо ~0.1 с)
       with params as (select $1::int  as current_worker,
                              $2::int  as worker_filter,
                              $3::int  as location_filter,

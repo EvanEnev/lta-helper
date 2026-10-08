@@ -30,39 +30,64 @@ interface KonsolBody {
 
 const KONSOL_DISABLED_RANKS = [10, 12, 13, 14, 2, 1, 6]
 
-export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const worker = (await auth.api.getSession({
-    headers: await headers(),
-  }))!.user
+interface Query {
+  text: string
+  values: unknown[]
+}
 
-  const salaryData: WorkerSalary[] = body.salaryData?.filter(
-    (data: WorkerSalary) => data.worker && data.location,
+const fail = (message: string, status = 400) =>
+  NextResponse.json({message}, {status})
+
+const str = (value: unknown, max = 1000) =>
+  typeof value === 'string' ? value.slice(0, max) : ''
+
+const num = (value: unknown) => {
+  const n = Number(value)
+
+  return Number.isFinite(n) ? n : 0
+}
+
+const gameJson = (
+  game: {id?: number; number?: number} | null | undefined,
+  value: unknown,
+) =>
+  game?.id
+    ? JSON.stringify({
+        id: num(game.id),
+        value: num(value),
+        number: num(game.number),
+      })
+    : null
+
+export async function POST(req: NextRequest) {
+  const session = await auth.api.getSession({headers: await headers()})
+  const worker = session?.user
+
+  if (!worker) return fail('Вход не произведён', 401)
+
+  if (!checkPermissions(['set_salary'], worker)) return fail('Нет прав', 403)
+
+  const body = await req.json().catch(() => null)
+
+  const salaryData: WorkerSalary[] = (
+    Array.isArray(body?.salaryData) ? body.salaryData : []
+  ).filter(
+    (data: WorkerSalary) =>
+      typeof data?.worker === 'string' &&
+      data.worker &&
+      typeof data?.location === 'string' &&
+      data.location,
   )
 
-  let date: Date | DateTime = new Date(body.date)
+  if (!salaryData.length) return fail('Нет данных для отправки')
 
-  if (!worker) {
-    return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
-  }
+  const rawDate = new Date(body.date)
 
-  if (!salaryData.length)
-    return NextResponse.json(
-      {message: 'Нет данных для отправки'},
-      {status: 500},
-    )
+  if (Number.isNaN(rawDate.getTime())) return fail('Не найдена дата')
 
-  if (!date) {
-    return NextResponse.json({message: 'Не найдена дата'}, {status: 500})
-  }
+  let date: DateTime = convertTZ(rawDate, 'Europe/Moscow')
 
   const loggerData: any = {salary: []}
-
-  date = convertTZ(date, 'Europe/Moscow')
-
-  if (!checkPermissions(['set_salary'], worker)) {
-    return NextResponse.json({message: 'Нет прав'}, {status: 501})
-  }
 
   const konsolBodies: KonsolBody[] = []
 
@@ -71,31 +96,36 @@ export async function POST(req: NextRequest) {
 
   const ranks = await getRanks()
 
-  const promises: Promise<boolean>[] = []
-  const queries = []
+  const queries: Query[] = []
   const warnings = []
 
   const isConfirmed = date.diff(DateTime.now(), 'days').days <= 0
 
   for (const data of salaryData) {
+    const workerName = data.worker.trim()
+    const locationName = data.location.trim()
+    const day = date.toFormat('yyyy-MM-dd')
+
     if (data.deleted) {
-      queries.push(
-        `DELETE FROM salary.list
-         WHERE worker_id = (SELECT id from workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
-           AND location_id = (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
-           AND date = '${date.toFormat('yyyy-MM-dd')}'`,
-      )
+      queries.push({
+        text: `DELETE FROM salary.list
+         WHERE worker_id = (SELECT id from workers WHERE LOWER(name) = LOWER($1))
+           AND location_id = (SELECT id FROM locations WHERE LOWER(name) = LOWER($2))
+           AND date = $3`,
+        values: [workerName, locationName, day],
+      })
 
       continue
     }
 
     if (!data.withoutDate) {
-      const existedDataQuery = `SELECT id, (select name from locations where id = location_id) as location FROM salary.list
-                              WHERE worker_id = (SELECT id from workers WHERE name ilike '${data.worker}')
-                                and location_id != (SELECT id FROM locations WHERE LOWER(name) = '${data.location.toLowerCase()}')
-                                AND date = '${date.toFormat('yyyy-MM-dd')}'`
-
-      const existedDataResult = await db.query(existedDataQuery)
+      const existedDataResult = await db.query(
+        `SELECT id, (select name from locations where id = location_id) as location FROM salary.list
+         WHERE worker_id = (SELECT id from workers WHERE LOWER(name) = LOWER($1))
+           and location_id != (SELECT id FROM locations WHERE LOWER(name) = LOWER($2))
+           AND date = $3`,
+        [workerName, locationName, day],
+      )
       const existedData = existedDataResult.rows[0]
 
       if (existedData?.id) {
@@ -104,8 +134,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const workerQuery = `SELECT r.name as rank FROM workers w left join ranks r on r.id = w.rank_id WHERE w.name ilike '${data.worker}'`
-    const workerResult = await db.query(workerQuery)
+    const workerResult = await db.query(
+      `SELECT r.name as rank FROM workers w left join ranks r on r.id = w.rank_id WHERE LOWER(w.name) = LOWER($1)`,
+      [workerName],
+    )
+
+    if (!workerResult.rowCount)
+      return fail(`Сотрудник не найден: ${workerName}`)
 
     const rank: string = workerResult.rows[0].rank?.trim()
     const rankData = ranks.find(r => r.name === rank)
@@ -152,11 +187,16 @@ export async function POST(req: NextRequest) {
     if (!salary) continue
 
     if (data.withoutDate) {
-      const query = `SELECT date FROM salary.list WHERE
-        worker_id = (SELECT id FROM workers WHERE LOWER(name) = '${data.worker.toLowerCase()}')
-                                                    AND date BETWEEN '${date.startOf('month').toFormat('yyyy-MM-dd')}'
-          AND '${date.endOf('month').toFormat('yyyy-MM-dd')}'`
-      const result = await db.query(query)
+      const result = await db.query(
+        `SELECT date FROM salary.list WHERE
+           worker_id = (SELECT id FROM workers WHERE LOWER(name) = LOWER($1))
+           AND date BETWEEN $2 AND $3`,
+        [
+          workerName,
+          date.startOf('month').toFormat('yyyy-MM-dd'),
+          date.endOf('month').toFormat('yyyy-MM-dd'),
+        ],
+      )
 
       const dates = result.rows.map(row => row.date)
       date = date.set({day: date.endOf('month').day})
@@ -171,13 +211,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const taskIdQuery = `select task_id from salary.list where worker_id = (select id from workers where name ilike '${data.worker}')  and date = '${date.toFormat('yyyy-MM-dd')}'`
-    const taskIdResult = await db.query(taskIdQuery)
+    const finalDay = date.toFormat('yyyy-MM-dd')
+
+    const taskIdResult = await db.query(
+      `select task_id from salary.list where worker_id = (select id from workers where LOWER(name) = LOWER($1)) and date = $2`,
+      [workerName, finalDay],
+    )
     const taskId = taskIdResult.rows[0]?.task_id
 
     const location = locations.find(
-      l => l.name.toLowerCase() === data.location.toLowerCase(),
-    )!
+      l => l.name.toLowerCase() === locationName.toLowerCase(),
+    )
+
+    if (!location) return fail(`Локация не найдена: ${locationName}`)
 
     if (
       !isConfirmed &&
@@ -185,13 +231,14 @@ export async function POST(req: NextRequest) {
       location.konsol_id &&
       !KONSOL_DISABLED_RANKS.includes(rankData?.id || 1)
     ) {
-      const userDataQuery = `select
-                               id,
-                               replace(replace(phone_number, ' ', ''), '-', '') as phone
-                             from workers
-                             where name ilike '${data.worker}'`
-
-      const userData = await db.query(userDataQuery)
+      const userData = await db.query(
+        `select
+           id,
+           replace(replace(phone_number, ' ', ''), '-', '') as phone
+         from workers
+         where LOWER(name) = LOWER($1)`,
+        [workerName],
+      )
 
       const duties: KonsolBody['duties'] = [
         {
@@ -218,15 +265,15 @@ export async function POST(req: NextRequest) {
 
       const konsolBody: KonsolBody = {
         worker_id: userData.rows[0].id,
-        date: date.toFormat('yyyy-MM-dd'),
+        date: finalDay,
         title: 'Проведение лазертаг-игр',
         address_id: location.konsol_id,
         duties,
         contractor: {
           phone: userData.rows[0].phone,
         },
-        since_date: date.toFormat('yyyy-MM-dd'),
-        upto_date: date.toFormat('yyyy-MM-dd'),
+        since_date: finalDay,
+        upto_date: finalDay,
         contractor_ids: [],
       }
 
@@ -234,8 +281,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (!data.comment?.toLowerCase().includes('под игру')) {
-      queries.push(
-        `insert into relations.workers_requirements
+      queries.push({
+        text: `insert into relations.workers_requirements
            (requirement_id, worker_id, value)
          select
            r.id,
@@ -244,75 +291,49 @@ export async function POST(req: NextRequest) {
          from workers w
                 join ranks.requirements r
                      on r.rank_id = w.rank_id
-         where w.id = (select id FROM workers WHERE name ilike '${data.worker}')
+         where w.id = (select id FROM workers WHERE LOWER(name) = LOWER($1))
            and (r.meta ->> 'auto')::bool = true
 
          on conflict (requirement_id, worker_id)
            do update
            set value = relations.workers_requirements.value + 1
          where not exists(
-           select 1 from salary.list where worker_id = relations.workers_requirements.worker_id and date = '${date.toFormat('yyyy-MM-dd')}'
-         )
-        `,
-      )
+           select 1 from salary.list where worker_id = relations.workers_requirements.worker_id and date = $2
+         )`,
+        values: [workerName, finalDay],
+      })
     }
 
-    queries.push(`INSERT INTO salary.list
+    const workTypes = Array.isArray(data.workTypes)
+      ? data.workTypes.map(Number).filter(Number.isInteger)
+      : []
+    const typed = data.type ? str(data.type, 100) : null
+
+    queries.push({
+      text: `INSERT INTO salary.list
                   (worker_id, date, value, bonuses, fines, comment, location_id, created_by, start_time, end_time, overwork_start, overwork_end, overwork, type, one_games, two_games, three_games, actor_games, work_types, is_confirmed)
                   VALUES
                     (
-                        (SELECT id FROM workers WHERE name ilike '${data.worker}'),
-                        '${date.toFormat('yyyy-MM-dd')}',
-                        ${salary.value || 0},
-                        '${salary.bonuses}',
-                        '${salary.fines}',
-                        '${data.comment}',
-                        ${location.id},
-                        ${salary.created_by},
-                        '${salary.start_time || '00'}',
-                        '${salary.end_time || '00'}',
-                        ${salary.overwork_start ? (!data.type ? `'${salary.overwork_start}'` : 'NULL') : 'NULL'},
-                        ${salary.overwork_end ? (!data.type ? `'${salary.overwork_end}'` : 'NULL') : 'NULL'},
-                        ${salary.overwork || 'NULL'},
-                        ${data.type ? `'${data.type}'` : 'NULL'},
-                        ${
-                          data.oneGames?.id
-                            ? `json_build_object(
-                        'id', ${data.oneGames.id},
-                        'value', ${salary.oneGames},
-                        'number', ${data.oneGames.number}
-                        )`
-                            : 'NULL'
-                        },
-                        ${
-                          data.twoGames?.id
-                            ? `json_build_object(
-                        'id', ${data.twoGames.id},
-                        'value', ${salary.twoGames},
-                        'number', ${data.twoGames.number}
-                        )`
-                            : 'NULL'
-                        },
-                        ${
-                          data.threeGames?.id
-                            ? `json_build_object(
-                        'id', ${data.threeGames.id},
-                        'value', ${salary.threeGames},
-                        'number', ${data.threeGames.number}
-                        )`
-                            : 'NULL'
-                        },
-                        ${
-                          data.actorGames?.id
-                            ? `json_build_object(
-                        'id', ${data.actorGames.id},
-                        'value',  ${salary.actorGames},
-                        'number', ${data.actorGames.number}
-                        )`
-                            : 'NULL'
-                        },
-                        ${data.workTypes?.length ? `array[${data.workTypes}]` : 'NULL'},
-                        ${isConfirmed}
+                        (SELECT id FROM workers WHERE LOWER(name) = LOWER($1)),
+                        $2,
+                        $3,
+                        $4,
+                        $5,
+                        $6,
+                        $7,
+                        $8,
+                        $9,
+                        $10,
+                        $11,
+                        $12,
+                        $13,
+                        $14,
+                        $15::jsonb,
+                        $16::jsonb,
+                        $17::jsonb,
+                        $18::jsonb,
+                        $19::int[],
+                        $20
                     )
                   ON CONFLICT (worker_id, date, location_id) DO UPDATE
                     SET
@@ -331,11 +352,33 @@ export async function POST(req: NextRequest) {
                       three_games=excluded.three_games,
                       actor_games=excluded.actor_games,
                       work_types=excluded.work_types,
-                      is_confirmed=excluded.is_confirmed
-    `)
+                      is_confirmed=excluded.is_confirmed`,
+      values: [
+        workerName,
+        finalDay,
+        salary.value || 0,
+        String(salary.bonuses ?? ''),
+        String(salary.fines ?? ''),
+        str(data.comment),
+        location.id,
+        salary.created_by,
+        salary.start_time || '00',
+        salary.end_time || '00',
+        salary.overwork_start && !data.type ? salary.overwork_start : null,
+        salary.overwork_end && !data.type ? salary.overwork_end : null,
+        salary.overwork || null,
+        typed,
+        gameJson(data.oneGames, salary.oneGames),
+        gameJson(data.twoGames, salary.twoGames),
+        gameJson(data.threeGames, salary.threeGames),
+        gameJson(data.actorGames, salary.actorGames),
+        workTypes.length ? workTypes : null,
+        isConfirmed,
+      ],
+    })
   }
 
-  loggerData.queries = queries
+  loggerData.queries = queries.map(q => q.text)
   loggerData.user = worker
 
   logger.info('sendWorkDays', {data: loggerData})
@@ -473,8 +516,10 @@ export async function POST(req: NextRequest) {
 
     konsolIds.push(taskId)
 
-    const query = `update salary.list set task_id = ${taskId} where worker_id=${workerId} and date='${date}'`
-    queries.push(query)
+    queries.push({
+      text: 'update salary.list set task_id = $1 where worker_id = $2 and date = $3',
+      values: [taskId, workerId, date],
+    })
   }
 
   if (konsolIds.length) {
@@ -489,12 +534,23 @@ export async function POST(req: NextRequest) {
   }
 
   if (queries.length && !warnings.length) {
-    const queriesPromises = queries.map(query => db.query(query))
+    const client = await db.connect()
+
     try {
-      await Promise.all([...promises, ...queriesPromises])
+      await client.query('begin')
+
+      for (const query of queries) {
+        await client.query(query.text, query.values)
+      }
+
+      await client.query('commit')
     } catch (e: any) {
+      await client.query('rollback').catch(() => {})
       logger.error('sendWorkDays', {data: loggerData, error: e})
+
       return NextResponse.json({message: e.message || ''}, {status: 500})
+    } finally {
+      client.release()
     }
   }
 

@@ -18,8 +18,8 @@ const rub = (value: unknown) => `${nf.format(Number(value) || 0)} ₽`
 interface DayCardProps {
   data?: DayData
   workerId: number
-  dayKey: string // «dd.MM»
-  showDate?: boolean // подпись дня в шапке (список вне таблицы)
+  dayKey: string
+  showDate?: boolean
   review: boolean
   isToday: boolean
   onOpen: (workerId: number, dayKey: string) => void
@@ -44,15 +44,12 @@ function Field({
   )
 }
 
-// В отметке FaceID дата нужна, только если она не совпадает с днём ячейки
 const markTime = (timestamp: string | undefined, dayKey: string) => {
   if (!timestamp) return '—'
 
   return timestamp.startsWith(dayKey) ? timestamp.slice(11) : timestamp
 }
 
-// Полная ячейка дня: все поля видны сразу (для проверок и быстрого просмотра).
-// Лёгкая разметка без тяжёлых полей ввода - редактирование в панели деталей
 export default memo(function DayCard({
   data,
   workerId,

@@ -8,7 +8,6 @@ import {toId} from '@/lib/payrolls/validate'
 const fail = (message: string, status = 400) =>
   NextResponse.json({message}, {status})
 
-// Выдача зарплаты кассиром
 export async function POST(req: NextRequest) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
@@ -32,9 +31,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Условия те же, что в интерфейсе (кнопка «Выдать» активна только при них),
-    // но теперь проверяются и на сервере: выдача подтверждена сотрудником, кассир
-    // на той же площадке, сумма равна подтверждённой
     const result = await db.query(
       `update relations.workers_payrolls
        set taken = $1,

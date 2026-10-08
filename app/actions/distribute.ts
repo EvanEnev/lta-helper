@@ -11,7 +11,6 @@ export async function distributeAction(
   salaries: {worker_id: number; rank_id: number; amount: number}[],
   locationValues: {location_id: number; value: number; priority: number}[],
 ) {
-  // Server Action вызывается напрямую, минуя API-роут, поэтому право проверяем здесь
   const session = await auth.api.getSession({headers: await headers()})
 
   if (!session?.user || !checkPermissions(['edit_payrolls'], session.user)) {

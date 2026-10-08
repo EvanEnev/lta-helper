@@ -3,10 +3,6 @@ import type {SalaryData, UserSalary} from '@/src/utils/types'
 
 export const ZONE = 'Europe/Moscow'
 
-// ---------- формулы бонусов и штрафов («500+250») ----------
-// В таблице тысячи ячеек, поэтому считаем собственным разбором без mathjs
-// (только числа, + - * / и скобки) и кэшируем результат
-
 function parseExpression(source: string): number | null {
   const s = source.replace(/\s+/g, '').replace(/,/g, '.')
   let i = 0
@@ -84,8 +80,6 @@ export function evalExpr(text?: string | null): number {
   return result
 }
 
-// ---------- ячейка дня ----------
-
 export interface PaymentItem {
   name: string
   value: number
@@ -96,7 +90,7 @@ export type DayData = SalaryData & {payments?: PaymentItem[]}
 
 export interface DaySummary {
   overwork: number
-  games: number // «проведение»: 1-, 2- и 3-часовые
+  games: number
   actorGames: number
   bonuses: number
   fines: number
@@ -106,7 +100,6 @@ export interface DaySummary {
 
 const num = (value: unknown) => Number(value) || 0
 
-// «Самозанятый» без смены не показываем (как и раньше)
 export const visiblePayments = (data: DayData) =>
   (data.payments ?? []).filter(
     p => !(!data.location && p.name === 'Самозанятый'),
@@ -127,9 +120,6 @@ export function summarizeDay(data: DayData): DaySummary {
   }
 }
 
-// ---------- месяц ----------
-
-// 'yyyy-MM-dd' первого дня месяца
 export const monthStart = (date: string) =>
   DateTime.fromFormat(date, 'yyyy-MM-dd').startOf('month')
 
@@ -143,7 +133,6 @@ export const dayKeys = (date: string) => {
 
 export const todayKey = () => DateTime.now().setZone(ZONE).toFormat('dd.MM')
 
-// Ячейки сотрудника по дням: «dd.MM» -> смена (при нескольких за день первая, как и раньше)
 export function indexByDay(dates: SalaryData[]) {
   const map = new Map<string, DayData>()
 
@@ -158,7 +147,6 @@ export function indexByDay(dates: SalaryData[]) {
 export const hasContent = (data?: DayData) =>
   !!data && (!!data.id || !!data.payments?.length)
 
-// Неделя Пн-Вс для режима календаря
 export function monthWeeks(date: string) {
   const keys = dayKeys(date)
   const first = monthStart(date)
@@ -181,8 +169,6 @@ export function monthWeeks(date: string) {
   return weeks
 }
 
-// ---------- изменение данных (без мутаций) ----------
-
 export function replaceDay(
   rows: UserSalary[],
   workerId: number,
@@ -203,11 +189,9 @@ export function removeDay(rows: UserSalary[], dataId: number) {
   )
 }
 
-// Событие salary:update из триггера БД (functions.notify_salary_update):
-// snake_case и без id строки - ячейку определяем по сотрудник + дата + локация
 export interface SalaryUpdatePayload {
   worker_id: number
-  date: string // yyyy-MM-dd
+  date: string
   value: number | null
   bonuses: string | null
   fines: string | null
@@ -230,7 +214,6 @@ export const editKey = (
 const hhmm = (time: string | null | undefined) =>
   time ? time.slice(0, 5) : null
 
-// found = false: такой ячейки у нас нет (проставили новую) - нужно перечитать данные
 export function applyRemoteUpdate(
   rows: UserSalary[],
   payload: SalaryUpdatePayload,
@@ -264,7 +247,6 @@ export function applyRemoteUpdate(
   return {rows: replaceDay(rows, row.worker.id, next), found: true}
 }
 
-// Какие локации доступны в списке (правила взяты из прежнего LocationSelect)
 export function visibleLocations<T extends {id: number; name: string}>(
   locations: T[],
   worker: {id: number; locationId?: number | null},

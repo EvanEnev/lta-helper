@@ -45,7 +45,7 @@ interface DetailsToolbarProps {
   payrollId: number
   data: LTWorkerPayrollData[]
   locationsData: LTMoneyOnLocationsData[]
-  locationOptions: LTLocation[] // с «Все»
+  locationOptions: LTLocation[]
   locationName: string
   onLocationChange: (name: string) => void
   query: string

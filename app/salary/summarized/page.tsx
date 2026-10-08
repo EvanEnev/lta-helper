@@ -18,7 +18,6 @@ export default async function Summarized({
 
   const session = await auth.api.getSession({headers: await headers()})
 
-  // Страница и её API раньше были доступны любому вошедшему сотруднику
   if (!session?.user || !checkPermissions(['view_full_salary'], session.user)) {
     redirect('/')
   }

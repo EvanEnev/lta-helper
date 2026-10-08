@@ -1,7 +1,6 @@
 'use client'
 
 import {useState} from 'react'
-import {Icon} from '@iconify/react'
 import {
   ArrowDown,
   ArrowUp,
@@ -17,6 +16,7 @@ import {Button} from '@/components/ui/button'
 import {Card, CardContent} from '@/components/ui/card'
 import {Progress} from '@/components/ui/progress'
 import {Separator} from '@/components/ui/separator'
+import {TelegramIcon} from '@/src/components/global/BrandIcons'
 import RankIcon from '@/src/components/global/RankIcon'
 import formatPhone from '@/lib/functions/formatPhone'
 import {getRankProgress} from '@/lib/functions/rankProgress'
@@ -169,7 +169,7 @@ export default function WorkerCard({
                 rel="noreferrer"
               />
             }>
-            <Icon icon="ic:baseline-telegram" width={16} height={16} />
+            <TelegramIcon className="size-4" />
             Telegram
           </Button>
         </div>

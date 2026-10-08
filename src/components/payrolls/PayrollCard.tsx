@@ -56,7 +56,6 @@ export default function PayrollCard({
     setDeleting(true)
 
     try {
-      // из списка убираем только после успешного ответа сервера
       const res = await fetchHandler({
         url: '/api/payrolls/delete',
         method: 'POST',
@@ -70,7 +69,6 @@ export default function PayrollCard({
     }
   }
 
-  // черновик открывается на странице создания, опубликованная - в деталях
   const href = data.isPublished
     ? {pathname: `/payrolls/${data.id}`}
     : {

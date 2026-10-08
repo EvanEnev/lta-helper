@@ -14,8 +14,6 @@ const toIntArray = (value: unknown) =>
     ? (value as number[])
     : null
 
-// Сводная по сотрудникам за период. Один запрос отдаёт всё, что раньше
-// возвращали getSummary (поля get_salary) и getSummary2 (остаток по ведомости)
 export async function POST(req: NextRequest) {
   const {user} = (await auth.api.getSession({
     headers: await headers(),
@@ -25,7 +23,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
   }
 
-  // Раньше проверялся только вход: сводку по всем сотрудникам мог получить кто угодно
   if (!checkPermissions(['view_full_salary'], user)) {
     return NextResponse.json({message: 'Нет прав'}, {status: 403})
   }

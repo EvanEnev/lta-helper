@@ -13,9 +13,6 @@ interface ConfirmEntry {
   selectedWorker: string | null
 }
 
-// Подтверждение выдачи сотрудником: свою сумму и кто её заберёт, а также
-// суммы тех, за кого он забирает (только уменьшить).
-// Раньше проверялся только вход: любой мог подтвердить выдачу за любого.
 export async function POST(req: NextRequest) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
@@ -61,7 +58,6 @@ export async function POST(req: NextRequest) {
   try {
     await client.query('begin')
 
-    // подтверждать можно только по опубликованной ведомости, пока не вышел срок
     const payroll = await client.query(
       `select 1 from payrolls.list
        where id = $1 and is_published = true and take_by >= now()::date`,
@@ -78,7 +74,6 @@ export async function POST(req: NextRequest) {
       let updated
 
       if (entry.id === worker.id) {
-        // своя строка: сумма не выше начисленной (по модулю, как ограничивает форма)
         let takeById: number | null = null
 
         if (entry.selectedWorker) {
@@ -109,7 +104,6 @@ export async function POST(req: NextRequest) {
           [entry.value, takeById, entry.id, payrollId],
         )
       } else {
-        // чужая строка: только те, за кого этот сотрудник забирает, и не выше назначенного
         updated = await client.query(
           `update relations.workers_payrolls
            set issue_confirmed = true,

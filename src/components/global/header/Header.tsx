@@ -65,7 +65,6 @@ export default function Header() {
   return (
     <>
       <MobileHeader ref={ref} worker={worker} className="block sm:hidden" />
-      {/*<DesktopHeader ref={ref} worker={worker} className="hidden sm:block" />*/}
     </>
   )
 }

@@ -28,7 +28,6 @@ const fromDate = (date: Date) =>
     {zone: ZONE},
   )
 
-// Поле диапазона дат с подписью; необязательные диапазоны можно очистить
 export default function DateRangeField({
   label,
   value,
@@ -76,7 +75,6 @@ export default function DateRangeField({
               selected={selected}
               defaultMonth={value ? toDate(value.start) : undefined}
               onSelect={(_range, trigger) => {
-                // первый клик начинает период, второй завершает его
                 if (!draft?.from || (draft.from && draft.to)) {
                   setDraft({from: trigger, to: undefined})
                   return

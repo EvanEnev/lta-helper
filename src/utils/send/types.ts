@@ -8,11 +8,6 @@ export interface CellBGColorStyle {
   }
 }
 
-export interface Comment {
-  date: string
-  value: string
-}
-
 export interface Change {
   date: DateTime
   newValue: string

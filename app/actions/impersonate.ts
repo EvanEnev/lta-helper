@@ -9,9 +9,6 @@ import {
   parseImpersonateId,
 } from '@/lib/auth/impersonation'
 
-// Server Action - это публичный POST-эндпоинт, поэтому права проверяем
-// в каждой функции. trueId считается на сервере по реальной сессии и
-// не зависит от cookie подмены
 async function assertImpersonator() {
   const session = await auth.api.getSession({headers: await headers()})
 
@@ -28,7 +25,6 @@ export interface ImpersonateGroup {
 export async function getImpersonationData() {
   await assertImpersonator()
 
-  // порядок рангов задаёт SQL (sorting_weight desc), имена сортируем по-русски
   const result = await db.query<{
     id: number
     name: string

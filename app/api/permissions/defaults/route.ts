@@ -37,8 +37,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Некорректный ранг'}, {status: 400})
   }
 
-  // Замена правила - одной транзакцией: иначе сбой между DELETE и INSERT
-  // оставил бы право без правила по рангу
   const client = await db.connect()
 
   try {

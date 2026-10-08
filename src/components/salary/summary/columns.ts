@@ -1,6 +1,3 @@
-// Каталог колонок сводной. Раньше это были две страницы с разным набором колонок
-// и разным «остатком»; теперь обе - пресеты одной страницы.
-
 export interface SummaryRow {
   workerId: number
   workerName: string
@@ -14,11 +11,9 @@ export interface ColumnDef {
   title: string
   hint?: string
   group: 'Начисления' | 'Игры' | 'Итоги' | 'Выплаты и остаток'
-  fields: string[] // складываются, как и раньше
-  sums: string // что суммирует колонка - для списка выбора и подсказки
+  fields: string[]
+  sums: string
 }
-
-export const NAME_COLUMN = 'name'
 
 const RAW_COLUMNS: Omit<ColumnDef, 'sums'>[] = [
   {id: 'value', title: 'ЗП', group: 'Начисления', fields: ['value']},
@@ -190,15 +185,12 @@ export const PRESETS: Record<
   },
 }
 
-// Как и раньше, считаем только числа; всё остальное (в том числе null) - ноль
 export const cellValue = (row: SummaryRow, fields: string[]) =>
   fields.reduce((sum, field) => {
     const value = row[field]
 
     return sum + (typeof value === 'number' ? value : 0)
   }, 0)
-
-// ---------- перенос сохранённых колонок из старых страниц (хранились по названиям) ----------
 
 const V1_TITLES: Record<string, string> = {
   ЗП: 'value',

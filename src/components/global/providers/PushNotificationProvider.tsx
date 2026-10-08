@@ -13,6 +13,32 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray
 }
 
+async function subscribeToPush() {
+  const registration = await navigator.serviceWorker.ready
+  const sub = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    ),
+  })
+
+  await fetch('/api/notifications/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({sub: JSON.parse(JSON.stringify(sub))}),
+  })
+}
+
+async function registerServiceWorker() {
+  const registration = await navigator.serviceWorker.register('/sw.js', {
+    scope: '/',
+    updateViaCache: 'none',
+  })
+
+  const sub = await registration.pushManager.getSubscription()
+
+  if (!sub) await subscribeToPush()
+}
+
 export default function PushNotificationProvider({
   children,
 }: {
@@ -20,42 +46,9 @@ export default function PushNotificationProvider({
 }) {
   useEffect(() => {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
-      registerServiceWorker()
+      registerServiceWorker().catch(() => {})
     }
   }, [])
-
-  async function registerServiceWorker() {
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-      scope: '/',
-      updateViaCache: 'none',
-    })
-
-    const sub = await registration.pushManager.getSubscription()
-
-    if (!sub) {
-      subscribeToPush()
-    }
-  }
-
-  async function subscribeToPush() {
-    const registration = await navigator.serviceWorker.ready
-    const sub = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-      ),
-    })
-
-    const serializedSub = JSON.parse(JSON.stringify(sub))
-    const body = {
-      sub: serializedSub,
-    }
-
-    await fetch('/api/notifications/subscribe', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    })
-  }
 
   return children
 }

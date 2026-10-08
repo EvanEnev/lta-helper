@@ -13,7 +13,6 @@ interface SalaryListProps {
   onOpen: (workerId: number, dayKey: string) => void
 }
 
-// Для сотрудника, который видит только свои данные: полные карточки дней
 export default function SalaryList({
   row,
   date,

@@ -54,8 +54,6 @@ const parseList = (raw: string | null): string[] => {
   }
 }
 
-// Сводная по сотрудникам. Объединяет прежние «Сводную» и «Сводную 2»:
-// они отличаются набором колонок, поэтому теперь это пресеты одной страницы
 export default function SummaryPage({
   ranks,
   locations,
@@ -72,7 +70,6 @@ export default function SummaryPage({
   const [customColumns, setCustomColumns] = useState<string[]>([])
   const [ready, setReady] = useState(false)
 
-  // сохранённые колонки читаем после монтирования (на сервере localStorage нет)
   useEffect(() => {
     const saved = readStorage('summaryPreset')
     const columns = parseList(readStorage('summaryColumns'))
@@ -113,7 +110,6 @@ export default function SummaryPage({
   }
 
   const changeColumns = (ids: string[]) => {
-    // порядок колонок как в каталоге
     const ordered = COLUMNS.map(c => c.id).filter(id => ids.includes(id))
 
     writeStorage('summaryColumns', JSON.stringify(ordered))
@@ -122,7 +118,6 @@ export default function SummaryPage({
     setPreset('custom')
   }
 
-  // ---------- фильтры ----------
   const [selectedRanks, setSelectedRanks] = useState<string[]>(() =>
     ranks.map(r => r.name),
   )
@@ -136,7 +131,6 @@ export default function SummaryPage({
   const [onlyEarned, setOnlyEarned] = useState(true)
   const [sort, setSort] = useState<SortState | null>(null)
 
-  // ---------- загрузка ----------
   const [rows, setRows] = useState<SummaryRow[]>([])
   const [isLoading, setLoading] = useState(true)
   const requestId = useRef(0)
@@ -147,7 +141,6 @@ export default function SummaryPage({
     const id = ++requestId.current
     setLoading(true)
 
-    // небольшая задержка: пока отмечают несколько локаций, лишних запросов не шлём
     const timer = setTimeout(async () => {
       try {
         const response = await fetch('/api/salary/getSummary', {
@@ -174,7 +167,6 @@ export default function SummaryPage({
     return () => clearTimeout(timer)
   }, [ready, period, selectedLocations, selectedWorkTypes])
 
-  // ---------- расчёт таблицы: один проход вместо find на каждую ячейку ----------
   const view = useMemo(() => {
     const text = query.trim().toLowerCase()
 
@@ -225,7 +217,6 @@ export default function SummaryPage({
             : null,
     )
 
-  // ---------- Excel ----------
   const download = useCallback(
     async (type: 'day' | 'month' | 'workers') => {
       const response = await fetch('/api/excel', {
@@ -258,7 +249,6 @@ export default function SummaryPage({
     [period],
   )
 
-  // ---------- параметры панели ----------
   const columnOptions = useMemo<MultiSelectOption<string>[]>(
     () =>
       COLUMNS.map(column => ({

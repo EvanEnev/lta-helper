@@ -12,13 +12,12 @@ interface SalaryTableProps {
   today: string | null
   review: boolean
   density: 'full' | 'compact'
-  scrollSignal: number // меняется, когда нужно прокрутить к сегодняшнему дню
+  scrollSignal: number
   monthKey: string
   isLoading: boolean
   onOpen: (workerId: number, dayKey: string) => void
 }
 
-// ориентиры высоты строки, пока она не создана (чтобы полоса прокрутки не прыгала)
 const ROW_HEIGHT = {
   compact: 84,
   compactReview: 112,
@@ -27,8 +26,6 @@ const ROW_HEIGHT = {
   empty: 56,
 }
 
-// Прокручиваемая таблица: шапка и колонка сотрудников «прилипают».
-// Строки создаются по мере прокрутки (LazyMount), а не все сразу
 export default function SalaryTable({
   rows,
   days,
@@ -43,7 +40,6 @@ export default function SalaryTable({
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null)
   const template = `var(--name-w) repeat(${days.length}, var(--cell-w))`
 
-  // к сегодняшнему дню - при смене месяца и по кнопке
   useEffect(() => {
     if (!scroller || !today || isLoading) return
 
@@ -64,8 +60,6 @@ export default function SalaryTable({
       role="table"
       aria-label="Зарплаты по дням"
       className={cn(
-        // [contain:inline-size]: ширина области не зависит от содержимого, иначе корневой
-        // min-w-fit растягивает всю страницу и прокрутка/липкая колонка не работают
         'relative min-h-0 flex-1 overflow-auto rounded-xl border [contain:inline-size]',
         '[--name-w:6.5rem] md:[--name-w:11rem]',
         density === 'full'

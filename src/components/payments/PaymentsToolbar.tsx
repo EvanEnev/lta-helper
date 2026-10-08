@@ -22,7 +22,7 @@ interface PaymentsToolbarProps {
   onPeriodChange: (value: DatePeriod) => void
   extraPresets: {label: string; period: DatePeriod}[]
   paymentsTypes: LTPaymentType[]
-  type: string // название или 'all'
+  type: string
   onTypeChange: (value: string) => void
   query: string
   onQueryChange: (value: string) => void

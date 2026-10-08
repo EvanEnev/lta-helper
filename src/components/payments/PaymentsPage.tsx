@@ -25,11 +25,9 @@ interface PaymentsPageProps {
 
 const ZONE = 'Europe/Moscow'
 
-// иконки плиток по типам выплат (по порядку появления)
 const TYPE_ICONS = [Building2, UserRound, Wallet]
 const ALL = 'all'
 
-// Выплаты идут по полумесяцам (1-15 и 16-конец), как и зарплата
 const halfMonth = (month: DateTime, half: 1 | 2): DatePeriod =>
   half === 1
     ? {
@@ -67,7 +65,6 @@ export default function PaymentsPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [now.month, now.year])
 
-  // ---------- загрузка: только при смене периода (имя и тип фильтруются на месте) ----------
   const requestId = useRef(0)
 
   const load = useCallback(
@@ -76,7 +73,6 @@ export default function PaymentsPage({
       if (!silent) setLoading(true)
 
       try {
-        // даты без часового пояса, как и раньше: сервер берёт из них только число
         const dates = `${period.start.toFormat('yyyy-MM-dd')}T00:00:00/${period.end.toFormat('yyyy-MM-dd')}T23:00:00`
 
         const json = await fetchHandler({
@@ -97,11 +93,10 @@ export default function PaymentsPage({
     load()
   }, [load])
 
-  // ---------- действия ----------
   const create = () =>
     setPayments(prev => [
       {
-        id: -Date.now(), // временный id до ответа сервера
+        id: -Date.now(),
         create: true,
         date: DateTime.now().setZone(ZONE).toFormat('yyyy-MM-dd'),
       },
@@ -184,7 +179,6 @@ export default function PaymentsPage({
     }
   }
 
-  // ---------- производные данные ----------
   const visible = useMemo(() => {
     const text = query.trim().toLowerCase()
 
@@ -214,7 +208,6 @@ export default function PaymentsPage({
     <main
       className={cn(
         'flex min-w-0 flex-col gap-3 p-4',
-        // страница занимает высоту экрана: фильтры закреплены, список прокручивается
         'max-sm:h-[calc(100dvh-4rem)] sm:h-dvh',
       )}>
       <div className="shrink-0">

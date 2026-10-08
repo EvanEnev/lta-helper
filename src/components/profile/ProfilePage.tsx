@@ -3,7 +3,6 @@
 import {useCallback, useState} from 'react'
 import {useRouter} from 'next/navigation'
 import {useTheme} from 'next-themes'
-import {Icon} from '@iconify/react'
 import {LogOut, MapPin, Mail, Moon, Phone, Sun, Wallet} from 'lucide-react'
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
 import {Badge} from '@/components/ui/badge'
@@ -18,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {LocationPicker} from '@/src/components/global/LocationPicker'
+import {ProviderIcon} from '@/src/components/global/BrandIcons'
 import RankIcon from '@/src/components/global/RankIcon'
 import StatTile from '@/src/components/global/StatTile'
 import {authClient} from '@/lib/auth/authClient'
@@ -40,6 +40,9 @@ const SAVE_LABEL: Record<SaveState, string> = {
   saved: 'Сохранено',
   error: 'Не удалось сохранить',
 }
+
+const realEmail = (value?: string | null) =>
+  value && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value) ? value : null
 
 function Contact({
   icon: ContactIcon,
@@ -186,7 +189,11 @@ export default function ProfilePage({
               <CardTitle className="text-lg">Контакты</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <Contact icon={Mail} label="Почта" value={worker.email} />
+              <Contact
+                icon={Mail}
+                label="Почта"
+                value={realEmail(worker.email)}
+              />
               <Contact
                 icon={Phone}
                 label="Телефон"
@@ -207,11 +214,7 @@ export default function ProfilePage({
                   <div
                     key={provider.name}
                     className="flex items-center gap-3 rounded-lg border p-3">
-                    <Icon
-                      icon={`logos:${provider.icon}`}
-                      width={24}
-                      height={24}
-                    />
+                    <ProviderIcon name={provider.name} className="size-6" />
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-medium">
                         {capitalize(provider.name)}
@@ -220,16 +223,6 @@ export default function ProfilePage({
                         {isLinked ? 'Привязан' : 'Не привязан'}
                       </Badge>
                     </div>
-                    {/*<Button*/}
-                    {/*  variant={isLinked ? 'outline' : 'default'}*/}
-                    {/*  onClick={() =>*/}
-                    {/*    isLinked*/}
-                    {/*      ? setUnlinking(provider.name)*/}
-                    {/*      : toggleProvider(provider.name)*/}
-                    {/*  }>*/}
-                    {/*  {isLinked ? <Link2Off /> : <Link2 />}*/}
-                    {/*  {isLinked ? 'Отвязать' : 'Привязать'}*/}
-                    {/*</Button>*/}
                   </div>
                 )
               })}
@@ -278,8 +271,6 @@ export default function ProfilePage({
   )
 }
 
-// Выбранная тема подсвечивается стилями (dark:), а не состоянием: так нет
-// расхождения между сервером и клиентом
 function ThemeButtons() {
   const {setTheme} = useTheme()
 

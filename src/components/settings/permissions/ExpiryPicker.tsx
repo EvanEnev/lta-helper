@@ -9,12 +9,11 @@ import {Calendar} from '@/components/ui/calendar'
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 
 interface ExpiryPickerProps {
-  value: string | null // yyyy-MM-dd
-  min: string // yyyy-MM-dd, раньше выбрать нельзя
+  value: string | null
+  min: string
   onChange: (value: string | null) => void
 }
 
-// Даты у Calendar - локальные Date, наружу отдаём строку yyyy-MM-dd
 const toDate = (key: string) => DateTime.fromISO(key).toJSDate()
 
 export default function ExpiryPicker({

@@ -21,7 +21,6 @@ const parse = <T,>(value: string | string[] | undefined): T | null => {
   }
 }
 
-// диапазон: обе границы датами, либо пустой (null)
 const range = (
   value: unknown,
 ): {start: string | null; end: string | null} | null => {
@@ -43,7 +42,6 @@ export default async function PayrollsCreate({
 }: PayrollsCreateProps) {
   const session = await auth.api.getSession({headers: await headers()})
 
-  // Раньше страница была открыта любому вошедшему, а параметры попадали в SQL строкой
   if (!session?.user || !checkPermissions(['edit_payrolls'], session.user)) {
     redirect('/payrolls')
   }

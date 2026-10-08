@@ -41,7 +41,6 @@ export default function WorkersPage({
   const [source, setSource] = useState(initialWorkers)
   const [workers, setWorkers] = useState(initialWorkers)
 
-  // свежие данные с сервера (router.refresh) заменяют локальные
   if (source !== initialWorkers) {
     setSource(initialWorkers)
     setWorkers(initialWorkers)
@@ -58,7 +57,6 @@ export default function WorkersPage({
     [worker],
   )
 
-  // «Повысить» недоступно у старшего ранга среди сотрудников, «Понизить» - у младшего
   const {maxRankId, minRankId} = useMemo(() => {
     if (!workers.length) return {maxRankId: null, minRankId: null}
 
@@ -101,7 +99,6 @@ export default function WorkersPage({
         meta: req.meta,
       }
 
-      // сразу показываем результат, сервер подтвердит событием сокета
       setWorkers(prev => applyRequirementUpdate(prev, body))
       socketRef.current?.emit('update:workers_requirements', body)
     },
@@ -120,7 +117,6 @@ export default function WorkersPage({
         setWorkers(prev =>
           prev.map(w => (w.id === workerId ? {...w, rank: res.newRank} : w)),
         )
-        // требования нового ранга приходят только с сервера
         router.refresh()
       }
     },
@@ -165,7 +161,6 @@ export default function WorkersPage({
     [workers],
   )
 
-  // фильтры по рангу берём из списка рангов (порядок от старшего), только те, что есть у сотрудников
   const rankChips = useMemo(
     () =>
       ranks

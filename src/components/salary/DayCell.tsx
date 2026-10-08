@@ -10,8 +10,8 @@ const nf = new Intl.NumberFormat('ru-RU')
 interface DayCellProps {
   data?: DayData
   workerId: number
-  dayKey: string // «dd.MM»
-  label?: number // число месяца (режим календаря)
+  dayKey: string
+  label?: number
   review: boolean
   isToday: boolean
   variant: 'table' | 'calendar'
@@ -39,8 +39,6 @@ function Tag({
   )
 }
 
-// Компактная ячейка дня: сумма смены, время и значки составляющих.
-// Всё остальное - в панели деталей по клику
 export default memo(function DayCell({
   data,
   workerId,

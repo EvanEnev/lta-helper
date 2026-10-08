@@ -44,7 +44,7 @@ import {
 interface WorkFormProps {
   data: WorkerSalary
   salary: ReturnType<typeof getSalaryData>
-  worker?: LTWorker // выбранный сотрудник
+  worker?: LTWorker
   workers: LTWorker[]
   locations: LTLocation[]
   workTypes: LTWorkType[]
@@ -63,8 +63,6 @@ function Field({
   label: string
   htmlFor?: string
   hint?: React.ReactNode
-  // всегда оставлять место под подсказку, чтобы поля в соседних карточках
-  // не съезжали, когда подсказка есть только у одной из них
   reserveHint?: boolean
   children: React.ReactNode
 }) {
@@ -114,7 +112,6 @@ export default function WorkForm({
   const isActor = worker?.rank === 'Актёр'
   const faceIdTimes = getFaceIdTimes(faceId, workers, data.worker)
 
-  // типы работ приходят то числами, то строками - сравниваем как строки
   const selectedTypes = (data.workTypes ?? []).map(String)
 
   const toggleType = (typeId: string) =>
@@ -323,7 +320,6 @@ export default function WorkForm({
                       <Counter
                         label={game.description}
                         value={current?.number ?? 0}
-                        // смена количества сбрасывает ручной результат, как раньше
                         onChange={number =>
                           onChange({
                             [key]: {id: game.id, number} as GameEntry,

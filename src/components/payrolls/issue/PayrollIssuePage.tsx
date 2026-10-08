@@ -35,7 +35,6 @@ export default function PayrollIssuePage({
   worker,
 }: PayrollIssuePageProps) {
   const [selectedWorker, setSelectedWorker] = useState<string | null>(null)
-  // суммы тех, за кого забираю (меняются только в меньшую сторону)
   const [workersData, setWorkersData] = useState<
     {workerId: LTWorker['id']; value: number}[]
   >([])
@@ -44,7 +43,6 @@ export default function PayrollIssuePage({
   )
   const [isLoading, setLoading] = useState(false)
 
-  // максимум по модулю - начисленная сумма: отрицательная допустима до своего значения
   const payable = payrolls[0]?.value || 0
   const [min, max] = payable < 0 ? [payable, 0] : [0, payable]
 
@@ -76,7 +74,6 @@ export default function PayrollIssuePage({
         },
       })
 
-      // сразу показываем подтверждение, не дожидаясь перезагрузки
       if (result) setPayroll(prev => prev && {...prev, issue_confirmed: true})
     } finally {
       setLoading(false)

@@ -27,9 +27,6 @@ interface ImpersonateItemGroup {
   items: ImpersonateUser[]
 }
 
-// Видимость здесь - только удобство. Настоящая защита на сервере:
-// Server Actions и generateCustomSession сами проверяют, что запрос
-// пришёл от IMPERSONATOR_ID, а список пользователей не попадает в HTML
 function ImpersonateCombobox({className}: {className?: string}) {
   const [groups, setGroups] = useState<ImpersonateItemGroup[]>([])
   const [current, setCurrent] = useState<ImpersonateUser | null>(null)

@@ -1,4 +1,3 @@
-// lib/distribute.ts
 import solver from 'javascript-lp-solver'
 
 export interface Location {
@@ -98,7 +97,6 @@ export function distribute(
     ints: {},
   }
 
-  // Переменные
   employees.forEach((emp, ei) => {
     locations.forEach((_, li) => {
       const name = varName(ei, li)
@@ -111,12 +109,10 @@ export function distribute(
     })
   })
 
-  // Каждый сотрудник ровно на одной локации
   employees.forEach((_, ei) => {
     model.constraints[`one_loc_${ei}`] = {equal: 1}
   })
 
-  // Остаток на локации > 0
   locations.forEach((l, li) => {
     if (l.location_id === 15) return
 
@@ -127,7 +123,6 @@ export function distribute(
 
   if (!result.feasible) return []
 
-  // Считаем остатки
   const remainingMap = new Map(locations.map(l => [l.location_id, l.value]))
   employees.forEach((emp, ei) => {
     locations.forEach((loc, li) => {
@@ -140,7 +135,6 @@ export function distribute(
     })
   })
 
-  // Собираем результат
   const assignments: Assignment[] = []
   employees.forEach((emp, ei) => {
     locations.forEach((loc, li) => {

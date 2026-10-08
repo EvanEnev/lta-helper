@@ -13,22 +13,21 @@ export interface MultiSelectOption<T extends string | number> {
   label: string
   group?: string
   hint?: string
-  description?: string // пояснение под названием
+  description?: string
   icon?: ReactNode
 }
 
 interface MultiSelectProps<T extends string | number> {
-  label: string // «Ранги», «Локации»: для подписи на кнопке
+  label: string
   options: MultiSelectOption<T>[]
   value: T[]
   onChange: (value: T[]) => void
   searchable?: boolean
-  title?: string // подсказка при наведении на кнопку
+  title?: string
   className?: string
   contentClassName?: string
 }
 
-// Мультивыбор в поповере: поиск, «выбрать всё / снять», группы
 export default function MultiSelect<T extends string | number>({
   label,
   options,
@@ -69,7 +68,6 @@ export default function MultiSelect<T extends string | number>({
         : [...value, option],
     )
 
-  // группы идут в порядке первого появления
   const groups = useMemo(() => {
     const map = new Map<string, MultiSelectOption<T>[]>()
 

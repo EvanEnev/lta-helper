@@ -8,7 +8,6 @@ import type {
 
 export const ZONE = 'Europe/Moscow'
 
-// Для этой «локации» вместо типов работ выбирается один тип выплаты
 export const TYPED_LOCATION = 'Другое'
 
 export const PAYMENT_TYPES = [
@@ -33,7 +32,6 @@ export const GAME_KEYS = [
 export type GameKey = (typeof GAME_KEYS)[number]
 export type GameEntry = NonNullable<WorkerSalary[GameKey]>
 
-// Новая запись наследует площадку, время и типы работ от предыдущей
 export const emptyEntry = (previous?: WorkerSalary): WorkerSalary => ({
   worker: '',
   workingHours: previous?.workingHours || '',
@@ -57,8 +55,6 @@ export const emptyEntry = (previous?: WorkerSalary): WorkerSalary => ({
 
 export const nowInZone = () => DateTime.now().setZone(ZONE)
 
-// Без права edit_salary дату можно выбрать только рядом с сегодняшней:
-// вчера - до 4 утра, сегодня и завтра - всегда
 export function isDateAllowed(date: DateTime, canEditAll: boolean) {
   if (canEditAll) return true
 
@@ -71,7 +67,6 @@ export function isDateAllowed(date: DateTime, canEditAll: boolean) {
   return true
 }
 
-// Первая и последняя отметка FaceID за день (вход и выход)
 export function getFaceIdTimes(
   faceId: LTFaceIdData[],
   workers: LTWorker[],
@@ -102,21 +97,16 @@ export function getFaceIdTimes(
 
 export type EntryStatus = 'new' | 'saved' | 'confirmed'
 
-// new - ещё не проставлена (например, подставлена из FaceID),
-// saved - проставлена, но не подтверждена (дата не наступила),
-// confirmed - проставлена и подтверждена
 export const entryStatus = (
   entry: Pick<WorkerSalary, 'createdAt' | 'isConfirmed'>,
 ): EntryStatus =>
   !entry.createdAt ? 'new' : entry.isConfirmed ? 'confirmed' : 'saved'
 
-// БД отдаёт created_at::text, например «2026-10-05 17:12:33.123+03»
 export const formatCreatedAt = (createdAt: string) => {
   const match = createdAt.match(/^\d{4}-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/)
 
   return match ? `${match[2]}.${match[1]} ${match[3]}` : createdAt
 }
 
-// Сервер подтверждает запись при отправке, если дата уже наступила
 export const canConfirmDate = (date: DateTime) =>
   date.startOf('day').toMillis() <= nowInZone().toMillis()

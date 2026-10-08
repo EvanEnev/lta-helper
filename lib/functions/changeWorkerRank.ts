@@ -4,9 +4,6 @@ import {headers} from 'next/headers'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
 
-// Общая логика /api/workers/promote и /api/workers/demote.
-// Ранг меняется на соседний по sorting_weight; требования прошлого ранга
-// сбрасываются. Всё в одной транзакции.
 export default async function changeWorkerRank(
   req: NextRequest,
   direction: 1 | -1,
@@ -34,8 +31,6 @@ export default async function changeWorkerRank(
   try {
     await client.query('begin')
 
-    // Если соседнего ранга нет (старший/младший), строка не обновляется:
-    // раньше в таком случае rank_id становился NULL
     const updated = await client.query(
       `update workers w
        set rank_id = next.id

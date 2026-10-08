@@ -8,7 +8,9 @@ export interface GroupedRequirements {
   categories: Record<string, RankRequirement[]>
 }
 
-export function groupRequirements(data: RankRequirement[]): GroupedRequirements {
+export function groupRequirements(
+  data: RankRequirement[],
+): GroupedRequirements {
   const plain: RankRequirement[] = []
   const categories: Record<string, RankRequirement[]> = {}
 

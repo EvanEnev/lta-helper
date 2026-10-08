@@ -18,7 +18,6 @@ interface StatProps {
   className?: string
 }
 
-// На телефоне все четыре плитки в одну строку: число, иконка и короткая подпись
 function Stat({icon: StatIcon, value, label, short, className}: StatProps) {
   return (
     <Card size="sm">

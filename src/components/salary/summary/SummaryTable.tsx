@@ -14,14 +14,14 @@ import {cn} from '@/lib/utils'
 import type {ColumnDef, SummaryRow} from './columns'
 
 export interface SortState {
-  id: string // id колонки или 'name'
+  id: string
   dir: 'asc' | 'desc'
 }
 
 interface SummaryTableProps {
   columns: ColumnDef[]
   rows: SummaryRow[]
-  values: number[][] // значения по строкам и колонкам
+  values: number[][]
   totals: number[]
   sort: SortState | null
   onSort: (id: string) => void
@@ -40,7 +40,6 @@ function SortMark({sort, id}: {sort: SortState | null; id: string}) {
   )
 }
 
-// Прокручиваемая таблица: шапка, строка итогов и колонка сотрудников «прилипают»
 export default function SummaryTable({
   columns,
   rows,
@@ -56,7 +55,6 @@ export default function SummaryTable({
   return (
     <div
       className={cn(
-        // [contain:inline-size]: широкая таблица не растягивает всю страницу
         'relative min-h-0 flex-1 overflow-auto rounded-xl border [contain:inline-size]',
         isLoading && 'opacity-60 transition-opacity',
       )}>

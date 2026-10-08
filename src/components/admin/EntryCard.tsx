@@ -37,8 +37,8 @@ interface EntryCardProps {
   workTypes: LTWorkType[]
   gamesPayments: LTGamePayment[]
   faceId: LTFaceIdData[]
-  canConfirm: boolean // дата наступила: повторная отправка подтвердит запись
-  isOpen: boolean // раскрыта ли форма (только на телефоне; на десктопе всегда видна)
+  canConfirm: boolean
+  isOpen: boolean
   onToggle: () => void
   onChange: (patch: Partial<WorkerSalary>) => void
   onDelete: () => void
@@ -157,7 +157,6 @@ export default function EntryCard({
             ? `color-mix(in srgb, ${location.color} 22%, transparent)`
             : undefined,
         }}>
-        {/* на телефоне заголовок раскрывает форму */}
         <button
           type="button"
           aria-expanded={isOpen}

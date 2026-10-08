@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
 
   if (!worker) return fail('Вход не произведён', 401)
 
-  // Раньше проверялся только вход: ведомость и суммы к выплате мог создать кто угодно
   if (!checkPermissions(['edit_payrolls'], worker)) {
     return fail('Недостаточно прав', 403)
   }
@@ -39,7 +38,6 @@ export async function POST(req: NextRequest) {
 
   const isPublished = body.isPublished === true
 
-  // ---------- сотрудники ----------
   const workers: {
     workerId: number
     value: number
@@ -70,7 +68,6 @@ export async function POST(req: NextRequest) {
       return fail('Некорректные данные сотрудника')
     }
 
-    // location = -1: сотрудник без площадки в ведомость не попадает
     if (location === -1) continue
 
     const bonusesSum = (bonuses || 0) + (fines || 0)
@@ -84,7 +81,6 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // ---------- деньги на площадках ----------
   const money: {location: number; value: number | null}[] = []
 
   for (const item of Array.isArray(body.moneyOnLocations)
@@ -100,7 +96,6 @@ export async function POST(req: NextRequest) {
     money.push({location, value: value || null})
   }
 
-  // meta - черновик: JSON-строка из localStorage или объект
   let meta: string | null = null
 
   if (!isPublished && body.meta) {
@@ -126,8 +121,6 @@ export async function POST(req: NextRequest) {
       [start, end],
     )
 
-    // Опубликованную ведомость перезаписать нельзя: раньше она менялась
-    // (take_by, meta), а затем запись сотрудников падала на дубликате
     if (existing.rows[0]?.is_published) {
       await client.query('rollback')
 
@@ -155,7 +148,6 @@ export async function POST(req: NextRequest) {
 
     if (isPublished) {
       if (workers.length) {
-        // numeric -> integer приводится с округлением, как раньше при вставке литералов
         await client.query(
           `insert into relations.workers_payrolls
              (worker_id, payroll_id, value, location_id, bonuses, external_payment)

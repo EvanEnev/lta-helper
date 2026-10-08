@@ -21,7 +21,6 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/
 const fail = (message: string, status = 400) =>
   NextResponse.json({message}, {status})
 
-// Перенос выплат самозанятым из Консоли (оплаченные акты) в payments.list
 export async function POST(req: NextRequest) {
   const {user: worker} = (await auth.api.getSession({
     headers: await headers(),
@@ -48,7 +47,6 @@ export async function POST(req: NextRequest) {
     return fail('Неверные даты')
   }
 
-  // ---------- акты из Консоли ----------
   const acts: Act[] = []
 
   try {
@@ -94,7 +92,6 @@ export async function POST(req: NextRequest) {
     return fail('Не удалось получить данные из Консоли', 502)
   }
 
-  // ---------- запись одной транзакцией ----------
   const client = await db.connect()
   const skipped: string[] = []
   let imported = 0
@@ -103,8 +100,6 @@ export async function POST(req: NextRequest) {
     await client.query('begin')
 
     for (const act of acts) {
-      // сотрудник ищется по имени и фамилии; без однозначного совпадения
-      // запись пропускаем (раньше одна такая ломала весь перенос)
       const match = await client.query(
         `select id
          from workers

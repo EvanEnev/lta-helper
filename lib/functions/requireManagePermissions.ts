@@ -3,7 +3,6 @@ import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
 import checkPermissions from '@/lib/functions/checkPermissions'
 
-// Общая проверка для /api/permissions/*: null - можно продолжать
 export default async function requireManagePermissions() {
   const session = await auth.api.getSession({headers: await headers()})
 

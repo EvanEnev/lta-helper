@@ -14,8 +14,6 @@ interface NumberInputProps {
   className?: string
 }
 
-// Пока поле в фокусе, показываем то, что вводит пользователь, а не
-// пересчитанное значение: иначе стереть число до пустоты было бы нельзя
 export function NumberInput({
   value,
   onChange,

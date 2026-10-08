@@ -7,8 +7,23 @@ import {TooltipProvider} from '@/components/ui/tooltip'
 import {SidebarProvider} from '@/components/ui/sidebar'
 import AppSidebar from '@/src/components/global/header/AppSidebar'
 import {Toaster} from '@/components/ui/toast'
+import {usePathname} from 'next/navigation'
 
 export default function Providers({children}: {children: React.ReactNode}) {
+  const path = usePathname()
+  const isAuthPage = path === '/login' || path === '/register'
+
+  if (isAuthPage) {
+    return (
+      <NextThemesProvider attribute="class" defaultTheme="dark">
+        <TooltipProvider>
+          <Toaster />
+          {children}
+        </TooltipProvider>
+      </NextThemesProvider>
+    )
+  }
+
   return (
     <NextThemesProvider attribute="class" defaultTheme="dark">
       <SidebarProvider>

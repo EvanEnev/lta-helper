@@ -15,13 +15,12 @@ export interface LocationMoney {
 
 interface LocationsMoneyProps {
   locations: LTLocation[]
-  hidden: string[] // названия площадок (в нижнем регистре), которых здесь нет
+  hidden: string[]
   money: LocationMoney[]
   payrollData: LTPayrollData[]
   onChange: (location: LTLocation['id'], raw: string) => void
 }
 
-// Деньги, выделенные на площадки: сколько выделено и сколько ещё осталось
 export default function LocationsMoney({
   locations,
   hidden,
@@ -37,7 +36,6 @@ export default function LocationsMoney({
           const allocated = money.find(m => m.location === location.id)
           const total = allocated?.value || 0
 
-          // сколько из выделенного уже «занято» сотрудниками этой площадки
           const used = payrollData
             .filter(d => d.location === location.id)
             .reduce(
@@ -72,7 +70,6 @@ export default function LocationsMoney({
                   defaultValue={total ? String(total) : ''}
                   onChange={event => onChange(location.id, event.target.value)}
                   onKeyDown={event => {
-                    // Enter заменяет формулу результатом
                     if (event.key === 'Enter') {
                       const result = safeEvaluate(event.currentTarget.value)
                       if (result !== null)

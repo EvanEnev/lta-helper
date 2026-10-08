@@ -25,8 +25,6 @@ interface PayrollsDetailsPageProps {
   worker: LTWorker
 }
 
-// Событие workers_payrolls:update из триггера БД: to_take_by и taken_by приходят
-// именами (текстом), а не объектами; номера ведомости в нём нет
 interface PayrollUpdate {
   worker_id: number
   value: number
@@ -49,7 +47,6 @@ const ALL: LTLocation = {
   konsol_id: null,
 }
 
-// после своей правки эхо события ещё какое-то время не перезаписывает числа
 const ECHO_MS = 1500
 
 export default function PayrollsDetailsPage({
@@ -99,7 +96,6 @@ export default function PayrollsDetailsPage({
 
           return {
             ...row,
-            // числа, которые пользователь только что менял, не затираем эхом
             ...(mine
               ? {}
               : {
@@ -137,9 +133,6 @@ export default function PayrollsDetailsPage({
     }
   }, [])
 
-  // Правка: числа применяются сразу, на сервер уходят ВСЕ четыре поля. Раньше
-  // external_payment отправлялся только при его правке, и правка суммы, бонусов
-  // или локации стирала внешнюю выплату; очищенное поле записывалось как -1
   const edit = useCallback(
     (workerId: number, patch: RowPatch) => {
       const row = dataRef.current.find(r => r.worker.id === workerId)

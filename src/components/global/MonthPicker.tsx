@@ -11,8 +11,8 @@ import {
 import capitalize from '@/lib/functions/capitalize'
 
 interface MonthPickerProps {
-  dates: string[] // ISO первых чисел месяцев
-  value: string // yyyy-MM-dd
+  dates: string[]
+  value: string
   onChange: (value: string) => void
   className?: string
 }

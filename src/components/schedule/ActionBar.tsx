@@ -22,7 +22,6 @@ const pluralDays = (count: number) => {
   return 'дней'
 }
 
-// Панель действий над нижней навигацией (только телефон)
 export default function ActionBar({
   days,
   changesCount,

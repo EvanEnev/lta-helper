@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
     date: DateTime.fromISO(`${day.date}`),
   }))
 
-  // value и comment уходят в БД и в сообщения: принимаем только строки разумной длины
   selectedDays = selectedDays.filter(
     day =>
       day.date?.isValid &&
@@ -130,7 +129,6 @@ export async function POST(req: NextRequest) {
     : process.env.WORKERS_THREAD_ID
 
   if (queries.length) {
-    // одной транзакцией, как раньше при выполнении общей строкой
     const client = await db.connect()
 
     try {
@@ -157,7 +155,7 @@ export async function POST(req: NextRequest) {
         chat_id: telegramId,
         text: `Успешно ✅\n\n${changesTexts.join('\n')}`,
       }),
-    }).catch(e => errors.push('отправка личного сообщения')),
+    }).catch(() => errors.push('отправка личного сообщения')),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -168,7 +166,7 @@ export async function POST(req: NextRequest) {
         parse_mode: 'Markdown',
         disable_notification: true,
       }),
-    }).catch(e => errors.push('отправка сообщения в группу')),
+    }).catch(() => errors.push('отправка сообщения в группу')),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -178,7 +176,7 @@ export async function POST(req: NextRequest) {
         parse_mode: 'Markdown',
         text: locationsTexts,
       }),
-    }).catch(e => errors.push('отправка сообщения админам')),
+    }).catch(() => errors.push('отправка сообщения админам')),
   ]
 
   await Promise.all(telegramPromises)

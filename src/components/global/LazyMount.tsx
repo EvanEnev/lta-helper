@@ -4,14 +4,12 @@ import {useEffect, useRef, useState, type ReactNode} from 'react'
 
 interface LazyMountProps {
   children: ReactNode
-  minHeight: number | string // высота заглушки, пока содержимое не показано
-  root?: Element | null // прокручиваемый контейнер (если не окно)
+  minHeight: number | string
+  root?: Element | null
   rootMargin?: string
   className?: string
 }
 
-// Содержимое строки создаётся, когда она приближается к области просмотра.
-// В таблицах на сотни строк это убирает основную стоимость первого рендера
 export default function LazyMount({
   children,
   minHeight,

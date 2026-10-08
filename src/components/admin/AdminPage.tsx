@@ -49,12 +49,9 @@ export default function AdminPage({
   const [faceId, setFaceId] = useState<LTFaceIdData[]>([])
   const [isLoading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // после отправки записи перечитываются, чтобы появились «проставлена» и «подтверждена»
   const [reloadKey, setReloadKey] = useState(0)
-  // на телефоне формы свёрнуты в аккордеон, раскрыта одна
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
-  // у площадочного администратора записи за день подгружаются с сервера
   useEffect(() => {
     if (!worker.locationId) return
 
@@ -165,7 +162,6 @@ export default function AdminPage({
 
   return (
     <main className="flex w-full min-w-0 flex-col gap-4 p-4 lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-      {/* на телефоне порядок: дата, записи, действия; на десктопе справа */}
       <aside className="contents lg:sticky lg:top-4 lg:col-start-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
         <Card className="order-1 lg:order-none">
           <CardContent>

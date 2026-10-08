@@ -56,7 +56,6 @@ interface PayrollCreatePageProps {
 
 const DRAFT_KEY = 'payrollsCreate'
 const HIDDEN_ON_MONEY = ['выезд', 'отдел продаж']
-// на эти площадки сотрудника выдача не назначается
 const HIDDEN_FOR_WORKERS = ['другое', 'выезд', 'отдел продаж']
 const ALL: LTLocation = {
   id: 0,
@@ -105,8 +104,6 @@ export default function PayrollCreatePage({
     [data],
   )
 
-  // ВАЖНО: payrollData - то, что уйдёт на сервер. Фильтры ниже его не меняют
-  // (раньше фильтр по локации подменял эти данные, и публиковалась только их часть)
   const [payrollData, setPayrollData] = useState(baseRows)
   const [takeBy, setTakeBy] = useState(
     DateTime.now().plus({days: 7}).toFormat('yyyy-MM-dd'),
@@ -122,7 +119,6 @@ export default function PayrollCreatePage({
   const [isSaving, setSaving] = useState(false)
   const [confirmPublish, setConfirmPublish] = useState(false)
 
-  // черновик читаем после монтирования: на сервере localStorage нет
   useEffect(() => {
     const draft = readDraft()
 
@@ -134,7 +130,6 @@ export default function PayrollCreatePage({
     setReady(true)
   }, [])
 
-  // автосохранение черновика (с небольшой задержкой)
   useEffect(() => {
     if (!ready) return
 
@@ -193,7 +188,6 @@ export default function PayrollCreatePage({
 
   const update = useCallback(
     (workerId: number, field: EditableField, value: number) => {
-      // штрафы всегда хранятся отрицательными
       const next = field === 'fines' && value > 0 ? -value : value
 
       setPayrollData(prev =>
@@ -253,7 +247,6 @@ export default function PayrollCreatePage({
           workersData: payrollData,
           takeBy,
           dates,
-          // флаг ошибки формулы - служебный, на сервер не уходит
           moneyOnLocations: money.map(({location, value}) => ({
             location,
             value,
@@ -288,7 +281,6 @@ export default function PayrollCreatePage({
     [bonuses, dates, money, payrollData, router, takeBy],
   )
 
-  // ---------- отображаемое (фильтры не влияют на данные для отправки) ----------
   const locationOptions = useMemo(() => [ALL, ...locations], [locations])
   const selectableLocations = useMemo(
     () =>

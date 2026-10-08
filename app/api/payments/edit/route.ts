@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
   if (!body) return fail('Некорректный запрос')
 
   try {
-    // ---------- удаление ----------
     if (body.delete) {
       const id = toId(body.id)
       if (id === null) return fail('Не указана выплата')
@@ -38,7 +37,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({id}, {status: 200})
     }
 
-    // ---------- создание и правка ----------
     const typeId = toId(body.type)
     const value = Number(body.value)
     const date = String(body.date ?? '')
@@ -82,7 +80,6 @@ export async function POST(req: NextRequest) {
     const id = toId(body.id)
     if (id === null) return fail('Не указана выплата')
 
-    // сотрудник тоже меняется: раньше выбранное в форме имя молча игнорировалось
     const result = await db.query(
       `update payments.list
        set worker_id = $1,

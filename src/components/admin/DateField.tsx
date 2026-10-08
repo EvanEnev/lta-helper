@@ -15,7 +15,6 @@ interface DateFieldProps {
   onChange: (date: DateTime) => void
 }
 
-// Calendar отдаёт локальные Date: берём из них только год/месяц/день
 const toZoned = (date: Date) =>
   DateTime.fromObject(
     {year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate()},

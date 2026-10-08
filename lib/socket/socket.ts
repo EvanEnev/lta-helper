@@ -10,8 +10,6 @@ export default async function socket(
 ) {
   const client = await initListener(io)
 
-  // К сокету подключаются только вошедшие сотрудники: без этого любой
-  // посетитель мог слать события и получать рассылки об изменениях
   io.use(async (socket, next) => {
     try {
       const worker = await getSocketWorker(socket, client)

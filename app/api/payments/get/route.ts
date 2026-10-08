@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Некорректные даты'}, {status: 400})
   }
 
-  // без права view_all_payments - только свои выплаты
   const onlyOwn = !checkPermissions(['view_all_payments'], worker)
 
   const result = await db.query(

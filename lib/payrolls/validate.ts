@@ -13,7 +13,6 @@ export const toId = (value: unknown) => {
   return Number.isInteger(id) && id > 0 ? id : null
 }
 
-// Число или null (пусто); любое другое значение - ошибка (undefined)
 export const toNumber = (value: unknown): number | null | undefined => {
   if (value === null || value === undefined || value === '') return null
 

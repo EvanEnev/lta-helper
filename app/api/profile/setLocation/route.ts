@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // меняется только адрес самого пользователя, значения - параметрами
     await db.query('update workers set lat = $1, lng = $2 where id = $3', [
       body.lat,
       body.lng,

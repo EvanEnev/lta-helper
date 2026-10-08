@@ -2,57 +2,45 @@ import {NextRequest, NextResponse} from 'next/server'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
 
+const AUTH_PAGES = ['/login', '/register']
+
+function redirectTo(request: NextRequest, pathname: string, search = '') {
+  const url = request.nextUrl.clone()
+
+  url.pathname = pathname
+  url.search = search
+
+  return NextResponse.redirect(url)
+}
+
 export async function proxy(request: NextRequest) {
-  let session = await auth.api.getSession({
-    headers: await headers(),
-  })
+  const session = await auth.api.getSession({headers: await headers()})
 
-  if (
-    (!session || !session.user.id) &&
-    request.nextUrl.pathname !== '/login' &&
-    request.nextUrl.pathname !== '/register'
-  ) {
-    let destination: string | string[] = request.url.split('://')[1].split('/')
-    destination.shift()
-    destination = destination.join('/') || '/'
+  const {pathname, search} = request.nextUrl
+  const isAuthPage = AUTH_PAGES.includes(pathname)
 
-    let host = request.headers.get('host') || '127.0.0.1'
+  if (pathname === '/register') return redirectTo(request, '/login')
 
-    const url = request.nextUrl.clone()
+  if (!session) {
+    if (isAuthPage) return NextResponse.next()
 
-    url.pathname = `/login`
-    url.host = host
-    url.search = `?redirect=${destination}`
+    const back = `${pathname}${search}`
 
-    return NextResponse.redirect(url)
-  } else if (
-    session &&
-    !session.user.isApproved &&
-    request.nextUrl.pathname !== '/register'
-  ) {
-    const host = request.headers.get('host') || '127.0.0.1'
-
-    const url = request.nextUrl.clone()
-
-    url.pathname = `/register`
-    url.host = host
-
-    return NextResponse.redirect(url)
-  } else if (
-    session &&
-    session.user.isApproved &&
-    (request.nextUrl.pathname === '/register' ||
-      request.nextUrl.pathname == '/login')
-  ) {
-    const host = request.headers.get('host') || '127.0.0.1'
-
-    const url = request.nextUrl.clone()
-
-    url.pathname = `/`
-    url.host = host
-
-    return NextResponse.redirect(url)
+    return redirectTo(
+      request,
+      '/login',
+      back === '/' ? '' : `?redirect=${encodeURIComponent(back)}`,
+    )
   }
+
+  if (!session.user.isApproved) {
+    return pathname === '/login'
+      ? NextResponse.next()
+      : redirectTo(request, '/login')
+  }
+
+  if (isAuthPage) return redirectTo(request, '/')
+
   return NextResponse.next()
 }
 

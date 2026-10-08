@@ -120,10 +120,6 @@ export default function getSalaryData({
     salary = 1000
   }
 
-  // if (rank?.name === 'Актёр' && gamesCount && gamesCount > 2) {
-  //   overworkSalary += (rank?.overwork || 0) * (gamesCount - 2)
-  // }
-
   if (isOverWork) {
     overworkSalary += (rank?.overwork || 0) * overWorkTime
   }

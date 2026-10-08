@@ -13,8 +13,6 @@ interface CommitNumberInputProps {
   className?: string
 }
 
-// Число сохраняется, когда поле потеряло фокус или нажат Enter (а не на каждую
-// цифру): в таблицах на сотни строк это не перерисовывает всё при вводе
 export default function CommitNumberInput({
   value,
   onCommit,
@@ -31,7 +29,6 @@ export default function CommitNumberInput({
     setDraft(null)
 
     if (!Number.isNaN(parsed) && parsed !== current) onCommit(parsed)
-    // пустое поле = ноль
     else if (draft !== null && draft.trim() === '' && current !== 0) onCommit(0)
   }
 

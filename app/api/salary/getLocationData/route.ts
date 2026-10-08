@@ -4,40 +4,60 @@ import db from '@/lib/database'
 import {LTLocation, WorkerSalary} from '@/src/utils/types'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import checkPermissions from '@/lib/functions/checkPermissions'
+
+const SPECIAL_LOCATION_USERS = [12, 42]
 
 export async function POST(req: NextRequest) {
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
 
-  const date = DateTime.fromISO(body.date).setZone('Europe/Moscow')
+  const date = DateTime.fromISO(String(body?.date ?? '')).setZone(
+    'Europe/Moscow',
+  )
 
   const {user} = (await auth.api.getSession({
     headers: await headers(),
   })) || {user: null}
 
-  if (!user?.id)
-    return NextResponse.json({message: 'Пользователь не найден'}, {status: 500})
-
-  let locationId = user.locationId
-
-  const adminsQuery = `SELECT location_id
-    FROM config.admins
-    WHERE date::date = '${date.toFormat('yyyy-MM-dd')}'
-    AND worker_id = ${user.id}
-    order by date desc
-    limit 1`
-
-  const adminsResult = await db.query(adminsQuery)
-  const adminsRows = adminsResult.rows
-
-  if (adminsRows.length) {
-    locationId = adminsRows[0].location_id
+  if (!user?.id) {
+    return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
   }
 
-  const locationQuery = `select get_location(${locationId}) as location;`
-  const locationResult = await db.query(locationQuery)
+  if (!checkPermissions(['set_salary', 'edit_salary'], user)) {
+    return NextResponse.json({message: 'Нет прав'}, {status: 403})
+  }
+
+  if (!date.isValid) {
+    return NextResponse.json({message: 'Неверная дата'}, {status: 400})
+  }
+
+  const day = date.toFormat('yyyy-MM-dd')
+
+  let locationId: number | null = user.locationId ?? null
+
+  const adminsResult = await db.query(
+    `SELECT location_id
+     FROM config.admins
+     WHERE date::date = $1 AND worker_id = $2
+     order by date desc
+     limit 1`,
+    [day, user.id],
+  )
+
+  if (adminsResult.rows.length) {
+    locationId = adminsResult.rows[0].location_id
+  }
+
+  const locationResult = await db.query(
+    'select get_location($1::int) as location',
+    [locationId],
+  )
   const location: LTLocation = locationResult.rows[0]?.location || {}
 
-  const query = `SELECT
+  const withSpecial = SPECIAL_LOCATION_USERS.includes(user.id)
+
+  const result = await db.query(
+    `SELECT
   w.name AS worker,
   w.id,
   r.name as rank,
@@ -65,11 +85,11 @@ export async function POST(req: NextRequest) {
   LEFT JOIN locations l ON s.location_id = l.id
   LEFT JOIN workers w ON s.worker_id = w.id
   left join ranks r on r.id = w.rank_id
-  WHERE s.date = '${date.toFormat('yyyy-MM-dd')}' ${locationId ? `AND (s.location_id = ${locationId} OR s.location_id = 12${user.id === 42 || user.id === 12 ? ' or s.location_id = 17' : ''})` : ''}
-  order by r.sorting_weight desc, w.name
-  `
-
-  const result = await db.query(query)
+  WHERE s.date = $1
+    AND ($2::int IS NULL OR s.location_id = $2 OR s.location_id = 12 OR ($3::boolean AND s.location_id = 17))
+  order by r.sorting_weight desc, w.name`,
+    [day, locationId, withSpecial],
+  )
   const rows = result.rows
 
   let data: WorkerSalary[] = rows.map(row => {
@@ -111,24 +131,26 @@ export async function POST(req: NextRequest) {
     }
   })
 
-  const faceIdQuery = `select
-                     w.id as "workerId",
-                     w.name,
-                     r.name as rank,
-                     r.sorting_weight,
-                     json_agg(
-                       json_build_object(
-                         'location', functions.get_location(fd.location_id),
-                         'date', date::text
-                       )
-                     ) as data
-                   from face_id fd
-                   left join workers w on w.id = fd.worker_id
-                   left join ranks r on r.id = w.rank_id
-                   where (date between '${date.toFormat('yyyy-MM-dd')}'::date + interval '5 hours' and '${date.toFormat('yyyy-MM-dd')}'::date + interval '29 hours') and (fd.location_id = ${locationId} OR fd.location_id = 12${user.id === 42 || user.id === 12 ? ' or fd.location_id = 17' : ''})
-                   group by w.id, r.sorting_weight, r.name`
-
-  const faceIdResult = await db.query(faceIdQuery)
+  const faceIdResult = await db.query(
+    `select
+       w.id as "workerId",
+       w.name,
+       r.name as rank,
+       r.sorting_weight,
+       json_agg(
+         json_build_object(
+           'location', functions.get_location(fd.location_id),
+           'date', date::text
+         )
+       ) as data
+     from face_id fd
+     left join workers w on w.id = fd.worker_id
+     left join ranks r on r.id = w.rank_id
+     where date between $1::date + interval '5 hours' and $1::date + interval '29 hours'
+       and (fd.location_id = $2::int OR fd.location_id = 12 OR ($3::boolean AND fd.location_id = 17))
+     group by w.id, r.sorting_weight, r.name`,
+    [day, locationId, withSpecial],
+  )
   const faceIdRows = faceIdResult.rows
 
   faceIdRows.forEach(row => {

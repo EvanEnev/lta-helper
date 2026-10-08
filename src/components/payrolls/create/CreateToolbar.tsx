@@ -17,7 +17,7 @@ import {cn} from '@/lib/utils'
 import type {LTLocation} from '@/src/utils/types'
 
 interface CreateToolbarProps {
-  locationOptions: LTLocation[] // с «Все»
+  locationOptions: LTLocation[]
   locationName: string
   onLocationChange: (name: string) => void
   onlyEmpty: boolean

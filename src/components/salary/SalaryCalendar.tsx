@@ -15,7 +15,6 @@ interface SalaryCalendarProps {
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
-// Для сотрудника, который видит только свои данные: месяц календарём
 export default function SalaryCalendar({
   row,
   date,

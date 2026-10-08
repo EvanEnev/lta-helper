@@ -46,7 +46,6 @@ class LokiTransport extends Transport {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
     } catch (error) {
-      // Fallback to console if Loki is unavailable
       console.error('Failed to send logs to Loki:', error)
       entries.forEach(entry => {
         console.log(
@@ -130,7 +129,6 @@ class LokiTransport extends Transport {
 
   async flush(): Promise<void> {
     this.flushBatch()
-    // Даем время для отправки
     await new Promise(resolve => setTimeout(resolve, 1000))
   }
 
@@ -142,7 +140,6 @@ class LokiTransport extends Transport {
   }
 }
 
-// Создаем Winston logger
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
@@ -152,7 +149,6 @@ const logger = winston.createLogger({
   ),
   defaultMeta: {service: 'lta-web'},
   transports: [
-    // Console transport для development
     ...(process.env.NODE_ENV === 'development'
       ? [
           new winston.transports.Console({
@@ -164,7 +160,6 @@ const logger = winston.createLogger({
         ]
       : []),
 
-    // Loki transport
     new LokiTransport({
       lokiUrl: process.env.LOKI_URL || 'http://localhost:3100',
       serviceName: process.env.SERVICE_NAME || 'lta-web ',

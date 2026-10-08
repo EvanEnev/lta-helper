@@ -9,7 +9,7 @@ import VB from '@/public/icons/locations/VB'
 import Cyberport from '@/public/icons/locations/Cyberport'
 import Enclave from '@/public/icons/locations/Enclave'
 import PirateStation from '@/public/icons/locations/PirateStation'
-import {Icon} from '@iconify/react'
+import {MapPin} from 'lucide-react'
 
 export default function LocationIcon({
   locationName = '',
@@ -68,16 +68,7 @@ export default function LocationIcon({
   }
 
   if (!LIcon) {
-    return (
-      <Icon
-        className={`${className}`}
-        fill={'currentColor'}
-        color={'currentColor'}
-        icon="solar:map-point-linear"
-        width="40"
-        height="40"
-      />
-    )
+    return <MapPin className={className} width={40} height={40} />
   }
 
   return (

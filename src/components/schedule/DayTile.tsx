@@ -18,10 +18,8 @@ interface DayTileProps {
   onLongPress: () => void
 }
 
-// «Не указано» приходит с бэка вместо времени смены - это не информация
 const hasTime = (time?: string) => !!time && time !== 'Не указано'
 
-// До sm - компактная клетка (число и иконка), с sm - плитка с подробностями
 export default function DayTile({
   day,
   status,
@@ -33,7 +31,6 @@ export default function DayTile({
   onSelect,
   onLongPress,
 }: DayTileProps) {
-  // после долгого нажатия браузер всё равно шлёт click - его нужно пропустить
   const longPressed = useRef(false)
   const longPress = useLongPress(() => {
     longPressed.current = true
@@ -53,7 +50,6 @@ export default function DayTile({
         isPast && !isSelected && 'opacity-60',
         isSelected && 'ring-primary ring-2',
       )}>
-      {/* вся клетка - одна большая кнопка, остальное лежит поверх и не мешает */}
       <button
         type="button"
         aria-pressed={isSelected}
@@ -85,7 +81,6 @@ export default function DayTile({
         )}
       </div>
 
-      {/* телефон: только иконка статуса и смена */}
       <div className="pointer-events-none flex h-4 items-center gap-1 sm:hidden">
         {StatusIcon && <StatusIcon className="size-4 shrink-0" />}
         {shift && (
@@ -98,7 +93,6 @@ export default function DayTile({
         </span>
       )}
 
-      {/* десктоп: статус словами, смена и комментарий */}
       <div className="pointer-events-none hidden min-w-0 flex-col gap-0.5 sm:flex">
         <span className="flex items-center gap-1.5 text-sm font-medium">
           {StatusIcon && <StatusIcon className="size-4 shrink-0" />}

@@ -17,7 +17,7 @@ import type {LTWorker} from '@/src/utils/types'
 
 interface WorkerComboboxProps {
   workers: LTWorker[]
-  value: string // позывной
+  value: string
   onChange: (name: string) => void
 }
 
@@ -29,7 +29,6 @@ interface WorkerGroup {
 const sameName = (a?: string, b?: string) =>
   (a ?? '').toLowerCase() === (b ?? '').toLowerCase()
 
-// Сотрудники сгруппированы по рангам; бывшие - отдельной группой
 export default function WorkerCombobox({
   workers,
   value,

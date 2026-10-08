@@ -35,7 +35,6 @@ import {
   visibleLocations,
 } from './utils'
 
-// Панель деталей с формами нужна только после первого клика по ячейке
 const DetailsSheet = dynamic(() => import('./DetailsSheet'), {ssr: false})
 
 interface SalaryPageProps {
@@ -55,7 +54,6 @@ const ALL_LOCATIONS: LTLocation = {
   konsol_id: null,
 }
 
-// Свои правки по сокету вернутся эхом - в течение этого времени их пропускаем
 const ECHO_MS = 2000
 
 const readStorage = (key: string) => {
@@ -88,7 +86,6 @@ export default function SalaryPage({
     [worker],
   )
 
-  // месяцы приходят от новых к старым; по умолчанию - текущий, иначе самый свежий
   const months = useMemo(
     () =>
       availableMonths.map(iso => DateTime.fromISO(iso).toFormat('yyyy-MM-dd')),
@@ -104,12 +101,10 @@ export default function SalaryPage({
     )
   }, [months])
 
-  // сохранённый выбор читаем после монтирования: на сервере localStorage нет
   const [ready, setReady] = useState(false)
   const [month, setMonth] = useState(defaultMonth)
   const [locationId, setLocationId] = useState<number>(worker.locationId || 2)
   const [review, setReview] = useState(false)
-  // «Подробно» - все поля в ячейке (для проверок), «Кратко» - сумма и значки
   const [density, setDensity] = useState<'full' | 'compact'>('full')
 
   useEffect(() => {
@@ -135,7 +130,6 @@ export default function SalaryPage({
   const [sheetUsed, setSheetUsed] = useState(false)
   const [scrollSignal, setScrollSignal] = useState(0)
 
-  // ---------- загрузка ----------
   const requestId = useRef(0)
 
   const load = useCallback(
@@ -154,7 +148,6 @@ export default function SalaryPage({
           showNotification: false,
         })
 
-        // ответ на устаревший запрос (сменили месяц или локацию) отбрасываем
         if (id === requestId.current && json?.data) setRows(json.data)
       } finally {
         if (id === requestId.current) setLoading(false)
@@ -172,7 +165,6 @@ export default function SalaryPage({
     if (ready) load(false)
   }, [ready, load])
 
-  // ---------- сокет ----------
   const socketRef = useRef<Socket | null>(null)
   const locationRef = useRef(locationId)
   const monthRef = useRef(month)
@@ -188,7 +180,6 @@ export default function SalaryPage({
     const socket = io()
     socketRef.current = socket
 
-    // Обработчик не зависит от состояния: данные берём из prev
     socket.on('salary:update', (payload: SalaryUpdatePayload) => {
       const key = editKey(payload.worker_id, payload.date, payload.location?.id)
       const editedAt = recentEdits.current.get(key)
@@ -198,7 +189,6 @@ export default function SalaryPage({
         return
       }
 
-      // чужой месяц нам не интересен
       if (!payload.date.startsWith(monthRef.current.slice(0, 7))) return
 
       let found = true
@@ -208,8 +198,6 @@ export default function SalaryPage({
         return result.rows
       })
 
-      // Новая смена, которой в таблице ещё нет: тихо перечитываем данные
-      // (к моменту срабатывания таймера обновление состояния уже выполнено)
       if (reloadTimer.current) clearTimeout(reloadTimer.current)
       reloadTimer.current = setTimeout(() => {
         if (!found) loadRef.current(true)
@@ -223,7 +211,6 @@ export default function SalaryPage({
     }
   }, [])
 
-  // свои правки вернутся событием БД: запоминаем и пропускаем
   const markEdited = (workerId: number, data: SalaryData) => {
     const iso = DateTime.fromFormat(data.date, 'dd.MM.yyyy').toFormat(
       'yyyy-MM-dd',
@@ -267,7 +254,6 @@ export default function SalaryPage({
     setSelected({workerId, dayKey})
   }, [])
 
-  // ---------- производные данные ----------
   const days = useMemo(() => dayKeys(month), [month])
   const isCurrentMonth = monthStart(month).hasSame(
     DateTime.now().setZone(ZONE),
@@ -307,7 +293,6 @@ export default function SalaryPage({
     return row && data ? {worker: row.worker, data} : null
   }, [rows, selected])
 
-  // ---------- действия ----------
   const changeMonth = (next: string) => {
     writeStorage('salaryDate', next)
     setMonth(next)
@@ -365,7 +350,6 @@ export default function SalaryPage({
     <main
       className={cn(
         'flex min-w-0 flex-col gap-3 p-4',
-        // таблица занимает ровно высоту экрана (на телефоне минус нижняя панель)
         isTable && 'max-sm:h-[calc(100dvh-4rem)] sm:h-dvh',
       )}>
       <SalaryToolbar

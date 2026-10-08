@@ -22,8 +22,6 @@ export default async function generateCustomSession({
     cookieStore.get(IMPERSONATE_COOKIE)?.value,
   )
 
-  // Cookie присылает клиент, ему нельзя верить: подмену разрешаем только
-  // если настоящий (по auth_id/email, без cookie) пользователь - impersonator
   let impersonate = false
   if (targetId !== null) {
     const real = await db.query(

@@ -35,21 +35,18 @@ export interface CreateRowData {
 
 interface CreateTableProps {
   rows: CreateRowData[]
-  locations: LTLocation[] // доступные для выбора
+  locations: LTLocation[]
   onUpdate: (workerId: number, field: EditableField, value: number) => void
 }
 
-// имя | ФИ | остаток | сумма | бонусы | штрафы | внешняя | итог | локация
 const TEMPLATE =
   'minmax(13rem,1.4fr) minmax(10rem,1fr) 7rem 8.5rem 8.5rem 8.5rem 10rem 8rem minmax(13rem,1fr)'
 
-// Поле ввода «на месте»: рамка видна только при наведении и фокусе, число справа
 const EDIT =
   'h-9 border-transparent bg-transparent text-right text-base shadow-none hover:border-input focus-visible:border-ring dark:bg-transparent'
 
 const CELL = 'px-3 py-2.5'
 
-// Шапка: непрозрачный фон, иначе под ней просвечивают прокручиваемые строки
 const HEAD = 'bg-background flex items-center px-3'
 
 const HEADERS = [
@@ -64,7 +61,6 @@ const HEADERS = [
   'Локация',
 ]
 
-// Итог строки: штрафы и внешняя выплата уменьшают (штрафы хранятся со знаком минус)
 export const rowTotal = (entry: LTPayrollData) =>
   (entry.fines || 0) +
   (entry.bonuses || 0) +
@@ -168,8 +164,6 @@ const Row = memo(function Row({
   )
 })
 
-// Таблица: шапка с итогами и колонка сотрудника «прилипают», строки создаются
-// по мере прокрутки
 export default function CreateTable({
   rows,
   locations,

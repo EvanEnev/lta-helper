@@ -3,12 +3,8 @@ import type {Client} from 'pg'
 import {getData} from '../auth/getWorkerData'
 import checkPermissions from '../functions/checkPermissions'
 
-// Cookie сессии better-auth: <prefix>.session_token = <token>.<подпись>
-// (prefix задан в lib/auth.ts, в продакшене добавляется __Secure-).
-// Токен - длинный случайный секрет, поэтому проверяем его по таблице сессий
 const SESSION_COOKIE = /(?:^|;\s*)(?:__Secure-)?auth\.session_token=([^;]+)/
 
-// Права кэшируются на сокете, чтобы не ходить в БД на каждое событие
 const CACHE_MS = 60_000
 
 type SocketWorker = Awaited<ReturnType<typeof getData>>['worker']
@@ -48,7 +44,6 @@ async function loadWorker(socket: Socket, client: Client) {
   return worker.id ? worker : null
 }
 
-// Возвращает сотрудника сокета или null, если сессия недействительна
 export async function getSocketWorker(socket: Socket, client: Client) {
   const cached: CachedAuth | undefined = socket.data.auth
 
@@ -62,8 +57,6 @@ export async function getSocketWorker(socket: Socket, client: Client) {
   return worker
 }
 
-// Обработчик события, доступный только сотрудникам с нужным правом.
-// Ошибки ловим здесь: необработанное отклонение промиса роняет процесс
 export function guarded<T>(
   socket: Socket,
   client: Client,
@@ -79,7 +72,6 @@ export function guarded<T>(
         return
       }
 
-      // checkPermissions дописывает 'admin' в переданный массив - отдаём копию
       if (!checkPermissions([...permissions], worker)) return
 
       await handler(data)

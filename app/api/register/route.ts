@@ -5,101 +5,123 @@ import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import google from '@/lib/google'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
-import {getData} from '@/lib/auth/generateCustomSession'
+import {getData} from '@/lib/auth/getWorkerData'
+
+const text = (value: unknown, max: number) =>
+  typeof value === 'string' ? value.trim().slice(0, max) : ''
+
+const fail = (message: string, status = 400) =>
+  NextResponse.json({message}, {status})
+
+async function findRank(name: string) {
+  try {
+    await google.schedule.loadInfo()
+
+    const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
+    await sheet.loadHeaderRow(1)
+    const rows = await sheet.getRows()
+
+    const row = rows.find(
+      (row: GoogleSpreadsheetRow) =>
+        row.get('Позывной')?.split('-')[0]?.trim().toLowerCase() ===
+        name.toLowerCase(),
+    )
+
+    return capitalize(row?.get('Ранг') || '') || 'Актёр'
+  } catch (e) {
+    console.error(e)
+
+    return 'Актёр'
+  }
+}
 
 export async function POST(req: NextRequest) {
-  const sessionData = await auth.api.getSession({
-    headers: await headers(),
-  })
+  const requestHeaders = await headers()
+  const sessionData = await auth.api.getSession({headers: requestHeaders})
 
-  const user = sessionData?.user
-  const session = sessionData?.session
+  if (!sessionData) return fail('Вход не произведён', 401)
 
-  const body = await req.json()
+  const {user, session} = sessionData
 
-  const data = body.data
+  if (user.id) return fail('Анкета уже отправлена', 409)
 
-  if (!user) {
-    return NextResponse.json({message: 'Ошибка валидации'}, {status: 500})
+  const data = (await req.json().catch(() => null))?.data ?? {}
+
+  const name = capitalize(text(data.name, 100))
+  const firstName = capitalize(text(data.first_name, 100))
+  const lastName = capitalize(text(data.last_name, 100))
+  const middleName = capitalize(text(data.middle_name, 100))
+  const phone = text(data.phone, 30)
+  const email = text(data.email, 200)
+  const invitedBy = Number(data.invited_by)
+
+  if (!name) return fail('Позывной не указан')
+  if (!firstName) return fail('Имя не указано')
+  if (!lastName) return fail('Фамилия не указана')
+  if (!middleName) return fail('Отчество не указано')
+  if (!/^\+?[\d\s()-]{10,}$/.test(phone)) return fail('Телефон указан неверно')
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return fail('Почта указана неверно')
+  }
+  if (!Number.isInteger(invitedBy) || invitedBy <= 0) {
+    return fail('Не указан куратор')
   }
 
-  if (!data.name) {
-    return NextResponse.json({message: 'Позывной не указан'}, {status: 500})
-  }
-
-  if (!data.first_name) {
-    return NextResponse.json({message: 'Имя не указано'}, {status: 500})
-  }
-
-  if (!data.last_name) {
-    return NextResponse.json({message: 'Фамилия не указана'}, {status: 500})
-  }
-
-  if (!data.phone) {
-    return NextResponse.json({message: 'Телефон не указан'}, {status: 500})
-  }
-
-  if (!data.email) {
-    return NextResponse.json({message: 'Почта не указана'}, {status: 500})
-  }
-
-  if (!data.authId) {
-    return NextResponse.json({message: 'Соц. сеть не привязана'}, {status: 500})
-  }
-
-  if (!data.invited_by) {
-    return NextResponse.json({message: 'Не указан куратор'}, {status: 500})
-  }
-
-  const providers = await auth.api.listUserAccounts({headers: await headers()})
-
-  let telegramId: null | number = null
-  if (providers[0].id === 'telegram') {
-    const query = `select email from auth."user" where id = '${providers[0].userId}'`
-    const result = await db.query(query)
-
-    if (result.rows[0]?.email) {
-      telegramId = Number(result.rows[0].email)
-    }
-  }
-
-  const firstName = capitalize(data.first_name.trim())
-  const lastName = capitalize(data.last_name.trim())
-  const middleName = capitalize(data.middle_name.trim())
-
-  await google.schedule.loadInfo()
-
-  const sheet = google.schedule.sheetsByTitle['Сотрудники + расписание']
-  await sheet.loadHeaderRow(1)
-  const rows = await sheet.getRows()
-
-  const row = rows.find(
-    (row: GoogleSpreadsheetRow) =>
-      row.get('Позывной')?.split('-')[0]?.trim().toLowerCase() ===
-      data.name.toLowerCase(),
+  const curator = await db.query(
+    `select 1 from workers
+     where id = $1 and rank_id = 1 and is_fired is not true and is_former is not true`,
+    [invitedBy],
   )
 
-  const rank = row?.get('Ранг')
+  if (!curator.rowCount) return fail('Куратор не найден')
 
-  const query = `INSERT
-                 INTO workers
-                     (name, telegram_id, first_name, last_name, middle_name, email, phone_number, rank_id, auth_id, invited_by)
-                 VALUES ('${capitalize(data.name.trim())}',
-                         ${telegramId},
-                        '${firstName}',
-                        '${lastName}',
-                        '${middleName}',
-                         '${data.email}',
-                         '${data.phone}',
-                         (select id from ranks where unaccent(name) ilike unaccent('${capitalize(rank) || 'Актёр'}')),
-                         '${data.authId}',
-                         ${data.invited_by}
-                        )
-                 `
+  let telegramId: number | null = null
+  const accounts = await auth.api.listUserAccounts({headers: requestHeaders})
 
-  await db.query(query)
+  if (accounts.some(account => account.providerId === 'telegram')) {
+    const result = await db.query(
+      'select email from auth."user" where id = $1',
+      [session.userId],
+    )
+    const value = result.rows[0]?.email
 
-  const worker = await getData(session!.userId, session!.userId, false)
+    if (/^\d+$/.test(value ?? '')) telegramId = Number(value)
+  }
+
+  const rank = await findRank(name)
+
+  try {
+    await db.query(
+      `insert into workers
+         (name, telegram_id, first_name, last_name, middle_name, email,
+          phone_number, rank_id, auth_id, invited_by)
+       values ($1, $2, $3, $4, $5, $6, $7,
+               (select id from ranks where unaccent(name) ilike unaccent($8)),
+               $9, $10)`,
+      [
+        name,
+        telegramId,
+        firstName,
+        lastName,
+        middleName,
+        email,
+        phone,
+        rank,
+        session.userId,
+        invitedBy,
+      ],
+    )
+  } catch (e) {
+    if ((e as {code?: string}).code === '23505') {
+      return fail('Сотрудник с таким позывным или почтой уже есть', 409)
+    }
+
+    console.error(e)
+
+    return fail('Не удалось отправить анкету', 500)
+  }
+
+  const {worker} = await getData(session.userId, session.userId, false)
 
   return NextResponse.json({worker}, {status: 200})
 }

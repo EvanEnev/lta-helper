@@ -94,7 +94,6 @@ function Value({children}: {children: ReactNode}) {
   )
 }
 
-// Число сохраняется, когда поле потеряло фокус или нажат Enter
 function CommitNumber({
   label,
   value,
@@ -147,7 +146,6 @@ function CommitNumber({
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
 
-// Время «чч:мм»; на сервер уходит «чч:мм:00», как и раньше
 function CommitTime({
   label,
   value,
@@ -162,7 +160,6 @@ function CommitTime({
   onCommit: (value: string | null) => void
 }) {
   const [draft, setDraft] = useState<string | null>(null)
-  // сервер отдаёт «чч:мм», после правки приходит «чч:мм:00» - показываем без секунд
   const current = (value ?? '').slice(0, 5)
 
   if (!editable) return <Value>{current || '—'}</Value>
@@ -512,7 +509,6 @@ export default function DetailsSheet({
                   ` · проставлена: ${data.createdBy} ${data.createdAt}`}
               </SheetDescription>
             </SheetHeader>
-            {/* key: при смене ячейки черновики полей сбрасываются */}
             <div
               key={`${target.worker.id}-${data.id ?? data.date}`}
               className={cn(

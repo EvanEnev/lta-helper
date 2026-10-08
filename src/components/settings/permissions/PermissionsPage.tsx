@@ -62,7 +62,6 @@ export default function PermissionsPage({
   const [pickerOpen, setPickerOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // ответ на устаревший выбор сотрудника не должен перезаписать актуальный
   const loadId = useRef(0)
 
   useEffect(() => {
@@ -97,7 +96,6 @@ export default function PermissionsPage({
     }
   }, [])
 
-  // Изменение показываем сразу; если сервер отказал - возвращаем как было
   const toggle = useCallback(
     async (permissionId: number, enabled: boolean) => {
       if (!selected) return
@@ -215,7 +213,6 @@ export default function PermissionsPage({
 
         <TabsContent value="workers">
           <div className="grid gap-4 md:grid-cols-[18rem_minmax(0,1fr)] md:items-start">
-            {/* телефон: выбор сотрудника в шторке */}
             <Button
               variant="outline"
               size="lg"

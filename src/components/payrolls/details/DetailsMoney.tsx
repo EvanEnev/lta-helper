@@ -8,7 +8,6 @@ import type {
   LTWorkerPayrollData,
 } from '@/src/utils/types'
 
-// Сколько причитается сотруднику по ведомости
 export const payable = (row: LTWorkerPayrollData) =>
   row.value + (row.bonuses || 0) - (row.external_payment || 0)
 
@@ -91,7 +90,6 @@ interface DetailsMoneyProps {
   data: LTWorkerPayrollData[]
 }
 
-// По каждой площадке и в целом: выделено, к выдаче, выдано
 export default function DetailsMoney({locationsData, data}: DetailsMoneyProps) {
   const total = locationFigures(data)
 

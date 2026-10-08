@@ -5,7 +5,6 @@ import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
 import {toId} from '@/lib/payrolls/validate'
 
-// Закрытие ведомости: остаток каждого сотрудника переносится в его баланс
 export async function PATCH(
   _req: NextRequest,
   {params}: {params: Promise<{id: string}>},
@@ -28,9 +27,6 @@ export async function PATCH(
     return NextResponse.json({message: 'Некорректная ведомость'}, {status: 400})
   }
 
-  // Запрос обновляет баланс всех сотрудников. Для несуществующей ведомости или
-  // черновика (в нём нет строк сотрудников) это обнулило бы балансы у всех -
-  // поэтому сначала проверяем, что ведомость есть и опубликована
   const payroll = await db.query(
     'select is_published from payrolls.list where id = $1',
     [payrollId],

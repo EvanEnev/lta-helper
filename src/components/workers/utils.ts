@@ -7,8 +7,6 @@ export const fullName = (
     .filter(Boolean)
     .join(' ')
 
-// Тот же порядок, что в SQL страницы: сначала неподтверждённые, потом бывшие,
-// дальше по рангу (старшие выше) и по имени
 export const sortWorkers = (workers: LTWorkerData[]) =>
   [...workers].sort(
     (a, b) =>
@@ -18,8 +16,6 @@ export const sortWorkers = (workers: LTWorkerData[]) =>
       a.name.localeCompare(b.name),
   )
 
-// Обновление требования: и от сокета (в т.ч. удаление, когда приходит oldId),
-// и оптимистично сразу после действия пользователя
 export function applyRequirementUpdate(
   workers: LTWorkerData[],
   data: RankUpdateData,
