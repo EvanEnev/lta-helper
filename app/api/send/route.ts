@@ -117,16 +117,21 @@ export async function POST(req: NextRequest) {
   const botToken = process.env.BOT_TOKEN
   const rank = row.get('Ранг')
 
-  const isActor =
-    rank && (rank.toLowerCase() === 'актёр' || rank.toLowerCase() === 'актер')
+  const normalizedRank = rank?.toLowerCase().replaceAll('ё', 'е')
+  const isActor = normalizedRank === 'актер'
+  const isIntern = normalizedRank === 'стажер'
 
   const chat_id = isActor
     ? process.env.ACTORS_CHAT_ID
-    : process.env.WORKERS_CHAT_ID
+    : isIntern
+      ? process.env.TRAINEES_CHAT_ID
+      : process.env.WORKERS_CHAT_ID
 
   const message_thread_id = isActor
     ? process.env.ACTORS_THREAD_ID
-    : process.env.WORKERS_THREAD_ID
+    : isIntern
+      ? process.env.TRAINEES_THREAD_ID
+      : process.env.WORKERS_THREAD_ID
 
   if (queries.length) {
     const client = await db.connect()

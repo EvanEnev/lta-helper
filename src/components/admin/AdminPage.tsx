@@ -5,7 +5,7 @@ import {DateTime} from 'luxon'
 import {Loader2, Plus, Send} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Card, CardContent} from '@/components/ui/card'
-import fetchHandler from '@/src/utils/global/fetchHandler'
+import fetchHandler, {isQueued} from '@/src/utils/global/fetchHandler'
 import type {
   LTFaceIdData,
   LTGamePayment,
@@ -51,6 +51,14 @@ export default function AdminPage({
   const [error, setError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [openIndex, setOpenIndex] = useState<number | null>(0)
+
+  useEffect(() => {
+    const reload = () => setReloadKey(key => key + 1)
+
+    window.addEventListener('outbox:flushed', reload)
+
+    return () => window.removeEventListener('outbox:flushed', reload)
+  }, [])
 
   useEffect(() => {
     if (!worker.locationId) return
@@ -145,9 +153,10 @@ export default function AdminPage({
         url: '/api/salary/send',
         method: 'POST',
         body: {salaryData, date: date.toISO() || ''},
+        queue: `Смены за ${date.toFormat('dd.MM.yyyy')}`,
       })
 
-      if (response) {
+      if (response && !isQueued(response)) {
         if (worker.locationId) {
           setReloadKey(key => key + 1)
         } else {

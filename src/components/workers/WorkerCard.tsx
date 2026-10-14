@@ -16,12 +16,19 @@ import {Button} from '@/components/ui/button'
 import {Card, CardContent} from '@/components/ui/card'
 import {Progress} from '@/components/ui/progress'
 import {Separator} from '@/components/ui/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {TelegramIcon} from '@/src/components/global/BrandIcons'
 import RankIcon from '@/src/components/global/RankIcon'
 import formatPhone from '@/lib/functions/formatPhone'
 import {getRankProgress} from '@/lib/functions/rankProgress'
 import {cn} from '@/lib/utils'
-import type {LTWorkerData} from '@/src/utils/types'
+import type {LTRank, LTWorkerData} from '@/src/utils/types'
 import {fullName} from './utils'
 
 interface WorkerCardProps {
@@ -30,9 +37,11 @@ interface WorkerCardProps {
   canApprove: boolean
   isTopRank: boolean
   isBottomRank: boolean
+  ranks: LTRank[]
   onOpenRequirements: () => void
   onApprove: () => void
   onRankChange: (type: 'promote' | 'demote') => Promise<void>
+  onRankSet: (rankId: number) => Promise<void>
 }
 
 export default function WorkerCard({
@@ -41,9 +50,11 @@ export default function WorkerCard({
   canApprove,
   isTopRank,
   isBottomRank,
+  ranks,
   onOpenRequirements,
   onApprove,
   onRankChange,
+  onRankSet,
 }: WorkerCardProps) {
   const [copied, setCopied] = useState(false)
   const [isBusy, setBusy] = useState(false)
@@ -63,6 +74,15 @@ export default function WorkerCard({
     setBusy(true)
     try {
       await onRankChange(type)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const setRank = async (rankId: number) => {
+    setBusy(true)
+    try {
+      await onRankSet(rankId)
     } finally {
       setBusy(false)
     }
@@ -183,6 +203,29 @@ export default function WorkerCard({
           )}
           {canEdit && (
             <>
+              <Select
+                value={String(data.rank.id)}
+                disabled={isBusy}
+                onValueChange={value => {
+                  const rankId = Number(value)
+
+                  if (rankId !== data.rank.id) setRank(rankId)
+                }}
+                items={ranks.map(rank => ({
+                  value: String(rank.id),
+                  label: rank.name,
+                }))}>
+                <SelectTrigger size="sm" aria-label="Выбрать ранг">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ranks.map(rank => (
+                    <SelectItem key={rank.id} value={String(rank.id)}>
+                      {rank.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="secondary"
                 size="sm"

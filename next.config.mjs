@@ -12,6 +12,7 @@ const nextConfig = {
     'googleapis',
     'googleapis-common',
     'winston',
+    'web-push',
   ],
   typescript: {ignoreBuildErrors: true},
   experimental: {

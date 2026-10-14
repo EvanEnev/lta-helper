@@ -62,6 +62,14 @@ server.ts             Next + Socket.IO
 - Ответы без внутренних сообщений ошибок БД.
 - Путь возврата после входа: `lib/auth/safeRedirect.ts`.
 
+## PWA, оффлайн и уведомления
+
+- `public/sw.js`: кэш статики (`/_next/static`, картинки, шрифты) и последних открытых страниц (в сети страница берётся с сервера, без сети отдаётся сохранённая копия; `/` и `/schedule`, `/salary` прогреваются при загрузке). `/api` не кэшируется, `public/offline.html` для страниц без копии. Копии страниц привязаны к пользователю и очищаются при выходе и смене пользователя. С `?dev` (разработка) кэширование статики отключено.
+- `useWorker` (`src/hooks/useWorker.ts`) держит сохранённые имя, ранг и права, чтобы меню работало без сети; для данных о правах в клиентском коде использовать его, а не `useSession`.
+- Отложенные запросы: `fetchHandler({..., queue: 'Подпись'})`, список разрешённых адресов `QUEUEABLE_URLS` в `src/utils/offline/outbox.ts`. Только идемпотентные записи; финансовые операции (ведомости, выдача) в очередь не ставить. Очередь хранится в IndexedDB, привязана к пользователю и очищается при выходе.
+- Push: отправка `lib/push/send.ts`, подписки в `relations.workers_notifications` (одна запись на устройство), задачи `lib/push/jobs/*`, планировщик `lib/push/scheduler.ts` стартует в `server.ts`.
+- Переменные: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (https: или mailto:), `PUSH_SCHEDULER` (`on`/`off`, по умолчанию включён только в продакшене), `SHIFTS_REMINDER_HOURS_BEFORE` (за сколько часов до конца смены самого позднего админа локации, по умолчанию 2; админы берутся из `schedule.locations_schedule` и должны иметь право `set_salary`), `SHIFTS_DEFAULT_END` (конец смены, если время не указано, по умолчанию 19:00 МСК), `KONSOL_WEBHOOK_SECRET`, `SENDQUERY_DATABASE_USER`/`SENDQUERY_DATABASE_PASSWORD`.
+
 ## Дата и время
 
 Luxon, часовой пояс `Europe/Moscow`:

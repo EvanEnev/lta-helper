@@ -5,6 +5,7 @@ import {GoogleSpreadsheetRow} from 'google-spreadsheet'
 import google from '@/lib/google'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import {getCurators} from '@/lib/internship/curators'
 import {getData} from '@/lib/auth/getWorkerData'
 
 const text = (value: unknown, max: number) =>
@@ -67,13 +68,9 @@ export async function POST(req: NextRequest) {
     return fail('Не указан куратор')
   }
 
-  const curator = await db.query(
-    `select 1 from workers
-     where id = $1 and rank_id = 1 and is_fired is not true and is_former is not true`,
-    [invitedBy],
-  )
+  const curators = await getCurators()
 
-  if (!curator.rowCount) return fail('Куратор не найден')
+  if (!curators.some(c => c.id === invitedBy)) return fail('Куратор не найден')
 
   let telegramId: number | null = null
   const accounts = await auth.api.listUserAccounts({headers: requestHeaders})

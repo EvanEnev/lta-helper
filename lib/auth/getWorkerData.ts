@@ -48,7 +48,7 @@ export async function getData(
         pm.name, description, pm.id
     FROM config.permissions pm
            LEFT JOIN workers w ON ${impersonate ? 'w.id = $1' : 'auth_id = $1 or email = $2'}
-           LEFT JOIN config.default_permissions dp ON (SELECT weight FROM ranks WHERE id = dp.rank_id) <= (SELECT weight FROM ranks WHERE id = w.rank_id)
+           LEFT JOIN config.default_permissions dp ON (SELECT permission_level FROM ranks WHERE id = dp.rank_id) <= (SELECT permission_level FROM ranks WHERE id = w.rank_id)
            LEFT JOIN relations.workers_permissions w_pm ON w_pm.worker_id = w.id AND COALESCE(w_pm.expires > NOW(), true)
     WHERE
       pm.id = dp.permission_id

@@ -123,6 +123,24 @@ export default function WorkersPage({
     [router],
   )
 
+  const setRank = useCallback(
+    async (workerId: number, rankId: number) => {
+      const res = await fetchHandler({
+        url: '/api/workers/set-rank',
+        method: 'POST',
+        body: {workerId, rankId},
+      })
+
+      if (res?.newRank) {
+        setWorkers(prev =>
+          prev.map(w => (w.id === workerId ? {...w, rank: res.newRank} : w)),
+        )
+        router.refresh()
+      }
+    },
+    [router],
+  )
+
   const approve = useCallback(async (form: FormData, workerId: number) => {
     const data = {
       ...Object.fromEntries(form),
@@ -270,7 +288,9 @@ export default function WorkersPage({
               isBottomRank={data.rank.id === minRankId}
               onOpenRequirements={() => setRequirementsId(data.id)}
               onApprove={() => setApproveId(data.id)}
+              ranks={ranks}
               onRankChange={type => changeRank(data.id, type)}
+              onRankSet={rankId => setRank(data.id, rankId)}
             />
           ))}
         </div>

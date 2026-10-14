@@ -12,6 +12,8 @@ interface DatePopoverProps {
   value: string
   onChange: (value: string) => void
   label?: string
+  min?: string
+  max?: string
   className?: string
 }
 
@@ -19,6 +21,8 @@ export default function DatePopover({
   value,
   onChange,
   label = 'Дата',
+  min,
+  max,
   className,
 }: DatePopoverProps) {
   const [open, setOpen] = useState(false)
@@ -43,6 +47,10 @@ export default function DatePopover({
           locale={ru}
           selected={selected}
           defaultMonth={selected}
+          disabled={[
+            ...(min ? [{before: DateTime.fromISO(min).toJSDate()}] : []),
+            ...(max ? [{after: DateTime.fromISO(max).toJSDate()}] : []),
+          ]}
           onSelect={date => {
             if (!date) return
             onChange(DateTime.fromJSDate(date).toFormat('yyyy-MM-dd'))

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Нет сети · LTA Helper</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+        --bg: #0a0a0a;
+        --fg: #fafafa;
+        --muted: #a3a3a3;
+        --border: #262626;
+        --card: #171717;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #ffffff;
+          --fg: #0a0a0a;
+          --muted: #737373;
+          --border: #e5e5e5;
+          --card: #fafafa;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          16px/1.5 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      main {
+        width: 100%;
+        max-width: 26rem;
+        padding: 32px 24px;
+        text-align: center;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+      }
+      svg {
+        width: 48px;
+        height: 48px;
+        color: var(--muted);
+      }
+      h1 {
+        margin: 16px 0 8px;
+        font-size: 1.5rem;
+      }
+      p {
+        margin: 0 0 24px;
+        color: var(--muted);
+      }
+      button {
+        width: 100%;
+        height: 44px;
+        font: inherit;
+        font-weight: 500;
+        color: var(--bg);
+        background: var(--fg);
+        border: 0;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      small {
+        display: block;
+        margin-top: 16px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true">
+        <path d="M12 20h.01" />
+        <path d="M8.5 16.429a5 5 0 0 1 7 0" />
+        <path d="M5 12.859a10 10 0 0 1 5.17-2.69" />
+        <path d="M19 12.859a10 10 0 0 0-2.007-1.523" />
+        <path d="M2 8.82a15 15 0 0 1 4.177-2.643" />
+        <path d="M22 8.82a15 15 0 0 0-11.288-3.764" />
+        <path d="m2 2 20 20" />
+      </svg>
+      <h1>Нет сети</h1>
+      <p>
+        Эта страница недоступна без интернета. Отложенные действия отправятся,
+        как только связь появится.
+      </p>
+      <button type="button" id="retry">Повторить</button>
+      <small id="status">Ждём подключение…</small>
+    </main>
+    <script>
+      var retry = function () {
+        location.reload()
+      }
+      document.getElementById('retry').addEventListener('click', retry)
+      window.addEventListener('online', function () {
+        document.getElementById('status').textContent = 'Связь появилась'
+        retry()
+      })
+    </script>
+  </body>
+</html>

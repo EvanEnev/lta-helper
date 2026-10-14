@@ -82,7 +82,8 @@ export default async function PayrollsCreate({
                                                                 case when r.id = 12 then $3::date else $4::date end,
                                                                 case when r.id = 12 then $5::date else $6::date end
                                            ) s
-                 where s.count != 0 or s.balance != 0 or s.bonuses != 0 or s.fines != 0
+                 where r.name not ilike 'стаж_р'
+                   and (s.count != 0 or s.balance != 0 or s.bonuses != 0 or s.fines != 0)
                  order by coalesce(w.is_former, false), r.id != 12 desc, w.name`
 
   const locations = await getLocations()

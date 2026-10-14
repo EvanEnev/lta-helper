@@ -13,9 +13,16 @@ const inter = Inter({subsets: ['latin']})
 export const metadata: Metadata = {
   title: 'LTA Helper',
   description: 'Помощник в LTA',
+  applicationName: 'LTA Helper',
+  appleWebApp: {
+    capable: true,
+    title: 'LTA Helper',
+    statusBarStyle: 'black-translucent',
+  },
 }
 
 export const viewport: Viewport = {
+  themeColor: '#0a0a0a',
   initialScale: 1,
   width: 'device-width',
   userScalable: false,
@@ -29,7 +36,6 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       className={cn('dark overflow-auto!', 'font-sans', geist.variable)}
       suppressHydrationWarning>
       <head>
-        <meta name="apple-mobile-web-app-title" content="LTA Helper" />
         <Script
           src="https://telegram.org/js/telegram-web-app.js?59"
           strategy="afterInteractive"

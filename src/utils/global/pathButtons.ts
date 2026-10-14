@@ -9,6 +9,7 @@ import {
   CirclePlus,
   Wallet,
   ReceiptText,
+  GraduationCap,
   BanknoteArrowDown,
 } from 'lucide-react'
 
@@ -42,6 +43,12 @@ const buttons: PathButton[] = [
     name: 'Сотрудники',
     href: '/workers',
     icon: Users,
+  },
+  {
+    name: 'Стажировка',
+    href: '/internship',
+    permission: 'manage_internship',
+    icon: GraduationCap,
   },
   {
     name: 'Права',

@@ -2,7 +2,7 @@
 import Header from '@/src/components/global/header/Header'
 import {Provider} from 'jotai'
 import {ThemeProvider as NextThemesProvider} from 'next-themes'
-import PushNotificationProvider from '@/src/components/global/providers/PushNotificationProvider'
+import PwaProvider from '@/src/components/global/pwa/PwaProvider'
 import {TooltipProvider} from '@/components/ui/tooltip'
 import {SidebarProvider} from '@/components/ui/sidebar'
 import AppSidebar from '@/src/components/global/header/AppSidebar'
@@ -28,7 +28,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
     <NextThemesProvider attribute="class" defaultTheme="dark">
       <SidebarProvider>
         <TooltipProvider>
-          <PushNotificationProvider>
+          <PwaProvider>
             <div className="relative min-h-dvh w-full min-w-fit pb-16 sm:flex sm:gap-2 sm:pb-0">
               <Provider>
                 <Header />
@@ -39,7 +39,7 @@ export default function Providers({children}: {children: React.ReactNode}) {
                 </div>
               </Provider>
             </div>
-          </PushNotificationProvider>
+          </PwaProvider>
         </TooltipProvider>
       </SidebarProvider>
     </NextThemesProvider>

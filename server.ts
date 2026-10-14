@@ -3,6 +3,7 @@ import next from 'next'
 import {Server} from 'socket.io'
 import socket from './lib/socket/socket'
 import {stopListener} from './lib/socket/dbListener'
+import {startScheduler, stopScheduler} from './lib/push/scheduler'
 
 const dev = process.env.NODE_ENV === 'development'
 
@@ -31,6 +32,10 @@ app.prepare().then(async () => {
       console.log(`[WebSocker] Ready on port ${port}`)
     })
 
+  const scheduler = process.env.PUSH_SCHEDULER
+
+  if (scheduler ? scheduler === 'on' : !dev) startScheduler()
+
   let closing = false
 
   const shutdown = async (signal: string) => {
@@ -42,6 +47,7 @@ app.prepare().then(async () => {
     setTimeout(() => process.exit(1), 10_000).unref()
 
     try {
+      stopScheduler()
       await io.close()
       await stopListener()
       await app.close()

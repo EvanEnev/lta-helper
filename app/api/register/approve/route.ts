@@ -75,20 +75,47 @@ export async function POST(req: NextRequest) {
     return fail('Нельзя назначить ранг выше собственного', 403)
   }
 
-  await db.query(
-    `update workers set
-       name = $1,
-       first_name = $2,
-       last_name = $3,
-       middle_name = $4,
-       email = $5,
-       rank_id = $6,
-       phone_number = $7,
-       is_approved = true,
-       invited_by = null
-     where id = $8`,
-    [name, firstName, lastName, middleName, email, rankId, phone, workerId],
-  )
+  const client = await db.connect()
+
+  try {
+    await client.query('begin')
+
+    await client.query(
+      `update workers set
+         name = $1,
+         first_name = $2,
+         last_name = $3,
+         middle_name = $4,
+         email = $5,
+         rank_id = $6,
+         phone_number = $7,
+         is_approved = true,
+         invited_by = null
+       where id = $8`,
+      [name, firstName, lastName, middleName, email, rankId, phone, workerId],
+    )
+
+    const curatorId = Number(target.rows[0].invited_by)
+
+    if (Number.isInteger(curatorId) && curatorId > 0) {
+      await client.query(
+        `insert into internship.list (worker_id, curator_id)
+         select $1, $2
+         where exists (select 1 from ranks where id = $3 and name ilike 'стаж_р')
+         on conflict (worker_id) where closed_at is null do nothing`,
+        [workerId, curatorId, rankId],
+      )
+    }
+
+    await client.query('commit')
+  } catch (e) {
+    await client.query('rollback').catch(() => {})
+    console.error(e)
+
+    return fail('Не удалось подтвердить сотрудника', 500)
+  } finally {
+    client.release()
+  }
 
   const workerQuery = `
   select

@@ -16,8 +16,7 @@ import pathButtons from '@/src/utils/global/pathButtons'
 import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 import checkPermissions from '@/lib/functions/checkPermissions'
-import {useSession} from '@/lib/auth/authClient'
-import {LTWorker} from '@/src/utils/types'
+import useWorker from '@/src/hooks/useWorker'
 import RankIcon from '@/src/components/global/RankIcon'
 import ImpersonateBox from '@/src/components/global/ImpersonateBox'
 
@@ -34,7 +33,7 @@ const noGroups = pathButtons.filter(b => !b.children?.length)
 
 export default function AppSidebar() {
   const pathname = usePathname()
-  const worker = useSession().data?.user as LTWorker | undefined
+  const worker = useWorker()
 
   return (
     <Sidebar collapsible="icon">

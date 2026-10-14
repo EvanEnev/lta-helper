@@ -1,360 +1,362 @@
-const SW_VERSION = 1
-const IDB_VERSION = 1
+const VERSION = 'v3'
+const STATIC_CACHE = `lta-static-${VERSION}`
+const RUNTIME_CACHE = `lta-runtime-${VERSION}`
+const PAGES_CACHE = `lta-pages-${VERSION}`
+const META_CACHE = `lta-meta-${VERSION}`
+const OFFLINE_URL = '/offline.html'
+const ICON = '/web-app-manifest-192x192.png'
+const RUNTIME_LIMIT = 120
+const PAGES_LIMIT = 40
+const WARM_FRESH_MS = 60 * 1000
+const ASSETS_PER_PAGE = 80
 
-const cacheName = `lta-web-cache-${SW_VERSION}`
+const PRECACHE = [OFFLINE_URL, ICON, '/web-app-manifest-512x512.png']
+const NO_CACHE_PATHS = ['/login', '/register', OFFLINE_URL]
+const USER_KEY = '/__lta-user'
 
-const staticFiles = [
-  '/sw-registration.js',
-  '/manifest.json',
-  '/offline.html',
-  '/icons/web-app-manifest-192x192.png',
-  '/icons/web-app-manifest-512x512.png',
-]
+const staleServed = new Map()
 
-const routes = ['/', '/about']
+const DEV = new URL(self.location.href).searchParams.has('dev')
 
-const filesToCache = [...routes, ...staticFiles]
+const STATIC_ASSET = /\.(?:png|jpe?g|webp|avif|gif|svg|ico|woff2?|ttf|otf)$/i
+const NEXT_ASSET = /\/_next\/static\/[A-Za-z0-9_\-./~%]+\.(?:js|css|woff2)/g
 
-const requestsToRetryWhenOffline = []
-
-const IDBConfig = {
-  name: 'lta-helper-db',
-  version: IDB_VERSION,
-  stores: {
-    requestStore: {
-      name: `request-store`,
-      keyPath: 'timestamp',
-    },
-  },
-}
-
-self.addEventListener('push', function (event) {
-  if (event.data) {
-    const data = event.data.json()
-    const options = {
-      body: data.body,
-      icon: data.icon || '/icon.png',
-      badge: '/badge.png',
-      vibrate: [100, 50, 100],
-      data: {
-        dateOfArrival: Date.now(),
-        primaryKey: '2',
-      },
-    }
-    event.waitUntil(self.registration.showNotification(data.title, options))
-  }
-})
-
-self.addEventListener('notificationclick', function (event) {
-  const url = event.notification.data?.url || '/'
-  event.notification.close()
-  event.waitUntil(clients.openWindow(url))
-})
-
-const isOffline = () => !self.navigator.onLine
-
-const isRequestEligibleForRetry = ({url, method}) => {
-  return (
-    ['POST', 'PUT', 'DELETE'].includes(method) ||
-    requestsToRetryWhenOffline.includes(url)
-  )
-}
-
-const createIndexedDB = ({name, stores}) => {
-  const request = self.indexedDB.open(name, 1)
-
-  return new Promise((resolve, reject) => {
-    request.onupgradeneeded = e => {
-      const db = e.target.result
-
-      Object.keys(stores).forEach(store => {
-        const {name, keyPath} = stores[store]
-
-        if (!db.objectStoreNames.contains(name)) {
-          db.createObjectStore(name, {keyPath})
-          console.log('create objectstore', name)
-        }
-      })
-    }
-
-    request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(request.error)
-  })
-}
-
-const getStoreFactory =
-  dbName =>
-  ({name}, mode = 'readonly') => {
-    return new Promise((resolve, reject) => {
-      const request = self.indexedDB.open(dbName, IDB_VERSION)
-
-      request.onsuccess = e => {
-        const db = request.result
-        const transaction = db.transaction(name, mode)
-        const store = transaction.objectStore(name)
-
-        const storeProxy = new Proxy(store, {
-          get(target, prop) {
-            if (typeof target[prop] === 'function') {
-              return (...args) =>
-                new Promise((resolve, reject) => {
-                  const req = target[prop].apply(target, args)
-
-                  req.onsuccess = () => resolve(req.result)
-                  req.onerror = err => reject(err)
-                })
-            }
-
-            return target[prop]
-          },
-        })
-
-        return resolve(storeProxy)
-      }
-
-      request.onerror = e => reject(request.error)
-    })
-  }
-
-const openStore = getStoreFactory(IDBConfig.name)
-
-const serializeHeaders = headers =>
-  [...headers.entries()].reduce(
-    (acc, [key, value]) => ({
-      ...acc,
-      [key]: value,
-    }),
-    {},
-  )
-
-const storeRequest = async ({
-  url,
-  method,
-  body,
-  headers,
-  mode,
-  credentials,
-}) => {
-  const serializedHeaders = serializeHeaders(headers)
-
-  try {
-    let storedBody = body
-
-    if (body && body instanceof ReadableStream) {
-      const clonedBody = body.tee()[0]
-      storedBody = await new Response(clonedBody).arrayBuffer()
-    }
-
-    const timestamp = Date.now()
-    const store = await openStore(IDBConfig.stores.requestStore, 'readwrite')
-
-    await store.add({
-      timestamp,
-      url,
-      method,
-      ...(storedBody && {body: storedBody}),
-      headers: serializedHeaders,
-      mode,
-      credentials,
-    })
-
-    if ('sync' in self.registration) {
-      console.log('register sync for retry request')
-      await self.registration.sync.register(`retry-request`)
-    }
-  } catch (error) {
-    console.log('idb error', error)
-  }
-}
-
-const getCacheStorageNames = async () => {
-  const cacheNames = (await caches.keys()) || []
-  const outdatedCacheNames = cacheNames.filter(
-    name => !name.includes(cacheName),
-  )
-  const latestCacheName = cacheNames.find(name => name.includes(cacheName))
-
-  return {latestCacheName, outdatedCacheNames}
-}
-
-const updateLastCache = async () => {
-  const {latestCacheName, outdatedCacheNames} = await getCacheStorageNames()
-  if (!latestCacheName || !outdatedCacheNames?.length) {
-    return null
-  }
-
-  const latestCache = await caches.open(latestCacheName)
-  const latestCacheEntries = (await latestCache?.keys())?.map(c => c.url) || []
-
-  for (const outdatedCacheName of outdatedCacheNames) {
-    const outdatedCache = await caches.open(outdatedCacheName)
-
-    for (const entry of latestCacheEntries) {
-      const latestCacheResponse = await latestCache.match(entry)
-
-      await outdatedCache.put(entry, latestCacheResponse.clone())
-    }
-  }
-}
-
-const getRequests = async () => {
-  try {
-    const store = await openStore(IDBConfig.stores.requestStore, 'readwrite')
-    return await store.getAll()
-  } catch (err) {
-    return err
-  }
-}
-
-const retryRequests = async () => {
-  const reqs = await getRequests()
-  const requests = reqs.map(
-    ({url, method, headers: serializedHeaders, body, mode, credentials}) => {
-      const headers = new Headers(serializedHeaders)
-
-      return fetch(url, {method, headers, body, mode, credentials})
-    },
-  )
-
-  const responses = await Promise.allSettled(requests)
-  const requestStore = await openStore(
-    IDBConfig.stores.requestStore,
-    'readwrite',
-  )
-  const {keyPath} = IDBConfig.stores.requestStore
-
-  responses.forEach((response, index) => {
-    const key = reqs[index][keyPath]
-
-    if (response.status === 'fulfilled') {
-      requestStore.delete(key)
-    } else {
-      console.log(
-        `retrying response with ${keyPath} ${key} failed: ${response.reason}`,
-      )
-    }
-  })
-}
-
-const installHandler = e => {
-  e.waitUntil(
+self.addEventListener('install', event => {
+  event.waitUntil(
     caches
-      .open(cacheName)
+      .open(STATIC_CACHE)
       .then(cache =>
-        Promise.all([
-          cache.addAll(
-            filesToCache.map(file => new Request(file, {cache: 'no-cache'})),
-          ),
-          createIndexedDB(IDBConfig),
-        ]),
-      )
-      .catch(err => console.error('install error', err)),
-  )
-}
-
-const activateHandler = e => {
-  e.waitUntil(
-    caches
-      .keys()
-      .then(names =>
         Promise.all(
-          names
-            .filter(name => name !== cacheName)
-            .map(name => caches.delete(name)),
+          PRECACHE.map(url =>
+            cache.add(new Request(url, {cache: 'reload'})).catch(() => {}),
+          ),
         ),
-      ),
+      )
+      .then(() => self.skipWaiting()),
   )
-}
+})
 
-const cleanRedirect = async response => {
-  const clonedResponse = response.clone()
-  const {headers, status, statusText} = clonedResponse
-
-  return new Response(clonedResponse.body, {
-    headers,
-    status,
-    statusText,
-  })
-}
-
-const fetchHandler = async e => {
-  const {request} = e
-
-  e.respondWith(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     (async () => {
-      try {
-        if (isOffline() && isRequestEligibleForRetry(request)) {
-          console.log('storing request', request)
-          await storeRequest(request)
+      const keep = [STATIC_CACHE, RUNTIME_CACHE, PAGES_CACHE, META_CACHE]
+      const names = await caches.keys()
 
-          return await caches.match('/offline.html')
-        }
+      await Promise.all(
+        names
+          .filter(name => !keep.includes(name))
+          .map(name => caches.delete(name)),
+      )
 
-        const response = await caches.match(request, {
-          ignoreVary: true,
-          ignoreSearch: true,
-        })
-        if (response) {
-          return response.redirected ? cleanRedirect(response) : response
-        }
-
-        const fetchResponse = await fetch(e.request)
-        if (fetchResponse) {
-          return fetchResponse
-        }
-      } catch (err) {
-        return await caches.match('/offline.html')
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable()
       }
+
+      await self.clients.claim()
     })(),
   )
+})
+
+async function trim(cacheName, limit) {
+  const cache = await caches.open(cacheName)
+  const keys = await cache.keys()
+
+  for (const key of keys.slice(0, Math.max(0, keys.length - limit))) {
+    await cache.delete(key)
+  }
 }
 
-const messageHandler = async ({data}) => {
-  const {type} = data
+async function cacheFirst(request, cacheName) {
+  const cache = await caches.open(cacheName)
+  const cached = await cache.match(request)
 
-  switch (type) {
-    case 'SKIP_WAITING':
-      const clients = await self.clients.matchAll({
+  if (cached) return cached
+
+  const response = await fetch(request)
+
+  if (response.ok) cache.put(request, response.clone())
+
+  return response
+}
+
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName)
+  const cached = await cache.match(request)
+
+  const network = fetch(request)
+    .then(response => {
+      if (response.ok) {
+        cache
+          .put(request, response.clone())
+          .then(() => trim(cacheName, RUNTIME_LIMIT))
+      }
+
+      return response
+    })
+    .catch(() => cached)
+
+  return cached || network
+}
+
+async function stamped(response) {
+  const headers = new Headers(response.headers)
+
+  headers.set('x-cached-at', String(Date.now()))
+
+  return new Response(await response.blob(), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
+async function cacheAssetsOf(html) {
+  const found = [...new Set(html.match(NEXT_ASSET) || [])].slice(
+    0,
+    ASSETS_PER_PAGE,
+  )
+  const cache = await caches.open(STATIC_CACHE)
+
+  await Promise.all(
+    found.map(async path => {
+      if (await cache.match(path)) return
+
+      try {
+        const response = await fetch(path)
+
+        if (response.ok) await cache.put(path, response)
+      } catch {}
+    }),
+  )
+}
+
+async function storePage(url, response, withAssets) {
+  const path = new URL(response.url || url).pathname
+
+  if (!response.ok || response.type === 'opaqueredirect') return
+  if (
+    NO_CACHE_PATHS.includes(path) ||
+    NO_CACHE_PATHS.includes(new URL(url).pathname)
+  )
+    return
+  if (!(response.headers.get('content-type') || '').includes('text/html'))
+    return
+
+  const cache = await caches.open(PAGES_CACHE)
+
+  if (withAssets && !DEV) {
+    response
+      .clone()
+      .text()
+      .then(cacheAssetsOf)
+      .catch(() => {})
+  }
+
+  await cache.put(url, await stamped(response))
+  await trim(PAGES_CACHE, PAGES_LIMIT)
+}
+
+async function matchPage(request) {
+  const cache = await caches.open(PAGES_CACHE)
+  const url = new URL(request.url)
+
+  return (
+    (await cache.match(url.origin + url.pathname + url.search)) ||
+    (await cache.match(url.origin + url.pathname, {ignoreSearch: true}))
+  )
+}
+
+async function navigate(event) {
+  const {request} = event
+
+  try {
+    const preload = await event.preloadResponse
+    const response = preload || (await fetch(request))
+
+    staleServed.delete(request.url)
+
+    if (!response.redirected) {
+      event.waitUntil(
+        storePage(request.url, response.clone(), false).catch(() => {}),
+      )
+    }
+
+    return response
+  } catch {
+    const cached = await matchPage(request)
+
+    if (cached) {
+      staleServed.set(request.url, Date.now())
+
+      return cached
+    }
+
+    const cache = await caches.open(STATIC_CACHE)
+
+    return (
+      (await cache.match(OFFLINE_URL)) ||
+      new Response('Нет сети', {
+        status: 503,
+        headers: {'Content-Type': 'text/plain; charset=utf-8'},
+      })
+    )
+  }
+}
+
+async function warm(urls) {
+  const cache = await caches.open(PAGES_CACHE)
+
+  for (const path of urls) {
+    const url = new URL(path, self.location.origin).href
+    const existing = await cache.match(url)
+    const at = Number(existing && existing.headers.get('x-cached-at'))
+
+    if (at && Date.now() - at < WARM_FRESH_MS) continue
+
+    try {
+      const response = await fetch(url, {
+        credentials: 'same-origin',
+        redirect: 'manual',
+        headers: {Accept: 'text/html'},
+      })
+
+      await storePage(url, response, true)
+    } catch {
+      return
+    }
+  }
+}
+
+async function setUser(id) {
+  const meta = await caches.open(META_CACHE)
+  const previous = await meta.match(USER_KEY)
+  const current = previous ? await previous.text() : null
+
+  if (current !== null && current !== String(id)) {
+    await caches.delete(PAGES_CACHE)
+  }
+
+  await meta.put(USER_KEY, new Response(String(id)))
+}
+
+async function clearUserData() {
+  await caches.delete(PAGES_CACHE)
+  await caches.delete(META_CACHE)
+}
+
+async function cachedAt(path) {
+  const cache = await caches.open(PAGES_CACHE)
+  const url = new URL(path, self.location.origin)
+  const hit =
+    (await cache.match(url.origin + url.pathname + url.search)) ||
+    (await cache.match(url.origin + url.pathname, {ignoreSearch: true}))
+
+  return {
+    at: hit ? Number(hit.headers.get('x-cached-at')) || null : null,
+    stale: Date.now() - (staleServed.get(url.href) || 0) < 120000,
+  }
+}
+
+self.addEventListener('fetch', event => {
+  const {request} = event
+
+  if (request.method !== 'GET') return
+
+  const url = new URL(request.url)
+
+  if (url.origin !== self.location.origin) return
+  if (url.pathname.startsWith('/api/')) return
+  if (url.pathname.startsWith('/socket.io/')) return
+
+  if (request.mode === 'navigate') {
+    event.respondWith(navigate(event))
+    return
+  }
+
+  if (DEV) return
+
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE))
+  } else if (
+    url.pathname.startsWith('/_next/image') ||
+    STATIC_ASSET.test(url.pathname)
+  ) {
+    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE))
+  }
+})
+
+self.addEventListener('push', event => {
+  let data = {}
+
+  try {
+    data = event.data ? event.data.json() : {}
+  } catch {
+    data = {body: event.data ? event.data.text() : ''}
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'LTA Helper', {
+      body: data.body || '',
+      icon: ICON,
+      badge: ICON,
+      tag: data.tag,
+      data: {url: data.url || '/'},
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+
+  const target = new URL(
+    (event.notification.data && event.notification.data.url) || '/',
+    self.location.origin,
+  )
+
+  if (target.origin !== self.location.origin) return
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: 'window',
         includeUncontrolled: true,
       })
 
-      if (clients.length < 2) {
-        await self.skipWaiting()
-        await self.clients.claim()
+      for (const client of windows) {
+        if (new URL(client.url).origin === self.location.origin) {
+          await client.focus()
+
+          if ('navigate' in client) {
+            await client.navigate(target.href).catch(() => {})
+          }
+
+          return
+        }
       }
 
-      break
+      await self.clients.openWindow(target.href)
+    })(),
+  )
+})
 
-    case 'PREPARE_CACHES_FOR_UPDATE':
-      await updateLastCache()
+self.addEventListener('message', event => {
+  const data = event.data || {}
 
-      break
+  if (data.type === 'SKIP_WAITING') self.skipWaiting()
 
-    case 'retry-requests':
-      if (!('sync' in self.registration)) {
-        console.log('retry requests when Background Sync is not supported')
-        await retryRequests()
-      }
+  if (data.type === 'SET_USER') event.waitUntil(setUser(data.id))
 
-      break
+  if (data.type === 'WARM' && Array.isArray(data.urls)) {
+    event.waitUntil(warm(data.urls.filter(url => typeof url === 'string')))
   }
-}
 
-const syncHandler = async e => {
-  console.log('sync event with tag:', e.tag)
+  if (data.type === 'CLEAR_USER_DATA') event.waitUntil(clearUserData())
 
-  const {tag} = e
-
-  switch (tag) {
-    case 'retry-request':
-      e.waitUntil(retryRequests())
-
-      break
+  if (data.type === 'CACHED_AT' && event.ports[0]) {
+    event.waitUntil(
+      cachedAt(String(data.path)).then(info =>
+        event.ports[0].postMessage(info),
+      ),
+    )
   }
-}
-
-self.addEventListener('install', installHandler)
-self.addEventListener('activate', activateHandler)
-self.addEventListener('fetch', fetchHandler)
-self.addEventListener('message', messageHandler)
-self.addEventListener('sync', syncHandler)
+})

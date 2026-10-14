@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/drawer'
 import {useIsMobile} from '@/hooks/use-mobile'
 import convertTZ from '@/lib/functions/convertTZ'
-import fetchHandler from '@/src/utils/global/fetchHandler'
+import fetchHandler, {isQueued} from '@/src/utils/global/fetchHandler'
 import {cn} from '@/lib/utils'
 import type {LTLocation, LTWorker} from '@/src/utils/types'
 import Changes, {type Change} from './ChangesCard'
@@ -169,9 +169,10 @@ export default function SchedulePage({
             comment: day.comment,
           })),
         },
+        queue: 'График работы',
       })
 
-      if (response) {
+      if (response && !isQueued(response)) {
         setBaseline(sent)
         setShowErrors(false)
       }

@@ -21,9 +21,15 @@ import {ProviderIcon} from '@/src/components/global/BrandIcons'
 import RankIcon from '@/src/components/global/RankIcon'
 import StatTile from '@/src/components/global/StatTile'
 import {authClient} from '@/lib/auth/authClient'
+import {getOutbox} from '@/src/utils/offline/outbox'
+import {forgetWorker} from '@/src/hooks/useWorker'
+import {disablePush} from '@/src/utils/pwa/push'
+import {clearCaches} from '@/src/utils/pwa/register'
+import InstallCard from './InstallCard'
+import NotificationsCard from './NotificationsCard'
 import capitalize from '@/lib/functions/capitalize'
 import separateNumber from '@/lib/functions/separateNumber'
-import fetchHandler from '@/src/utils/global/fetchHandler'
+import fetchHandler, {isQueued} from '@/src/utils/global/fetchHandler'
 import providers from '@/src/utils/global/providers'
 import type {LTWorker} from '@/src/utils/types'
 
@@ -32,12 +38,13 @@ interface ProfilePageProps {
   userProviders: string[]
 }
 
-type SaveState = 'idle' | 'saving' | 'saved' | 'error'
+type SaveState = 'idle' | 'saving' | 'saved' | 'queued' | 'error'
 
 const SAVE_LABEL: Record<SaveState, string> = {
   idle: '',
   saving: 'Сохраняю…',
   saved: 'Сохранено',
+  queued: 'Сохранится, когда появится сеть',
   error: 'Не удалось сохранить',
 }
 
@@ -86,9 +93,10 @@ export default function ProfilePage({
       const result = await fetchHandler({
         url: '/api/profile/setLocation',
         body: {lat, lng},
+        queue: 'Адрес',
       })
 
-      setSaveState(result ? 'saved' : 'error')
+      setSaveState(isQueued(result) ? 'queued' : result ? 'saved' : 'error')
     },
     [],
   )
@@ -104,11 +112,19 @@ export default function ProfilePage({
     setUnlinking(null)
   }
 
-  const signOut = () =>
-    authClient.signOut(
+  const signOut = async () => {
+    await Promise.allSettled([
+      disablePush(),
+      getOutbox().clear(),
+      clearCaches(),
+    ])
+
+    await authClient.signOut(
       {},
       {
         onSuccess: () => {
+          forgetWorker()
+
           try {
             sessionStorage.removeItem('worker')
           } catch {}
@@ -116,6 +132,7 @@ export default function ProfilePage({
         },
       },
     )
+  }
 
   return (
     <main className="mx-auto flex w-full max-w-400 flex-col gap-4 p-4">
@@ -228,6 +245,10 @@ export default function ProfilePage({
               })}
             </CardContent>
           </Card>
+
+          <NotificationsCard />
+
+          <InstallCard />
 
           <Card>
             <CardHeader>

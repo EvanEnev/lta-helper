@@ -1,6 +1,6 @@
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
-import db from '@/lib/database'
+import {getCurators} from '@/lib/internship/curators'
 import safeRedirect from '@/lib/auth/safeRedirect'
 import AuthPage from '@/src/components/auth/AuthPage'
 
@@ -15,12 +15,7 @@ export default async function Login({searchParams}: LoginProps) {
   let curators: {id: number; name: string}[] = []
 
   if (session && !session.user.id) {
-    const result = await db.query(
-      `select id, name from workers
-       where rank_id = 1 and is_fired is not true and is_former is not true
-       order by name`,
-    )
-    curators = result.rows
+    curators = await getCurators()
   }
 
   const user = session?.user
