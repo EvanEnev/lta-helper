@@ -11,6 +11,7 @@ import getGamePayments from '@/lib/functions/getGamesPayments'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import getLocations from '@/lib/functions/getLocations'
+import {konsolErrorMessage, konsolFetch, normalizePhone} from '@/lib/konsol'
 
 interface KonsolBody {
   worker_id?: number
@@ -195,7 +196,7 @@ export async function POST(req: NextRequest) {
 
       const duties: KonsolBody['duties'] = [
         {
-          template_id: 75920,
+          template_id: 122343,
           quantity: 1,
           price: salary.value,
         },
@@ -346,82 +347,44 @@ export async function POST(req: NextRequest) {
     const workerId = body1.worker_id!
     const date = body1.date!
 
-    const locationRes = await fetch(
-      `https://api.konsol.pro/bus/alpha/workflow/locations/${body1.address_id}`,
-      {
-        method: 'GET',
-        headers: {Authorization: `${process.env.KONSOL_TOKEN}`},
-      },
+    const locationRes = await konsolFetch<{address: {id: number}}>(
+      `/bus/alpha/workflow/locations/${body1.address_id}`,
     )
 
-    let locationData
-    try {
-      locationData = await locationRes.json()
-    } catch (e: any) {
+    if (!locationRes.ok || !locationRes.data?.address) {
       return NextResponse.json(
         {
-          message:
-            e instanceof Error ? e.message || 'locationData' : 'locationData',
+          message: konsolErrorMessage(
+            locationRes,
+            'Не удалось получить локацию',
+          ),
         },
-        {
-          status: 500,
-        },
+        {status: 500},
       )
     }
 
-    if (locationData.error || locationData.errors?.length) {
-      return NextResponse.json(
-        {
-          message: locationData.errors?.length
-            ? locationData.errors.join('; ')
-            : locationData.error,
-        },
-        {
-          status: 500,
-        },
-      )
-    }
+    body1.address_id = locationRes.data.address.id
 
-    body1.address_id = locationData.address.id
-
-    const workerRes = await fetch(
-      `https://api.konsol.pro/v2/contractors?phone=${body1.contractor!.phone}`,
-      {
-        method: 'GET',
-        headers: {Authorization: `${process.env.KONSOL_TOKEN}`},
-      },
+    const workerRes = await konsolFetch<{id: number}[]>(
+      `/v2/contractors?phone=${encodeURIComponent(normalizePhone(body1.contractor!.phone))}`,
     )
 
-    let workerData
-    try {
-      workerData = (await workerRes.json())[0]
-    } catch (e: any) {
+    if (!workerRes.ok || !Array.isArray(workerRes.data)) {
       return NextResponse.json(
         {
-          message:
-            e instanceof Error ? e.message || 'workerData' : 'workerData',
+          message: konsolErrorMessage(
+            workerRes,
+            'Не удалось найти исполнителя',
+          ),
         },
-        {
-          status: 500,
-        },
+        {status: 500},
       )
     }
+
+    const workerData = workerRes.data[0]
 
     if (!workerData) {
       continue
-    }
-
-    if (workerData.error || workerData.errors?.length) {
-      return NextResponse.json(
-        {
-          message: workerData.errors?.length
-            ? workerData.errors.join('; ')
-            : workerData.error,
-        },
-        {
-          status: 500,
-        },
-      )
     }
 
     body1.contractor_ids = [workerData.id]
@@ -430,46 +393,20 @@ export async function POST(req: NextRequest) {
     delete body1.worker_id
     delete body1.date
 
-    const res = await fetch(
-      'https://api.konsol.pro/bus/alpha/workflow/platform/tasks ',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body1),
-      },
+    // Платформенные задания (в публичной документации HRM не описаны)
+    const taskRes = await konsolFetch<{task_id?: number}>(
+      '/bus/alpha/workflow/platform/tasks',
+      {method: 'POST', body: body1},
     )
 
-    let resData
-    try {
-      resData = await res.json()
-    } catch (e: any) {
+    const taskId = taskRes.data?.task_id
+
+    if (!taskRes.ok || !taskId) {
       return NextResponse.json(
-        {
-          message: e instanceof Error ? e.message || 'resData' : 'resData',
-        },
-        {
-          status: 500,
-        },
+        {message: konsolErrorMessage(taskRes, 'Не удалось создать задание')},
+        {status: 500},
       )
     }
-
-    if (resData.error || resData.errors?.length) {
-      return NextResponse.json(
-        {
-          message: resData.errors?.length
-            ? resData.errors.join('; ')
-            : resData.error,
-        },
-        {
-          status: 500,
-        },
-      )
-    }
-
-    const taskId: number = resData.task_id
 
     konsolIds.push(taskId)
 
@@ -478,14 +415,16 @@ export async function POST(req: NextRequest) {
   }
 
   if (konsolIds.length) {
-    await fetch('https://api.konsol.pro/bus/alpha/workflow/tasks/submit', {
+    const submitRes = await konsolFetch('/bus/alpha/workflow/tasks/submit', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ids: konsolIds}),
+      body: {ids: konsolIds},
     })
+
+    if (!submitRes.ok) {
+      logger.error('sendWorkDays konsol submit', {
+        data: {ids: konsolIds, status: submitRes.status, body: submitRes.data},
+      })
+    }
   }
 
   if (queries.length && !warnings.length) {

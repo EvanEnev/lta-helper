@@ -59,11 +59,10 @@ export default function DesktopAdmin({
   const updateDate = (date: DateValue | null) => {
     if (!date) return
 
-    const datetime = DateTime.fromObject({
-      day: date.day,
-      month: date.month,
-      year: date.year,
-    })
+    const datetime = DateTime.fromObject(
+      {day: date.day, month: date.month, year: date.year},
+      {zone: 'Europe/Moscow'},
+    )
 
     setDate(datetime)
   }

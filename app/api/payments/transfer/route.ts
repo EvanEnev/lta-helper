@@ -3,6 +3,21 @@ import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
+import {konsolErrorMessage, konsolFetch} from '@/lib/konsol'
+
+const PER_PAGE = 100
+
+interface KonsolAct {
+  id: number
+  number: string
+  status: string
+  start_date: string
+  payment_amount: number
+  contractor: {
+    first_name: string
+    last_name: string
+  }
+}
 
 interface Act {
   id: number
@@ -37,26 +52,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({message: 'Неверные даты'}, {status: 500})
   }
 
-  let page = 0
-
-  let res = null
-
   const acts: Act[] = []
 
-  while (res === null || res.headers.get('x-has-next-page') === 'true') {
-    page++
-
-    res = await fetch(
-      `https://api.konsol.pro/v2/acts?date_from=${startDate}&date_to=${endDate}&page=${page}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
-        },
-      },
+  // Заголовка о следующей странице в новом API нет — листаем, пока не придёт пустой массив
+  for (let page = 1; ; page++) {
+    const res = await konsolFetch<KonsolAct[]>(
+      `/v2/acts?date_from=${startDate}&date_to=${endDate}&status=accepted&per=${PER_PAGE}&page=${page}`,
     )
 
-    const data = await res.json()
-    data.forEach((act: any) => {
+    if (!res.ok || !Array.isArray(res.data)) {
+      return NextResponse.json(
+        {message: konsolErrorMessage(res, 'Не удалось получить акты')},
+        {status: 500},
+      )
+    }
+
+    if (!res.data.length) break
+
+    res.data.forEach(act => {
       if (act.status === 'paid') {
         acts.push({
           number: act.number,
