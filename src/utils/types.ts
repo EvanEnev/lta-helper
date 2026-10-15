@@ -257,7 +257,7 @@ export interface LTPayrollIssueData {
   take_by: LTPayroll['takeBy']
   taken: number | null
   dates: LTPayroll['dates']
-  to_take_by: LTWorkerPayrollData['to_take_by']
+  to_take_by: string | null
   balance: LTWorker['balance']
   location: LTLocation['name']
   value: number
