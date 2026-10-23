@@ -38,12 +38,12 @@ export async function getData(
                  FROM workers w
                         LEFT JOIN ranks r ON r.id = w.rank_id
                         LEFT JOIN locations l ON l.id = w.location_id
-                        LEFT JOIN (
-                   SELECT * FROM config.admins
-                   WHERE date::date = '${date}'
+                        LEFT JOIN LATERAL (
+                   SELECT location_id FROM config.admins
+                   WHERE date::date = '${date}' AND worker_id = w.id
                    order by date desc
                    LIMIT 1
-                 ) admins ON admins.worker_id = w.id
+                 ) admins ON true
                  WHERE ${impersonate ? `w.id = ${authId}` : `auth_id = '${authId}' or email = '${authId}'`}`
 
   const permissionsQuery = `SELECT

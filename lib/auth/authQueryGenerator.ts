@@ -32,12 +32,12 @@ export default async function authQueryGenerator(
                  FROM workers w
                         LEFT JOIN ranks r ON r.name = w.rank
                         LEFT JOIN locations l ON l.id = w.location_id
-                        LEFT JOIN (
-                   SELECT * FROM config.admins
-                   WHERE date::date = '${date}'
+                        LEFT JOIN LATERAL (
+                   SELECT location_id FROM config.admins
+                   WHERE date::date = '${date}' AND worker_id = w.id
                    order by date desc
                    LIMIT 1
-                 ) admins ON admins.worker_id = w.id
+                 ) admins ON true
                  WHERE w.id = ${id}`
 
   const permissionsQuery = `SELECT
