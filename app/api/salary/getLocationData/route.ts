@@ -44,9 +44,10 @@ export async function POST(req: NextRequest) {
     [day, user.id],
   )
 
-  if (adminsResult.rows.length) {
-    locationId = adminsResult.rows[0].location_id
-  }
+  // Касса открыта на площадке только если есть запись в config.admins
+  const cashLocationId: number | null = adminsResult.rows[0]?.location_id ?? null
+
+  if (cashLocationId) locationId = cashLocationId
 
   const locationResult = await db.query(
     'select get_location($1::int) as location',
@@ -149,14 +150,21 @@ export async function POST(req: NextRequest) {
      where date between $1::date + interval '5 hours' and $1::date + interval '29 hours'
        and (fd.location_id = $2::int OR fd.location_id = 12 OR ($3::boolean AND fd.location_id = 17))
      group by w.id, r.sorting_weight, r.name`,
-    [day, locationId, withSpecial],
+    [day, cashLocationId, withSpecial],
   )
   const faceIdRows = faceIdResult.rows
+
+  // Кто уже поставлен на другую площадку в этот день — не предлагаем
+  const busyResult = await db.query(
+    'select worker_id from salary.list where date = $1',
+    [day],
+  )
+  const busyIds = new Set(busyResult.rows.map(r => r.worker_id))
 
   faceIdRows.forEach(row => {
     const currentData = data.find(d => d.worker === row.name)
 
-    if (!currentData) {
+    if (!currentData && !busyIds.has(row.workerId)) {
       const workTypes = []
 
       if (row.rank === 'Актёр') {
@@ -188,7 +196,7 @@ export async function POST(req: NextRequest) {
       data.push({
         worker: row.name,
         workingHours: workingHours,
-        location: location.name,
+        location: row.data[0]?.location?.name || location.name,
         createdAt: null,
         value: 0,
         comment: '',
