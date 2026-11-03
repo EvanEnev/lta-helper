@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
      where date between $1::date + interval '5 hours' and $1::date + interval '29 hours'
        and (fd.location_id = $2::int OR fd.location_id = 12 OR ($3::boolean AND fd.location_id = 17))
      group by w.id, r.sorting_weight, r.name`,
-    [day, cashLocationId, withSpecial],
+    [day, cashLocationId ?? locationId, withSpecial],
   )
   const faceIdRows = faceIdResult.rows
 

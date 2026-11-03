@@ -311,31 +311,39 @@ export default function WorkForm({
                   const current = data[key]
 
                   return (
-                    <div
-                      key={game.id}
-                      className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="min-w-0 flex-1 basis-32 text-sm">
-                        {game.description}
-                      </span>
-                      <Counter
-                        label={game.description}
-                        value={current?.number ?? 0}
-                        onChange={number =>
-                          onChange({
-                            [key]: {id: game.id, number} as GameEntry,
-                          })
-                        }
-                      />
-                      <NumberInput
-                        label={`${game.description}: результат`}
-                        placeholder="Результат"
-                        className="w-24"
-                        value={current?.value || salary?.[key]}
-                        onChange={value =>
-                          current &&
-                          setGame(key, game, {value: value as number})
-                        }
-                      />
+                    <div key={game.id} className="flex flex-col gap-2">
+                      <span className="text-sm">{game.description}</span>
+                      <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-xs">
+                            Количество
+                          </span>
+                          <Counter
+                            label={`${game.description}: количество`}
+                            value={current?.number ?? 0}
+                            onChange={number =>
+                              onChange({
+                                [key]: {id: game.id, number} as GameEntry,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-muted-foreground text-xs">
+                            Сумма, ₽
+                          </span>
+                          <NumberInput
+                            label={`${game.description}: сумма`}
+                            placeholder="Сумма"
+                            className="w-24"
+                            value={current?.value || salary?.[key]}
+                            onChange={value =>
+                              current &&
+                              setGame(key, game, {value: value as number})
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
                   )
                 })}

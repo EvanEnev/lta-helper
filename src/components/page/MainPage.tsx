@@ -5,24 +5,25 @@ import ShiftStats from '@/src/components/page/ShiftStats'
 import UpcomingSalary from '@/src/components/page/UpcomingSalary'
 import UpcomingShifts from '@/src/components/page/UpcomingShifts'
 import {getShifts} from '@/src/components/page/shifts'
+import type {Shift} from '@/src/components/page/shifts'
 import {cn} from '@/lib/utils'
-import type {Day, LTWorker, RankDescription} from '@/src/utils/types'
+import type {LTWorker, RankDescription} from '@/src/utils/types'
 
 interface MainPageProps {
   salaryData: ShortSalary
   worker: LTWorker
-  workingDays: Day[]
+  shifts: Shift[]
   ranksData: RankDescription[]
 }
 
 export default function MainPage({
   salaryData,
   worker,
-  workingDays,
+  shifts,
   ranksData,
 }: MainPageProps) {
   const currentRank = ranksData.find(d => d.rank.name === worker.rank)
-  const {upcoming, worked, left} = getShifts(workingDays)
+  const {upcoming, worked, left} = getShifts(shifts)
 
   return (
     <main className="mx-auto flex w-full max-w-400 flex-col gap-4 p-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:items-start">
