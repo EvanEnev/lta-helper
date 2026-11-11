@@ -1,8 +1,16 @@
 import {NextRequest, NextResponse} from 'next/server'
+import {headers} from 'next/headers'
+import {auth} from '@/lib/auth'
 import getLocationSalaryData from '@/app/api/salary/getData/getLocationSalaryData'
 
 export async function POST(req: NextRequest) {
-  const body = await req.json()
+  const session = await auth.api.getSession({headers: await headers()})
+
+  if (!session?.user) {
+    return NextResponse.json({message: 'Вход не произведён'}, {status: 401})
+  }
+
+  const body = await req.json().catch(() => ({}))
 
   const locationId: number | undefined = body.locationId
   const date: string | undefined = body.date

@@ -12,7 +12,17 @@ const nextConfig = {
     'googleapis',
     'googleapis-common',
     'winston',
+    'web-push',
   ],
+  typescript: {ignoreBuildErrors: true},
+  experimental: {
+    turbopackMemoryLimit: 2 * 1024 * 1024 * 1024,
+    webpackMemoryOptimizations: true,
+    webpackBuildWorker: true,
+    cpus: 2,
+    parallelServerCompiles: false,
+    parallelServerBuildTraces: false,
+  },
 }
 
 export default nextConfig

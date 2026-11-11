@@ -1,5 +1,5 @@
 import {Pool, types} from 'pg'
-import convertTZ from '@/lib/functions/convertTZ'
+import convertTZ from './functions/convertTZ'
 import {Interval} from 'luxon'
 
 types.setTypeParser(1082, (val: string) => {

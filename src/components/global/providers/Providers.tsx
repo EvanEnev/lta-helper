@@ -1,28 +1,47 @@
 'use client'
-import ToastProvider from '@/src/components/global/providers/toastProvider'
 import Header from '@/src/components/global/header/Header'
 import {Provider} from 'jotai'
 import {ThemeProvider as NextThemesProvider} from 'next-themes'
-import PushNotificationProvider from '@/src/components/global/providers/PushNotificationProvider'
-import {I18nProvider} from '@heroui/react'
+import PwaProvider from '@/src/components/global/pwa/PwaProvider'
+import {TooltipProvider} from '@/components/ui/tooltip'
+import {SidebarProvider} from '@/components/ui/sidebar'
+import AppSidebar from '@/src/components/global/header/AppSidebar'
+import {Toaster} from '@/components/ui/toast'
+import {usePathname} from 'next/navigation'
 
 export default function Providers({children}: {children: React.ReactNode}) {
-  return (
-    <I18nProvider locale="ru-RU">
+  const path = usePathname()
+  const isAuthPage = path === '/login' || path === '/register'
+
+  if (isAuthPage) {
+    return (
       <NextThemesProvider attribute="class" defaultTheme="dark">
-        <PushNotificationProvider>
-          <ToastProvider />
-          <div className="background relative min-h-dvh w-full min-w-fit pb-16 sm:flex sm:gap-2 sm:pb-0">
-            <Provider>
-              <Header />
-              <div className="w-full">
-                <ToastProvider />
-                {children}
-              </div>
-            </Provider>
-          </div>
-        </PushNotificationProvider>
+        <TooltipProvider>
+          <Toaster />
+          {children}
+        </TooltipProvider>
       </NextThemesProvider>
-    </I18nProvider>
+    )
+  }
+
+  return (
+    <NextThemesProvider attribute="class" defaultTheme="dark">
+      <SidebarProvider>
+        <TooltipProvider>
+          <PwaProvider>
+            <div className="relative min-h-dvh w-full min-w-fit pb-16 sm:flex sm:gap-2 sm:pb-0">
+              <Provider>
+                <Header />
+                <AppSidebar />
+                <div className="w-full">
+                  <Toaster />
+                  {children}
+                </div>
+              </Provider>
+            </div>
+          </PwaProvider>
+        </TooltipProvider>
+      </SidebarProvider>
+    </NextThemesProvider>
   )
 }

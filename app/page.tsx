@@ -3,7 +3,7 @@ import convertTZ from '@/lib/functions/convertTZ'
 import db from '@/lib/database'
 import {headers} from 'next/headers'
 import {auth} from '@/lib/auth'
-import getWorkingDays from '@/lib/functions/getWorkingDays'
+import getMonthShifts from '@/lib/functions/getMonthShifts'
 import {RankDescription} from '@/src/utils/types'
 
 interface SalaryData {
@@ -180,14 +180,13 @@ export default async function Home() {
   const ranksResult = await db.query(ranksQuery)
   const ranksData: RankDescription[] = ranksResult.rows
 
-  const workingDays = await getWorkingDays({id: worker.id})
+  const shifts = await getMonthShifts(worker.id)
 
   return (
     <MainPage
       ranksData={ranksData}
       worker={worker}
-      // @ts-ignore
-      workingDays={workingDays}
+      shifts={shifts}
       salaryData={salaryData}
     />
   )

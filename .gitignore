@@ -47,3 +47,5 @@ next-env.d.ts
 /app/api/test/
 /dist/
 .vinext
+
+node_modules/

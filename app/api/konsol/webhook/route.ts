@@ -1,3 +1,4 @@
+import {timingSafeEqual} from 'node:crypto'
 import {NextRequest, NextResponse} from 'next/server'
 import db from '@/lib/database'
 import {DateTime} from 'luxon'
@@ -68,27 +69,52 @@ async function findActByTaskId(taskId: number): Promise<KonsolAct | null> {
   }
 }
 
-export async function POST(req: NextRequest) {
-  let data
+const sameSecret = (value: string | null) => {
+  const secret = process.env.KONSOL_WEBHOOK_SECRET
 
-  try {
-    data = await req.json()
-  } catch {
-    return ok()
+  if (!secret) return true
+  if (!value) return false
+
+  const a = Buffer.from(value)
+  const b = Buffer.from(secret)
+
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
+const toId = (value: unknown) => {
+  const id = Number(value)
+
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
+export async function POST(req: NextRequest) {
+  const secret =
+    req.headers.get('x-webhook-secret') ??
+    req.nextUrl.searchParams.get('secret')
+
+  if (!sameSecret(secret)) {
+    return NextResponse.json({message: 'Ошибка авторизации'}, {status: 401})
   }
 
+  const data = await req.json().catch(() => null)
   const action: string | undefined = data?.manifest?.action_cipher
 
   try {
     if (action === 'workflow.finalize_tasks') {
-      const act = await findActByTaskId(data.details.id)
+      const taskId = toId(data.details?.id)
+
+      if (taskId === null) return ok()
+
+      const act = await findActByTaskId(taskId)
 
       if (!act) return ok()
 
       await upsertActPayment(act, false)
     } else if (action && PAYMENT_EVENTS.includes(action)) {
       // task_id в событиях оплаты — id акта
-      const actId = Number(data.details.task_id)
+      const actId = toId(data.details?.task_id)
+
+      if (actId === null) return ok()
 
       const updated = await db.query(
         'update payments.list set paid = true where act_id = $1',
@@ -98,7 +124,7 @@ export async function POST(req: NextRequest) {
       if (!updated.rowCount) {
         const res = await konsolFetch<KonsolAct>(`/v2/acts/${actId}`)
 
-        if (!res.ok || !res.data) {
+        if (!res.ok || !res.data?.contractor) {
           console.error('konsol webhook: act not found', actId, res.status)
           return ok()
         }
@@ -108,7 +134,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (e) {
     // всегда отвечаем 2xx, иначе Консоль будет ретраить до 20 раз
-    console.error('konsol webhook', action, e)
+    console.error('konsol webhook', action, e instanceof Error ? e.message : e)
   }
 
   return ok()

@@ -1,68 +1,42 @@
-'use client'
+import {headers} from 'next/headers'
+import {auth} from '@/lib/auth'
+import {getCurators} from '@/lib/internship/curators'
+import safeRedirect from '@/lib/auth/safeRedirect'
+import AuthPage from '@/src/components/auth/AuthPage'
 
-import {useSearchParams} from 'next/navigation'
-import {Button, Separator, toast} from '@heroui/react'
-import {authClient} from '@/lib/auth/authClient'
-import {Icon} from '@iconify/react'
-import capitalize from '@/lib/functions/capitalize'
-import providers from '@/src/utils/global/providers'
-import Link from 'next/link'
-import {useEffect} from 'react'
+interface LoginProps {
+  searchParams: Promise<{redirect?: string; error?: string}>
+}
 
-export default function Register() {
-  const params = useSearchParams()
+export default async function Login({searchParams}: LoginProps) {
+  const {redirect, error} = await searchParams
+  const session = await auth.api.getSession({headers: await headers()})
 
-  const redirect = params.get('redirect')
-  const error = params.get('error')
-  const callbackURL = redirect ? (redirect === '/' ? '/' : `/${redirect}`) : '/'
+  let curators: {id: number; name: string}[] = []
+  let telegramLinked = false
 
-  useEffect(() => {
-    if (error && error === 'user_not_found') {
-      authClient.signOut()
-      toast('Пользователь не найден', {
-        variant: 'danger',
-        timeout: 8000,
-      })
-    }
-  }, [error])
+  if (session && !session.user.id) {
+    curators = await getCurators()
+
+    const accounts = await auth.api.listUserAccounts({
+      headers: await headers(),
+    })
+
+    telegramLinked = accounts.some(a => a.providerId === 'telegram')
+  }
+
+  const user = session?.user
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-4">
-      <h1 className="text-5xl font-bold">Необходимо войти</h1>
-      <div className="flex w-fit flex-col flex-wrap justify-center gap-4">
-        {providers.map(provider => (
-          <Button
-            key={provider.name}
-            className="w-full justify-start gap-4"
-            slot="icon"
-            variant="tertiary"
-            onPress={async () => {
-              await authClient.signIn.social({
-                provider: provider.name,
-                callbackURL,
-                additionalData: {
-                  from: 'login',
-                },
-              })
-            }}>
-            <Icon icon={`logos:${provider.icon}`} width="24" height="24" />
-            <p>Войти с {capitalize(provider.name)}</p>
-          </Button>
-        ))}
-        <div className="flex max-w-full items-center gap-2">
-          <Separator className="flex-1" />
-          <p>или</p>
-          <Separator className="flex-1" />
-        </div>
-        <Button className="w-full" slot="icon">
-          <Link
-            href="/register"
-            className="flex h-full w-full items-center justify-center gap-2">
-            <Icon icon="solar:user-plus-linear" width="24" height="24" />
-            Регистрация
-          </Link>
-        </Button>
-      </div>
-    </main>
+    <AuthPage
+      account={
+        user ? {name: user.name, email: user.email, image: user.image} : null
+      }
+      worker={user ? JSON.parse(JSON.stringify(user)) : undefined}
+      curators={curators}
+      telegramLinked={telegramLinked}
+      callbackURL={safeRedirect(redirect)}
+      hasError={!!error}
+    />
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import {Button} from '@heroui/react'
+import {Button} from '@/components/ui/button'
 import {usePathname} from 'next/navigation'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 
@@ -19,12 +19,12 @@ export default function Error({
       <pre className="mt-4 text-sm opacity-70">{error.message}</pre>
 
       <div className="flex flex-col items-center gap-4">
-        <Button className="w-full" variant="tertiary" onPress={reset}>
+        <Button className="w-full" variant="secondary" onClick={reset}>
           Повторить
         </Button>
         <Button
           className="w-full"
-          onPress={async () => {
+          onClick={async () => {
             const body = {
               error: {message: error.message, stack: error.stack},
               page: path,

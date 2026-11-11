@@ -2,13 +2,15 @@ import {createServer} from 'node:http'
 import next from 'next'
 import {Server} from 'socket.io'
 import socket from './lib/socket/socket'
+import {stopListener} from './lib/socket/dbListener'
+import {startScheduler, stopScheduler} from './lib/push/scheduler'
 
 const dev = process.env.NODE_ENV === 'development'
 
 const hostname = process.env.HOSTNAME!
 const port = Number(process.env.PORT!)
 
-const app = next({dev, hostname, port})
+const app = next({dev, hostname, port, ...(dev && {turbopack: true})})
 const handler = app.getRequestHandler()
 
 app.prepare().then(async () => {
@@ -29,4 +31,33 @@ app.prepare().then(async () => {
     .listen(port, () => {
       console.log(`[WebSocker] Ready on port ${port}`)
     })
+
+  const scheduler = process.env.PUSH_SCHEDULER
+
+  if (scheduler ? scheduler === 'on' : !dev) startScheduler()
+
+  let closing = false
+
+  const shutdown = async (signal: string) => {
+    if (closing) return
+    closing = true
+
+    console.log(`[Server] ${signal}: завершение`)
+
+    setTimeout(() => process.exit(1), 10_000).unref()
+
+    try {
+      stopScheduler()
+      await io.close()
+      await stopListener()
+      await app.close()
+    } catch (error) {
+      console.error('[Server] ошибка при завершении', error)
+    }
+
+    process.exit(0)
+  }
+
+  process.once('SIGINT', () => shutdown('SIGINT'))
+  process.once('SIGTERM', () => shutdown('SIGTERM'))
 })

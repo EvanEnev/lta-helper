@@ -4,7 +4,6 @@ import {nextCookies} from 'better-auth/next-js'
 import {Pool} from 'pg'
 import {customSession, genericOAuth} from 'better-auth/plugins'
 import generateCustomSession from '@/lib/auth/generateCustomSession'
-import {createAuthMiddleware, getOAuthState} from 'better-auth/api'
 import db from '@/lib/database'
 
 export const auth = betterAuth({
@@ -34,40 +33,34 @@ export const auth = betterAuth({
       balance: {type: 'number'},
     },
   },
+  databaseHooks: {
+    account: {
+      create: {
+        after: async account => {
+          if (
+            account.providerId !== 'telegram' ||
+            !/^\d+$/.test(account.accountId)
+          ) {
+            return
+          }
+
+          await db.query(
+            'update workers set telegram_id = $1 where auth_id = $2 and telegram_id is null',
+            [Number(account.accountId), account.userId],
+          )
+        },
+      },
+    },
+  },
+  onAPIError: {errorURL: '/login'},
   advanced: {
     cookiePrefix: 'auth',
   },
   session: {
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60, // Cache duration in seconds
+      maxAge: 5 * 60,
     },
-  },
-  hooks: {
-    after: createAuthMiddleware(async ctx => {
-      const isOAuth =
-        ctx.path === '/callback/:id' ||
-        ctx.path === '/oauth2/callback/:providerId'
-
-      if (!isOAuth) return
-
-      const state = await getOAuthState()
-      const session = ctx.context.newSession
-
-      if (state?.from === 'login') {
-        const query = `select id from workers where auth_id = '${session?.session.userId}'`
-
-        const result = await db.query(query)
-
-        if (!result.rows[0]?.id) {
-          const query = `delete from auth."user" where id = '${session?.session.userId}'`
-
-          await db.query(query)
-
-          ctx.redirect('/login?error=user_not_found')
-        }
-      }
-    }),
   },
   plugins: [
     genericOAuth({

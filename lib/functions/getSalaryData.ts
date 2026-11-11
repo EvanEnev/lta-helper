@@ -107,22 +107,18 @@ export default function getSalaryData({
         (gamesPayments.find(p => p.id === actorGames?.id)?.value || 0)
 
   if (rank?.name === 'Актёр') {
-    if ((actorGames?.number || 0) < 3) {
+    if ((actorGames?.number || 0) < 2) {
       actorGamesSalary = 0
     } else {
       actorGamesSalary =
         actorGamesSalary -
-        (gamesPayments.find(p => p.id === actorGames?.id)?.value || 0) * 2
+        (gamesPayments.find(p => p.id === actorGames?.id)?.value || 0)
     }
   }
 
   if (comment?.toLowerCase().includes('под игру')) {
     salary = 1000
   }
-
-  // if (rank?.name === 'Актёр' && gamesCount && gamesCount > 2) {
-  //   overworkSalary += (rank?.overwork || 0) * (gamesCount - 2)
-  // }
 
   if (isOverWork) {
     overworkSalary += (rank?.overwork || 0) * overWorkTime

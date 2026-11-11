@@ -1,76 +1,84 @@
 'use client'
 
-import type {FC} from 'react'
-import {Avatar, Button, SearchField} from '@heroui/react'
+import {useMemo, useState} from 'react'
+import {Search} from 'lucide-react'
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar'
+import {Input} from '@/components/ui/input'
+import {cn} from '@/lib/utils'
 import type {WorkerBasic} from '@/src/utils/types'
 
 interface WorkersListProps {
   workers: WorkerBasic[]
   selectedId: number | null
-  search: string
-  onSearchChange: (v: string) => void
   onSelect: (worker: WorkerBasic) => void
+  className?: string
 }
 
-const WorkersList: FC<WorkersListProps> = ({
+export default function WorkersList({
   workers,
   selectedId,
-  search,
-  onSearchChange,
   onSelect,
-}) => {
-  const filtered = workers.filter(w =>
-    search ? w.name.toLowerCase().includes(search.toLowerCase()) : true,
-  )
+  className,
+}: WorkersListProps) {
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const text = query.trim().toLowerCase()
+    if (!text) return workers
+
+    return workers.filter(
+      worker =>
+        worker.name.toLowerCase().includes(text) ||
+        (worker.rank ?? '').toLowerCase().includes(text),
+    )
+  }, [workers, query])
 
   return (
-    <div className="bg-surface relative flex h-full flex-col overflow-y-auto rounded-2xl">
-      <div className="border-divider bg-surface sticky top-0 z-200 shrink-0 border-b p-3">
-        <SearchField
-          value={search}
-          onChange={onSearchChange}
-          variant="secondary"
-          aria-label="Поиск сотрудника">
-          <SearchField.Group>
-            <SearchField.SearchIcon />
-            <SearchField.Input placeholder="Поиск..." />
-            <SearchField.ClearButton />
-          </SearchField.Group>
-        </SearchField>
+    <div className={cn('flex min-h-0 flex-col gap-2', className)}>
+      <div className="relative">
+        <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+        <Input
+          type="search"
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          placeholder="Позывной или ранг"
+          aria-label="Поиск сотрудника"
+          className="h-9 pl-8"
+        />
       </div>
-      <div className="flex flex-col gap-1 p-2">
+
+      <ul className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
         {filtered.map(worker => (
-          <Button
-            variant="tertiary"
-            key={worker.id}
-            onPress={() => onSelect(worker)}
-            className={`flex w-full items-center justify-start gap-3 rounded-lg px-3 py-6 text-left transition-colors ${
-              selectedId === worker.id
-                ? 'bg-primary/10 text-primary'
-                : 'hover:bg-default-100 text-foreground'
-            }`}>
-            <Avatar size="sm" className="shrink-0">
-              <Avatar.Image src={worker.photoUrl || ''} />
-              <Avatar.Fallback>{worker.name.slice(0, 2)}</Avatar.Fallback>
-            </Avatar>
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-medium">
-                {worker.name}
+          <li key={worker.id}>
+            <button
+              type="button"
+              aria-pressed={selectedId === worker.id}
+              onClick={() => onSelect(worker)}
+              className={cn(
+                'hover:bg-muted focus-visible:ring-ring flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors outline-none focus-visible:ring-2',
+                selectedId === worker.id && 'bg-muted ring-primary/40 ring-1',
+              )}>
+              <Avatar>
+                <AvatarImage src={worker.photoUrl || ''} />
+                <AvatarFallback>{worker.name.slice(0, 2)}</AvatarFallback>
+              </Avatar>
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate text-sm font-medium">
+                  {worker.name}
+                </span>
+                <span className="text-muted-foreground truncate text-xs">
+                  {worker.rank ?? 'Без ранга'}
+                </span>
               </span>
-              <span className="text-default-400 truncate text-xs">
-                {worker.rank ?? ''}
-              </span>
-            </div>
-          </Button>
+            </button>
+          </li>
         ))}
         {filtered.length === 0 && (
-          <p className="text-default-400 py-6 text-center text-sm">
-            Ничего не найдено
-          </p>
+          <li className="text-muted-foreground py-6 text-center text-sm">
+            Никого не найдено
+          </li>
         )}
-      </div>
+      </ul>
     </div>
   )
 }
-
-export default WorkersList

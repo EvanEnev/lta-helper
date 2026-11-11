@@ -21,11 +21,6 @@ export type LocationData = {
   }
 }
 
-export type SelectedDay = {
-  date?: DateTime
-  invalidComment?: boolean
-}
-
 export interface Permission {
   name: string
   description: string
@@ -107,32 +102,6 @@ export interface WorkerSalary {
   isConfirmed: boolean
   taskId: number | null
 }
-//
-// export interface SalaryData {
-//   date: string
-//   start_time: string
-//   end_time: string
-//   overwork_start: string | null
-//   overwork_end: string | null
-//   overwork: number | null
-//   value: number
-//   bonuses: string | null
-//   fines: string
-//   comment: string | null
-//   created_at: string
-//   worker_name: string
-//   worker_id: number
-//   created_by: string
-//   updated_by?: number
-//   location: LTLocation
-//   type?: string
-//   oneGames: {id: LTGamePayment['id']; value: number; number: number} | null
-//   twoGames: {id: LTGamePayment['id']; value: number; number: number} | null
-//   threeGames: {id: LTGamePayment['id']; value: number; number: number} | null
-//   actorGames: {id: LTGamePayment['id']; value: number; number: number} | null
-//   workTypes: LTWorkType['id'][]
-//   faceId: LTFaceIdData[]
-// }
 
 export interface SalaryData {
   id: number
@@ -160,14 +129,6 @@ export interface SalaryData {
     timestamp: string
     location: LTLocation
   }[]
-}
-
-export interface SalaryUser {
-  id: number
-  name: string
-  rank: string | null
-  firstName: string | null
-  isFormer: boolean | null
 }
 
 export interface UserSalary {
@@ -214,16 +175,6 @@ export interface LTPointData {
   createdAt: string
   isAboveLimit: boolean
   comment: string | null
-}
-
-export interface WorkerPoint {
-  worker: LTWorker
-  points: {
-    pointInfo: LTPoint
-    isRequired: boolean
-    maxValue: number
-    data: LTPointData[]
-  }[]
 }
 
 export interface Filter {
@@ -306,7 +257,7 @@ export interface LTPayrollIssueData {
   take_by: LTPayroll['takeBy']
   taken: number | null
   dates: LTPayroll['dates']
-  to_take_by: LTWorkerPayrollData['to_take_by']
+  to_take_by: string | null
   balance: LTWorker['balance']
   location: LTLocation['name']
   value: number
@@ -370,40 +321,6 @@ export interface LTPaymentChangeData {
   comment: string | null
   create: boolean
   delete: boolean
-}
-
-export interface WrapperWorkers {
-  worker: LTWorker['name']
-  rank: LTRank['name']
-  count: number
-}
-
-export interface WrappedLocations {
-  location: LTLocation['name']
-  count: number
-}
-
-export interface WrappedShifts {
-  count: number
-}
-
-export interface WrappedSchedule {
-  plus: number
-  minus: number
-  limitations: number
-  count: number
-  [key: string]: number
-}
-
-export interface WrappedDeals {
-  count: number
-  actor: number
-  worker: number
-}
-
-export interface WrappedDealsType {
-  name: string
-  count: number
 }
 
 export interface LTWorkerData {
@@ -479,36 +396,4 @@ export interface LTGeneration {
 export interface LTQuest {
   id: number
   name: string
-}
-
-export interface LTSalarySummary {
-  workerId: LTWorker['id']
-  workerName: LTWorker['name']
-  isFormer: LTWorker['isFormer']
-  rank: LTRank['name']
-  sum: number
-  value: number
-  overwork: number
-  games: number
-  bonuses: number
-  fines: number
-  balance: number
-  external: number
-  [key: string]: number | string | LTWorker['isFormer']
-}
-
-export interface LTSalarySummarized2 {
-  workerId: LTWorker['id']
-  workerName: LTWorker['name']
-  isFormer: LTWorker['isFormer']
-  rank: LTRank['name']
-  sum: number
-  value: number
-  overwork: number
-  games: number
-  bonuses: number
-  fines: number
-  balance: number
-  external: number
-  [key: string]: number | string | LTWorker['isFormer']
 }

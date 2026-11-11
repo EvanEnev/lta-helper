@@ -25,14 +25,6 @@ export default async function Salary() {
   const gamesPayments = await getGamesPayments()
   const locations = await getLocations()
 
-  const workTypesQuery = `select
-  id,
-  name
-  from salary.types order by name`
-
-  const workTypesResult = await db.query(workTypesQuery)
-  const workTypes = workTypesResult.rows
-
   return (
     <SalaryPage
       worker={worker}
@@ -41,7 +33,6 @@ export default async function Salary() {
       dates={dates}
       canEdit={canEdit}
       canViewFull={canViewFull}
-      workTypes={workTypes}
     />
   )
 }

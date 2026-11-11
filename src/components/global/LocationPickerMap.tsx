@@ -36,7 +36,6 @@ export default function LeafletMap({coords, onMapClick}: LeafletMapProps) {
     mapInstance.current = map
   }, [])
 
-  // Обновляем маркер когда меняются координаты
   useEffect(() => {
     if (!mapInstance.current || !coords) return
 
@@ -57,7 +56,7 @@ export default function LeafletMap({coords, onMapClick}: LeafletMapProps) {
   return (
     <div
       ref={mapRef}
-      className="border-divider z-0 h-64 w-full overflow-hidden rounded-lg border"
+      className="z-0 h-64 w-full overflow-hidden rounded-lg border"
     />
   )
 }

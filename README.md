@@ -24,15 +24,13 @@ Internal HR and operations management system for a live entertainment / event co
 | Framework | Next.js 16.2 (App Router) |
 | React | 19.2 |
 | Language | TypeScript 5.9 (strict, ESM) |
-| UI | HeroUI v3 + Tailwind CSS v4 |
-| Icons | Iconify |
-| Animations | Framer Motion 12 |
+| UI | shadcn (Base UI) + Tailwind CSS v4 + lucide-react |
 | State | Jotai 2 |
 | Real-time | Socket.IO 4 |
 | Database | PostgreSQL (`pg`) |
 | Auth | better-auth 1.5 |
-| Date/time | Luxon 3 + `@internationalized/date` |
-| Maps | Leaflet + react-leaflet |
+| Date/time | Luxon 3 |
+| Maps | Leaflet |
 | Excel | ExcelJS |
 | Push notifications | web-push |
 | Google integration | google-spreadsheet, googleapis |
@@ -57,7 +55,7 @@ Internal HR and operations management system for a live entertainment / event co
 │
 ├── src/
 │   ├── components/         # React components, organized by feature
-│   ├── hooks/              # Custom hooks (useIsMobile, useColors, …)
+│   ├── hooks/              # Custom hooks
 │   └── utils/              # Client utilities, Jotai atoms, shared types
 │
 ├── lib/                    # Server-side business logic

@@ -3,7 +3,11 @@ import {headers} from 'next/headers'
 import {redirect} from 'next/navigation'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
-import type {DefaultPermission, Permission, WorkerBasic} from '@/src/utils/types'
+import type {
+  DefaultPermission,
+  Permission,
+  WorkerBasic,
+} from '@/src/utils/types'
 import PermissionsPage from '@/src/components/settings/permissions/PermissionsPage'
 
 export default async function Page() {
@@ -16,7 +20,7 @@ export default async function Page() {
   const [workersResult, permissionsResult, ranksResult, defaultsResult] =
     await Promise.all([
       db.query(
-        `SELECT w.id, w.name, w.photo_url as "photoUrl", r.name as rank, r.weight as "rankWeight"
+        `SELECT w.id, w.name, w.photo_url as "photoUrl", r.name as rank, r.permission_level as "rankWeight"
          FROM workers w
          LEFT JOIN ranks r ON r.id = w.rank_id
          WHERE COALESCE(w.is_fired, false) = false
@@ -26,10 +30,10 @@ export default async function Page() {
         'SELECT id, name, description FROM config.permissions ORDER BY name',
       ),
       db.query<{id: number; name: string; weight: number}>(
-        'SELECT id, name, weight FROM ranks ORDER BY weight DESC',
+        'SELECT id, name, permission_level as weight FROM ranks ORDER BY permission_level DESC, sorting_weight DESC',
       ),
       db.query<DefaultPermission>(
-        `SELECT dp.permission_id, dp.rank_id, r.name as rank_name, r.weight as rank_weight
+        `SELECT dp.permission_id, dp.rank_id, r.name as rank_name, r.permission_level as rank_weight
          FROM config.default_permissions dp
          JOIN ranks r ON r.id = dp.rank_id`,
       ),
@@ -39,9 +43,10 @@ export default async function Page() {
     id: row.id as number,
     name: row.name as string,
     photoUrl: (row.photoUrl ?? null) as string | null,
-    rank: typeof row.rank === 'object' && row.rank !== null
-      ? String((row.rank as {name: unknown}).name)
-      : (row.rank as string | null),
+    rank:
+      typeof row.rank === 'object' && row.rank !== null
+        ? String((row.rank as {name: unknown}).name)
+        : (row.rank as string | null),
     rankWeight: (row.rankWeight as number | null) ?? null,
   }))
 

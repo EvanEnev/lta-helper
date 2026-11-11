@@ -2,11 +2,12 @@ import db from '@/lib/database'
 import PayrollIssuePage from '@/src/components/payrolls/issue/PayrollIssuePage'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import {redirect} from 'next/navigation'
 
 export default async function PayrollIssue() {
-  const worker = (await auth.api.getSession({
-    headers: await headers(),
-  }))!.user
+  const worker = (await auth.api.getSession({headers: await headers()}))?.user
+
+  if (!worker) redirect('/login')
 
   const query = `select
     p.id,
@@ -19,15 +20,15 @@ export default async function PayrollIssue() {
     w2.name as to_take_by,
     wp.taken
     from payrolls.list p
-    left join relations.workers_payrolls wp on wp.worker_id = ${worker?.id} and wp.payroll_id = p.id
+    left join relations.workers_payrolls wp on wp.worker_id = $1::int and wp.payroll_id = p.id
     left join locations l on l.id = wp.location_id
-    left join workers w on w.id = ${worker?.id}
+    left join workers w on w.id = $1::int
     left join workers w2 on w2.id = wp.to_take_by
     where p.take_by >= NOW()::date and p.is_published = true
     order by p.take_by desc
   `
 
-  const result = await db.query(query)
+  const result = await db.query(query, [worker.id])
 
   const data = result.rows.map(row => ({
     ...row,
@@ -51,13 +52,13 @@ export default async function PayrollIssue() {
   wp.location_id
   from relations.workers_payrolls wp
   left join workers w on w.id = wp.worker_id
-  where wp.to_take_by = ${worker?.id} and (wp.taken = 0 or wp.taken is null)
+  where wp.to_take_by = $1::int and (wp.taken = 0 or wp.taken is null)
   `
 
   const workersResult = await db.query(workersQuery)
   const workers = workersResult.rows
 
-  const takeByResult = await db.query(takeByQuery)
+  const takeByResult = await db.query(takeByQuery, [worker.id])
   const takeByData = takeByResult.rows
 
   return (

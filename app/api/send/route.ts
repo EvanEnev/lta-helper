@@ -29,6 +29,19 @@ export async function POST(req: NextRequest) {
     date: DateTime.fromISO(`${day.date}`),
   }))
 
+  selectedDays = selectedDays.filter(
+    day =>
+      day.date?.isValid &&
+      (day.value == null ||
+        (typeof day.value === 'string' && day.value.length <= 50)) &&
+      (day.comment == null ||
+        (typeof day.comment === 'string' && day.comment.length <= 1000)),
+  )
+
+  if (!selectedDays.length) {
+    return NextResponse.json({message: 'Ошибка при выборе дней'}, {status: 400})
+  }
+
   const telegramId: number = worker.telegramId
 
   if (!worker.name) {
@@ -104,21 +117,37 @@ export async function POST(req: NextRequest) {
   const botToken = process.env.BOT_TOKEN
   const rank = row.get('Ранг')
 
-  const isActor =
-    rank && (rank.toLowerCase() === 'актёр' || rank.toLowerCase() === 'актер')
+  const normalizedRank = rank?.toLowerCase().replaceAll('ё', 'е')
+  const isActor = normalizedRank === 'актер'
+  const isIntern = normalizedRank === 'стажер'
 
   const chat_id = isActor
     ? process.env.ACTORS_CHAT_ID
-    : process.env.WORKERS_CHAT_ID
+    : isIntern
+      ? process.env.TRAINEES_CHAT_ID
+      : process.env.WORKERS_CHAT_ID
 
   const message_thread_id = isActor
     ? process.env.ACTORS_THREAD_ID
-    : process.env.WORKERS_THREAD_ID
+    : isIntern
+      ? process.env.TRAINEES_THREAD_ID
+      : process.env.WORKERS_THREAD_ID
 
-  const query = queries.join(';\n')
+  if (queries.length) {
+    const client = await db.connect()
 
-  if (query) {
-    await db.query(query)
+    try {
+      await client.query('begin')
+      for (const query of queries) {
+        await client.query(query.text, query.values)
+      }
+      await client.query('commit')
+    } catch (e) {
+      await client.query('rollback').catch(() => {})
+      throw e
+    } finally {
+      client.release()
+    }
   }
 
   const errors: string[] = []
@@ -131,7 +160,7 @@ export async function POST(req: NextRequest) {
         chat_id: telegramId,
         text: `Успешно ✅\n\n${changesTexts.join('\n')}`,
       }),
-    }).catch(e => errors.push('отправка личного сообщения')),
+    }).catch(() => errors.push('отправка личного сообщения')),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -142,7 +171,7 @@ export async function POST(req: NextRequest) {
         parse_mode: 'Markdown',
         disable_notification: true,
       }),
-    }).catch(e => errors.push('отправка сообщения в группу')),
+    }).catch(() => errors.push('отправка сообщения в группу')),
     fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -152,7 +181,7 @@ export async function POST(req: NextRequest) {
         parse_mode: 'Markdown',
         text: locationsTexts,
       }),
-    }).catch(e => errors.push('отправка сообщения админам')),
+    }).catch(() => errors.push('отправка сообщения админам')),
   ]
 
   await Promise.all(telegramPromises)
