@@ -1,14 +1,13 @@
 import {Pool, types} from 'pg'
-import convertTZ from './functions/convertTZ'
-import {Interval} from 'luxon'
+import {DateTime, Interval} from 'luxon'
 
-types.setTypeParser(1082, (val: string) => {
-  return convertTZ(new Date(val), 'Europe/Moscow')
-})
+types.setTypeParser(1082, (val: string) =>
+  DateTime.fromISO(val, {zone: 'Europe/Moscow'}),
+)
 
-types.setTypeParser(1114, (val: string) => {
-  return convertTZ(new Date(val), 'Europe/Moscow')
-})
+types.setTypeParser(1114, (val: string) =>
+  DateTime.fromSQL(val, {zone: 'Europe/Moscow'}),
+)
 
 // @ts-ignore
 types.setTypeParser(3912, (val: string) => {

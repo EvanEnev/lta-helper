@@ -5,6 +5,8 @@ import socket from './lib/socket/socket'
 import {stopListener} from './lib/socket/dbListener'
 import {startScheduler, stopScheduler} from './lib/push/scheduler'
 
+process.env.TZ = 'Europe/Moscow'
+
 const dev = process.env.NODE_ENV === 'development'
 
 const hostname = process.env.HOSTNAME!

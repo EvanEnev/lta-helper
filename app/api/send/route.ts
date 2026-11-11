@@ -26,7 +26,10 @@ export async function POST(req: NextRequest) {
 
   selectedDays = selectedDays.map(day => ({
     ...day,
-    date: DateTime.fromISO(`${day.date}`),
+    date: DateTime.fromISO(`${day.date}`, {
+      setZone: true,
+      zone: 'Europe/Moscow',
+    }),
   }))
 
   selectedDays = selectedDays.filter(
