@@ -72,18 +72,14 @@ export async function POST(req: NextRequest) {
 
   if (!curators.some(c => c.id === invitedBy)) return fail('Куратор не найден')
 
-  let telegramId: number | null = null
   const accounts = await auth.api.listUserAccounts({headers: requestHeaders})
+  const telegram = accounts.find(account => account.providerId === 'telegram')
 
-  if (accounts.some(account => account.providerId === 'telegram')) {
-    const result = await db.query(
-      'select email from auth."user" where id = $1',
-      [session.userId],
-    )
-    const value = result.rows[0]?.email
+  if (!telegram) return fail('Привяжите Telegram')
 
-    if (/^\d+$/.test(value ?? '')) telegramId = Number(value)
-  }
+  const telegramId = /^\d+$/.test(telegram.accountId)
+    ? Number(telegram.accountId)
+    : null
 
   const rank = await findRank(name)
 

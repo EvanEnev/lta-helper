@@ -1,7 +1,7 @@
 'use client'
 
 import {useState} from 'react'
-import {ChevronDown, Lock, Search} from 'lucide-react'
+import {ArrowRightLeft, ChevronDown, Search} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {
   Dialog,
@@ -191,8 +191,8 @@ export default function DetailsToolbar(props: DetailsToolbarProps) {
             variant="destructive"
             className="h-9"
             onClick={() => setConfirmClose(true)}>
-            <Lock />
-            Закрыть ведомость
+            <ArrowRightLeft />
+            Перенести остатки
           </Button>
         </div>
       )}
@@ -200,7 +200,7 @@ export default function DetailsToolbar(props: DetailsToolbarProps) {
       <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Закрыть ведомость?</DialogTitle>
+            <DialogTitle>Перенести остатки?</DialogTitle>
             <DialogDescription>
               Остаток каждого сотрудника (сумма − выдано + бонусы − внешняя
               выплата) будет записан в его баланс. У сотрудников, которых нет в
@@ -212,7 +212,7 @@ export default function DetailsToolbar(props: DetailsToolbarProps) {
               Отмена
             </Button>
             <Button variant="destructive" disabled={isClosing} onClick={close}>
-              Закрыть ведомость
+              Перенести остатки
             </Button>
           </DialogFooter>
         </DialogContent>

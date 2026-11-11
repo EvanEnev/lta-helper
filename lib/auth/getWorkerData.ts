@@ -37,10 +37,10 @@ export async function getData(
                         LEFT JOIN ranks r ON r.id = w.rank_id
                         LEFT JOIN locations l ON l.id = w.location_id
                         LEFT JOIN (
-                   SELECT * FROM config.admins
+                   SELECT DISTINCT ON (worker_id) worker_id, location_id
+                   FROM config.admins
                    WHERE date::date = $1
-                   order by date desc
-                   LIMIT 1
+                   order by worker_id, date desc
                  ) admins ON admins.worker_id = w.id
                  WHERE ${impersonate ? 'w.id = $2' : 'auth_id = $2 or email = $3'}`
 

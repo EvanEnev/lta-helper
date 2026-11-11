@@ -19,6 +19,7 @@ interface AuthPageProps {
   } | null
   worker?: Partial<LTWorker>
   curators: {id: number; name: string}[]
+  telegramLinked: boolean
   callbackURL: string
   hasError: boolean
 }
@@ -27,6 +28,7 @@ export default function AuthPage({
   account,
   worker: initialWorker,
   curators,
+  telegramLinked,
   callbackURL,
   hasError,
 }: AuthPageProps) {
@@ -84,6 +86,7 @@ export default function AuthPage({
         <ProfileStep
           worker={worker}
           curators={curators}
+          telegramLinked={telegramLinked}
           email={account?.email ?? ''}
           isPending={isPending}
           onSubmit={submit}

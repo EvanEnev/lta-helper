@@ -4,6 +4,7 @@ import {nextCookies} from 'better-auth/next-js'
 import {Pool} from 'pg'
 import {customSession, genericOAuth} from 'better-auth/plugins'
 import generateCustomSession from '@/lib/auth/generateCustomSession'
+import db from '@/lib/database'
 
 export const auth = betterAuth({
   database: new Pool({
@@ -32,6 +33,26 @@ export const auth = betterAuth({
       balance: {type: 'number'},
     },
   },
+  databaseHooks: {
+    account: {
+      create: {
+        after: async account => {
+          if (
+            account.providerId !== 'telegram' ||
+            !/^\d+$/.test(account.accountId)
+          ) {
+            return
+          }
+
+          await db.query(
+            'update workers set telegram_id = $1 where auth_id = $2 and telegram_id is null',
+            [Number(account.accountId), account.userId],
+          )
+        },
+      },
+    },
+  },
+  onAPIError: {errorURL: '/login'},
   advanced: {
     cookiePrefix: 'auth',
   },

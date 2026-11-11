@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {io, Socket} from 'socket.io-client'
+import {DateTime, Interval} from 'luxon'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import unaccent from '@/lib/functions/unaccent'
 import {cn} from '@/lib/utils'
@@ -54,6 +55,7 @@ export default function PayrollsDetailsPage({
   data: initialData,
   locationsData,
   locations,
+  payroll,
   worker,
 }: PayrollsDetailsPageProps) {
   const [data, setData] = useState(initialData)
@@ -184,6 +186,21 @@ export default function PayrollsDetailsPage({
         'flex min-w-0 flex-col gap-3 p-4',
         'max-sm:h-[calc(100dvh-4rem)] sm:h-dvh',
       )}>
+      <div className="text-muted-foreground flex shrink-0 flex-wrap gap-x-4 gap-y-1 text-sm">
+        <span>
+          Период начисления:{' '}
+          <span className="text-foreground font-medium">
+            {Interval.fromISO(payroll.dates).toFormat('dd.MM.yyyy')}
+          </span>
+        </span>
+        <span>
+          Создана: {DateTime.fromISO(payroll.createdAt).toFormat('dd.MM.yyyy')}
+        </span>
+        <span>
+          Можно забрать до:{' '}
+          {DateTime.fromISO(payroll.takeBy).toFormat('dd.MM.yyyy')}
+        </span>
+      </div>
       {canSeeSummary && (
         <div className="flex shrink-0 flex-col gap-3">
           <DetailsToolbar

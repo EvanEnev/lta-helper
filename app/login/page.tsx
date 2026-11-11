@@ -13,9 +13,16 @@ export default async function Login({searchParams}: LoginProps) {
   const session = await auth.api.getSession({headers: await headers()})
 
   let curators: {id: number; name: string}[] = []
+  let telegramLinked = false
 
   if (session && !session.user.id) {
     curators = await getCurators()
+
+    const accounts = await auth.api.listUserAccounts({
+      headers: await headers(),
+    })
+
+    telegramLinked = accounts.some(a => a.providerId === 'telegram')
   }
 
   const user = session?.user
@@ -27,6 +34,7 @@ export default async function Login({searchParams}: LoginProps) {
       }
       worker={user ? JSON.parse(JSON.stringify(user)) : undefined}
       curators={curators}
+      telegramLinked={telegramLinked}
       callbackURL={safeRedirect(redirect)}
       hasError={!!error}
     />

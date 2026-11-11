@@ -47,6 +47,7 @@ export default function PaymentsToolbar(props: PaymentsToolbarProps) {
         value={props.period}
         onChange={props.onPeriodChange}
         extraPresets={props.extraPresets}
+        longPresets={false}
       />
 
       <Select

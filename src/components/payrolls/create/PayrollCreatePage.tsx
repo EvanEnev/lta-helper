@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {Skeleton} from '@/components/ui/skeleton'
+import {TYPED_LOCATION} from '@/src/components/admin/utils'
 import {safeEvaluate} from '@/src/components/global/FormulaField'
 import fetchHandler from '@/src/utils/global/fetchHandler'
 import separateNumber from '@/lib/functions/separateNumber'
@@ -56,7 +57,7 @@ interface PayrollCreatePageProps {
 
 const DRAFT_KEY = 'payrollsCreate'
 const HIDDEN_ON_MONEY = ['выезд', 'отдел продаж']
-const HIDDEN_FOR_WORKERS = ['другое', 'выезд', 'отдел продаж']
+const HIDDEN_FOR_WORKERS = ['выезд', 'отдел продаж']
 const ALL: LTLocation = {
   id: 0,
   name: 'Все',
@@ -90,18 +91,27 @@ export default function PayrollCreatePage({
 }: PayrollCreatePageProps) {
   const router = useRouter()
 
+  const otherId = useMemo(
+    () => locations.find(l => l.name === TYPED_LOCATION)?.id ?? -1,
+    [locations],
+  )
+
   const baseRows = useMemo<LTPayrollData[]>(
     () =>
-      data.map(d => ({
-        workerId: d.id,
-        external_payment: d.external,
-        location: -1,
-        value: d.value + d.overwork + d.games,
-        fines: d.fines,
-        bonuses: d.bonuses,
-        balance: d.balance,
-      })),
-    [data],
+      data.map(d => {
+        const row: LTPayrollData = {
+          workerId: d.id,
+          external_payment: d.external,
+          location: -1,
+          value: d.value + d.overwork + d.games,
+          fines: d.fines,
+          bonuses: d.bonuses,
+          balance: d.balance,
+        }
+
+        return rowTotal(row) < 0 ? {...row, location: otherId} : row
+      }),
+    [data, otherId],
   )
 
   const [payrollData, setPayrollData] = useState(baseRows)
@@ -208,10 +218,12 @@ export default function PayrollCreatePage({
             .setZone('Europe/Moscow')
             .plus({days: 1})
             .toFormat('yyyy-MM-dd'),
-          workers: payrollData.map(d => ({
-            worker_id: d.workerId,
-            amount: rowTotal(d),
-          })),
+          workers: payrollData
+            .filter(d => rowTotal(d) >= 0)
+            .map(d => ({
+              worker_id: d.workerId,
+              amount: rowTotal(d),
+            })),
           locations: money.map(d => ({
             location_id: d.location,
             value: d.value,
@@ -225,17 +237,19 @@ export default function PayrollCreatePage({
           prev.map(d => ({
             ...d,
             location:
-              result.find(
-                (r: {employee_id: number; location_id: number}) =>
-                  r.employee_id === d.workerId,
-              )?.location_id ?? -1,
+              rowTotal(d) < 0
+                ? otherId
+                : (result.find(
+                    (r: {employee_id: number; location_id: number}) =>
+                      r.employee_id === d.workerId,
+                  )?.location_id ?? -1),
           })),
         )
       }
     } finally {
       setDistributing(false)
     }
-  }, [money, payrollData])
+  }, [money, otherId, payrollData])
 
   const send = useCallback(
     async (isPublished: boolean) => {

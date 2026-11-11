@@ -243,6 +243,33 @@ export default function ProfilePage({
                   </div>
                 )
               })}
+              <div className="flex items-center gap-3 rounded-lg border p-3">
+                <ProviderIcon name="telegram" className="size-6" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-base font-medium">Telegram</p>
+                  <Badge
+                    variant={
+                      userProviders.includes('telegram')
+                        ? 'secondary'
+                        : 'outline'
+                    }>
+                    {userProviders.includes('telegram')
+                      ? 'Привязан'
+                      : 'Не привязан'}
+                  </Badge>
+                </div>
+                {!userProviders.includes('telegram') && (
+                  <Button
+                    onClick={() =>
+                      authClient.oauth2.link({
+                        providerId: 'telegram',
+                        callbackURL: '/profile',
+                      })
+                    }>
+                    Привязать
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 

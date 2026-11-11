@@ -20,6 +20,7 @@ interface DateRangePopoverProps {
   onChange: (value: DatePeriod) => void
   zone?: string
   extraPresets?: {label: string; period: DatePeriod}[]
+  longPresets?: boolean
 }
 
 const toDate = (date: DateTime) => new Date(date.year, date.month - 1, date.day)
@@ -35,6 +36,7 @@ export default function DateRangePopover({
   onChange,
   zone = 'Europe/Moscow',
   extraPresets = [],
+  longPresets = true,
 }: DateRangePopoverProps) {
   const isMobile = useIsMobile()
   const [open, setOpen] = useState(false)
@@ -53,14 +55,18 @@ export default function DateRangePopover({
         end: now.minus({months: 1}).endOf('month'),
       },
     },
-    {
-      label: 'Квартал',
-      period: {start: now.startOf('quarter'), end: now.endOf('quarter')},
-    },
-    {
-      label: 'Год',
-      period: {start: now.startOf('year'), end: now.endOf('year')},
-    },
+    ...(longPresets
+      ? [
+          {
+            label: 'Квартал',
+            period: {start: now.startOf('quarter'), end: now.endOf('quarter')},
+          },
+          {
+            label: 'Год',
+            period: {start: now.startOf('year'), end: now.endOf('year')},
+          },
+        ]
+      : []),
     ...extraPresets,
   ]
 

@@ -4,6 +4,8 @@ import {useState, type FormEvent} from 'react'
 import {Loader2} from 'lucide-react'
 import {withMask} from 'use-mask-input'
 import {Button} from '@/components/ui/button'
+import {authClient} from '@/lib/auth/authClient'
+import {TelegramIcon} from '@/src/components/global/BrandIcons'
 import {
   Combobox,
   ComboboxContent,
@@ -23,6 +25,7 @@ interface Curator {
 interface ProfileStepProps {
   worker?: Partial<LTWorker>
   curators: Curator[]
+  telegramLinked: boolean
   email: string
   isPending: boolean
   onSubmit: (data: Record<string, string>) => void
@@ -54,6 +57,7 @@ const inputClass = 'h-11 text-base'
 export default function ProfileStep({
   worker,
   curators,
+  telegramLinked,
   email,
   isPending,
   onSubmit,
@@ -75,6 +79,29 @@ export default function ProfileStep({
       ...(data as Record<string, string>),
       invited_by: String(curator.id),
     })
+  }
+
+  if (!telegramLinked) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Button
+          size="lg"
+          className="h-12 justify-center gap-3 text-base"
+          onClick={() =>
+            authClient.oauth2.link({
+              providerId: 'telegram',
+              callbackURL: '/login',
+            })
+          }>
+          <TelegramIcon className="size-6" />
+          Привязать Telegram
+        </Button>
+        <p className="text-muted-foreground text-center text-sm">
+          Привязка Telegram обязательна: через него приходят уведомления. После
+          неё вернётесь к анкете.
+        </p>
+      </div>
+    )
   }
 
   return (

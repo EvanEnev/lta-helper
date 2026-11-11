@@ -80,7 +80,9 @@ function Figures({
       <Line label="Выделено" value={allocated} className="text-primary" />
       <Line label="К выдаче" value={toTake} />
       <Line label="Выдано" value={issued} className="text-success" />
-      {balance !== undefined && <Line label="Общий остаток" value={balance} />}
+      {balance !== undefined && (
+        <Line label={location ? 'Остаток' : 'Общий остаток'} value={balance} />
+      )}
     </div>
   )
 }
@@ -106,6 +108,7 @@ export default function DetailsMoney({locationsData, data}: DetailsMoneyProps) {
             allocated={location.value}
             toTake={figures.toTake}
             issued={figures.issued}
+            balance={figures.balance}
           />
         )
       })}
