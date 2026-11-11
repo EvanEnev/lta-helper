@@ -2,14 +2,71 @@ import {timingSafeEqual} from 'node:crypto'
 import {NextRequest, NextResponse} from 'next/server'
 import db from '@/lib/database'
 import {DateTime} from 'luxon'
+import {konsolFetch} from '@/lib/konsol'
 
-const OK = () => NextResponse.json({ok: true}, {status: 200})
+// https://docs.konsol.ru/articles/konsol-hrm-api/webhook
+const PAYMENT_EVENTS = [
+  'billing.payment_succeeded',
+  'external_bank.payment_succeeded',
+  'tinkoff.payment_succeeded',
+]
 
-const PAYMENT_TYPE = 2
+const PER_PAGE = 100
+const PAYMENT_TYPE_ACT = 2
 
-const konsolHeaders = {
-  accept: 'application/json',
-  Authorization: `Bearer ${process.env.KONSOL_TOKEN}`,
+interface KonsolAct {
+  id: number
+  number: string
+  amount: number | string
+  start_date: string
+  contractor: {first_name: string; last_name: string}
+  workflow_tasks?: {id: number}[]
+}
+
+const ok = () => NextResponse.json({ok: true}, {status: 200})
+
+async function upsertActPayment(act: KonsolAct, paid: boolean) {
+  await db.query(
+    `insert into payments.list (worker_id, payment_type, value, date, comment, act_id, paid)
+     values ((select id
+              from workers
+              where unaccent(first_name) ilike unaccent($1)
+                and unaccent(last_name) ilike unaccent($2)),
+             $3, $4, $5, $6, $7, $8)
+     on conflict (worker_id, act_id) do update
+       set value = excluded.value,
+           date = excluded.date,
+           comment = excluded.comment,
+           paid = payments.list.paid or excluded.paid`,
+    [
+      act.contractor.first_name,
+      act.contractor.last_name,
+      PAYMENT_TYPE_ACT,
+      Number(act.amount),
+      act.start_date,
+      `Выплата по акту №${act.number}`,
+      act.id,
+      paid,
+    ],
+  )
+}
+
+async function findActByTaskId(taskId: number): Promise<KonsolAct | null> {
+  const today = DateTime.now().setZone('Europe/Moscow').toFormat('yyyy-MM-dd')
+
+  for (let page = 1; ; page++) {
+    const res = await konsolFetch<KonsolAct[]>(
+      `/v2/acts?created_at_from=${today}&per=${PER_PAGE}&page=${page}`,
+    )
+
+    if (!res.ok || !Array.isArray(res.data) || !res.data.length) return null
+
+    const act = res.data.find(a =>
+      a.workflow_tasks?.some(task => task.id === taskId),
+    )
+
+    if (act) return act
+  }
 }
 
 const sameSecret = (value: string | null) => {
@@ -30,35 +87,6 @@ const toId = (value: unknown) => {
   return Number.isInteger(id) && id > 0 ? id : null
 }
 
-interface KonsolAct {
-  id: number
-  number: string
-  amount: string
-  start_date: string
-  contractor: {first_name: string; last_name: string}
-}
-
-const insertPayment = (act: KonsolAct, value: number, paid: boolean) =>
-  db.query(
-    `insert into payments.list (worker_id, payment_type, value, date, comment, act_id, paid)
-     values (
-       (select id from workers
-        where unaccent(first_name) ilike unaccent($1)
-          and unaccent(last_name) ilike unaccent($2)),
-       $3, $4::numeric, $5, $6, $7, $8
-     )`,
-    [
-      act.contractor.first_name,
-      act.contractor.last_name,
-      PAYMENT_TYPE,
-      value,
-      act.start_date,
-      `Выплата по акту №${act.number}`,
-      act.id,
-      paid,
-    ],
-  )
-
 export async function POST(req: NextRequest) {
   const secret =
     req.headers.get('x-webhook-secret') ??
@@ -69,66 +97,45 @@ export async function POST(req: NextRequest) {
   }
 
   const data = await req.json().catch(() => null)
-  const action = data?.manifest?.action_cipher
+  const action: string | undefined = data?.manifest?.action_cipher
 
   try {
     if (action === 'workflow.finalize_tasks') {
-      const id = data.details?.id
+      const taskId = toId(data.details?.id)
 
-      const today = DateTime.now()
-        .setZone('Europe/Moscow')
-        .toFormat('yyyy-MM-dd')
+      if (taskId === null) return ok()
 
-      const res = await fetch(
-        `https://api.konsol.pro/v2/acts?created_at_from=${today}`,
-        {method: 'GET', headers: konsolHeaders},
+      const act = await findActByTaskId(taskId)
+
+      if (!act) return ok()
+
+      await upsertActPayment(act, false)
+    } else if (action && PAYMENT_EVENTS.includes(action)) {
+      // task_id в событиях оплаты — id акта
+      const actId = toId(data.details?.task_id)
+
+      if (actId === null) return ok()
+
+      const updated = await db.query(
+        'update payments.list set paid = true where act_id = $1',
+        [actId],
       )
 
-      const tasks = await res.json().catch(() => null)
+      if (!updated.rowCount) {
+        const res = await konsolFetch<KonsolAct>(`/v2/acts/${actId}`)
 
-      const act: (KonsolAct & {workflow_tasks: {id: unknown}[]}) | undefined =
-        Array.isArray(tasks)
-          ? tasks.find(task =>
-              task.workflow_tasks?.find((d: {id: unknown}) => d.id === id),
-            )
-          : undefined
+        if (!res.ok || !res.data?.contractor) {
+          console.error('konsol webhook: act not found', actId, res.status)
+          return ok()
+        }
 
-      if (!act) return OK()
-
-      await insertPayment(act, Number(act.amount.slice(0, -2)), false)
-    } else if (action === 'billing_tcb.payment_succeeded') {
-      const id = toId(data.details?.task_id)
-
-      if (id === null) return OK()
-
-      const existing = await db.query(
-        'select id from payments.list where act_id = $1',
-        [id],
-      )
-
-      if (existing.rowCount) {
-        await db.query(
-          'update payments.list set paid = true where act_id = $1',
-          [id],
-        )
-
-        return OK()
+        await upsertActPayment(res.data, true)
       }
-
-      const res = await fetch(`https://api.konsol.pro/v2/acts/${id}`, {
-        method: 'GET',
-        headers: konsolHeaders,
-      })
-
-      const act: KonsolAct | null = await res.json().catch(() => null)
-
-      if (!act?.contractor) return OK()
-
-      await insertPayment(act, Number(act.amount), true)
     }
   } catch (e) {
-    console.error('[konsol webhook]', e instanceof Error ? e.message : e)
+    // всегда отвечаем 2xx, иначе Консоль будет ретраить до 20 раз
+    console.error('konsol webhook', action, e instanceof Error ? e.message : e)
   }
 
-  return OK()
+  return ok()
 }

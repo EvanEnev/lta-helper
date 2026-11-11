@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
 
       const duties: KonsolBody['duties'] = [
         {
-          template_id: 75920,
+          template_id: 122343,
           quantity: 1,
           price: salary.value,
         },

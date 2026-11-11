@@ -4,6 +4,21 @@ import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
 import checkPermissions from '@/lib/functions/checkPermissions'
 import db from '@/lib/database'
+import {konsolErrorMessage, konsolFetch} from '@/lib/konsol'
+
+const PER_PAGE = 100
+
+interface KonsolAct {
+  id: number
+  number: string
+  status: string
+  start_date: string
+  payment_amount: number
+  contractor: {
+    first_name: string
+    last_name: string
+  }
+}
 
 interface Act {
   id: number
@@ -49,51 +64,36 @@ export async function POST(req: NextRequest) {
 
   const acts: Act[] = []
 
-  try {
-    let page = 0
-    let hasNext = true
+  for (let page = 1; ; page++) {
+    const res = await konsolFetch<KonsolAct[]>(
+      `/v2/acts?date_from=${startDate}&date_to=${endDate}&status=accepted&per=${PER_PAGE}&page=${page}`,
+    )
 
-    while (hasNext) {
-      page++
-
-      const url = new URL('https://api.konsol.pro/v2/acts')
-      url.searchParams.set('date_from', startDate)
-      url.searchParams.set('date_to', endDate)
-      url.searchParams.set('page', String(page))
-
-      const res = await fetch(url, {
-        headers: {Authorization: `Bearer ${process.env.KONSOL_TOKEN}`},
-      })
-
-      if (!res.ok) return fail(`Консоль вернула ошибку ${res.status}`, 502)
-
-      const data = await res.json()
-
-      for (const act of Array.isArray(data) ? data : []) {
-        if (act.status === 'paid') {
-          acts.push({
-            number: act.number,
-            id: act.id,
-            date: act.start_date,
-            amount: act.payment_amount,
-            contractor: {
-              first_name: act.contractor.first_name,
-              last_name: act.contractor.last_name,
-            },
-          })
-        }
-      }
-
-      hasNext = res.headers.get('x-has-next-page') === 'true'
+    if (!res.ok || !Array.isArray(res.data)) {
+      return fail(konsolErrorMessage(res, 'Не удалось получить акты'), 502)
     }
-  } catch (e) {
-    console.error(e)
 
-    return fail('Не удалось получить данные из Консоли', 502)
+    if (!res.data.length) break
+
+    for (const act of res.data) {
+      if (act.status === 'paid') {
+        acts.push({
+          number: act.number,
+          id: act.id,
+          date: act.start_date,
+          amount: act.payment_amount,
+          contractor: {
+            first_name: act.contractor.first_name,
+            last_name: act.contractor.last_name,
+          },
+        })
+      }
+    }
   }
 
   const client = await db.connect()
   const skipped: string[] = []
+  const failed: string[] = []
   let imported = 0
 
   try {
@@ -116,21 +116,29 @@ export async function POST(req: NextRequest) {
         continue
       }
 
-      await client.query(
-        `insert into payments.list (worker_id, payment_type, date, act_id, value, paid, comment)
+      try {
+        await client.query('savepoint act')
+        await client.query(
+          `insert into payments.list (worker_id, payment_type, date, act_id, value, paid, comment)
          values ($1, 2, $2::date, $3, $4, true, $5)
          on conflict (worker_id, act_id) do update set date = excluded.date,
                                                        value = excluded.value,
                                                        comment = excluded.comment`,
-        [
-          match.rows[0].id,
-          act.date,
-          act.id,
-          act.amount,
-          `Выплата по акту №${act.number}`,
-        ],
-      )
-      imported++
+          [
+            match.rows[0].id,
+            act.date,
+            act.id,
+            act.amount,
+            `Выплата по акту №${act.number}`,
+          ],
+        )
+        await client.query('release savepoint act')
+        imported++
+      } catch (e) {
+        await client.query('rollback to savepoint act')
+        console.error(e)
+        failed.push(act.number)
+      }
     }
 
     await client.query('commit')
@@ -143,13 +151,15 @@ export async function POST(req: NextRequest) {
     client.release()
   }
 
+  const warnings = [
+    skipped.length
+      ? `Не перенесены (сотрудник не найден или не однозначен): ${[...new Set(skipped)].join(', ')}`
+      : '',
+    failed.length ? `Не перенесены акты: ${failed.join(', ')}` : '',
+  ].filter(Boolean)
+
   return NextResponse.json(
-    {
-      imported,
-      warning: skipped.length
-        ? `Не перенесены (сотрудник не найден или не однозначен): ${[...new Set(skipped)].join(', ')}`
-        : '',
-    },
-    {status: 200},
+    {imported, warning: warnings.join('\n')},
+    {status: failed.length ? 207 : 200},
   )
 }

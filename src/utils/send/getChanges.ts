@@ -35,7 +35,7 @@ export default async function getChanges({
 
   const lastColumnLetter = sheet.lastColumnLetter
 
-  await sheet.loadCells(`G${rowNumber}:${lastColumnLetter}${rowNumber}`)
+  await sheet.loadCells(`F${rowNumber}:${lastColumnLetter}${rowNumber}`)
 
   const comments = (
     await db.query(
