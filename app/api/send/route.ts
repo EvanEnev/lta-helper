@@ -8,6 +8,7 @@ import {NextRequest, NextResponse} from 'next/server'
 import {DateTime} from 'luxon'
 import {auth} from '@/lib/auth'
 import {headers} from 'next/headers'
+import {isDemo} from '@/lib/demo'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -49,6 +50,25 @@ export async function POST(req: NextRequest) {
 
   if (!worker.name) {
     return NextResponse.json({}, {status: 404})
+  }
+
+  if (isDemo) {
+    for (const day of selectedDays) {
+      await db.query(
+        `insert into schedule.list (worker_id, date, value, comment)
+         values ($1, $2::date, $3, $4)
+         on conflict (worker_id, date)
+         do update set value = excluded.value, comment = excluded.comment`,
+        [
+          worker.id,
+          day.date?.toFormat('yyyy-MM-dd'),
+          day.value,
+          day.comment || '',
+        ],
+      )
+    }
+
+    return NextResponse.json({warning: ''}, {status: 200})
   }
 
   await google.schedule.loadInfo()

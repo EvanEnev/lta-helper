@@ -36,7 +36,12 @@ app.prepare().then(async () => {
 
   const scheduler = process.env.PUSH_SCHEDULER
 
-  if (scheduler ? scheduler === 'on' : !dev) startScheduler()
+  if (
+    process.env.DEMO_MODE !== 'true' &&
+    (scheduler ? scheduler === 'on' : !dev)
+  ) {
+    startScheduler()
+  }
 
   let closing = false
 

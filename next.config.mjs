@@ -4,6 +4,7 @@ const nextConfig = {
   serverExternalPackages: [
     'sharp',
     'pg',
+    '@electric-sql/pglite',
     'semver',
     'jszip',
     'readable-stream',

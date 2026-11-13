@@ -70,6 +70,11 @@ server.ts             Next + Socket.IO
 - Push: отправка `lib/push/send.ts`, подписки в `relations.workers_notifications` (одна запись на устройство), задачи `lib/push/jobs/*`, планировщик `lib/push/scheduler.ts` стартует в `server.ts`.
 - Переменные: `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (https: или mailto:), `PUSH_SCHEDULER` (`on`/`off`, по умолчанию включён только в продакшене), `SHIFTS_REMINDER_HOURS_BEFORE` (за сколько часов до конца смены самого позднего админа локации, по умолчанию 2; админы берутся из `schedule.locations_schedule` и должны иметь право `set_salary`), `SHIFTS_DEFAULT_END` (конец смены, если время не указано, по умолчанию 19:00 МСК), `KONSOL_WEBHOOK_SECRET`, `SENDQUERY_DATABASE_USER`/`SENDQUERY_DATABASE_PASSWORD`.
 
+## Демо-режим
+
+- `DEMO_MODE=true` в `.env`: БД заменяется встроенным PGlite (`lib/demo/db.ts`, схема `lib/demo/schema.sql`, данные `lib/demo/seed.sql`, всё в памяти и пересоздаётся при старте), вход отключён (`lib/demo/auth.ts`, админ с id 9), Telegram/Konsol/push заглушены (`lib/demo/stubs.ts`, `instrumentation.ts`), `/api/send` пишет график только в БД.
+- Новая таблица или колонка в боевой БД: обновить `schema.sql` и `seed.sql`.
+
 ## Дата и время
 
 Luxon, часовой пояс `Europe/Moscow`:

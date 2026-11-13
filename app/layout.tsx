@@ -5,6 +5,7 @@ import {Inter, Geist} from 'next/font/google'
 import Script from 'next/script'
 import Providers from '@/src/components/global/providers/Providers'
 import {cn} from '@/lib/utils'
+import {isDemo} from '@/lib/demo'
 
 const geist = Geist({subsets: ['latin'], variable: '--font-sans'})
 
@@ -29,10 +30,18 @@ export const viewport: Viewport = {
   maximumScale: 1,
 }
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const DemoTranslator = isDemo
+    ? (await import('@/src/components/demo/DemoTranslator')).default
+    : null
+
   return (
     <html
-      lang="ru"
+      lang={isDemo ? 'en' : 'ru'}
       className={cn('dark overflow-auto!', 'font-sans', geist.variable)}
       suppressHydrationWarning>
       <head>
@@ -43,6 +52,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       </head>
       <body className={inter.className + ' background'}>
         <Providers>{children}</Providers>
+        {DemoTranslator && <DemoTranslator />}
       </body>
     </html>
   )

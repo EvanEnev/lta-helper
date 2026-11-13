@@ -2,6 +2,7 @@ import type {Socket} from 'socket.io'
 import type {Client} from 'pg'
 import {getData} from '../auth/getWorkerData'
 import checkPermissions from '../functions/checkPermissions'
+import {DEMO_AUTH_ID, isDemo} from '../demo'
 
 const SESSION_COOKIE = /(?:^|;\s*)(?:__Secure-)?auth\.session_token=([^;]+)/
 
@@ -29,6 +30,12 @@ const getToken = (socket: Socket) => {
 }
 
 async function loadWorker(socket: Socket, client: Client) {
+  if (isDemo) {
+    const {worker} = await getData(DEMO_AUTH_ID, DEMO_AUTH_ID, false)
+
+    return worker.id ? worker : null
+  }
+
   const token = getToken(socket)
   if (!token) return null
 

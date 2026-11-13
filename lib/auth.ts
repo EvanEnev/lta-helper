@@ -5,108 +5,115 @@ import {Pool} from 'pg'
 import {customSession, genericOAuth} from 'better-auth/plugins'
 import generateCustomSession from '@/lib/auth/generateCustomSession'
 import db from '@/lib/database'
+import {isDemo} from '@/lib/demo'
+import {demoAuth} from '@/lib/demo/auth'
 
-export const auth = betterAuth({
-  database: new Pool({
-    user: process.env.AUTH_USER,
-    password: process.env.AUTH_PASSWORD,
-    host: process.env.DATABASE_URL,
-    port: parseInt(process.env.DATABASE_PORT!),
-    database: process.env.DATABASE_NAME,
-  }),
-  user: {
-    additionalFields: {
-      email: {type: 'string'},
-      firstName: {type: 'string'},
-      id: {type: 'number'},
-      isFormer: {type: 'boolean'},
-      lastName: {type: 'string'},
-      location: {type: 'string'},
-      middleName: {type: 'string'},
-      name: {type: 'string'},
-      permissions: {type: 'string[]'},
-      phoneNumber: {type: 'string'},
-      photoUrl: {type: 'string'},
-      rank: {type: 'string'},
-      telegramId: {type: 'number'},
-      number: {type: 'number'},
-      balance: {type: 'number'},
+const createAuth = () =>
+  betterAuth({
+    database: new Pool({
+      user: process.env.AUTH_USER,
+      password: process.env.AUTH_PASSWORD,
+      host: process.env.DATABASE_URL,
+      port: parseInt(process.env.DATABASE_PORT!),
+      database: process.env.DATABASE_NAME,
+    }),
+    user: {
+      additionalFields: {
+        email: {type: 'string'},
+        firstName: {type: 'string'},
+        id: {type: 'number'},
+        isFormer: {type: 'boolean'},
+        lastName: {type: 'string'},
+        location: {type: 'string'},
+        middleName: {type: 'string'},
+        name: {type: 'string'},
+        permissions: {type: 'string[]'},
+        phoneNumber: {type: 'string'},
+        photoUrl: {type: 'string'},
+        rank: {type: 'string'},
+        telegramId: {type: 'number'},
+        number: {type: 'number'},
+        balance: {type: 'number'},
+      },
     },
-  },
-  databaseHooks: {
-    account: {
-      create: {
-        after: async account => {
-          if (
-            account.providerId !== 'telegram' ||
-            !/^\d+$/.test(account.accountId)
-          ) {
-            return
-          }
+    databaseHooks: {
+      account: {
+        create: {
+          after: async account => {
+            if (
+              account.providerId !== 'telegram' ||
+              !/^\d+$/.test(account.accountId)
+            ) {
+              return
+            }
 
-          await db.query(
-            'update workers set telegram_id = $1 where auth_id = $2 and telegram_id is null',
-            [Number(account.accountId), account.userId],
-          )
+            await db.query(
+              'update workers set telegram_id = $1 where auth_id = $2 and telegram_id is null',
+              [Number(account.accountId), account.userId],
+            )
+          },
         },
       },
     },
-  },
-  onAPIError: {errorURL: '/login'},
-  advanced: {
-    cookiePrefix: 'auth',
-  },
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60,
+    onAPIError: {errorURL: '/login'},
+    advanced: {
+      cookiePrefix: 'auth',
     },
-  },
-  plugins: [
-    genericOAuth({
-      config: [
-        {
-          providerId: 'telegram',
-          clientId: process.env.TELEGRAM_CLIENT_ID!,
-          clientSecret: process.env.TELEGRAM_CLIENT_SECRET,
-          discoveryUrl:
-            'https://oauth.telegram.org/.well-known/openid-configuration',
-          pkce: true,
-          scopes: ['openid', 'profile', 'phone', 'telegram:bot_access'],
-          getUserInfo: async (tokens: OAuth2Tokens) => {
-            const decoded = jwt.decode(tokens.idToken || '') as any
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60,
+      },
+    },
+    plugins: [
+      genericOAuth({
+        config: [
+          {
+            providerId: 'telegram',
+            clientId: process.env.TELEGRAM_CLIENT_ID!,
+            clientSecret: process.env.TELEGRAM_CLIENT_SECRET,
+            discoveryUrl:
+              'https://oauth.telegram.org/.well-known/openid-configuration',
+            pkce: true,
+            scopes: ['openid', 'profile', 'phone', 'telegram:bot_access'],
+            getUserInfo: async (tokens: OAuth2Tokens) => {
+              const decoded = jwt.decode(tokens.idToken || '') as any
 
-            return {
-              id: decoded.sub,
-              email: `${decoded.id}`,
-              name: decoded.preferred_username,
-              image: decoded.picture,
-              emailVerified: true,
-            }
+              return {
+                id: decoded.sub,
+                email: `${decoded.id}`,
+                name: decoded.preferred_username,
+                image: decoded.picture,
+                emailVerified: true,
+              }
+            },
           },
-        },
-      ],
-    }),
-    nextCookies(),
-    customSession(async ({user, session}) => {
-      return generateCustomSession({user, session})
-    }),
-  ],
-  emailAndPassword: {
-    enabled: true,
-  },
-  baseURL: process.env.BETTER_AUTH_URL,
-  socialProviders: {
-    google: {
-      prompt: 'select_account',
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-    },
-  },
-  account: {
-    accountLinking: {
+        ],
+      }),
+      nextCookies(),
+      customSession(async ({user, session}) => {
+        return generateCustomSession({user, session})
+      }),
+    ],
+    emailAndPassword: {
       enabled: true,
-      allowDifferentEmails: true,
     },
-  },
-})
+    baseURL: process.env.BETTER_AUTH_URL,
+    socialProviders: {
+      google: {
+        prompt: 'select_account',
+        clientId: process.env.NEXT_PUBLIC_GOOGLE_AUTH_CLIENT_ID as string,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      },
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        allowDifferentEmails: true,
+      },
+    },
+  })
+
+export const auth = (isDemo ? demoAuth : createAuth()) as ReturnType<
+  typeof createAuth
+>
