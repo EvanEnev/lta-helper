@@ -1,7 +1,7 @@
 import {Pool, types} from 'pg'
 import {DateTime, Interval} from 'luxon'
-import {isDemo} from '@/lib/demo'
-import {demoDb} from '@/lib/demo/db'
+import {isDemo} from './demo'
+import {demoDb} from './demo/db'
 
 types.setTypeParser(1082, (val: string) =>
   DateTime.fromISO(val, {zone: 'Europe/Moscow'}),

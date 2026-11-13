@@ -1,6 +1,6 @@
 import {Client} from 'pg'
-import {isDemo} from '@/lib/demo'
-import {demoDb, getPglite} from '@/lib/demo/db'
+import {isDemo} from '../demo'
+import {demoDb, getPglite} from '../demo/db'
 import {Server as SocketIOServer} from 'socket.io'
 
 let client: Client
