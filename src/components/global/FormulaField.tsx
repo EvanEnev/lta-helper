@@ -27,12 +27,13 @@ export const safeEvaluate = (text: string): number | null => {
 
 export default function FormulaField({
   label,
-  value: initialValue = '',
+  value: rawValue,
   readOnly = false,
   className,
   callback,
   onCommit,
 }: FormulaFieldProps) {
+  const initialValue = rawValue ?? ''
   const id = useId()
   const [text, setText] = useState(initialValue)
   const [hasError, setHasError] = useState(false)
