@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
   for (let page = 1; ; page++) {
     const res = await konsolFetch<KonsolAct[]>(
-      `/v2/acts?date_from=${startDate}&date_to=${endDate}&status=accepted&per=${PER_PAGE}&page=${page}`,
+      `/v2/acts?date_from=${startDate}&status=accepted&per=${PER_PAGE}&page=${page}`,
     )
 
     if (!res.ok || !Array.isArray(res.data)) {
@@ -77,6 +77,8 @@ export async function POST(req: NextRequest) {
 
     for (const act of res.data) {
       if (act.status === 'paid') {
+        if (act.start_date < startDate || act.start_date > endDate) continue
+
         acts.push({
           number: act.number,
           id: act.id,
