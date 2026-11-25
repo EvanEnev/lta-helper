@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
        where worker_id = $2
          and payroll_id = $3
          and issue_confirmed is true
+         and exists (select 1 from payrolls.list p
+                     where p.id = $3 and p.take_by >= now()::date)
          and to_take = $1
          and ($4::boolean or location_id = $5::int)`,
       [
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     if (!result.rowCount) {
       return fail(
-        'Выдача недоступна: нет подтверждения, другая площадка или сумма изменилась',
+        'Выдача недоступна: нет подтверждения, другая площадка, сумма изменилась или срок выдачи истёк',
         409,
       )
     }

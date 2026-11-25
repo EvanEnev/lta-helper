@@ -73,8 +73,10 @@ export default function PayrollsDetailsPage({
   }, [data])
 
   const canIssue = useMemo(
-    () => checkPermissions(['issue_payrolls'], worker),
-    [worker],
+    () =>
+      checkPermissions(['issue_payrolls'], worker) &&
+      DateTime.fromISO(payroll.takeBy).endOf('day') >= DateTime.now(),
+    [worker, payroll.takeBy],
   )
   const canEdit = useMemo(
     () => checkPermissions(['edit_payrolls'], worker),

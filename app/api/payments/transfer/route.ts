@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
           number: act.number,
           id: act.id,
           date: act.start_date,
-          amount: act.payment_amount,
+          amount: Math.round(Number(act.payment_amount)),
           contractor: {
             first_name: act.contractor.first_name,
             last_name: act.contractor.last_name,
