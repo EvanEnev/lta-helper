@@ -80,7 +80,7 @@ const createAuth = () =>
               const decoded = jwt.decode(tokens.idToken || '') as any
 
               return {
-                id: decoded.sub,
+                id: String(decoded.id),
                 email: `${decoded.id}`,
                 name: decoded.preferred_username,
                 image: decoded.picture,
